@@ -30,11 +30,11 @@ function init() {
   const userColor = getRandomColor();
 
   // Status indicator
-  const statusEl = document.getElementById('status')!;
-  const docNameEl = document.getElementById('doc-name')!;
-  const usersEl = document.getElementById('users')!;
+  const statusEl = document.getElementById('status');
+  const docNameEl = document.getElementById('doc-name');
+  const usersEl = document.getElementById('users');
 
-  docNameEl.textContent = documentId;
+  if (docNameEl) docNameEl.textContent = documentId;
 
   // Yjs document
   const ydoc = new Y.Doc();
@@ -46,12 +46,16 @@ function init() {
     name: documentId,
     document: ydoc,
     onConnect() {
-      statusEl.textContent = 'Connected';
-      statusEl.className = 'status connected';
+      if (statusEl) {
+        statusEl.textContent = 'Connected';
+        statusEl.className = 'status connected';
+      }
     },
     onDisconnect() {
-      statusEl.textContent = 'Disconnected';
-      statusEl.className = 'status disconnected';
+      if (statusEl) {
+        statusEl.textContent = 'Disconnected';
+        statusEl.className = 'status disconnected';
+      }
     },
   });
 
@@ -78,7 +82,7 @@ function init() {
         userList.push(state.user.name);
       }
     });
-    usersEl.textContent = userList.join(', ');
+    if (usersEl) usersEl.textContent = userList.join(', ');
   });
 
   // Expose for debugging

@@ -10,18 +10,114 @@
   <header class="toolbar">
     <div class="toolbar-left">
       <h1 class="logo">OpenDesk</h1>
-      <span class="doc-label">Document:</span>
-      <span id="doc-name" class="doc-name">loading...</span>
     </div>
     <div class="toolbar-right">
-      <span id="status" class="status disconnected">Connecting...</span>
-      <span class="users-label">Editors:</span>
-      <span id="users" class="users">-</span>
+      <button id="new-doc-btn" class="btn btn-primary">New Document</button>
     </div>
   </header>
-  <main class="editor-wrapper">
-    <div id="editor"></div>
+  <main class="doc-list-wrapper">
+    <div id="doc-list" class="doc-list">
+      <div class="doc-list-loading">Loading documents...</div>
+    </div>
   </main>
-  <script src="editor.bundle.js?v=3"></script>
+
+  <script>
+    (function () {
+      const listEl = document.getElementById('doc-list');
+      const newBtn = document.getElementById('new-doc-btn');
+
+      function timeAgo(dateStr) {
+        const now = Date.now();
+        const then = new Date(dateStr).getTime();
+        const seconds = Math.floor((now - then) / 1000);
+        if (seconds < 5) return 'just now';
+        if (seconds < 60) return seconds + ' seconds ago';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return minutes + (minutes === 1 ? ' minute ago' : ' minutes ago');
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return hours + (hours === 1 ? ' hour ago' : ' hours ago');
+        const days = Math.floor(hours / 24);
+        if (days < 30) return days + (days === 1 ? ' day ago' : ' days ago');
+        const months = Math.floor(days / 30);
+        return months + (months === 1 ? ' month ago' : ' months ago');
+      }
+
+      function renderDocuments(docs) {
+        if (!docs.length) {
+          listEl.innerHTML =
+            '<div class="doc-list-empty">' +
+              '<p class="empty-title">No documents yet</p>' +
+              '<p class="empty-subtitle">Create your first document to get started.</p>' +
+            '</div>';
+          return;
+        }
+
+        listEl.innerHTML = '';
+        docs.forEach(function (doc) {
+          var row = document.createElement('a');
+          row.className = 'doc-row';
+          row.href = '/editor.html?doc=' + encodeURIComponent(doc.id);
+
+          var info = document.createElement('div');
+          info.className = 'doc-row-info';
+
+          var title = document.createElement('span');
+          title.className = 'doc-row-title';
+          title.textContent = doc.title || 'Untitled';
+
+          var time = document.createElement('span');
+          time.className = 'doc-row-time';
+          time.textContent = 'Updated ' + timeAgo(doc.updated_at);
+
+          info.appendChild(title);
+          info.appendChild(time);
+
+          var deleteBtn = document.createElement('button');
+          deleteBtn.className = 'btn btn-delete';
+          deleteBtn.textContent = 'Delete';
+          deleteBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var name = doc.title || 'Untitled';
+            if (!confirm('Delete "' + name + '"? This cannot be undone.')) return;
+            fetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
+              .then(function () { loadDocuments(); })
+              .catch(function (err) { console.error('Delete failed', err); });
+          });
+
+          row.appendChild(info);
+          row.appendChild(deleteBtn);
+          listEl.appendChild(row);
+        });
+      }
+
+      function loadDocuments() {
+        fetch('/api/documents')
+          .then(function (res) { return res.json(); })
+          .then(function (docs) { renderDocuments(docs); })
+          .catch(function (err) {
+            console.error('Failed to load documents', err);
+            listEl.innerHTML = '<div class="doc-list-empty"><p class="empty-title">Failed to load documents</p></div>';
+          });
+      }
+
+      newBtn.addEventListener('click', function () {
+        var title = prompt('Document title:');
+        if (!title) return;
+        fetch('/api/documents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: title })
+        })
+          .then(function (res) { return res.json(); })
+          .then(function (doc) {
+            window.location.href = '/editor.html?doc=' + encodeURIComponent(doc.id);
+          })
+          .catch(function (err) { console.error('Create failed', err); });
+      });
+
+      loadDocuments();
+    })();
+  </script>
 </body>
 </html>

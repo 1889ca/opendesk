@@ -187,6 +187,159 @@ body {
   margin: 1.5rem 0;
 }
 
+/* Document List */
+.doc-list-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.doc-list {
+  width: 100%;
+  max-width: 40rem;
+}
+
+.doc-list-loading {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 3rem 0;
+  font-size: 0.875rem;
+}
+
+.doc-list-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+
+.empty-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.empty-subtitle {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.doc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.doc-row:hover {
+  border-color: var(--accent);
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.08);
+}
+
+.doc-row:hover .btn-delete {
+  opacity: 1;
+}
+
+.doc-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.doc-row-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-row-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Buttons */
+.btn {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.btn-delete {
+  opacity: 0;
+  background: none;
+  color: var(--disconnected);
+  padding: 0.35rem 0.6rem;
+  font-size: 0.75rem;
+  transition: opacity 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-delete:hover {
+  background: #fee2e2;
+}
+
+/* Editor Title Input */
+.doc-title-input {
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  outline: none;
+  min-width: 8rem;
+  max-width: 20rem;
+  transition: border-color 0.15s;
+}
+
+.doc-title-input:focus {
+  border-color: var(--accent);
+}
+
+/* Back Link */
+.back-link {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.back-link:hover {
+  color: var(--accent);
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 1.25rem;
+  background: var(--border);
+}
+
 /* Collaboration cursors */
 .collaboration-cursor__caret {
   border-left: 2px solid;
