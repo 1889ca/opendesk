@@ -7,6 +7,13 @@
 set -euo pipefail
 
 HIVEMIND_PATH="${HIVEMIND_PATH:-$HOME/projects/hivemind/src/index.js}"
+
+if [[ ! -f "$HIVEMIND_PATH" ]]; then
+  echo "Error: hivemind not found at $HIVEMIND_PATH"
+  echo "Set HIVEMIND_PATH to the path of your hivemind index.js before running this script."
+  exit 1
+fi
+
 ROOT="$(git rev-parse --show-toplevel)"
 DECISIONS_DIR="$ROOT/decisions"
 DATE=$(date +%Y-%m-%d)

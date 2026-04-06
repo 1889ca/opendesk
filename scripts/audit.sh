@@ -51,8 +51,7 @@ for mod in $MODULE_LIST; do
   fi
 done
 
-TODO_COUNT=$(grep -r "TODO\|FIXME\|HACK\|XXX" "$ROOT/modules/" --include='*.ts' --include='*.tsx' --include='*.js' -c 2>/dev/null | tail -1 || echo "0")
-TODOS=$(grep -rn "TODO\|FIXME\|HACK\|XXX" "$ROOT/modules/" --include='*.ts' --include='*.tsx' --include='*.js' 2>/dev/null | head -30 || echo "(none)")
+TODOS=$(grep -rnE "TODO|FIXME|HACK|XXX" "$ROOT/modules/" --include='*.ts' --include='*.tsx' --include='*.js' 2>/dev/null | head -30 || echo "(none)")
 
 LARGE_FILES=$(find "$ROOT/modules/" -type f \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' \) -exec awk 'END{if(NR>200) print FILENAME": "NR" lines"}' {} \; 2>/dev/null || echo "(none)")
 
