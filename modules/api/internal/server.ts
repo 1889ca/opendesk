@@ -13,6 +13,7 @@ import {
   updateDocumentTitle,
 } from '../../storage/internal/pg.ts';
 import { getDocumentForExport } from '../../convert/internal/converter.ts';
+import { createConvertRoutes } from './convert-routes.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -21,6 +22,9 @@ export function startServer(port = 3000) {
   const { handleUpgrade } = createCollabServer();
 
   app.use(express.json());
+
+  // Collabora convert routes (import/export binary formats)
+  app.use(createConvertRoutes());
 
   // Serve static frontend
   const publicDir = resolve(__dirname, '../../app/internal/public');
