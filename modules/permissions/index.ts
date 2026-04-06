@@ -25,3 +25,19 @@ export {
   // Evaluation
   evaluate,
 } from './contract.ts';
+
+// Grant storage
+export {
+  type GrantStore,
+  createInMemoryGrantStore,
+} from './internal/grant-store.ts';
+
+// Middleware
+export { requirePermission, requireAuth } from './internal/middleware.ts';
+
+// Factory
+export {
+  createPermissions,
+  type PermissionsModule,
+  type PermissionsDependencies,
+} from './internal/create-permissions.ts';
