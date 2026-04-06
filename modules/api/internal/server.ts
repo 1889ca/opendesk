@@ -13,6 +13,8 @@ import {
   updateDocumentTitle,
 } from '../../storage/internal/pg.ts';
 import { getDocumentForExport } from '../../convert/internal/converter.ts';
+import { getRedisClient, disconnectRedis } from './redis.ts';
+import { idempotencyMiddleware } from './idempotency.ts';
 import { createConvertRoutes } from './convert-routes.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -22,6 +24,10 @@ export function startServer(port = 3000) {
   const { handleUpgrade } = createCollabServer();
 
   app.use(express.json());
+
+  // Idempotency middleware for mutating endpoints (POST, PUT, DELETE)
+  const redisClient = getRedisClient();
+  app.use('/api', idempotencyMiddleware({ cache: redisClient }));
 
   // Collabora convert routes (import/export binary formats)
   app.use(createConvertRoutes());
@@ -136,6 +142,15 @@ export function startServer(port = 3000) {
     console.log(`[opendesk] server running at http://localhost:${port}`);
     console.log(`[opendesk] WebSocket collab at ws://localhost:${port}/collab`);
   });
+
+  // Graceful shutdown: disconnect Redis on process exit
+  const shutdown = async () => {
+    console.log('[opendesk] shutting down...');
+    await disconnectRedis();
+    httpServer.close();
+  };
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
 
   return httpServer;
 }
