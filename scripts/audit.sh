@@ -12,13 +12,21 @@ ROOT="$(git rev-parse --show-toplevel)"
 AUDITS_DIR="$ROOT/audits"
 SCRIPTS_DIR="$ROOT/scripts"
 DATE=$(date +%Y-%m-%d)
+TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
 AUDIT_TYPE="full"
 TARGET_MODULE=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --security) AUDIT_TYPE="security"; shift ;;
-    --module) TARGET_MODULE="$2"; AUDIT_TYPE="module-$2"; shift 2 ;;
+    --module)
+      if [ $# -lt 2 ] || [ -z "$2" ]; then
+        echo "Usage: $0 --module <module-name>"; exit 1
+      fi
+      if ! echo "$2" | grep -qE '^[A-Za-z0-9_-]+$'; then
+        echo "Error: module name '$2' is invalid (allowed: A-Z a-z 0-9 _ -)"; exit 1
+      fi
+      TARGET_MODULE="$2"; AUDIT_TYPE="module-$2"; shift 2 ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
@@ -51,10 +59,9 @@ for mod in $MODULE_LIST; do
   fi
 done
 
-TODO_COUNT=$(grep -r "TODO\|FIXME\|HACK\|XXX" "$ROOT/modules/" --include='*.ts' --include='*.tsx' --include='*.js' -c 2>/dev/null | tail -1 || echo "0")
-TODOS=$(grep -rn "TODO\|FIXME\|HACK\|XXX" "$ROOT/modules/" --include='*.ts' --include='*.tsx' --include='*.js' 2>/dev/null | head -30 || echo "(none)")
+TODOS=$(grep -rnE "TODO|FIXME|HACK|XXX" "${MODULE_DIR:-$ROOT/modules/}" --include='*.ts' --include='*.tsx' --include='*.js' 2>/dev/null | head -30 || echo "(none)")
 
-LARGE_FILES=$(find "$ROOT/modules/" -type f \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' \) -exec awk 'END{if(NR>200) print FILENAME": "NR" lines"}' {} \; 2>/dev/null || echo "(none)")
+LARGE_FILES=$(find "${MODULE_DIR:-$ROOT/modules/}" -type f \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' \) -exec awk 'END{if(NR>200) print FILENAME": "NR" lines"}' {} \; 2>/dev/null || echo "(none)")
 
 # --- Compose the prompt ---
 
@@ -154,7 +161,7 @@ ${CONTEXT}"
 SLUG=$(echo "$TOPIC" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//' | cut -c1-60)
 DELIB_FILE="$ROOT/decisions/${DATE}-${SLUG}-deliberation.md"
 SUMMARY_FILE="$ROOT/decisions/${DATE}-${SLUG}.md"
-AUDIT_FILE="$AUDITS_DIR/${DATE}-${AUDIT_TYPE}.md"
+AUDIT_FILE="$AUDITS_DIR/${TIMESTAMP}-${AUDIT_TYPE}.md"
 
 # Copy the deliberation output to audits/
 if [ -f "$DELIB_FILE" ]; then

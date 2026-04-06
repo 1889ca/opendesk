@@ -15,6 +15,7 @@ import {
 import { getDocumentForExport } from '../../convert/internal/converter.ts';
 import { getRedisClient, disconnectRedis } from './redis.ts';
 import { idempotencyMiddleware } from './idempotency.ts';
+import { createConvertRoutes } from './convert-routes.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -27,6 +28,9 @@ export function startServer(port = 3000) {
   // Idempotency middleware for mutating endpoints (POST, PUT, DELETE)
   const redisClient = getRedisClient();
   app.use('/api', idempotencyMiddleware({ cache: redisClient }));
+
+  // Collabora convert routes (import/export binary formats)
+  app.use(createConvertRoutes());
 
   // Serve static frontend
   const publicDir = resolve(__dirname, '../../app/internal/public');
