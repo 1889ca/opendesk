@@ -27,7 +27,7 @@ export function createShareRoutes(service: ShareLinkService): Router {
     }
 
     // TODO: once auth middleware is wired, use req.principal.id
-    const grantorId = (req as Record<string, unknown>).principalId as string ?? 'anonymous';
+    const grantorId = (req as unknown as Record<string, unknown>).principalId as string ?? 'anonymous';
 
     const link = await service.create({
       docId,
