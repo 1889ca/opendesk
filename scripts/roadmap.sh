@@ -16,8 +16,8 @@ fi
 
 ROOT="$(git rev-parse --show-toplevel)"
 DECISIONS_DIR="$ROOT/decisions"
-DATE=$(date +%Y-%m-%d)
-OUTPUT_FILE="$DECISIONS_DIR/${DATE}-roadmap-revision.md"
+TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
+OUTPUT_FILE="$DECISIONS_DIR/${TIMESTAMP}-roadmap-revision.md"
 
 mkdir -p "$DECISIONS_DIR"
 
