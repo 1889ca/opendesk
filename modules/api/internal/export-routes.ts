@@ -24,7 +24,7 @@ export function createExportRoutes(opts: ExportRoutesOptions): Router {
       res.status(400).json({ error: 'format must be "html" or "text"' });
       return;
     }
-    const meta = await getDocumentForExport(req.params.id);
+    const meta = await getDocumentForExport(String(req.params.id));
     if (!meta) {
       res.status(404).json({ error: 'Document not found' });
       return;
@@ -51,7 +51,7 @@ export function createExportRoutes(opts: ExportRoutesOptions): Router {
       res.status(400).json({ error: 'html content is required' });
       return;
     }
-    const doc = await getDocument(req.params.id);
+    const doc = await getDocument(String(req.params.id));
     if (!doc) {
       res.status(404).json({ error: 'Document not found' });
       return;

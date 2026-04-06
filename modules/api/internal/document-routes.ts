@@ -50,7 +50,7 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
 
   // Get document — requires read permission
   router.get('/:id', permissions.require('read'), async (req: Request, res: Response) => {
-    const doc = await getDocument(req.params.id);
+    const doc = await getDocument(String(req.params.id));
     if (!doc) {
       res.status(404).json({ error: 'Document not found' });
       return;
@@ -65,13 +65,13 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
       res.status(400).json({ error: 'title is required' });
       return;
     }
-    await updateDocumentTitle(req.params.id, title);
+    await updateDocumentTitle(String(req.params.id), title);
     res.json({ ok: true });
   });
 
   // Delete document — requires delete permission
   router.delete('/:id', permissions.require('delete'), async (req: Request, res: Response) => {
-    const deleted = await deleteDocument(req.params.id);
+    const deleted = await deleteDocument(String(req.params.id));
     if (!deleted) {
       res.status(404).json({ error: 'Document not found' });
       return;

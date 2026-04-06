@@ -21,7 +21,10 @@ export type PermissionMiddlewareOptions = {
  */
 export function requirePermission(action: Action, opts: PermissionMiddlewareOptions) {
   const resourceType = opts.resourceType ?? 'document';
-  const getResourceId = opts.getResourceId ?? ((req: Request) => req.params.id);
+  const getResourceId = opts.getResourceId ?? ((req: Request) => {
+    const id = req.params.id;
+    return Array.isArray(id) ? id[0] : id;
+  });
 
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const principal = req.principal;

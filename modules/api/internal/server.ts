@@ -20,11 +20,11 @@ export function startServer(port = 3000) {
 
   // Wire auth module (dev mode uses bypass verifiers)
   const auth = createAuth({
-    serviceAccountStore: { findByHashedKey: async () => null },
+    serviceAccountStore: { findByKeyHash: async () => null },
     serviceAccountStorage: {
-      save: async () => {},
-      findById: async () => null,
-      delete: async () => {},
+      insertServiceAccount: async () => {},
+      findServiceAccountById: async () => null,
+      revokeServiceAccount: async () => {},
     },
     publicPaths: ['/api/health'],
   });
