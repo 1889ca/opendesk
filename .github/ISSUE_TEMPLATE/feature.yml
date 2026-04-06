@@ -1,0 +1,52 @@
+name: Feature Request
+description: Propose a new feature for OpenDesk
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the feature you would like to see.
+      placeholder: A clear description of the feature.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: What conditions must be met for this feature to be considered complete?
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: affected-modules
+    attributes:
+      label: Affected Modules
+      description: Which modules does this feature touch?
+      options:
+        - label: api
+        - label: app
+        - label: auth
+        - label: collab
+        - label: convert
+        - label: document
+        - label: events
+        - label: permissions
+        - label: sharing
+        - label: storage
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - low
+        - medium
+        - high
+    validations:
+      required: true

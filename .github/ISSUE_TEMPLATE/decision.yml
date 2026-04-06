@@ -1,0 +1,31 @@
+name: Architecture Decision
+description: Propose an architecture decision for OpenDesk
+title: "[Decision] "
+labels: ["architecture"]
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What is the situation or problem that requires a decision?
+    validations:
+      required: true
+
+  - type: textarea
+    id: options-considered
+    attributes:
+      label: Options Considered
+      description: What alternatives have been evaluated?
+      placeholder: |
+        1. Option A - ...
+        2. Option B - ...
+        3. Option C - ...
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: hivemind
+    attributes:
+      label: Deliberation
+      options:
+        - label: Requires Hivemind deliberation before finalizing
