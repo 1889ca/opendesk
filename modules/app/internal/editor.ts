@@ -2,8 +2,8 @@
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Collaboration from '@tiptap/extension-collaboration';
+import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 import { HocuspocusProvider } from '@hocuspocus/provider';
-// Cursor plugin deferred — y-prosemirror has a ProseMirror version mismatch with TipTap 3.x
 import * as Y from 'yjs';
 
 const COLORS = [
@@ -112,19 +112,17 @@ function init() {
     extensions: [
       StarterKit.configure({ undoRedo: false }),
       Collaboration.configure({ document: ydoc }),
+      CollaborationCursor.configure({
+        provider,
+        user: { name: user.name, color: user.color },
+      }),
     ],
     editorProps: {
       attributes: { class: 'editor-content' },
     },
   });
 
-  // Set awareness user info (used by user list, cursors deferred to Phase 2)
-  if (provider.awareness) {
-    provider.awareness.setLocalStateField('user', {
-      name: user.name,
-      color: user.color,
-    });
-  }
+  // Awareness user info is set by CollaborationCursor extension
 
   buildToolbar(editor);
 
