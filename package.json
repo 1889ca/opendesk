@@ -13,7 +13,10 @@
     "dev": "npm run build:frontend && node --import=tsx --watch server.ts",
     "test": "node --experimental-vm-modules node_modules/.bin/vitest",
     "lint": "eslint modules/",
-    "deliberate": "./scripts/deliberate.sh"
+    "deliberate": "./scripts/deliberate.sh",
+    "audit": "./scripts/audit.sh",
+    "audit:security": "./scripts/audit.sh --security",
+    "roadmap": "./scripts/roadmap.sh"
   },
   "dependencies": {
     "@hocuspocus/provider": "^3.4.4",
@@ -25,6 +28,7 @@
     "@tiptap/starter-kit": "^3.22.2",
     "@tiptap/y-tiptap": "^3.0.2",
     "express": "^5.2.1",
+    "ioredis": "^5.10.1",
     "pg": "^8.20.0",
     "y-prosemirror": "^1.3.7",
     "y-protocols": "^1.0.7",
@@ -36,6 +40,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.20.0",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.58.0",
     "@typescript-eslint/parser": "^8.58.0",
     "esbuild": "^0.28.0",
