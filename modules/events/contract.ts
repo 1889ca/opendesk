@@ -1,0 +1,95 @@
+/** Contract: contracts/events/rules.md */
+import { z } from 'zod';
+
+// --- EventType Registry ---
+
+export const EventType = {
+  DocumentUpdated: 'DocumentUpdated',
+  StateFlushed: 'StateFlushed',
+  GrantCreated: 'GrantCreated',
+  GrantRevoked: 'GrantRevoked',
+  ConversionRequested: 'ConversionRequested',
+  ExportReady: 'ExportReady',
+} as const;
+
+export type EventType = (typeof EventType)[keyof typeof EventType];
+
+export const EventTypeSchema = z.enum([
+  'DocumentUpdated',
+  'StateFlushed',
+  'GrantCreated',
+  'GrantRevoked',
+  'ConversionRequested',
+  'ExportReady',
+]);
+
+// --- Actor ---
+
+export const ActorTypeSchema = z.enum(['human', 'agent', 'system']);
+
+export type ActorType = z.infer<typeof ActorTypeSchema>;
+
+// --- DomainEvent (thin -- no payloads, no state vectors, no content) ---
+
+const uuidv4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const isoDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
+
+export const DomainEventSchema = z.object({
+  id: z.string().regex(uuidv4Regex, 'Must be a valid UUIDv4'),
+  type: EventTypeSchema,
+  aggregateId: z.string().min(1),
+  revisionId: z.string().optional(),
+  actorId: z.string().min(1),
+  actorType: ActorTypeSchema,
+  occurredAt: z.string().regex(isoDateRegex, 'Must be an ISO 8601 datetime string'),
+});
+
+export type DomainEvent = z.infer<typeof DomainEventSchema>;
+
+// --- Outbox Entry ---
+
+export const OutboxEntrySchema = DomainEventSchema.extend({
+  publishedAt: z.string().regex(isoDateRegex).nullable(),
+});
+
+export type OutboxEntry = z.infer<typeof OutboxEntrySchema>;
+
+// --- Consumer Group Management ---
+
+export const ConsumerGroupSchema = z.object({
+  name: z.string().min(1),
+  eventTypes: z.array(EventTypeSchema).min(1),
+});
+
+export type ConsumerGroup = z.infer<typeof ConsumerGroupSchema>;
+
+export const AcknowledgeRequestSchema = z.object({
+  consumerGroup: z.string().min(1),
+  eventId: z.string().regex(uuidv4Regex, 'Must be a valid UUIDv4'),
+});
+
+export type AcknowledgeRequest = z.infer<typeof AcknowledgeRequestSchema>;
+
+// --- Schema Registry ---
+
+export const EventTypeRegistrationSchema = z.object({
+  type: EventTypeSchema,
+  ownerModule: z.string().min(1),
+});
+
+export type EventTypeRegistration = z.infer<typeof EventTypeRegistrationSchema>;
+
+// --- EventBus Interface ---
+
+export type PgTransaction = unknown;
+
+export interface EventBus {
+  emit(event: DomainEvent, pgTransaction: PgTransaction): Promise<void>;
+  subscribe(consumerGroup: string, eventTypes: EventType[]): Promise<void>;
+  acknowledge(consumerGroup: string, eventId: string): Promise<void>;
+  registerEventType(type: EventType, ownerModule: string): Promise<void>;
+}
+
+// --- Subscriber Callback ---
+
+export type EventHandler = (event: DomainEvent) => Promise<void>;

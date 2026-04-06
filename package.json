@@ -1,0 +1,24 @@
+{
+  "name": "opendesk",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Sovereign, agent-first open office suite",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "build": "tsc",
+    "check": "tsc --noEmit",
+    "test": "node --experimental-vm-modules node_modules/.bin/vitest",
+    "lint": "eslint modules/",
+    "deliberate": "./scripts/deliberate.sh"
+  },
+  "dependencies": {
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.1.0",
+    "eslint": "^9.0.0"
+  }
+}
