@@ -21,3 +21,14 @@ export type {
   ExportReadyEvent,
   FlushConfig,
 } from './contract.ts';
+
+// MVP converter
+export {
+  getDocumentForExport,
+  convertViaCollabora,
+} from './internal/converter.ts';
+
+export type {
+  MvpExportFormat,
+  MvpExportResult,
+} from './internal/converter.ts';

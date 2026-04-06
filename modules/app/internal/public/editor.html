@@ -20,11 +20,17 @@
       />
     </div>
     <div class="toolbar-right">
+      <div class="export-group">
+        <button id="export-html" class="export-btn" title="Export as HTML">HTML</button>
+        <button id="export-text" class="export-btn" title="Export as plain text">Text</button>
+      </div>
+      <span class="toolbar-separator"></span>
       <span id="status" class="status disconnected">Connecting...</span>
       <span class="users-label">Editors:</span>
       <span id="users" class="users">-</span>
     </div>
   </header>
+  <div id="formatting-toolbar" class="formatting-toolbar"></div>
   <main class="editor-wrapper">
     <div id="editor"></div>
   </main>
@@ -75,6 +81,53 @@
       }
     })();
   </script>
-  <script src="editor.bundle.js?v=4"></script>
+  <script>
+    (function () {
+      function downloadBlob(content, filename, mimeType) {
+        var blob = new Blob([content], { type: mimeType });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      function getTitle() {
+        var input = document.getElementById('doc-title');
+        return (input && input.value && input.value.trim()) || 'document';
+      }
+
+      function waitForEditor(cb) {
+        if (window.editor) return cb(window.editor);
+        var attempts = 0;
+        var interval = setInterval(function () {
+          attempts++;
+          if (window.editor) { clearInterval(interval); cb(window.editor); }
+          if (attempts > 100) clearInterval(interval);
+        }, 100);
+      }
+
+      document.getElementById('export-html').addEventListener('click', function () {
+        waitForEditor(function (editor) {
+          var html = editor.getHTML();
+          var title = getTitle();
+          var fullHtml = '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title>'
+            + title + '</title>\n</head>\n<body>\n' + html + '\n</body>\n</html>';
+          downloadBlob(fullHtml, title + '.html', 'text/html');
+        });
+      });
+
+      document.getElementById('export-text').addEventListener('click', function () {
+        waitForEditor(function (editor) {
+          var text = editor.getText();
+          downloadBlob(text, getTitle() + '.txt', 'text/plain');
+        });
+      });
+    })();
+  </script>
+  <script src="editor.bundle.js?v=7"></script>
 </body>
 </html>

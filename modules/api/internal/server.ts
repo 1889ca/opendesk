@@ -12,6 +12,7 @@ import {
   deleteDocument,
   updateDocumentTitle,
 } from '../../storage/internal/pg.ts';
+import { getDocumentForExport } from '../../convert/internal/converter.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -73,6 +74,47 @@ export function startServer(port = 3000) {
       return;
     }
     res.json({ ok: true });
+  });
+
+  // Export document (MVP: returns metadata; actual content comes client-side)
+  app.post('/api/documents/:id/export', async (req, res) => {
+    const format = req.body?.format;
+    if (!format || !['html', 'text'].includes(format)) {
+      res.status(400).json({ error: 'format must be "html" or "text"' });
+      return;
+    }
+    const meta = await getDocumentForExport(req.params.id);
+    if (!meta) {
+      res.status(404).json({ error: 'Document not found' });
+      return;
+    }
+    // For MVP, the client sends content along with the request
+    const content = req.body?.content;
+    if (!content && content !== '') {
+      res.status(400).json({ error: 'content is required (client-side export)' });
+      return;
+    }
+    const filename = `${meta.title || 'document'}.${format === 'html' ? 'html' : 'txt'}`;
+    const contentType = format === 'html' ? 'text/html; charset=utf-8' : 'text/plain; charset=utf-8';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+    res.send(content);
+  });
+
+  // Import HTML file into document (MVP: accept raw HTML in body)
+  app.post('/api/documents/:id/import', async (req, res) => {
+    const html = req.body?.html;
+    if (!html) {
+      res.status(400).json({ error: 'html content is required' });
+      return;
+    }
+    const doc = await getDocument(req.params.id);
+    if (!doc) {
+      res.status(404).json({ error: 'Document not found' });
+      return;
+    }
+    // For MVP, we return the HTML and let the client set it via editor.commands.setContent()
+    res.json({ ok: true, html, documentId: req.params.id });
   });
 
   const httpServer = createServer(app);
