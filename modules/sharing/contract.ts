@@ -35,6 +35,7 @@ export type Grant = z.infer<typeof GrantSchema>;
 export const ShareLinkOptionsSchema = z.object({
   expiresIn: z.number().int().positive().optional(),
   maxRedemptions: z.number().int().positive().optional(),
+  password: z.string().min(1).optional(),
 });
 
 export type ShareLinkOptions = z.infer<typeof ShareLinkOptionsSchema>;
@@ -50,6 +51,7 @@ export const ShareLinkSchema = z.object({
   maxRedemptions: z.number().int().positive().optional(),
   redemptionCount: z.number().int().nonnegative(),
   revoked: z.boolean(),
+  passwordHash: z.string().optional(),
   createdAt: isoStringSchema,
 });
 

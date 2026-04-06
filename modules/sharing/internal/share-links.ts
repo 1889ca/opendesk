@@ -1,0 +1,92 @@
+/** Contract: contracts/sharing/rules.md */
+
+import { randomBytes, createHash } from 'node:crypto';
+import type { ShareLink, ShareLinkOptions, GrantRole } from '../contract.ts';
+import type { ShareLinkStore } from './store.ts';
+
+/** Hash a password with SHA-256 (consistent with auth module). */
+export function hashPassword(password: string): string {
+  return createHash('sha256').update(password).digest('hex');
+}
+
+/** Generate a cryptographically random token (256 bits / 32 bytes). */
+export function generateToken(): string {
+  return randomBytes(32).toString('hex');
+}
+
+export interface CreateShareLinkInput {
+  docId: string;
+  grantorId: string;
+  role: GrantRole;
+  options?: ShareLinkOptions;
+}
+
+export interface ShareLinkService {
+  create(input: CreateShareLinkInput): Promise<ShareLink>;
+  resolve(token: string, password?: string): Promise<ShareLinkResult>;
+  revoke(token: string): Promise<boolean>;
+}
+
+export type ShareLinkResult =
+  | { ok: true; link: ShareLink }
+  | { ok: false; reason: 'not_found' | 'expired' | 'revoked' | 'exhausted' | 'wrong_password' };
+
+export function createShareLinkService(store: ShareLinkStore): ShareLinkService {
+  return {
+    async create(input) {
+      const now = new Date().toISOString();
+      const expiresAt = input.options?.expiresIn
+        ? new Date(Date.now() + input.options.expiresIn * 1000).toISOString()
+        : undefined;
+
+      const link: ShareLink = {
+        token: generateToken(),
+        docId: input.docId,
+        grantorId: input.grantorId,
+        role: input.role,
+        expiresAt,
+        maxRedemptions: input.options?.maxRedemptions,
+        redemptionCount: 0,
+        revoked: false,
+        passwordHash: input.options?.password
+          ? hashPassword(input.options.password)
+          : undefined,
+        createdAt: now,
+      };
+
+      await store.save(link);
+      return link;
+    },
+
+    async resolve(token, password) {
+      const link = await store.findByToken(token);
+      if (!link) return { ok: false, reason: 'not_found' };
+      if (link.revoked) return { ok: false, reason: 'revoked' };
+
+      if (link.expiresAt && new Date(link.expiresAt) <= new Date()) {
+        return { ok: false, reason: 'expired' };
+      }
+
+      if (link.maxRedemptions && link.redemptionCount >= link.maxRedemptions) {
+        return { ok: false, reason: 'exhausted' };
+      }
+
+      if (link.passwordHash) {
+        if (!password) return { ok: false, reason: 'wrong_password' };
+        if (hashPassword(password) !== link.passwordHash) {
+          return { ok: false, reason: 'wrong_password' };
+        }
+      }
+
+      await store.update(token, { redemptionCount: link.redemptionCount + 1 });
+      return { ok: true, link };
+    },
+
+    async revoke(token) {
+      const link = await store.findByToken(token);
+      if (!link) return false;
+      await store.update(token, { revoked: true });
+      return true;
+    },
+  };
+}

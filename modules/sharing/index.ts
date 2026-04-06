@@ -23,3 +23,22 @@ export type {
   GrantCreatedEvent,
   GrantRevokedEvent,
 } from './contract.ts';
+
+// Share link service
+export {
+  createShareLinkService,
+  hashPassword,
+  generateToken,
+  type ShareLinkService,
+  type ShareLinkResult,
+  type CreateShareLinkInput,
+} from './internal/share-links.ts';
+
+// Store
+export {
+  createInMemoryShareLinkStore,
+  type ShareLinkStore,
+} from './internal/store.ts';
+
+// Routes
+export { createShareRoutes } from './internal/routes.ts';
