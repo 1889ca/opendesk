@@ -13,7 +13,10 @@
     "dev": "npm run build:frontend && node --import=tsx --watch server.ts",
     "test": "node --experimental-vm-modules node_modules/.bin/vitest",
     "lint": "eslint modules/",
-    "deliberate": "./scripts/deliberate.sh"
+    "deliberate": "./scripts/deliberate.sh",
+    "audit": "./scripts/audit.sh",
+    "audit:security": "./scripts/audit.sh --security",
+    "roadmap": "./scripts/roadmap.sh"
   },
   "dependencies": {
     "@hocuspocus/provider": "^3.4.4",
@@ -30,9 +33,13 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/express": "^5.0.6",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.20.0",
+    "@types/ws": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
     "esbuild": "^0.28.0",
     "eslint": "^9.0.0",
     "tsx": "^4.21.0",

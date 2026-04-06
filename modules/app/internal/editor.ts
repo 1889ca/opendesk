@@ -133,7 +133,7 @@ function init() {
     if (!usersEl || !provider.awareness) return;
     const states = provider.awareness.getStates();
     const names: string[] = [];
-    states.forEach((state) => {
+    states.forEach((state: Record<string, any>) => {
       if (state.user?.name) names.push(state.user.name);
     });
     usersEl.textContent = names.join(', ') || '-';

@@ -1,6 +1,5 @@
 /** Contract: contracts/document/rules.md */
-import type { TextDocumentSnapshot, Migration } from '../contract.ts';
-import { TextSchemaVersion, TextDocumentSnapshotSchema } from '../contract.ts';
+import { type TextDocumentSnapshot, type Migration, TextSchemaVersion, TextDocumentSnapshotSchema } from '../contract.ts';
 
 const migrations: Migration[] = [
   // Add migrations here as schema versions are added:
