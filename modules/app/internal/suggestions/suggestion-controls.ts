@@ -2,6 +2,7 @@
 import type { Editor } from '@tiptap/core';
 import { t } from '../i18n/index.ts';
 import { acceptSuggestion, rejectSuggestion } from './suggestion-actions.ts';
+import { formatRelativeTime } from '../time-format.ts';
 
 let activePopover: HTMLElement | null = null;
 
@@ -77,14 +78,7 @@ export function showSuggestionPopover(
 }
 
 function formatTime(iso: string): string {
-  const date = new Date(iso);
-  const diff = Date.now() - date.getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return t('time.justNow');
-  if (minutes < 60) return t('time.minutesAgo', { n: minutes });
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return t('time.hoursAgo', { n: hours });
-  return date.toLocaleDateString();
+  return formatRelativeTime(iso);
 }
 
 /**

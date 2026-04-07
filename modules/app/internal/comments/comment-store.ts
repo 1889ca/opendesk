@@ -9,10 +9,18 @@ import type { CommentData, CommentChangeListener } from './types.ts';
 export class CommentStore {
   private readonly yArray: Y.Array<CommentData>;
   private readonly listeners: CommentChangeListener[] = [];
+  private readonly observeHandler: () => void;
 
   constructor(ydoc: Y.Doc) {
     this.yArray = ydoc.getArray<CommentData>('comments');
-    this.yArray.observe(() => this.notify());
+    this.observeHandler = () => this.notify();
+    this.yArray.observe(this.observeHandler);
+  }
+
+  /** Unobserve the Yjs array and clear all listeners to prevent memory leaks. */
+  destroy(): void {
+    this.yArray.unobserve(this.observeHandler);
+    this.listeners.length = 0;
   }
 
   /** Subscribe to changes. Returns unsubscribe function. */

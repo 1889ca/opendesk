@@ -81,8 +81,8 @@ Implemented:
 - [x] Agent-human evaluation parity
 - [x] No collab dependency (no direct imports)
 - [x] Grant CRUD operations via storage
+- [x] `reason` string in every `PermissionResult`
 
 Post-MVP (deferred):
 - [ ] `GrantCreated` event emission — requires events module implementation
 - [ ] `GrantRevoked` event emission — requires events module implementation
-- [ ] `reason` string in every `PermissionResult` — currently returns boolean-style results
