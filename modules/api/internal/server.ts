@@ -1,7 +1,8 @@
 /** Contract: contracts/api/rules.md */
 import { createServer } from 'node:http';
 import express, { type Request, type Response, type NextFunction } from 'express';
-import { resolve, dirname } from 'node:path';
+import { resolve, dirname, join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createCollabServer } from '../../collab/index.ts';
 import { getRedisClient, disconnectRedis } from './redis.ts';
@@ -27,6 +28,9 @@ import { pool, initSchema } from '../../storage/index.ts';
 import { ensureS3Bucket } from './s3-client.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const PKG_VERSION = JSON.parse(
+  readFileSync(join(__dirname, '../../../package.json'), 'utf-8'),
+).version as string;
 
 export async function startServer(port = 3000) {
   try {
@@ -87,7 +91,7 @@ export async function startServer(port = 3000) {
   app.get('/api/health', async (_req, res) => {
     try {
       await pool.query('SELECT 1');
-      res.json({ status: 'ok', version: '0.1.0' });
+      res.json({ status: 'ok', version: PKG_VERSION });
     } catch {
       res.status(503).json({ status: 'unhealthy' });
     }
