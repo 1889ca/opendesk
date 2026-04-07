@@ -1,6 +1,6 @@
 /** Contract: contracts/api/rules.md */
 import { createServer } from 'node:http';
-import express from 'express';
+import express, { type Request, type Response, type NextFunction } from 'express';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createCollabServer } from '../../collab/internal/server.ts';
@@ -62,6 +62,12 @@ export function startServer(port = 3000) {
 
   // Export/import routes with permission checks
   app.use('/api/documents', createExportRoutes({ permissions }));
+
+  // Global error handler — must be registered LAST (after all routes)
+  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+    console.error('[opendesk] unhandled error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  });
 
   const httpServer = createServer(app);
 

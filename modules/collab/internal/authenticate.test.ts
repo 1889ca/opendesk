@@ -53,7 +53,7 @@ function makeAuthData(overrides: Partial<{
     connection: { readOnly: false },
     requestHeaders: {},
     requestParameters: overrides.requestParameters ?? new URLSearchParams(),
-  };
+  } as unknown as Parameters<ReturnType<typeof createOnAuthenticate>>[0];
 }
 
 describe('createOnAuthenticate', () => {

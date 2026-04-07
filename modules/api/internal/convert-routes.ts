@@ -17,6 +17,7 @@ import {
   ImportError,
 } from '../../convert/index.ts';
 import { getDocument } from '../../storage/internal/pg.ts';
+import { asyncHandler } from './async-handler.ts';
 
 const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50 MB
 
@@ -26,10 +27,10 @@ export function createConvertRoutes(): Router {
   router.post(
     '/api/documents/:id/convert-import',
     raw({ type: '*/*', limit: MAX_UPLOAD_SIZE }),
-    handleImport
+    asyncHandler(handleImport)
   );
 
-  router.post('/api/documents/:id/convert-export', handleExport);
+  router.post('/api/documents/:id/convert-export', asyncHandler(handleExport));
 
   return router;
 }

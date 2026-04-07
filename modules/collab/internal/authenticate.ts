@@ -1,5 +1,6 @@
 /** Contract: contracts/collab/rules.md */
 
+import type { onAuthenticatePayload } from '@hocuspocus/server';
 import type { TokenVerifier } from '../../auth/contract.ts';
 
 /**
@@ -15,13 +16,7 @@ import type { TokenVerifier } from '../../auth/contract.ts';
  * 2. Query string `?token=xxx` on the upgrade URL
  */
 export function createOnAuthenticate(tokenVerifier: TokenVerifier) {
-  return async (data: {
-    token: string;
-    documentName: string;
-    connection: { readOnly: boolean };
-    requestHeaders: Record<string, string>;
-    requestParameters: URLSearchParams;
-  }) => {
+  return async (data: onAuthenticatePayload) => {
     const token =
       data.token ||
       data.requestParameters.get('token') ||
