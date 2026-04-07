@@ -18,6 +18,7 @@ import { SearchExtension } from './search/search-extension.ts';
 import { buildSearchPanel } from './search/search-panel.ts';
 import { buildFormattingToolbar } from './formatting-toolbar.ts';
 import { CommentMark, CommentStore, buildCommentSidebar, toggleSidebar, showCommentInput } from './comments/index.ts';
+import { PageBreak } from './page-break.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -97,6 +98,7 @@ function init() {
         resize: { enabled: true, minWidth: 100, minHeight: 50 },
       }),
       SearchExtension,
+      PageBreak,
       CommentMark,
       Collaboration.configure({ document: ydoc }),
       CollaborationCursor.configure({

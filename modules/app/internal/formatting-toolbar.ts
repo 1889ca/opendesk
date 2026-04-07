@@ -2,6 +2,8 @@
 import type { Editor } from '@tiptap/core';
 import { t, onLocaleChange, type TranslationKey } from './i18n/index.ts';
 import { openImagePicker } from './image-handlers.ts';
+import { printDocument, exportPdf } from './print-utils.ts';
+import './page-break.ts';
 
 interface ToolbarButton {
   key: TranslationKey | null;
@@ -31,6 +33,11 @@ function buildToolbarButtons(editor: Editor): ToolbarButton[] {
     { key: null, action: () => false },
     { key: 'toolbar.find', action: () => { document.dispatchEvent(new CustomEvent('opendesk:open-search')); return true; } },
     { key: 'toolbar.comment', action: () => { document.dispatchEvent(new CustomEvent('opendesk:add-comment')); return true; } },
+    { key: null, action: () => false },
+    { key: 'toolbar.pageBreak', action: () => editor.chain().focus().insertPageBreak().run() },
+    { key: null, action: () => false },
+    { key: 'toolbar.print', action: () => { printDocument(); return true; } },
+    { key: 'toolbar.pdf', action: () => { exportPdf(); return true; } },
   ];
 }
 
