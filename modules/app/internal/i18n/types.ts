@@ -211,6 +211,7 @@ export interface TranslationKeys {
   'versions.current': string;
   'versions.preview': string;
   'versions.restoreConfirm': string;
+  'versions.deleteConfirm': string;
   'versions.autoSaved': string;
   'versions.noVersions': string;
   'versions.versionNumber': string;
@@ -234,6 +235,8 @@ export interface TranslationKeys {
   'folders.deleteConfirm': string;
   'folders.renamePrompt': string;
   'folders.namePrompt': string;
+  'folders.renameFailed': string;
+  'folders.deleteFailed': string;
 
   // Theme
   'toolbar.theme': string;

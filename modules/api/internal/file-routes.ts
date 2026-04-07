@@ -10,7 +10,7 @@ export function createFileRoutes(): Router {
   const router = Router();
 
   router.get(
-    '/files/:key(*)',
+    '/files/*key',
     asyncHandler(async (req, res) => {
       const raw = req.params.key;
       const key = Array.isArray(raw) ? raw.join('/') : raw;

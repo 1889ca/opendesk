@@ -5,6 +5,7 @@ export interface FolderRow {
   id: string;
   name: string;
   parent_id: string | null;
+  created_by: string;
   created_at: Date;
 }
 
@@ -13,6 +14,7 @@ export const CREATE_FOLDERS_TABLE = `
     id UUID PRIMARY KEY,
     name TEXT NOT NULL,
     parent_id UUID REFERENCES folders(id) ON DELETE SET NULL,
+    created_by TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   );
 
@@ -24,10 +26,11 @@ export async function createFolder(
   id: string,
   name: string,
   parentId?: string | null,
+  createdBy?: string,
 ): Promise<FolderRow> {
   const result = await pool.query<FolderRow>(
-    'INSERT INTO folders (id, name, parent_id) VALUES ($1, $2, $3) RETURNING *',
-    [id, name, parentId ?? null],
+    'INSERT INTO folders (id, name, parent_id, created_by) VALUES ($1, $2, $3, $4) RETURNING *',
+    [id, name, parentId ?? null, createdBy ?? ''],
   );
   return result.rows[0];
 }

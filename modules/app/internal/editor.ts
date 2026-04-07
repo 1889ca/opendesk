@@ -1,29 +1,15 @@
 /** Contract: contracts/app/rules.md */
 import { Editor } from '@tiptap/core';
-import StarterKit from '@tiptap/starter-kit';
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
-import { common, createLowlight } from 'lowlight';
-import Image from '@tiptap/extension-image';
-import Collaboration from '@tiptap/extension-collaboration';
-import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
-import { Table } from '@tiptap/extension-table';
-import { TableRow } from '@tiptap/extension-table-row';
-import { TableCell } from '@tiptap/extension-table-cell';
-import { TableHeader } from '@tiptap/extension-table-header';
 import { t, setLocale, getLocale, resolveLocale, persistLocale, onLocaleChange } from './i18n/index.ts';
 import { buildLanguageSwitcher, updateStaticText } from './locale-ui.ts';
 import { buildTableToolbar } from './table-toolbar.ts';
 import { setupImageHandlers } from './image-handlers.ts';
-import { SearchExtension } from './search/search-extension.ts';
 import { buildSearchPanel } from './search/search-panel.ts';
 import { buildFormattingToolbar } from './formatting-toolbar.ts';
-import { CommentMark, CommentStore, buildCommentSidebar, toggleSidebar, showCommentInput } from './comments/index.ts';
-import { PageBreak } from './page-break.ts';
+import { CommentStore, buildCommentSidebar, toggleSidebar, showCommentInput } from './comments/index.ts';
 import {
-  SuggestionInsertMark,
-  SuggestionDeleteMark,
   setSuggestUser,
   createSuggestModePlugin,
   setupSuggestionClickHandler,
@@ -37,12 +23,9 @@ import { buildTocPanel, toggleTocPanel } from './toc/index.ts';
 import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts';
 import { buildStatusBar } from './status-bar.ts';
 import { buildThemeToggle } from './theme-toggle.ts';
-import { createMentionExtension } from './mentions/index.ts';
+import { openEmojiPicker } from './emoji/index.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
-import { EmojiInputRule, openEmojiPicker } from './emoji/index.ts';
-import { DragHandle } from './drag-handle/index.ts';
-
-const lowlight = createLowlight(common);
+import { buildEditorExtensions } from './editor-extensions.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -119,33 +102,10 @@ function init() {
 
   const editor = new Editor({
     element: editorEl,
-    extensions: [
-      StarterKit.configure({ undoRedo: false, codeBlock: false }),
-      CodeBlockLowlight.configure({ lowlight }),
-      Table.configure({ resizable: true }),
-      TableRow,
-      TableCell,
-      TableHeader,
-      Image.configure({
-        inline: false,
-        allowBase64: false,
-        resize: { enabled: true, minWidth: 100, minHeight: 50 },
-      }),
-      SearchExtension,
-      PageBreak,
-      CommentMark,
-      SuggestionInsertMark,
-      SuggestionDeleteMark,
-      EmojiInputRule,
-      Collaboration.configure({ document: ydoc }),
-      CollaborationCursor.configure({ provider, user: { name: user.name, color: user.color } }),
-      createMentionExtension(provider),
-      DragHandle,
-    ],
+    extensions: buildEditorExtensions({ ydoc, provider, user }),
     editorProps: { attributes: { class: 'editor-content' } },
   });
 
-  // Suggestion mode setup
   setSuggestUser(() => user);
   editor.registerPlugin(createSuggestModePlugin(editor));
   setupSuggestionClickHandler(editor);
@@ -159,34 +119,28 @@ function init() {
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
 
-  // Emoji picker — triggered from toolbar button
   document.addEventListener('opendesk:open-emoji', () => {
     const emojiBtn = document.querySelector('[data-i18n-key="toolbar.emoji"]') as HTMLElement | null;
     if (emojiBtn) openEmojiPicker(editor, emojiBtn);
   });
 
-  // Status bar (word count & stats)
   const editorWrapper = editorEl.closest('.editor-wrapper');
   if (editorWrapper) {
     editorWrapper.appendChild(buildStatusBar(editor));
   }
 
-  // Comment sidebar
   const commentSidebar = buildCommentSidebar(editor, commentStore, documentId, user);
   document.body.appendChild(commentSidebar);
 
-  // Suggestion sidebar
   const suggestionSidebar = buildSuggestionSidebar(editor);
   document.body.appendChild(suggestionSidebar);
 
-  // TOC panel
   const tocPanel = buildTocPanel(editor);
   document.body.appendChild(tocPanel);
   document.addEventListener('opendesk:toggle-toc', () => {
     toggleTocPanel(tocPanel);
   });
 
-  // Version history sidebar
   const versionSidebar = buildVersionSidebar();
   document.body.appendChild(versionSidebar);
   document.addEventListener('opendesk:toggle-versions', () => {
@@ -199,7 +153,6 @@ function init() {
     announce(t('a11y.commentAdded'));
   });
 
-  // Listen for suggestion sidebar toggle
   document.addEventListener('opendesk:toggle-suggestions', () => {
     toggleSuggestionSidebar(suggestionSidebar);
   });

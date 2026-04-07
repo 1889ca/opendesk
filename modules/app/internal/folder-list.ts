@@ -121,7 +121,15 @@ function createFolderActions(folder: FolderEntry): HTMLElement {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: newName }),
-    }).then(() => onNavigate?.(currentFolderId));
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Rename failed: ${res.status}`);
+        onNavigate?.(currentFolderId);
+      })
+      .catch((err) => {
+        console.error('[opendesk] folder rename error:', err);
+        alert(t('folders.renameFailed'));
+      });
   });
 
   const deleteBtn = document.createElement('button');
@@ -132,7 +140,15 @@ function createFolderActions(folder: FolderEntry): HTMLElement {
     if (!confirm(t('folders.deleteConfirm', { name: folder.name }))) return;
     fetch('/api/folders/' + encodeURIComponent(folder.id), {
       method: 'DELETE',
-    }).then(() => onNavigate?.(currentFolderId));
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
+        onNavigate?.(currentFolderId);
+      })
+      .catch((err) => {
+        console.error('[opendesk] folder delete error:', err);
+        alert(t('folders.deleteFailed'));
+      });
   });
 
   group.appendChild(renameBtn);
