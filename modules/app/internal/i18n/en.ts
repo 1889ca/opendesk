@@ -255,4 +255,17 @@ export const en: TranslationKeys = {
   'codeBlock.copy': 'Copy',
   'codeBlock.copied': 'Copied!',
   'codeBlock.plainText': 'Plain text',
+
+  // Emoji
+  'toolbar.emoji': 'Emoji',
+  'emoji.search': 'Search emoji...',
+  'emoji.recent': 'Recently used',
+  'emoji.smileys': 'Smileys & Emotion',
+  'emoji.people': 'People & Body',
+  'emoji.animals': 'Animals & Nature',
+  'emoji.food': 'Food & Drink',
+  'emoji.activities': 'Activities',
+  'emoji.travel': 'Travel & Places',
+  'emoji.objects': 'Objects',
+  'emoji.symbols': 'Symbols',
 };

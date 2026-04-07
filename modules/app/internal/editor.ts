@@ -39,6 +39,7 @@ import { buildStatusBar } from './status-bar.ts';
 import { buildThemeToggle } from './theme-toggle.ts';
 import { createMentionExtension } from './mentions/index.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
+import { EmojiInputRule, openEmojiPicker } from './emoji/index.ts';
 
 const lowlight = createLowlight(common);
 
@@ -134,6 +135,7 @@ function init() {
       CommentMark,
       SuggestionInsertMark,
       SuggestionDeleteMark,
+      EmojiInputRule,
       Collaboration.configure({ document: ydoc }),
       CollaborationCursor.configure({ provider, user: { name: user.name, color: user.color } }),
       createMentionExtension(provider),
@@ -154,6 +156,12 @@ function init() {
   buildThemeToggle();
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
+
+  // Emoji picker — triggered from toolbar button
+  document.addEventListener('opendesk:open-emoji', () => {
+    const emojiBtn = document.querySelector('[data-i18n-key="toolbar.emoji"]') as HTMLElement | null;
+    if (emojiBtn) openEmojiPicker(editor, emojiBtn);
+  });
 
   // Status bar (word count & stats)
   const editorWrapper = editorEl.closest('.editor-wrapper');

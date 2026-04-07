@@ -257,6 +257,19 @@ export interface TranslationKeys {
   'codeBlock.copy': string;
   'codeBlock.copied': string;
   'codeBlock.plainText': string;
+
+  // Emoji
+  'toolbar.emoji': string;
+  'emoji.search': string;
+  'emoji.recent': string;
+  'emoji.smileys': string;
+  'emoji.people': string;
+  'emoji.animals': string;
+  'emoji.food': string;
+  'emoji.activities': string;
+  'emoji.travel': string;
+  'emoji.objects': string;
+  'emoji.symbols': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;
