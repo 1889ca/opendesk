@@ -19,3 +19,9 @@ jobs:
       - run: npm run lint
       - run: npm run test -- --run
       - run: npm run build:frontend
+
+  security-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/security-lint.sh
