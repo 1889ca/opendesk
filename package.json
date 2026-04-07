@@ -13,6 +13,7 @@
     "dev": "npm run build:frontend && node --import=tsx --watch server.ts",
     "test": "node --experimental-vm-modules node_modules/.bin/vitest",
     "test:e2e": "npx playwright test",
+    "stress": "npx tsx stress/collab-stress.ts",
     "lint": "eslint modules/",
     "deliberate": "./scripts/deliberate.sh",
     "audit": "./scripts/audit.sh",
