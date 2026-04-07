@@ -194,6 +194,52 @@ export interface TranslationKeys {
   // Mobile / overflow
   'toolbar.moreOptions': string;
   'comments.dismissSheet': string;
+
+  // Document statistics
+  'stats.words': string;
+  'stats.characters': string;
+  'stats.paragraphs': string;
+  'stats.readingTime': string;
+  'stats.selected': string;
+  'stats.minRead': string;
+
+  // Version history
+  'versions.title': string;
+  'versions.save': string;
+  'versions.restore': string;
+  'versions.delete': string;
+  'versions.current': string;
+  'versions.preview': string;
+  'versions.restoreConfirm': string;
+  'versions.autoSaved': string;
+  'versions.noVersions': string;
+  'versions.versionNumber': string;
+  'versions.close': string;
+  'toolbar.versions': string;
+
+  // Table of contents
+  'toolbar.toc': string;
+  'toc.title': string;
+  'toc.noHeadings': string;
+  'toc.heading': string;
+
+  // Folders
+  'folders.new': string;
+  'folders.rename': string;
+  'folders.delete': string;
+  'folders.moveTo': string;
+  'folders.root': string;
+  'folders.breadcrumb': string;
+  'folders.empty': string;
+  'folders.deleteConfirm': string;
+  'folders.renamePrompt': string;
+  'folders.namePrompt': string;
+
+  // Theme
+  'toolbar.theme': string;
+  'theme.light': string;
+  'theme.dark': string;
+  'theme.system': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;

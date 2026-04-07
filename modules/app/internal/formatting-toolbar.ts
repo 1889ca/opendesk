@@ -45,8 +45,12 @@ function buildToolbarButtons(editor: Editor): ToolbarButton[] {
     { key: null, action: () => false },
     { key: 'toolbar.pageBreak', action: () => editor.chain().focus().insertPageBreak().run() },
     { key: null, action: () => false },
+    { key: 'toolbar.toc', ariaKey: 'toc.title' as TranslationKey, action: () => { document.dispatchEvent(new CustomEvent('opendesk:toggle-toc')); return true; } },
+    { key: null, action: () => false },
     { key: 'toolbar.print', action: () => { printDocument(); return true; } },
     { key: 'toolbar.pdf', action: () => { exportPdf(); return true; } },
+    { key: null, action: () => false },
+    { key: 'toolbar.versions', action: () => { document.dispatchEvent(new CustomEvent('opendesk:toggle-versions')); return true; } },
   ];
 }
 

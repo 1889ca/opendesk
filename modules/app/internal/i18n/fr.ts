@@ -194,7 +194,53 @@ export const fr: TranslationKeys = {
   'pdf.title': 'Exporter en PDF',
   'pageBreak.title': 'Insérer un saut de page',
 
-  // Mobile / débordement
+  // Mobile / d\u00e9bordement
   'toolbar.moreOptions': 'Plus d\u2019options',
   'comments.dismissSheet': 'Fermer les commentaires',
+
+  // Statistiques du document
+  'stats.words': '{count} mots',
+  'stats.characters': '{count} caractères',
+  'stats.paragraphs': '{count} paragraphes',
+  'stats.readingTime': '~{time} min de lecture',
+  'stats.selected': '{selected} sur {total} mots sélectionnés',
+  'stats.minRead': '< 1 min de lecture',
+
+  // Table des mati\u00e8res
+  'toolbar.toc': 'TDM',
+  'toc.title': 'Table des mati\u00e8res',
+  'toc.noHeadings': 'Aucun titre dans ce document',
+  'toc.heading': 'Titre',
+
+  // Historique des versions
+  'versions.title': 'Historique des versions',
+  'versions.save': 'Enregistrer la version',
+  'versions.restore': 'Restaurer',
+  'versions.delete': 'Supprimer',
+  'versions.current': 'Actuelle',
+  'versions.preview': 'Aper\u00e7u',
+  'versions.restoreConfirm': 'Restaurer cette version ? Le contenu actuel sera remplac\u00e9.',
+  'versions.autoSaved': 'Sauvegarde automatique',
+  'versions.noVersions': 'Aucune version enregistr\u00e9e',
+  'versions.versionNumber': 'Version {n}',
+  'versions.close': 'Fermer l\u2019historique',
+  'toolbar.versions': 'Versions',
+
+  // Dossiers
+  'folders.new': 'Nouveau dossier',
+  'folders.rename': 'Renommer',
+  'folders.delete': 'Supprimer',
+  'folders.moveTo': 'D\u00e9placer vers...',
+  'folders.root': 'Tous les documents',
+  'folders.breadcrumb': 'Fil d\u2019Ariane',
+  'folders.empty': 'Ce dossier est vide',
+  'folders.deleteConfirm': 'Supprimer le dossier \u00ab {name} \u00bb ? Les documents seront d\u00e9plac\u00e9s vers le dossier parent.',
+  'folders.renamePrompt': 'Renommer le dossier :',
+  'folders.namePrompt': 'Nom du dossier :',
+
+  // Th\u00e8me
+  'toolbar.theme': 'Th\u00e8me',
+  'theme.light': 'Clair',
+  'theme.dark': 'Sombre',
+  'theme.system': 'Syst\u00e8me',
 };

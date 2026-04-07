@@ -1,0 +1,139 @@
+/* ==========================================================================
+   Theme system — CSS custom properties for light/dark mode
+   ========================================================================== */
+
+/* Light theme (default) */
+:root {
+  --bg-primary: #fafafa;
+  --bg-secondary: #f3f4f6;
+  --bg-surface: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --border-color: #e2e2e2;
+  --accent-color: #2563eb;
+  --accent-hover: #1d4ed8;
+  --toolbar-bg: #ffffff;
+  --editor-bg: #ffffff;
+  --sidebar-bg: #ffffff;
+  --overlay-bg: rgba(0, 0, 0, 0.4);
+  --shadow-color: rgba(0, 0, 0, 0.04);
+  --shadow-medium: rgba(0, 0, 0, 0.06);
+  --shadow-heavy: rgba(0, 0, 0, 0.12);
+
+  /* Status colors */
+  --status-connected: #16a34a;
+  --status-connected-bg: #dcfce7;
+  --status-disconnected: #dc2626;
+  --status-disconnected-bg: #fee2e2;
+
+  /* Editor-specific */
+  --code-bg: #fafafa;
+  --code-block-bg: #1e1e1e;
+  --code-block-text: #d4d4d4;
+
+  /* Comments */
+  --comment-highlight: rgba(255, 235, 120, 0.35);
+  --comment-highlight-hover: rgba(255, 220, 80, 0.55);
+  --comment-highlight-active: rgba(255, 200, 0, 0.5);
+  --comment-border: rgba(255, 200, 0, 0.5);
+
+  /* Suggestions */
+  --suggestion-insert-bg: rgba(34, 197, 94, 0.15);
+  --suggestion-insert-hover: rgba(34, 197, 94, 0.3);
+  --suggestion-insert-line: rgba(34, 197, 94, 0.6);
+  --suggestion-delete-bg: rgba(239, 68, 68, 0.12);
+  --suggestion-delete-hover: rgba(239, 68, 68, 0.25);
+  --suggestion-delete-line: rgba(239, 68, 68, 0.6);
+
+  /* Search */
+  --search-match-bg: #fef08a;
+  --search-match-current-bg: #fb923c;
+  --search-match-current-text: #ffffff;
+
+  /* Selection */
+  --selection-bg: rgba(37, 99, 235, 0.1);
+  --accent-shadow: rgba(37, 99, 235, 0.08);
+  --accent-shadow-strong: rgba(37, 99, 235, 0.1);
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  --bg-primary: #121220;
+  --bg-secondary: #1a1a2e;
+  --bg-surface: #16213e;
+  --text-primary: #e4e4e7;
+  --text-secondary: #9ca3af;
+  --border-color: #2d3a56;
+  --accent-color: #3b82f6;
+  --accent-hover: #60a5fa;
+  --toolbar-bg: #16213e;
+  --editor-bg: #1a1a2e;
+  --sidebar-bg: #16213e;
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+  --shadow-color: rgba(0, 0, 0, 0.2);
+  --shadow-medium: rgba(0, 0, 0, 0.3);
+  --shadow-heavy: rgba(0, 0, 0, 0.4);
+
+  /* Status colors */
+  --status-connected: #4ade80;
+  --status-connected-bg: rgba(34, 197, 94, 0.15);
+  --status-disconnected: #f87171;
+  --status-disconnected-bg: rgba(239, 68, 68, 0.15);
+
+  /* Editor-specific */
+  --code-bg: #1a1a2e;
+  --code-block-bg: #0f0f1a;
+  --code-block-text: #d4d4d4;
+
+  /* Comments */
+  --comment-highlight: rgba(255, 235, 120, 0.2);
+  --comment-highlight-hover: rgba(255, 220, 80, 0.35);
+  --comment-highlight-active: rgba(255, 200, 0, 0.3);
+  --comment-border: rgba(255, 200, 0, 0.4);
+
+  /* Suggestions */
+  --suggestion-insert-bg: rgba(34, 197, 94, 0.12);
+  --suggestion-insert-hover: rgba(34, 197, 94, 0.25);
+  --suggestion-insert-line: rgba(34, 197, 94, 0.5);
+  --suggestion-delete-bg: rgba(239, 68, 68, 0.1);
+  --suggestion-delete-hover: rgba(239, 68, 68, 0.2);
+  --suggestion-delete-line: rgba(239, 68, 68, 0.5);
+
+  /* Search */
+  --search-match-bg: rgba(254, 240, 138, 0.3);
+  --search-match-current-bg: rgba(251, 146, 60, 0.5);
+  --search-match-current-text: #ffffff;
+
+  /* Selection */
+  --selection-bg: rgba(59, 130, 246, 0.15);
+  --accent-shadow: rgba(59, 130, 246, 0.12);
+  --accent-shadow-strong: rgba(59, 130, 246, 0.15);
+
+  /* Scrollbar styling */
+  color-scheme: dark;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.theme-toggle:hover {
+  border-color: var(--text-secondary);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}

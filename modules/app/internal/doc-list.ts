@@ -3,6 +3,15 @@
 import { createDocumentFromTemplate } from './template-picker.ts';
 import { t } from './i18n/index.ts';
 import { formatRelativeTime } from './time-format.ts';
+import {
+  getCurrentFolderId,
+  setNavigateCallback,
+  renderBreadcrumbs,
+  renderFolders,
+  loadFolders,
+  createNewFolderButton,
+} from './folder-list.ts';
+import { initTheme } from './theme-toggle.ts';
 
 interface DocEntry {
   id: string;
@@ -12,15 +21,16 @@ interface DocEntry {
 
 function renderDocuments(listEl: HTMLElement, docs: DocEntry[]) {
   if (!docs.length) {
-    listEl.innerHTML =
-      '<div class="doc-list-empty">' +
-        '<p class="empty-title">' + t('docList.noDocuments') + '</p>' +
-        '<p class="empty-subtitle">' + t('docList.noDocumentsSubtitle') + '</p>' +
-      '</div>';
+    const emptyEl = document.createElement('div');
+    emptyEl.className = 'doc-list-empty';
+    const key = getCurrentFolderId() ? 'folders.empty' : 'docList.noDocuments';
+    emptyEl.innerHTML =
+      '<p class="empty-title">' + t(key) + '</p>' +
+      '<p class="empty-subtitle">' + t('docList.noDocumentsSubtitle') + '</p>';
+    listEl.appendChild(emptyEl);
     return;
   }
 
-  listEl.innerHTML = '';
   for (const doc of docs) {
     const row = document.createElement('a');
     row.className = 'doc-row';
@@ -49,7 +59,7 @@ function renderDocuments(listEl: HTMLElement, docs: DocEntry[]) {
       const name = doc.title || t('editor.untitled');
       if (!confirm(t('docList.deleteConfirm', { name }))) return;
       fetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
-        .then(() => { loadDocuments(listEl); })
+        .then(() => { loadAll(listEl); })
         .catch((err) => { console.error('Delete failed', err); });
     });
 
@@ -59,20 +69,47 @@ function renderDocuments(listEl: HTMLElement, docs: DocEntry[]) {
   }
 }
 
-function loadDocuments(listEl: HTMLElement) {
-  fetch('/api/documents')
-    .then((res) => res.json())
-    .then((docs: DocEntry[]) => { renderDocuments(listEl, docs); })
-    .catch((err) => {
-      console.error('Failed to load documents', err);
-      listEl.innerHTML = '<div class="doc-list-empty"><p class="empty-title">' + t('docList.loadFailed') + '</p></div>';
-    });
+async function loadAll(listEl: HTMLElement) {
+  const folderId = getCurrentFolderId();
+  listEl.innerHTML = '';
+
+  // Render breadcrumbs
+  let breadcrumbEl = document.getElementById('folder-breadcrumbs');
+  if (!breadcrumbEl) {
+    breadcrumbEl = document.createElement('nav');
+    breadcrumbEl.id = 'folder-breadcrumbs';
+    listEl.parentElement?.insertBefore(breadcrumbEl, listEl);
+  }
+  renderBreadcrumbs(breadcrumbEl);
+
+  try {
+    const folders = await loadFolders(folderId);
+    renderFolders(listEl, folders);
+
+    const url = folderId
+      ? '/api/documents?folderId=' + encodeURIComponent(folderId)
+      : '/api/documents';
+    const res = await fetch(url);
+    const docs: DocEntry[] = await res.json();
+    renderDocuments(listEl, docs);
+  } catch (err) {
+    console.error('Failed to load documents', err);
+    listEl.innerHTML = '<div class="doc-list-empty"><p class="empty-title">' + t('docList.loadFailed') + '</p></div>';
+  }
 }
 
 function init() {
+  initTheme();
   const listEl = document.getElementById('doc-list');
   const newBtn = document.getElementById('new-doc-btn');
+  const toolbarRight = document.querySelector('.toolbar-right');
   if (!listEl || !newBtn) return;
+
+  if (toolbarRight) {
+    createNewFolderButton(toolbarRight as HTMLElement);
+  }
+
+  setNavigateCallback(() => loadAll(listEl));
 
   newBtn.addEventListener('click', async () => {
     try {
@@ -85,7 +122,7 @@ function init() {
     }
   });
 
-  loadDocuments(listEl);
+  loadAll(listEl);
 }
 
 document.addEventListener('DOMContentLoaded', init);

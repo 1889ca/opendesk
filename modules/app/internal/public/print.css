@@ -3,10 +3,22 @@
   @page { margin: 2cm; size: auto; }
 
   /* Hide all UI chrome */
+  /* Force light theme for printing */
+  :root, [data-theme="dark"] {
+    --bg-primary: #fff;
+    --bg-surface: #fff;
+    --text-primary: #000;
+    --text-secondary: #555;
+    --border-color: #ccc;
+    --accent-color: #000;
+    --code-block-bg: #f5f5f5;
+    --code-block-text: #000;
+  }
+
   .toolbar, .formatting-toolbar, .table-toolbar, .comment-sidebar,
   .comment-input-popover, .search-panel, .export-group, .lang-select,
   .template-overlay, .back-link, .toolbar-separator, .status,
-  .users-label, .users, #lang-switcher,
+  .users-label, .users, #lang-switcher, .theme-toggle,
   .collaboration-cursor__caret, .collaboration-cursor__label,
   .editor-content .selectedCell::after, .editor-content .column-resize-handle {
     display: none !important;

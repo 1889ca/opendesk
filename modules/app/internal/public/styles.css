@@ -7,14 +7,14 @@
 }
 
 :root {
-  --bg: #fafafa;
-  --surface: #ffffff;
-  --border: #e2e2e2;
-  --text: #1a1a1a;
-  --text-muted: #666;
-  --accent: #2563eb;
-  --connected: #16a34a;
-  --disconnected: #dc2626;
+  --bg: var(--bg-primary);
+  --surface: var(--bg-surface);
+  --border: var(--border-color);
+  --text: var(--text-primary);
+  --text-muted: var(--text-secondary);
+  --accent: var(--accent-color);
+  --connected: var(--status-connected);
+  --disconnected: var(--status-disconnected);
 }
 
 body {
@@ -75,12 +75,12 @@ body {
 }
 
 .status.connected {
-  background: #dcfce7;
+  background: var(--status-connected-bg);
   color: var(--connected);
 }
 
 .status.disconnected {
-  background: #fee2e2;
+  background: var(--status-disconnected-bg);
   color: var(--disconnected);
 }
 
@@ -93,7 +93,8 @@ body {
 .editor-wrapper {
   flex: 1;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   padding: 2rem 1rem;
   transition: margin-right 0.2s ease;
 }
@@ -108,7 +109,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px var(--shadow-color);
   min-height: 60vh;
 }
 
@@ -172,8 +173,8 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 }
 
 .editor-content pre {
-  background: #1e1e1e;
-  color: #d4d4d4;
+  background: var(--code-block-bg);
+  color: var(--code-block-text);
   padding: 1rem;
   border-radius: 6px;
   overflow-x: auto;
@@ -244,7 +245,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 
 .doc-row:hover {
   border-color: var(--accent);
-  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.08);
+  box-shadow: 0 1px 4px var(--accent-shadow);
 }
 
 .doc-row:hover .btn-delete {
@@ -289,7 +290,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 }
 
 .btn-primary:hover {
-  background: #1d4ed8;
+  background: var(--accent-hover);
 }
 
 .btn-delete {
@@ -303,7 +304,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 }
 
 .btn-delete:hover {
-  background: #fee2e2;
+  background: var(--status-disconnected-bg);
 }
 
 /* Editor Title Input */
@@ -412,7 +413,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 .template-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--overlay-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -427,7 +428,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   max-width: 32rem;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 32px var(--shadow-heavy);
 }
 
 .template-modal-title {
@@ -460,7 +461,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 
 .template-card:hover {
   border-color: var(--accent);
-  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 1px 4px var(--accent-shadow-strong);
 }
 
 .template-card-blank {
@@ -544,7 +545,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(37, 99, 235, 0.1);
+  background: var(--selection-bg);
   pointer-events: none;
   z-index: 1;
 }
@@ -649,7 +650,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px var(--shadow-heavy);
   min-width: 20rem;
 }
 
@@ -747,13 +748,145 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 
 /* Search match highlights */
 .search-match {
-  background: #fef08a;
+  background: var(--search-match-bg);
   border-radius: 1px;
 }
 
 .search-match--current {
-  background: #fb923c;
-  color: #fff;
+  background: var(--search-match-current-bg);
+  color: var(--search-match-current-text);
   border-radius: 1px;
 }
 
+
+/* Folder Breadcrumbs */
+.folder-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+.breadcrumb-link {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+}
+
+.breadcrumb-link:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb-sep {
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.breadcrumb-current {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Folder Rows */
+.folder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.folder-row:hover {
+  border-color: var(--accent);
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.08);
+}
+
+.folder-row:hover .folder-actions {
+  opacity: 1;
+}
+
+.folder-row-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  color: inherit;
+  flex: 1;
+  min-width: 0;
+}
+
+.folder-icon {
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.folder-row-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folder-actions {
+  display: flex;
+  gap: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.btn-small {
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.btn-small:hover {
+  background: var(--bg);
+  border-color: var(--text-muted);
+}
+
+.btn-delete-folder {
+  color: var(--disconnected);
+}
+
+.btn-delete-folder:hover {
+  background: #fee2e2;
+  border-color: var(--disconnected);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--bg);
+  border-color: var(--text-muted);
+}
