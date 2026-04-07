@@ -15,20 +15,26 @@ import { InMemoryCache, makeReq, makeRes } from './test-helpers.ts';
 // --- Unit tests: cache key generation ---
 
 describe('buildCacheKey', () => {
-  it('builds a deterministic key from method, path, and idempotency key', () => {
-    const key = buildCacheKey('POST', '/api/documents', 'abc-123');
-    expect(key).toBe(`${IDEMPOTENCY_KEY_PREFIX}POST:/api/documents:abc-123`);
+  it('builds a deterministic key from method, path, principal, and idempotency key', () => {
+    const key = buildCacheKey('POST', '/api/documents', 'user-1', 'abc-123');
+    expect(key).toBe(`${IDEMPOTENCY_KEY_PREFIX}POST:/api/documents:user-1:abc-123`);
   });
 
   it('different methods produce different keys', () => {
-    const a = buildCacheKey('POST', '/api/documents', 'key-1');
-    const b = buildCacheKey('DELETE', '/api/documents', 'key-1');
+    const a = buildCacheKey('POST', '/api/documents', 'user-1', 'key-1');
+    const b = buildCacheKey('DELETE', '/api/documents', 'user-1', 'key-1');
     expect(a).not.toBe(b);
   });
 
   it('different paths produce different keys', () => {
-    const a = buildCacheKey('POST', '/api/documents', 'key-1');
-    const b = buildCacheKey('POST', '/api/documents/123', 'key-1');
+    const a = buildCacheKey('POST', '/api/documents', 'user-1', 'key-1');
+    const b = buildCacheKey('POST', '/api/documents/123', 'user-1', 'key-1');
+    expect(a).not.toBe(b);
+  });
+
+  it('different principals produce different keys', () => {
+    const a = buildCacheKey('POST', '/api/documents', 'user-1', 'key-1');
+    const b = buildCacheKey('POST', '/api/documents', 'user-2', 'key-1');
     expect(a).not.toBe(b);
   });
 });

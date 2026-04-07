@@ -14,9 +14,9 @@ export interface CachedResponse {
   body: string;
 }
 
-/** Build the cache key from the request method, path, and idempotency key header. */
-export function buildCacheKey(method: string, path: string, idempotencyKey: string): string {
-  return `${IDEMPOTENCY_KEY_PREFIX}${method}:${path}:${idempotencyKey}`;
+/** Build the cache key from the request method, path, principal identity, and idempotency key header. */
+export function buildCacheKey(method: string, path: string, principalId: string, idempotencyKey: string): string {
+  return `${IDEMPOTENCY_KEY_PREFIX}${method}:${path}:${principalId}:${idempotencyKey}`;
 }
 
 /** Serialize a response for caching. */
@@ -74,7 +74,8 @@ export function idempotencyMiddleware(options: IdempotencyOptions) {
       return;
     }
 
-    const cacheKey = buildCacheKey(method, req.path, idempotencyKey);
+    const principalId = (req as unknown as { principal?: { id?: string } }).principal?.id || 'anonymous';
+    const cacheKey = buildCacheKey(method, req.path, principalId, idempotencyKey);
 
     // Check cache for existing response
     try {

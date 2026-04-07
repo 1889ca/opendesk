@@ -38,15 +38,15 @@ export function startServer(port = 3000) {
   const redisClient = getRedisClient();
   app.use('/api', idempotencyMiddleware({ cache: redisClient }));
 
-  // Collabora convert routes (import/export binary formats)
-  app.use(createConvertRoutes());
-
   // Serve static frontend
   const publicDir = resolve(__dirname, '../../app/internal/public');
   app.use(express.static(publicDir));
 
   // Auth middleware on all /api routes (except public paths)
   app.use('/api', auth.middleware);
+
+  // Collabora convert routes (import/export binary formats) — after auth
+  app.use(createConvertRoutes());
 
   // Health check (public, skipped by auth middleware)
   app.get('/api/health', (_req, res) => {
