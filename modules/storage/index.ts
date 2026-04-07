@@ -26,7 +26,7 @@ export {
   loadYjsState,
 } from './internal/pg.ts';
 
-export type { DocumentRow } from './internal/pg.ts';
+export type { DocumentRow, DocumentType } from './internal/pg.ts';
 
 // Template storage
 export type { TemplateRow, TemplateUpdates } from './internal/templates.ts';

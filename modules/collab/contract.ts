@@ -1,6 +1,6 @@
 /** Contract: contracts/collab/rules.md */
 import { z } from 'zod';
-import type { DocumentIntent, DocumentSnapshot, RevisionId } from '../document/contract.ts';
+import type { DocumentIntent, DocumentSnapshot, RevisionId } from '../document/contract/index.ts';
 import type { DomainEvent } from '../events/contract.ts';
 import type { IncomingMessage } from 'node:http';
 import type { Duplex } from 'node:stream';

@@ -5,11 +5,15 @@
  * Used for export: snapshot -> HTML -> Collabora -> target format.
  */
 
-import type { ProseMirrorNode, DocumentSnapshot } from '../../document/contract.ts';
+import type { ProseMirrorNode, DocumentSnapshot, TextDocumentSnapshot } from '../../document/contract/index.ts';
 
-/** Render a full DocumentSnapshot to an HTML document string */
+/** Render a text DocumentSnapshot to an HTML document string */
 export function snapshotToHtml(snapshot: DocumentSnapshot): string {
-  const bodyHtml = renderNodes(snapshot.content.content);
+  if (snapshot.documentType !== 'text') {
+    throw new Error(`snapshotToHtml only supports text documents, got: ${snapshot.documentType}`);
+  }
+  const textSnapshot = snapshot as TextDocumentSnapshot;
+  const bodyHtml = renderNodes(textSnapshot.content.content);
   return wrapHtmlDocument(bodyHtml);
 }
 

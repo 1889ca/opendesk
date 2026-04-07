@@ -8,7 +8,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import type { ProseMirrorNode } from '../../document/contract.ts';
+import type { ProseMirrorNode } from '../../document/contract/index.ts';
 
 /** Inline mark types we extract from HTML */
 const INLINE_TAG_MARKS: Record<string, string> = {

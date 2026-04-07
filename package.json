@@ -7,7 +7,7 @@
   "license": "AGPL-3.0-only",
   "scripts": {
     "build": "npm run build:frontend && npm run check",
-    "build:frontend": "esbuild modules/app/internal/editor.ts --bundle --outfile=modules/app/internal/public/editor.bundle.js --format=esm --target=es2022 --minify --alias:@tiptap/y-tiptap=y-prosemirror && esbuild modules/app/internal/doc-list.ts --bundle --outfile=modules/app/internal/public/doc-list.bundle.js --format=esm --target=es2022 --minify",
+    "build:frontend": "esbuild modules/app/internal/editor.ts --bundle --outfile=modules/app/internal/public/editor.bundle.js --format=esm --target=es2022 --minify --alias:@tiptap/y-tiptap=y-prosemirror && esbuild modules/app/internal/doc-list.ts --bundle --outfile=modules/app/internal/public/doc-list.bundle.js --format=esm --target=es2022 --minify && esbuild modules/app/internal/spreadsheet-editor.ts --bundle --outfile=modules/app/internal/public/spreadsheet.bundle.js --format=esm --target=es2022 --minify && esbuild modules/app/internal/presentation-editor.ts --bundle --outfile=modules/app/internal/public/presentation.bundle.js --format=esm --target=es2022 --minify",
     "check": "tsc --noEmit",
     "start": "npm run build:frontend && node --import=tsx server.ts",
     "dev": "npm run build:frontend && node --import=tsx --watch server.ts",
