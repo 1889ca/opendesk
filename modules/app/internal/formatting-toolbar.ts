@@ -5,6 +5,7 @@ import { openImagePicker } from './image-handlers.ts';
 import { setupToolbarOverflow } from './toolbar-overflow.ts';
 import { printDocument, exportPdf } from './print-utils.ts';
 import './page-break.ts';
+import { isSuggesting, setSuggesting } from './suggestions/suggest-mode.ts';
 
 interface ToolbarButton {
   key: TranslationKey | null;
@@ -34,6 +35,7 @@ function buildToolbarButtons(editor: Editor): ToolbarButton[] {
     { key: null, action: () => false },
     { key: 'toolbar.find', action: () => { document.dispatchEvent(new CustomEvent('opendesk:open-search')); return true; } },
     { key: 'toolbar.comment', action: () => { document.dispatchEvent(new CustomEvent('opendesk:add-comment')); return true; } },
+    { key: 'toolbar.suggest', action: () => { setSuggesting(!isSuggesting()); return true; }, isActive: () => isSuggesting() },
     { key: null, action: () => false },
     { key: 'toolbar.pageBreak', action: () => editor.chain().focus().insertPageBreak().run() },
     { key: null, action: () => false },
@@ -83,4 +85,5 @@ export function buildFormattingToolbar(editor: Editor): void {
   render();
   onLocaleChange(render);
   setupToolbarOverflow(toolbar);
+  document.addEventListener('opendesk:suggest-mode-changed', render);
 }

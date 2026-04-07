@@ -107,6 +107,21 @@ export const fr: TranslationKeys = {
   'comments.reopen': 'Rouvrir',
   'comments.delete': 'Supprimer',
 
+  // Suggestions (suivi des modifications)
+  'suggestions.title': 'Suggestions',
+  'suggestions.sidebarLabel': 'Suggestions du document',
+  'suggestions.suggesting': 'Suggestion',
+  'suggestions.editing': '\u00c9dition',
+  'suggestions.accept': 'Accepter',
+  'suggestions.reject': 'Rejeter',
+  'suggestions.acceptAll': 'Tout accepter',
+  'suggestions.rejectAll': 'Tout rejeter',
+  'suggestions.none': 'Aucune suggestion',
+  'suggestions.inserted': 'Ins\u00e9r\u00e9',
+  'suggestions.deleted': 'Supprim\u00e9',
+  'suggestions.by': 'Suggestion de {name}',
+  'toolbar.suggest': 'Sugg\u00e9rer',
+
   // S\u00e9lecteur de langue
   'lang.label': 'Langue',
   'lang.en': 'English',
