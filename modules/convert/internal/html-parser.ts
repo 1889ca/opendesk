@@ -9,54 +9,19 @@
 
 import { randomUUID } from 'node:crypto';
 import type { ProseMirrorNode } from '../../document/contract/index.ts';
+import {
+  BLOCK_TAG_MAP,
+  LIST_TAG_MAP,
+  NESTED_TAGS,
+  headingLevel,
+  textNode,
+  stripTags,
+  findBalancedClose,
+  parseInlineContent,
+} from './html-parser-utils.ts';
 
-/** Inline mark types we extract from HTML */
-const INLINE_TAG_MARKS: Record<string, string> = {
-  STRONG: 'bold',
-  B: 'bold',
-  EM: 'italic',
-  I: 'italic',
-  U: 'underline',
-  S: 'strike',
-  STRIKE: 'strike',
-  CODE: 'code',
-};
-
-/** Block-level tag to ProseMirror node type */
-const BLOCK_TAG_MAP: Record<string, string> = {
-  P: 'paragraph',
-  H1: 'heading',
-  H2: 'heading',
-  H3: 'heading',
-  H4: 'heading',
-  H5: 'heading',
-  H6: 'heading',
-  BLOCKQUOTE: 'blockquote',
-  PRE: 'codeBlock',
-};
-
-/** List wrapper tag to ProseMirror node type */
-const LIST_TAG_MAP: Record<string, string> = {
-  UL: 'bulletList',
-  OL: 'orderedList',
-};
-
-function headingLevel(tag: string): number | null {
-  const match = /^H([1-6])$/.exec(tag);
-  return match ? parseInt(match[1], 10) : null;
-}
-
-/** Create a text node with optional marks */
-function textNode(
-  text: string,
-  marks?: Array<{ type: string }>
-): ProseMirrorNode {
-  const node: ProseMirrorNode = { type: 'text', text };
-  if (marks && marks.length > 0) {
-    node.marks = marks;
-  }
-  return node;
-}
+// Re-export utilities used by other modules
+export { stripTags, decodeEntities } from './html-parser-utils.ts';
 
 /** Create a block node with a blockId */
 function blockNode(
@@ -91,13 +56,9 @@ export function htmlToProseMirrorJson(html: string): {
   return { type: 'doc', content: blocks };
 }
 
-/** Tags that can nest and need balanced matching */
-const NESTED_TAGS = new Set(['ul', 'ol', 'table']);
-
 /** Extract block-level elements from HTML */
 function extractBlocks(html: string): ProseMirrorNode[] {
   const blocks: ProseMirrorNode[] = [];
-  // Match opening tags for all block-level elements
   const openPattern =
     /<(ul|ol|table|p|h[1-6]|blockquote|pre)\b[^>]*>/gi;
   let match: RegExpExecArray | null;
@@ -108,12 +69,10 @@ function extractBlocks(html: string): ProseMirrorNode[] {
     let inner: string | null;
 
     if (NESTED_TAGS.has(tag)) {
-      // Use balanced close for nestable tags
       inner = findBalancedClose(html, afterOpen, tag);
       if (inner === null) continue;
       openPattern.lastIndex = afterOpen + inner.length + `</${tag}>`.length;
     } else {
-      // Simple non-nesting blocks: use regex for close tag
       const closeRe = new RegExp(`</${tag}>`, 'gi');
       closeRe.lastIndex = afterOpen;
       const closeMatch = closeRe.exec(html);
@@ -152,8 +111,6 @@ function extractBlocks(html: string): ProseMirrorNode[] {
 /** Extract <li> elements from list inner HTML, handling nesting */
 function extractListItems(html: string): ProseMirrorNode[] {
   const items: ProseMirrorNode[] = [];
-
-  // Find each <li> and its balanced closing </li>
   const openLi = /<li\b[^>]*>/gi;
   let openMatch: RegExpExecArray | null;
 
@@ -162,10 +119,8 @@ function extractListItems(html: string): ProseMirrorNode[] {
     const inner = findBalancedClose(html, startAfterTag, 'li');
     if (inner === null) continue;
 
-    // Advance the outer regex past this entire <li>...</li>
     openLi.lastIndex = startAfterTag + inner.length + '</li>'.length;
 
-    // Check for nested lists inside this <li>
     const nestedListPattern = /<(ul|ol)\b[^>]*>([\s\S]*?)<\/\1>/gi;
     const textBefore = inner.replace(nestedListPattern, '').trim();
     const content: ProseMirrorNode[] = [];
@@ -191,39 +146,6 @@ function extractListItems(html: string): ProseMirrorNode[] {
   return items;
 }
 
-/** Find the content between a tag open and its balanced close */
-function findBalancedClose(
-  html: string,
-  start: number,
-  tag: string
-): string | null {
-  let depth = 1;
-  const openRe = new RegExp(`<${tag}\\b[^>]*>`, 'gi');
-  const closeRe = new RegExp(`</${tag}>`, 'gi');
-  openRe.lastIndex = start;
-  closeRe.lastIndex = start;
-
-  // Scan forward, tracking depth
-  const events: Array<{ pos: number; type: 'open' | 'close' }> = [];
-  let m: RegExpExecArray | null;
-  while ((m = openRe.exec(html)) !== null) {
-    events.push({ pos: m.index, type: 'open' });
-  }
-  while ((m = closeRe.exec(html)) !== null) {
-    events.push({ pos: m.index, type: 'close' });
-  }
-  events.sort((a, b) => a.pos - b.pos);
-
-  for (const ev of events) {
-    if (ev.type === 'open') depth++;
-    else depth--;
-    if (depth === 0) {
-      return html.slice(start, ev.pos);
-    }
-  }
-  return null;
-}
-
 /** Parse a <table> inner HTML into a ProseMirror table node */
 function parseTable(html: string): ProseMirrorNode {
   const rows: ProseMirrorNode[] = [];
@@ -241,7 +163,6 @@ function parseTable(html: string): ProseMirrorNode {
       const cellInner = cellMatch[3];
       const cellAttrs: Record<string, unknown> = {};
 
-      // Extract colspan/rowspan
       const colspanMatch = /colspan\s*=\s*["']?(\d+)/i.exec(attrStr);
       if (colspanMatch) cellAttrs.colspan = parseInt(colspanMatch[1], 10);
       const rowspanMatch = /rowspan\s*=\s*["']?(\d+)/i.exec(attrStr);
@@ -266,49 +187,4 @@ function parseTable(html: string): ProseMirrorNode {
   }
 
   return blockNode('table', rows);
-}
-
-/** Parse inline content (bold, italic, etc.) within a block */
-function parseInlineContent(html: string): ProseMirrorNode[] {
-  const nodes: ProseMirrorNode[] = [];
-  const inlinePattern =
-    /<(strong|b|em|i|u|s|strike|code)\b[^>]*>([\s\S]*?)<\/\1>|([^<]+)/gi;
-  let match: RegExpExecArray | null;
-
-  while ((match = inlinePattern.exec(html)) !== null) {
-    if (match[3]) {
-      const text = decodeEntities(match[3]);
-      if (text) nodes.push(textNode(text));
-    } else if (match[1] && match[2]) {
-      const tag = match[1].toUpperCase();
-      const markType = INLINE_TAG_MARKS[tag];
-      const text = decodeEntities(stripTags(match[2]));
-      if (text && markType) {
-        nodes.push(textNode(text, [{ type: markType }]));
-      }
-    }
-  }
-
-  if (nodes.length === 0) {
-    const plain = decodeEntities(stripTags(html)).trim();
-    if (plain) nodes.push(textNode(plain));
-  }
-
-  return nodes;
-}
-
-/** Strip HTML tags */
-export function stripTags(html: string): string {
-  return html.replace(/<[^>]*>/g, '');
-}
-
-/** Decode basic HTML entities */
-export function decodeEntities(text: string): string {
-  return text
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, ' ');
 }
