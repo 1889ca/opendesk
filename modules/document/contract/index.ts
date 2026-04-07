@@ -83,12 +83,18 @@ export type {
 
 // --- Unified DocumentSnapshot ---
 
-import { TextDocumentSnapshotSchema } from './text.ts';
-import { SpreadsheetDocumentSnapshotSchema } from './spreadsheet.ts';
-import { PresentationDocumentSnapshotSchema } from './presentation.ts';
-import { TextIntentActionSchema } from './text.ts';
-import { SpreadsheetIntentActionSchema } from './spreadsheet.ts';
-import { PresentationIntentActionSchema } from './presentation.ts';
+import {
+  TextDocumentSnapshotSchema,
+  TextIntentActionSchema,
+} from './text.ts';
+import {
+  SpreadsheetDocumentSnapshotSchema,
+  SpreadsheetIntentActionSchema,
+} from './spreadsheet.ts';
+import {
+  PresentationDocumentSnapshotSchema,
+  PresentationIntentActionSchema,
+} from './presentation.ts';
 
 export const DocumentSnapshotSchema = z.discriminatedUnion('documentType', [
   TextDocumentSnapshotSchema,
