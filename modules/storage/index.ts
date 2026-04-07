@@ -42,3 +42,16 @@ export {
 
 export { defaultTemplates } from './internal/default-templates.ts';
 export type { DefaultTemplate } from './internal/default-templates.ts';
+
+// Folder storage
+export type { FolderRow } from './internal/folders.ts';
+
+export {
+  CREATE_FOLDERS_TABLE,
+  createFolder,
+  listFolders,
+  renameFolder,
+  getFolder,
+  deleteFolder,
+  moveDocument,
+} from './internal/folders.ts';

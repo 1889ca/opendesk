@@ -194,6 +194,18 @@ export interface TranslationKeys {
   // Mobile / overflow
   'toolbar.moreOptions': string;
   'comments.dismissSheet': string;
+
+  // Folders
+  'folders.new': string;
+  'folders.rename': string;
+  'folders.delete': string;
+  'folders.moveTo': string;
+  'folders.root': string;
+  'folders.breadcrumb': string;
+  'folders.empty': string;
+  'folders.deleteConfirm': string;
+  'folders.renamePrompt': string;
+  'folders.namePrompt': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;

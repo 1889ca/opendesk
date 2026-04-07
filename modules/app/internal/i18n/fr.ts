@@ -197,4 +197,16 @@ export const fr: TranslationKeys = {
   // Mobile / débordement
   'toolbar.moreOptions': 'Plus d\u2019options',
   'comments.dismissSheet': 'Fermer les commentaires',
+
+  // Dossiers
+  'folders.new': 'Nouveau dossier',
+  'folders.rename': 'Renommer',
+  'folders.delete': 'Supprimer',
+  'folders.moveTo': 'Du00e9placer vers un dossier',
+  'folders.root': 'Documents',
+  'folders.breadcrumb': 'Fil du2019Ariane',
+  'folders.empty': 'Ce dossier est vide',
+  'folders.deleteConfirm': 'Supprimer le dossier \u00ab {name} \u00bb ? Le contenu sera d\u00e9plac\u00e9 vers le dossier parent.',
+  'folders.renamePrompt': 'Nouveau nom du dossier :',
+  'folders.namePrompt': 'Nom du dossier :',
 };

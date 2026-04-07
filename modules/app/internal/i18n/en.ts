@@ -192,4 +192,16 @@ export const en: TranslationKeys = {
   // Mobile / overflow
   'toolbar.moreOptions': 'More options',
   'comments.dismissSheet': 'Dismiss comments',
+
+  // Folders
+  'folders.new': 'New Folder',
+  'folders.rename': 'Rename',
+  'folders.delete': 'Delete',
+  'folders.moveTo': 'Move to folder',
+  'folders.root': 'Documents',
+  'folders.breadcrumb': 'Breadcrumb navigation',
+  'folders.empty': 'This folder is empty',
+  'folders.deleteConfirm': 'Delete folder "{name}"? Contents will be moved to the parent folder.',
+  'folders.renamePrompt': 'New folder name:',
+  'folders.namePrompt': 'Folder name:',
 };

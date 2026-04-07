@@ -15,6 +15,7 @@ import { createAdminRoutes } from './admin-routes.ts';
 import { createUploadRoutes } from './upload-routes.ts';
 import { createFileRoutes } from './file-routes.ts';
 import { createTemplateRoutes } from './template-routes.ts';
+import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -63,6 +64,12 @@ export function startServer(port = 3000) {
 
   // Document CRUD with permission checks
   app.use('/api/documents', createDocumentRoutes({ permissions, cache: redisClient }));
+
+  // Move document to folder
+  app.use('/api/documents', createMoveDocumentRoute({ permissions }));
+
+  // Folder CRUD
+  app.use('/api/folders', createFolderRoutes({ permissions }));
 
   // Export/import routes with permission checks
   app.use('/api/documents', createExportRoutes({ permissions }));
