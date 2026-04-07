@@ -124,6 +124,15 @@ modules/app/
     *.css                 -- Modern CSS, no preprocessors, no utility frameworks
 ```
 
+## Sub-Contracts
+
+- `contracts/app/comments.md` — Comment marks, sidebar, replies, and comment store
+- `contracts/app/suggestions.md` — Track changes / suggestion mode, suggestion marks and sidebar
+- `contracts/app/search.md` — Find-and-replace with regex support, ReDoS protection, ProseMirror decorations
+- `contracts/app/print.md` — Print stylesheet, PageBreak node, print/PDF buttons
+- `contracts/app/accessibility.md` — ARIA announcer, roving tabindex toolbar, shortcut dialog
+- `contracts/app/mobile.md` — Touch support, responsive toolbar overflow, viewport management
+
 ## MVP Scope
 
 Implemented:
@@ -142,6 +151,10 @@ Implemented:
 - [x] Awareness state is ephemeral (never persisted)
 - [x] i18n: EN and FR locales supported
 - [x] Centralized translation keys with TypeScript enforcement
+- [x] Find and replace (see `contracts/app/search.md`)
+- [x] Print/PDF support (see `contracts/app/print.md`)
+- [x] Accessibility features (see `contracts/app/accessibility.md`)
+- [x] Mobile/touch support (see `contracts/app/mobile.md`)
 
 Post-MVP (deferred):
 - [ ] Block ID assignment extension (`blockId` UUIDv4 on new top-level blocks) — blocks exist but auto-ID assignment extension not yet built

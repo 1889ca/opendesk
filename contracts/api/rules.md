@@ -93,6 +93,20 @@ HTTP boundary layer that exposes REST endpoints for document CRUD, sharing, expo
 | GET | `/api/events/stream` | SSE event stream (filterable) | required | standard |
 | POST | `/api/shares` | Create share link | required | write |
 | DELETE | `/api/shares/:id` | Revoke share | required | write |
+| GET | `/api/templates` | List all templates | none | standard |
+| POST | `/api/templates` | Create template | required | write |
+| GET | `/api/templates/:id` | Get template by ID | none | standard |
+| PUT | `/api/templates/:id` | Update template | required | write |
+| DELETE | `/api/templates/:id` | Delete template | required | write |
+| POST | `/api/upload` | Upload file (image) | none | write |
+| GET | `/api/files/:key(*)` | Serve uploaded file | none | standard |
+| DELETE | `/api/admin/users/:id/data` | Purge user data (self-only) | required | write |
+
+## Sub-Contracts
+
+- `contracts/api/templates.md` — Template CRUD endpoints (GET/POST/PUT/DELETE `/api/templates`)
+- `contracts/api/uploads.md` — File upload and serving endpoints (POST `/api/upload`, GET `/api/files/*`)
+- `contracts/api/admin.md` — User data purge endpoint (DELETE `/api/admin/users/:id/data`)
 
 ## Verification
 
@@ -117,6 +131,9 @@ Implemented:
 - [x] No business logic in route handlers (pure orchestration)
 - [x] Share link endpoints (POST /api/shares, DELETE /api/shares/:id)
 - [x] Export/import endpoints (POST /api/documents/:id/export, POST /api/documents/:id/import)
+- [x] Template CRUD endpoints (see `contracts/api/templates.md`)
+- [x] File upload and serving endpoints (see `contracts/api/uploads.md`)
+- [x] Admin user data purge endpoint (see `contracts/api/admin.md`)
 
 Post-MVP (deferred):
 - [ ] Zod validation on all request bodies — currently using ad-hoc validation checks
