@@ -73,6 +73,14 @@ export interface TranslationKeys {
   'table.toggleHeaderColumn': string;
   'table.deleteTable': string;
 
+  // Images
+  'toolbar.image': string;
+  'image.uploading': string;
+  'image.uploadFailed': string;
+  'image.tooLarge': string;
+  'image.unsupportedType': string;
+  'image.insertTitle': string;
+
   // Language switcher
   'lang.label': string;
   'lang.en': string;

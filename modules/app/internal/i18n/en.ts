@@ -70,6 +70,14 @@ export const en: TranslationKeys = {
   'table.toggleHeaderColumn': 'Header col',
   'table.deleteTable': 'Delete table',
 
+  // Images
+  'toolbar.image': 'Image',
+  'image.uploading': 'Uploading...',
+  'image.uploadFailed': 'Upload failed',
+  'image.tooLarge': 'File too large (max 10 MB)',
+  'image.unsupportedType': 'Unsupported file type',
+  'image.insertTitle': 'Insert image',
+
   // Language switcher
   'lang.label': 'Language',
   'lang.en': 'English',
