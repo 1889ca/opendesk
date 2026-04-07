@@ -6,3 +6,4 @@ dist/
 *.log
 .DS_Store
 modules/app/internal/public/editor.bundle.js
+.claude/worktrees/

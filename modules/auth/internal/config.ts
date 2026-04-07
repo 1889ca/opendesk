@@ -23,6 +23,10 @@ export function loadAuthConfig(): AuthConfig {
     throw new Error(`Invalid AUTH_MODE: ${mode}. Must be 'oidc' or 'dev'.`);
   }
 
+  if (mode === 'dev' && process.env.NODE_ENV === 'production') {
+    throw new Error('FATAL: AUTH_MODE=dev is forbidden when NODE_ENV=production');
+  }
+
   return {
     mode,
     oidcIssuer: process.env.OIDC_ISSUER || '',

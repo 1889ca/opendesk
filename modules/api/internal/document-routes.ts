@@ -10,6 +10,7 @@ import {
   updateDocumentTitle,
 } from '../../storage/internal/pg.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
+import { asyncHandler } from './async-handler.ts';
 
 export type DocumentRoutesOptions = {
   permissions: PermissionsModule;
@@ -24,13 +25,13 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   const { permissions } = opts;
 
   // List documents — requires auth only (no specific resource)
-  router.get('/', permissions.requireAuth, async (_req: Request, res: Response) => {
+  router.get('/', permissions.requireAuth, asyncHandler(async (_req: Request, res: Response) => {
     const docs = await listDocuments();
     res.json(docs);
-  });
+  }));
 
   // Create document — requires auth, auto-grants owner role to creator
-  router.post('/', permissions.requireAuth, async (req: Request, res: Response) => {
+  router.post('/', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     const title = req.body?.title || 'Untitled';
     const id = randomUUID();
     const doc = await createDocument(id, title);
@@ -46,20 +47,20 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
     });
 
     res.status(201).json(doc);
-  });
+  }));
 
   // Get document — requires read permission
-  router.get('/:id', permissions.require('read'), async (req: Request, res: Response) => {
+  router.get('/:id', permissions.require('read'), asyncHandler(async (req: Request, res: Response) => {
     const doc = await getDocument(String(req.params.id));
     if (!doc) {
       res.status(404).json({ error: 'Document not found' });
       return;
     }
     res.json(doc);
-  });
+  }));
 
   // Update document title — requires write permission
-  router.patch('/:id', permissions.require('write'), async (req: Request, res: Response) => {
+  router.patch('/:id', permissions.require('write'), asyncHandler(async (req: Request, res: Response) => {
     const { title } = req.body;
     if (!title) {
       res.status(400).json({ error: 'title is required' });
@@ -67,17 +68,17 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
     }
     await updateDocumentTitle(String(req.params.id), title);
     res.json({ ok: true });
-  });
+  }));
 
   // Delete document — requires delete permission
-  router.delete('/:id', permissions.require('delete'), async (req: Request, res: Response) => {
+  router.delete('/:id', permissions.require('delete'), asyncHandler(async (req: Request, res: Response) => {
     const deleted = await deleteDocument(String(req.params.id));
     if (!deleted) {
       res.status(404).json({ error: 'Document not found' });
       return;
     }
     res.json({ ok: true });
-  });
+  }));
 
   return router;
 }

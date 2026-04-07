@@ -1,6 +1,6 @@
 /** Contract: contracts/api/rules.md */
 import { createServer } from 'node:http';
-import express from 'express';
+import express, { type Request, type Response, type NextFunction } from 'express';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createCollabServer } from '../../collab/internal/server.ts';
@@ -16,7 +16,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export function startServer(port = 3000) {
   const app = express();
-  const { handleUpgrade } = createCollabServer();
 
   // Wire auth module (dev mode uses bypass verifiers)
   const auth = createAuth({
@@ -29,6 +28,11 @@ export function startServer(port = 3000) {
     publicPaths: ['/api/health'],
   });
 
+  // Wire collab server with auth dependency
+  const { handleUpgrade } = createCollabServer({
+    tokenVerifier: auth.tokenVerifier,
+  });
+
   // Wire permissions module
   const permissions = createPermissions();
 
@@ -38,15 +42,15 @@ export function startServer(port = 3000) {
   const redisClient = getRedisClient();
   app.use('/api', idempotencyMiddleware({ cache: redisClient }));
 
-  // Collabora convert routes (import/export binary formats)
-  app.use(createConvertRoutes());
-
   // Serve static frontend
   const publicDir = resolve(__dirname, '../../app/internal/public');
   app.use(express.static(publicDir));
 
   // Auth middleware on all /api routes (except public paths)
   app.use('/api', auth.middleware);
+
+  // Collabora convert routes (import/export binary formats) — after auth
+  app.use(createConvertRoutes());
 
   // Health check (public, skipped by auth middleware)
   app.get('/api/health', (_req, res) => {
@@ -58,6 +62,12 @@ export function startServer(port = 3000) {
 
   // Export/import routes with permission checks
   app.use('/api/documents', createExportRoutes({ permissions }));
+
+  // Global error handler — must be registered LAST (after all routes)
+  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+    console.error('[opendesk] unhandled error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  });
 
   const httpServer = createServer(app);
 

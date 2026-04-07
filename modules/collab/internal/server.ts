@@ -6,11 +6,16 @@ import type { IncomingMessage } from 'node:http';
 import type { Duplex } from 'node:stream';
 import { saveYjsState, loadYjsState } from '../../storage/internal/pg.ts';
 import { CompactionManager } from './compaction-manager.ts';
+import { createOnAuthenticate } from './authenticate.ts';
 import type { CollabConfig } from '../contract.ts';
+import type { CollabDependencies } from './types.ts';
 
 const DEFAULT_COMPACTION_THRESHOLD = 1_048_576; // 1 MiB
 
-export function createCollabServer(config?: Partial<CollabConfig>) {
+export function createCollabServer(
+  deps: CollabDependencies,
+  config?: Partial<CollabConfig>,
+) {
   const thresholdBytes =
     config?.compactionThresholdBytes ?? DEFAULT_COMPACTION_THRESHOLD;
 
@@ -19,12 +24,16 @@ export function createCollabServer(config?: Partial<CollabConfig>) {
     loadYjsState,
   });
 
+  const onAuthenticate = createOnAuthenticate(deps.tokenVerifier);
+
   const hocuspocus = new Hocuspocus({
     name: config?.hocuspocus?.name ?? 'opendesk-collab',
     timeout: 30000,
     debounce: 2000,
     maxDebounce: 10000,
     quiet: config?.hocuspocus?.quiet ?? true,
+
+    onAuthenticate,
 
     async onLoadDocument({ document, documentName }) {
       const state = await loadYjsState(documentName);
