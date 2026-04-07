@@ -109,7 +109,7 @@ export function createMoveDocumentRoute(opts: FolderRoutesOptions): Router {
   const { permissions } = opts;
   const router = Router();
 
-  router.put('/:id/move', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  router.put('/:id/move', permissions.require('write'), asyncHandler(async (req: Request, res: Response) => {
     const bodyResult = MoveDocumentBody.safeParse(req.body ?? {});
     if (!bodyResult.success) {
       res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
