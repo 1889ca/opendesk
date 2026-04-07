@@ -31,6 +31,7 @@ import {
 import { bindShortcutDialogKey } from './shortcut-dialog.ts';
 import { announce } from './a11y-announcer.ts';
 import { initTouchSupport } from './touch-support.ts';
+import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts';
 import { buildStatusBar } from './status-bar.ts';
 
 const COLORS = [
@@ -155,6 +156,13 @@ function init() {
   // Suggestion sidebar
   const suggestionSidebar = buildSuggestionSidebar(editor);
   document.body.appendChild(suggestionSidebar);
+
+  // Version history sidebar
+  const versionSidebar = buildVersionSidebar();
+  document.body.appendChild(versionSidebar);
+  document.addEventListener('opendesk:toggle-versions', () => {
+    toggleVersionSidebar(versionSidebar);
+  });
 
   document.addEventListener('opendesk:add-comment', () => {
     showCommentInput(editor, commentStore, documentId, user);
