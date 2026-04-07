@@ -5,7 +5,7 @@
  * including password-protected links.
  */
 
-import { apiFetch } from './api-client.ts';
+import { apiFetch } from './shared/api-client.ts';
 
 function init(): void {
   const params = new URLSearchParams(window.location.search);

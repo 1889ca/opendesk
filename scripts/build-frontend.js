@@ -14,7 +14,7 @@ const OUTDIR = 'modules/app/internal/public';
 const builds = [
   // Editor JS
   {
-    entryPoints: ['modules/app/internal/editor.ts'],
+    entryPoints: ['modules/app/internal/editor/editor.ts'],
     outfile: `${OUTDIR}/editor.bundle.js`,
     bundle: true,
     format: 'esm',
@@ -33,7 +33,7 @@ const builds = [
   },
   // Doc list JS
   {
-    entryPoints: ['modules/app/internal/doc-list.ts'],
+    entryPoints: ['modules/app/internal/doc-list/doc-list.ts'],
     outfile: `${OUTDIR}/doc-list.bundle.js`,
     bundle: true,
     format: 'esm',

@@ -14,7 +14,7 @@ const sharedCSS = {
 const entries = [
   {
     ...sharedJS,
-    entryPoints: ['modules/app/internal/editor.ts'],
+    entryPoints: ['modules/app/internal/editor/editor.ts'],
     outfile: 'modules/app/internal/public/editor.bundle.js',
     alias: { '@tiptap/y-tiptap': 'y-prosemirror' },
   },
@@ -25,7 +25,7 @@ const entries = [
   },
   {
     ...sharedJS,
-    entryPoints: ['modules/app/internal/doc-list.ts'],
+    entryPoints: ['modules/app/internal/doc-list/doc-list.ts'],
     outfile: 'modules/app/internal/public/doc-list.bundle.js',
   },
   {

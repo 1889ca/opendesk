@@ -1,8 +1,8 @@
 /** Contract: contracts/app/rules.md */
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
-import { getUserIdentity, getDocumentId } from './identity.ts';
-import { setupTitleSync } from './title-sync.ts';
+import { getUserIdentity, getDocumentId } from './shared/identity.ts';
+import { setupTitleSync } from './shared/title-sync.ts';
 
 const DEFAULT_COLS = 26;
 const DEFAULT_ROWS = 50;
