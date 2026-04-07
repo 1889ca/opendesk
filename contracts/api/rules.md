@@ -39,19 +39,20 @@ HTTP boundary layer that exposes REST endpoints for document CRUD, sharing, expo
 - Writes share grants via the sharing module
 - Opens long-lived SSE connections via the events module
 
-## Invariants
+## Invariants (current)
 
 - Every request is authenticated and resolved to a `Principal` before any route handler executes
 - Every request body and path/query parameter is Zod-validated before being passed to any domain module
 - Permission checks occur before every document operation (read, write, share, export)
-- Rate limits are enforced per-principal, discriminated by `actorType`:
-  - `agent`: strict token bucket (2 modifications/sec sustained, minimal burst)
-  - `human`: higher burst allowance with the same sustained rate
-- Agent principals connecting via WebSocket are also subject to rate limiting at the auth layer
-- `GET /api/documents/:id` with `If-Match` header returns `304 Not Modified` if revision matches, or current snapshot if it does not -- this enables causal reads
-- `POST /api/documents/:id/intents` returns `409 Conflict` with `currentRevision` and `currentStateVector` when the submitted revision does not match HEAD -- agents use these values to retry
-- SSE replay via `Last-Event-ID` replays from the PG outbox; if the ID is older than 7 days (outbox TTL), the server returns `410 Gone` instead of silently dropping events
 - No business logic lives in this module -- route handlers are pure orchestration (validate, authorize, delegate, serialize)
+
+## Planned Invariants (post-MVP)
+
+- Rate limits enforced per-principal, discriminated by `actorType` (agent: 2/sec strict, human: higher burst)
+- Agent principals connecting via WebSocket also subject to rate limiting at the auth layer
+- `GET /api/documents/:id` with `If-Match` header returns `304 Not Modified` if revision matches (causal reads)
+- `POST /api/documents/:id/intents` returns `409 Conflict` with `currentRevision` and `currentStateVector` on stale revision
+- SSE replay via `Last-Event-ID` replays from the PG outbox; IDs older than 7 days return `410 Gone`
 
 ## Dependencies
 
@@ -94,9 +95,9 @@ HTTP boundary layer that exposes REST endpoints for document CRUD, sharing, expo
 | POST | `/api/documents/:id/share` | Create share link | required | write |
 | POST | `/api/share/:token/resolve` | Resolve (redeem) share link | required | write |
 | DELETE | `/api/share/:token` | Revoke share link | required | write |
-| GET | `/api/templates` | List all templates | none | standard |
+| GET | `/api/templates` | List all templates | required | standard |
 | POST | `/api/templates` | Create template | required | write |
-| GET | `/api/templates/:id` | Get template by ID | none | standard |
+| GET | `/api/templates/:id` | Get template by ID | required | standard |
 | PUT | `/api/templates/:id` | Update template | required | write |
 | DELETE | `/api/templates/:id` | Delete template | required | write |
 | POST | `/api/upload` | Upload file (image) | none | write |
