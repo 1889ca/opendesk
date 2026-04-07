@@ -1,0 +1,79 @@
+/* Document list page styles */
+
+.doc-list-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.doc-list {
+  width: 100%;
+  max-width: 40rem;
+}
+
+.doc-list-loading {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 3rem 0;
+  font-size: 0.875rem;
+}
+
+.doc-list-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+
+.empty-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.empty-subtitle {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.doc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.doc-row:hover {
+  border-color: var(--accent);
+  box-shadow: 0 1px 4px var(--accent-shadow);
+}
+
+.doc-row:hover .btn-delete {
+  opacity: 1;
+}
+
+.doc-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.doc-row-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-row-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
