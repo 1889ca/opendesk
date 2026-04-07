@@ -5,7 +5,6 @@
  * Both en.ts and fr.ts must implement this type fully.
  */
 export interface TranslationKeys {
-  // Toolbar - formatting buttons
   'toolbar.bold': string;
   'toolbar.italic': string;
   'toolbar.strike': string;
@@ -18,25 +17,17 @@ export interface TranslationKeys {
   'toolbar.blockquote': string;
   'toolbar.codeBlock': string;
   'toolbar.horizontalRule': string;
-
-  // Editor status
   'status.connected': string;
   'status.disconnected': string;
   'status.connecting': string;
-
-  // Editor chrome
   'editor.editors': string;
   'editor.backToDocuments': string;
   'editor.loading': string;
   'editor.untitled': string;
-
-  // Export
   'export.html': string;
   'export.text': string;
   'export.htmlTitle': string;
   'export.textTitle': string;
-
-  // Document list
   'docList.newDocument': string;
   'docList.loading': string;
   'docList.noDocuments': string;
@@ -46,8 +37,6 @@ export interface TranslationKeys {
   'docList.updated': string;
   'docList.loadFailed': string;
   'docList.titlePrompt': string;
-
-  // Time ago
   'time.justNow': string;
   'time.secondsAgo': string;
   'time.minuteAgo': string;
@@ -58,8 +47,6 @@ export interface TranslationKeys {
   'time.daysAgo': string;
   'time.monthAgo': string;
   'time.monthsAgo': string;
-
-  // Table toolbar
   'table.insert': string;
   'table.addRowBefore': string;
   'table.addRowAfter': string;
@@ -72,16 +59,12 @@ export interface TranslationKeys {
   'table.toggleHeaderRow': string;
   'table.toggleHeaderColumn': string;
   'table.deleteTable': string;
-
-  // Images
   'toolbar.image': string;
   'image.uploading': string;
   'image.uploadFailed': string;
   'image.tooLarge': string;
   'image.unsupportedType': string;
   'image.insertTitle': string;
-
-  // Search & Replace
   'search.find': string;
   'search.replace': string;
   'search.findNext': string;
@@ -94,8 +77,6 @@ export interface TranslationKeys {
   'search.noMatches': string;
   'search.close': string;
   'toolbar.find': string;
-
-  // Comments
   'toolbar.comment': string;
   'comments.title': string;
   'comments.sidebarLabel': string;
@@ -151,7 +132,6 @@ export interface TranslationKeys {
   'templates.selectTitle': string;
   'templates.loading': string;
   'templates.loadFailed': string;
-
   // Accessibility
   'a11y.skipToContent': string;
   'a11y.formattingToolbar': string;

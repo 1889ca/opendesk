@@ -1,10 +1,6 @@
 /** Contract: contracts/app/rules.md */
 
-/**
- * Implements WAI-ARIA toolbar pattern with roving tabindex.
- * Arrow keys navigate between buttons, Home/End jump to first/last,
- * Escape returns focus to the editor.
- */
+/** WAI-ARIA toolbar pattern with roving tabindex. */
 export function enableToolbarNavigation(
   toolbar: HTMLElement,
   returnFocusTo: () => HTMLElement | null,
@@ -14,23 +10,19 @@ export function enableToolbarNavigation(
   toolbar.addEventListener('keydown', (e) => {
     const buttons = getButtons(toolbar);
     if (buttons.length === 0) return;
-
     const current = document.activeElement as HTMLElement;
     const idx = buttons.indexOf(current);
-
     switch (e.key) {
       case 'ArrowRight':
       case 'ArrowDown': {
         e.preventDefault();
-        const next = idx < buttons.length - 1 ? idx + 1 : 0;
-        focusButton(buttons, next);
+        focusButton(buttons, idx < buttons.length - 1 ? idx + 1 : 0);
         break;
       }
       case 'ArrowLeft':
       case 'ArrowUp': {
         e.preventDefault();
-        const prev = idx > 0 ? idx - 1 : buttons.length - 1;
-        focusButton(buttons, prev);
+        focusButton(buttons, idx > 0 ? idx - 1 : buttons.length - 1);
         break;
       }
       case 'Home': {
@@ -45,8 +37,7 @@ export function enableToolbarNavigation(
       }
       case 'Escape': {
         e.preventDefault();
-        const target = returnFocusTo();
-        target?.focus();
+        returnFocusTo()?.focus();
         break;
       }
     }
@@ -54,9 +45,7 @@ export function enableToolbarNavigation(
 }
 
 function getButtons(toolbar: HTMLElement): HTMLElement[] {
-  return Array.from(
-    toolbar.querySelectorAll<HTMLElement>('button:not([disabled])'),
-  );
+  return Array.from(toolbar.querySelectorAll<HTMLElement>('button:not([disabled])'));
 }
 
 function focusButton(buttons: HTMLElement[], index: number): void {

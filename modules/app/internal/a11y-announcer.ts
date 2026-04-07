@@ -14,14 +14,10 @@ function getAnnouncer(): HTMLElement {
   return announcer;
 }
 
-/**
- * Announce a message to screen readers via aria-live region.
- * Clears after a short delay to allow repeated announcements.
- */
+/** Announce a message to screen readers via aria-live region. */
 export function announce(message: string): void {
   const el = getAnnouncer();
   el.textContent = '';
-  // Force reflow so repeated messages are re-announced
   void el.offsetHeight;
   el.textContent = message;
 }

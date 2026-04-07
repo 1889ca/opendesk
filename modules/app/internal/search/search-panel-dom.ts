@@ -64,6 +64,8 @@ export function mountPanelInputs(panel: HTMLDivElement): PanelElements {
   const regexToggle = createToggle('.*', 'search.useRegex');
   const counter = document.createElement('span');
   counter.className = 'search-panel__counter';
+  counter.setAttribute('aria-live', 'polite');
+  counter.setAttribute('aria-atomic', 'true');
   counter.textContent = '';
 
   const prevBtn = createActionBtn('\u2191', 'search.findPrev');

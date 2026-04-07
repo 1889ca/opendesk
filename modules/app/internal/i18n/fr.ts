@@ -2,7 +2,6 @@
 import type { TranslationKeys } from './types.ts';
 
 export const fr: TranslationKeys = {
-  // Barre d'outils - boutons de formatage
   'toolbar.bold': 'G',
   'toolbar.italic': 'I',
   'toolbar.strike': 'B',
@@ -26,14 +25,10 @@ export const fr: TranslationKeys = {
   'editor.backToDocuments': 'Retour aux documents',
   'editor.loading': 'Chargement...',
   'editor.untitled': 'Sans titre',
-
-  // Exportation
   'export.html': 'HTML',
   'export.text': 'Texte',
   'export.htmlTitle': 'Exporter en HTML',
   'export.textTitle': 'Exporter en texte brut',
-
-  // Liste des documents
   'docList.newDocument': 'Nouveau document',
   'docList.loading': 'Chargement des documents...',
   'docList.noDocuments': 'Aucun document',
@@ -43,7 +38,6 @@ export const fr: TranslationKeys = {
   'docList.updated': 'Modifi\u00e9 {time}',
   'docList.loadFailed': 'Impossible de charger les documents',
   'docList.titlePrompt': 'Titre du document :',
-
   // Temps \u00e9coul\u00e9
   'time.justNow': '\u00e0 l\u2019instant',
   'time.secondsAgo': 'il y a {n} secondes',
@@ -55,8 +49,6 @@ export const fr: TranslationKeys = {
   'time.daysAgo': 'il y a {n} jours',
   'time.monthAgo': 'il y a 1 mois',
   'time.monthsAgo': 'il y a {n} mois',
-
-  // Barre d'outils tableau
   'table.insert': 'Tableau',
   'table.addRowBefore': '+ Ligne dessus',
   'table.addRowAfter': '+ Ligne dessous',
@@ -69,16 +61,12 @@ export const fr: TranslationKeys = {
   'table.toggleHeaderRow': 'Ligne en-t\u00eate',
   'table.toggleHeaderColumn': 'Col en-t\u00eate',
   'table.deleteTable': 'Supprimer tableau',
-
-  // Images
   'toolbar.image': 'Image',
   'image.uploading': 'Envoi en cours...',
   'image.uploadFailed': '\u00c9chec de l\u2019envoi',
   'image.tooLarge': 'Fichier trop volumineux (max 10 Mo)',
   'image.unsupportedType': 'Type de fichier non pris en charge',
   'image.insertTitle': 'Ins\u00e9rer une image',
-
-  // Recherche & Remplacement
   'search.find': 'Rechercher...',
   'search.replace': 'Remplacer...',
   'search.findNext': 'Suivant',
@@ -91,8 +79,6 @@ export const fr: TranslationKeys = {
   'search.noMatches': 'Aucun r\u00e9sultat',
   'search.close': 'Fermer la recherche',
   'toolbar.find': 'Rechercher',
-
-  // Commentaires
   'toolbar.comment': 'Commenter',
   'comments.title': 'Commentaires',
   'comments.sidebarLabel': 'Commentaires du document',
@@ -140,7 +126,6 @@ export const fr: TranslationKeys = {
   'templates.selectTitle': 'Nouveau document',
   'templates.loading': 'Chargement des mod\u00e8les...',
   'templates.loadFailed': 'Impossible de charger les mod\u00e8les',
-
   // Accessibilit\u00e9
   'a11y.skipToContent': 'Aller au contenu',
   'a11y.formattingToolbar': 'Barre de mise en forme',

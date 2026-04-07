@@ -10,7 +10,7 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
-import { t, setLocale, resolveLocale, persistLocale, onLocaleChange } from './i18n/index.ts';
+import { t, setLocale, getLocale, resolveLocale, persistLocale, onLocaleChange } from './i18n/index.ts';
 import { buildLanguageSwitcher, updateStaticText } from './locale-ui.ts';
 import { buildTableToolbar } from './table-toolbar.ts';
 import { setupImageHandlers } from './image-handlers.ts';
@@ -28,6 +28,8 @@ import {
   buildSuggestionSidebar,
   toggleSuggestionSidebar,
 } from './suggestions/index.ts';
+import { bindShortcutDialogKey } from './shortcut-dialog.ts';
+import { announce } from './a11y-announcer.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -54,17 +56,33 @@ function getDocumentId() {
   return params.get('doc') || 'default';
 }
 
+function updateHtmlLang(): void {
+  document.documentElement.lang = getLocale();
+}
+
+function addSkipLink(): void {
+  if (document.getElementById('skip-link')) return;
+  const link = document.createElement('a');
+  link.id = 'skip-link';
+  link.href = '#editor';
+  link.className = 'skip-to-content';
+  link.textContent = t('a11y.skipToContent');
+  document.body.insertBefore(link, document.body.firstChild);
+  onLocaleChange(() => { link.textContent = t('a11y.skipToContent'); });
+}
+
 function init() {
   const locale = resolveLocale();
   setLocale(locale);
   persistLocale(locale);
+  updateHtmlLang();
+  onLocaleChange(updateHtmlLang);
+  addSkipLink();
 
   const editorEl = document.getElementById('editor');
   if (!editorEl) return;
-
   const documentId = getDocumentId();
   const user = getUserIdentity();
-
   const statusEl = document.getElementById('status');
   const usersEl = document.getElementById('users');
 
@@ -73,23 +91,14 @@ function init() {
 
   const ydoc = new Y.Doc();
   const commentStore = new CommentStore(ydoc);
-
   const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/collab`;
   const provider = new HocuspocusProvider({
-    url: wsUrl,
-    name: documentId,
-    document: ydoc,
+    url: wsUrl, name: documentId, document: ydoc,
     onConnect() {
-      if (statusEl) {
-        statusEl.textContent = t('status.connected');
-        statusEl.className = 'status connected';
-      }
+      if (statusEl) { statusEl.textContent = t('status.connected'); statusEl.className = 'status connected'; }
     },
     onDisconnect() {
-      if (statusEl) {
-        statusEl.textContent = t('status.disconnected');
-        statusEl.className = 'status disconnected';
-      }
+      if (statusEl) { statusEl.textContent = t('status.disconnected'); statusEl.className = 'status disconnected'; }
     },
   });
 
@@ -112,14 +121,9 @@ function init() {
       SuggestionInsertMark,
       SuggestionDeleteMark,
       Collaboration.configure({ document: ydoc }),
-      CollaborationCursor.configure({
-        provider,
-        user: { name: user.name, color: user.color },
-      }),
+      CollaborationCursor.configure({ provider, user: { name: user.name, color: user.color } }),
     ],
-    editorProps: {
-      attributes: { class: 'editor-content' },
-    },
+    editorProps: { attributes: { class: 'editor-content' } },
   });
 
   // Suggestion mode setup
@@ -132,6 +136,7 @@ function init() {
   buildSearchPanel(editor);
   buildLanguageSwitcher();
   setupImageHandlers(editor, editorEl);
+  bindShortcutDialogKey();
 
   // Comment sidebar
   const commentSidebar = buildCommentSidebar(editor, commentStore, documentId, user);
@@ -141,10 +146,10 @@ function init() {
   const suggestionSidebar = buildSuggestionSidebar(editor);
   document.body.appendChild(suggestionSidebar);
 
-  // Listen for add-comment events (from toolbar button or Cmd+Shift+M)
   document.addEventListener('opendesk:add-comment', () => {
     showCommentInput(editor, commentStore, documentId, user);
     toggleSidebar(commentSidebar, true);
+    announce(t('a11y.commentAdded'));
   });
 
   // Listen for suggestion sidebar toggle
@@ -163,7 +168,6 @@ function init() {
   }
   provider.awareness?.on('change', updateUsers);
   updateUsers();
-
   Object.assign(window, { editor, provider, ydoc, commentStore });
 }
 

@@ -2,7 +2,6 @@
 import type { TranslationKeys } from './types.ts';
 
 export const en: TranslationKeys = {
-  // Toolbar - formatting buttons
   'toolbar.bold': 'B',
   'toolbar.italic': 'I',
   'toolbar.strike': 'S',
@@ -15,25 +14,17 @@ export const en: TranslationKeys = {
   'toolbar.blockquote': 'Quote',
   'toolbar.codeBlock': '<>',
   'toolbar.horizontalRule': 'HR',
-
-  // Editor status
   'status.connected': 'Connected',
   'status.disconnected': 'Disconnected',
   'status.connecting': 'Connecting...',
-
-  // Editor chrome
   'editor.editors': 'Editors:',
   'editor.backToDocuments': 'Back to documents',
   'editor.loading': 'Loading...',
   'editor.untitled': 'Untitled',
-
-  // Export
   'export.html': 'HTML',
   'export.text': 'Text',
   'export.htmlTitle': 'Export as HTML',
   'export.textTitle': 'Export as plain text',
-
-  // Document list
   'docList.newDocument': 'New Document',
   'docList.loading': 'Loading documents...',
   'docList.noDocuments': 'No documents yet',
@@ -43,8 +34,6 @@ export const en: TranslationKeys = {
   'docList.updated': 'Updated {time}',
   'docList.loadFailed': 'Failed to load documents',
   'docList.titlePrompt': 'Document title:',
-
-  // Time ago
   'time.justNow': 'just now',
   'time.secondsAgo': '{n} seconds ago',
   'time.minuteAgo': '1 minute ago',
@@ -55,8 +44,6 @@ export const en: TranslationKeys = {
   'time.daysAgo': '{n} days ago',
   'time.monthAgo': '1 month ago',
   'time.monthsAgo': '{n} months ago',
-
-  // Table toolbar
   'table.insert': 'Table',
   'table.addRowBefore': '+ Row above',
   'table.addRowAfter': '+ Row below',
@@ -69,16 +56,12 @@ export const en: TranslationKeys = {
   'table.toggleHeaderRow': 'Header row',
   'table.toggleHeaderColumn': 'Header col',
   'table.deleteTable': 'Delete table',
-
-  // Images
   'toolbar.image': 'Image',
   'image.uploading': 'Uploading...',
   'image.uploadFailed': 'Upload failed',
   'image.tooLarge': 'File too large (max 10 MB)',
   'image.unsupportedType': 'Unsupported file type',
   'image.insertTitle': 'Insert image',
-
-  // Search & Replace
   'search.find': 'Find...',
   'search.replace': 'Replace...',
   'search.findNext': 'Next match',
@@ -91,8 +74,6 @@ export const en: TranslationKeys = {
   'search.noMatches': 'No matches',
   'search.close': 'Close search',
   'toolbar.find': 'Find',
-
-  // Comments
   'toolbar.comment': 'Comment',
   'comments.title': 'Comments',
   'comments.sidebarLabel': 'Document comments',
@@ -140,7 +121,6 @@ export const en: TranslationKeys = {
   'templates.selectTitle': 'New Document',
   'templates.loading': 'Loading templates...',
   'templates.loadFailed': 'Failed to load templates',
-
   // Accessibility
   'a11y.skipToContent': 'Skip to content',
   'a11y.formattingToolbar': 'Formatting toolbar',
