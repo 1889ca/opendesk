@@ -25,6 +25,7 @@ import {
 } from '../../sharing/index.ts';
 import { pool } from '../../storage/internal/pool.ts';
 import { initSchema } from '../../storage/internal/schema.ts';
+import { ensureS3Bucket } from './s3-client.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -35,6 +36,12 @@ export async function startServer(port = 3000) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn(`[opendesk] schema init failed: ${msg} — continuing anyway`);
+  }
+  try {
+    await ensureS3Bucket();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[s3] bucket init failed: ${msg} — uploads may fail`);
   }
   const app = express();
 
