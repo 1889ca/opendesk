@@ -342,7 +342,7 @@
           return res.json();
         })
         .then(function (link) {
-          var shareUrl = window.location.origin + '/api/share/' + link.token + '/resolve';
+          var shareUrl = window.location.origin + '/share.html?token=' + encodeURIComponent(link.token);
           urlInput.value = shareUrl;
           resultDiv.hidden = false;
         })
