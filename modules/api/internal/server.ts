@@ -18,10 +18,14 @@ import { createTemplateRoutes } from './template-routes.ts';
 import { createVersionRoutes } from './version-routes.ts';
 import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts';
 import { createSearchRoutes } from './search-routes.ts';
+import { pool } from '../../storage/internal/pool.ts';
+import { initSchema } from '../../storage/internal/schema.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export function startServer(port = 3000) {
+export async function startServer(port = 3000) {
+  await initSchema();
+  console.log('[opendesk] database schema initialized');
   const app = express();
 
   // Wire auth module (dev mode uses bypass verifiers)
@@ -60,8 +64,13 @@ export function startServer(port = 3000) {
   app.use(createConvertRoutes());
 
   // Health check (public, skipped by auth middleware)
-  app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', version: '0.1.0' });
+  app.get('/api/health', async (_req, res) => {
+    try {
+      await pool.query('SELECT 1');
+      res.json({ status: 'ok', version: '0.1.0' });
+    } catch {
+      res.status(503).json({ status: 'unhealthy' });
+    }
   });
 
   // Search must be mounted before document CRUD so /search is matched before /:id
