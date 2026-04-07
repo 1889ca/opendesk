@@ -26,9 +26,13 @@ function renderDocuments(listEl: HTMLElement, docs: DocEntry[]) {
     const emptyEl = document.createElement('div');
     emptyEl.className = 'doc-list-empty';
     const key = getCurrentFolderId() ? 'folders.empty' : 'docList.noDocuments';
-    emptyEl.innerHTML =
-      '<p class="empty-title">' + t(key) + '</p>' +
-      '<p class="empty-subtitle">' + t('docList.noDocumentsSubtitle') + '</p>';
+    const titleP = document.createElement('p');
+    titleP.className = 'empty-title';
+    titleP.textContent = t(key);
+    const subtitleP = document.createElement('p');
+    subtitleP.className = 'empty-subtitle';
+    subtitleP.textContent = t('docList.noDocumentsSubtitle');
+    emptyEl.append(titleP, subtitleP);
     listEl.appendChild(emptyEl);
     return;
   }
@@ -96,7 +100,13 @@ async function loadAll(listEl: HTMLElement) {
     renderDocuments(listEl, docs);
   } catch (err) {
     console.error('Failed to load documents', err);
-    listEl.innerHTML = '<div class="doc-list-empty"><p class="empty-title">' + t('docList.loadFailed') + '</p></div>';
+    const errDiv = document.createElement('div');
+    errDiv.className = 'doc-list-empty';
+    const errP = document.createElement('p');
+    errP.className = 'empty-title';
+    errP.textContent = t('docList.loadFailed');
+    errDiv.appendChild(errP);
+    listEl.replaceChildren(errDiv);
   }
 }
 
