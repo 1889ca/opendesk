@@ -3,8 +3,7 @@
 import { Router } from 'express';
 import { GrantRoleSchema, ShareLinkOptionsSchema } from '../contract.ts';
 import type { ShareLinkService } from './share-links.ts';
-import type { GrantStore } from '../../permissions/index.ts';
-import type { Role } from '../../permissions/index.ts';
+import type { GrantStore, Role } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/index.ts';
 
 export type ShareRouteDeps = {
