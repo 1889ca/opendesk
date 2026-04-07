@@ -36,6 +36,8 @@ export interface IdempotencyOptions {
   /** HTTP methods to apply idempotency to. Default: POST, PUT, DELETE */
   methods?: string[];
   headerName?: string;
+  /** Path prefixes to exempt from idempotency enforcement */
+  exemptPaths?: string[];
 }
 
 /**
@@ -52,6 +54,7 @@ export function idempotencyMiddleware(options: IdempotencyOptions) {
     ttlSeconds = IDEMPOTENCY_TTL_SECONDS,
     methods = ['POST', 'PUT', 'DELETE'],
     headerName = 'idempotency-key',
+    exemptPaths = [],
   } = options;
 
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -59,6 +62,12 @@ export function idempotencyMiddleware(options: IdempotencyOptions) {
 
     // Only apply to configured methods
     if (!methods.includes(method)) {
+      next();
+      return;
+    }
+
+    // Skip exempt paths (e.g. public share link resolution)
+    if (exemptPaths.some((prefix) => req.path.startsWith(prefix))) {
       next();
       return;
     }

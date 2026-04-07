@@ -10,6 +10,10 @@
   z-index: 1000;
 }
 
+.share-overlay[hidden] {
+  display: none;
+}
+
 .share-dialog {
   background: var(--surface);
   border-radius: 12px;

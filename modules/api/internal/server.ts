@@ -53,7 +53,7 @@ export async function startServer(port = 3000) {
       findServiceAccountById: async () => null,
       revokeServiceAccount: async () => {},
     },
-    publicPaths: ['/api/health'],
+    publicPaths: ['/api/health', '/share'],
   });
 
   // Wire collab server with auth dependency
@@ -69,7 +69,10 @@ export async function startServer(port = 3000) {
 
   // Idempotency middleware for mutating endpoints (POST, PUT, DELETE)
   const redisClient = getRedisClient();
-  app.use('/api', idempotencyMiddleware({ cache: redisClient }));
+  app.use('/api', idempotencyMiddleware({
+    cache: redisClient,
+    exemptPaths: ['/share/'],
+  }));
 
   // Serve static frontend
   const publicDir = resolve(__dirname, '../../app/internal/public');

@@ -32,10 +32,10 @@ export type AuthMiddlewareOptions = {
  * No caching — each request re-verifies (contract invariant).
  */
 export function createAuthMiddleware(opts: AuthMiddlewareOptions) {
-  const publicPaths = new Set(opts.publicPaths || []);
+  const publicPaths = opts.publicPaths || [];
 
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    if (publicPaths.has(req.path)) {
+    if (publicPaths.some((p) => req.path === p || req.path.startsWith(p + '/'))) {
       next();
       return;
     }
