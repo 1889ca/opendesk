@@ -1,0 +1,147 @@
+/* Print stylesheet — hides UI chrome, optimizes document for paper/PDF output */
+@media print {
+  @page { margin: 2cm; size: auto; }
+
+  /* Hide all UI chrome */
+  .toolbar, .formatting-toolbar, .table-toolbar, .comment-sidebar,
+  .comment-input-popover, .search-panel, .export-group, .lang-select,
+  .template-overlay, .back-link, .toolbar-separator, .status,
+  .users-label, .users, #lang-switcher,
+  .collaboration-cursor__caret, .collaboration-cursor__label,
+  .editor-content .selectedCell::after, .editor-content .column-resize-handle {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 12pt;
+    display: block;
+    min-height: auto;
+  }
+
+  .editor-wrapper { padding: 0; margin: 0; display: block; }
+
+  #editor {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0;
+    max-width: none;
+    width: 100%;
+    min-height: auto;
+  }
+
+  .editor-content {
+    padding: 0;
+    font-size: 12pt;
+    line-height: 1.6;
+    color: #000 !important;
+  }
+
+  .editor-content h1 {
+    font-size: 22pt;
+    break-before: page;
+    break-inside: avoid;
+    break-after: avoid;
+  }
+
+  .editor-content h1:first-child { break-before: auto; }
+
+  .editor-content h2 {
+    font-size: 17pt;
+    break-inside: avoid;
+    break-after: avoid;
+  }
+
+  .editor-content h3 {
+    font-size: 14pt;
+    break-inside: avoid;
+    break-after: avoid;
+  }
+
+  .editor-content p, .editor-content ul,
+  .editor-content ol, .editor-content li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  .editor-content blockquote {
+    border-left: 2pt solid #666;
+    color: #333 !important;
+  }
+
+  .editor-content pre {
+    background: #f5f5f5 !important;
+    color: #000 !important;
+    border: 1px solid #ccc;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    break-inside: avoid;
+  }
+
+  .editor-content pre code { color: #000 !important; }
+  .editor-content code { background: #f0f0f0 !important; color: #000 !important; }
+
+  .editor-content .tableWrapper { overflow: visible !important; }
+  .editor-content table { break-inside: avoid; }
+
+  .editor-content td, .editor-content th {
+    border: 1px solid #333 !important;
+    color: #000 !important;
+  }
+
+  .editor-content th { background: #eee !important; }
+  .editor-content tr { break-inside: avoid; }
+
+  .editor-content img,
+  .editor-content img.ProseMirror-selectednode {
+    max-width: 100% !important;
+    break-inside: avoid;
+    outline: none !important;
+  }
+
+  .editor-content a[href]::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.85em;
+    color: #555;
+    font-style: italic;
+  }
+
+  .editor-content a { color: #000 !important; text-decoration: underline; }
+  .editor-content hr { border-top: 1px solid #333; }
+
+  .comment-highlight { background: none !important; border-bottom: none !important; }
+  .search-match, .search-match--current { background: none !important; color: inherit !important; }
+
+  .page-break {
+    break-before: page;
+    display: block;
+    height: 0;
+    border: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .page-break::before { content: none; }
+}
+
+/* Page break node — screen styling */
+.page-break {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0;
+  margin: 0.5rem 0;
+  user-select: none;
+}
+
+.page-break::before {
+  content: '--- Page Break ---';
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-top: 1px dashed var(--border);
+  border-bottom: 1px dashed var(--border);
+  padding: 0.25rem 1rem;
+}

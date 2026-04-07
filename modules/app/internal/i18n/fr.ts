@@ -2,7 +2,6 @@
 import type { TranslationKeys } from './types.ts';
 
 export const fr: TranslationKeys = {
-  // Barre d'outils - boutons de formatage
   'toolbar.bold': 'G',
   'toolbar.italic': 'I',
   'toolbar.strike': 'B',
@@ -16,36 +15,31 @@ export const fr: TranslationKeys = {
   'toolbar.codeBlock': '<>',
   'toolbar.horizontalRule': 'Ligne',
 
-  // État de l'éditeur
-  'status.connected': 'Connecté',
-  'status.disconnected': 'Déconnecté',
+  // \u00c9tat de l'\u00e9diteur
+  'status.connected': 'Connect\u00e9',
+  'status.disconnected': 'D\u00e9connect\u00e9',
   'status.connecting': 'Connexion...',
 
-  // Interface de l'éditeur
-  'editor.editors': 'Éditeurs :',
+  // Interface de l'\u00e9diteur
+  'editor.editors': '\u00c9diteurs :',
   'editor.backToDocuments': 'Retour aux documents',
   'editor.loading': 'Chargement...',
   'editor.untitled': 'Sans titre',
-
-  // Exportation
   'export.html': 'HTML',
   'export.text': 'Texte',
   'export.htmlTitle': 'Exporter en HTML',
   'export.textTitle': 'Exporter en texte brut',
-
-  // Liste des documents
   'docList.newDocument': 'Nouveau document',
   'docList.loading': 'Chargement des documents...',
   'docList.noDocuments': 'Aucun document',
-  'docList.noDocumentsSubtitle': 'Créez votre premier document pour commencer.',
+  'docList.noDocumentsSubtitle': 'Cr\u00e9ez votre premier document pour commencer.',
   'docList.delete': 'Supprimer',
-  'docList.deleteConfirm': 'Supprimer « {name} » ? Cette action est irréversible.',
-  'docList.updated': 'Modifié {time}',
+  'docList.deleteConfirm': 'Supprimer \u00ab {name} \u00bb ? Cette action est irr\u00e9versible.',
+  'docList.updated': 'Modifi\u00e9 {time}',
   'docList.loadFailed': 'Impossible de charger les documents',
   'docList.titlePrompt': 'Titre du document :',
-
-  // Temps écoulé
-  'time.justNow': 'à l\u2019instant',
+  // Temps \u00e9coul\u00e9
+  'time.justNow': '\u00e0 l\u2019instant',
   'time.secondsAgo': 'il y a {n} secondes',
   'time.minuteAgo': 'il y a 1 minute',
   'time.minutesAgo': 'il y a {n} minutes',
@@ -55,8 +49,6 @@ export const fr: TranslationKeys = {
   'time.daysAgo': 'il y a {n} jours',
   'time.monthAgo': 'il y a 1 mois',
   'time.monthsAgo': 'il y a {n} mois',
-
-  // Barre d'outils tableau
   'table.insert': 'Tableau',
   'table.addRowBefore': '+ Ligne dessus',
   'table.addRowAfter': '+ Ligne dessous',
@@ -66,19 +58,15 @@ export const fr: TranslationKeys = {
   'table.deleteColumn': '- Col',
   'table.mergeCells': 'Fusionner',
   'table.splitCell': 'Scinder',
-  'table.toggleHeaderRow': 'Ligne en-tête',
-  'table.toggleHeaderColumn': 'Col en-tête',
+  'table.toggleHeaderRow': 'Ligne en-t\u00eate',
+  'table.toggleHeaderColumn': 'Col en-t\u00eate',
   'table.deleteTable': 'Supprimer tableau',
-
-  // Images
   'toolbar.image': 'Image',
   'image.uploading': 'Envoi en cours...',
   'image.uploadFailed': '\u00c9chec de l\u2019envoi',
   'image.tooLarge': 'Fichier trop volumineux (max 10 Mo)',
   'image.unsupportedType': 'Type de fichier non pris en charge',
   'image.insertTitle': 'Ins\u00e9rer une image',
-
-  // Recherche & Remplacement
   'search.find': 'Rechercher...',
   'search.replace': 'Remplacer...',
   'search.findNext': 'Suivant',
@@ -91,8 +79,6 @@ export const fr: TranslationKeys = {
   'search.noMatches': 'Aucun r\u00e9sultat',
   'search.close': 'Fermer la recherche',
   'toolbar.find': 'Rechercher',
-
-  // Commentaires
   'toolbar.comment': 'Commenter',
   'comments.title': 'Commentaires',
   'comments.sidebarLabel': 'Commentaires du document',
@@ -107,22 +93,108 @@ export const fr: TranslationKeys = {
   'comments.reopen': 'Rouvrir',
   'comments.delete': 'Supprimer',
 
+  // Suggestions (suivi des modifications)
+  'suggestions.title': 'Suggestions',
+  'suggestions.sidebarLabel': 'Suggestions du document',
+  'suggestions.suggesting': 'Suggestion',
+  'suggestions.editing': '\u00c9dition',
+  'suggestions.accept': 'Accepter',
+  'suggestions.reject': 'Rejeter',
+  'suggestions.acceptAll': 'Tout accepter',
+  'suggestions.rejectAll': 'Tout rejeter',
+  'suggestions.none': 'Aucune suggestion',
+  'suggestions.inserted': 'Ins\u00e9r\u00e9',
+  'suggestions.deleted': 'Supprim\u00e9',
+  'suggestions.by': 'Suggestion de {name}',
+  'toolbar.suggest': 'Sugg\u00e9rer',
+
   // S\u00e9lecteur de langue
   'lang.label': 'Langue',
   'lang.en': 'English',
-  'lang.fr': 'Français',
+  'lang.fr': 'Fran\u00e7ais',
 
-  // Sélecteur de modèles
-  'templates.title': 'Choisir un modèle',
+  // S\u00e9lecteur de mod\u00e8les
+  'templates.title': 'Choisir un mod\u00e8le',
   'templates.blank': 'Vierge',
   'templates.blankDesc': 'Commencer avec une page vide',
-  'templates.meetingNotes': 'Notes de réunion',
-  'templates.meetingNotesDesc': 'Participants, ordre du jour et actions à suivre',
+  'templates.meetingNotes': 'Notes de r\u00e9union',
+  'templates.meetingNotesDesc': 'Participants, ordre du jour et actions \u00e0 suivre',
   'templates.projectBrief': 'Brief de projet',
-  'templates.projectBriefDesc': 'Objectifs, périmètre, calendrier et équipe',
+  'templates.projectBriefDesc': 'Objectifs, p\u00e9rim\u00e8tre, calendrier et \u00e9quipe',
   'templates.report': 'Rapport',
-  'templates.reportDesc': 'Rapport structuré avec résumé et conclusions',
+  'templates.reportDesc': 'Rapport structur\u00e9 avec r\u00e9sum\u00e9 et conclusions',
   'templates.selectTitle': 'Nouveau document',
-  'templates.loading': 'Chargement des modèles...',
-  'templates.loadFailed': 'Impossible de charger les modèles',
+  'templates.loading': 'Chargement des mod\u00e8les...',
+  'templates.loadFailed': 'Impossible de charger les mod\u00e8les',
+  // Accessibilit\u00e9
+  'a11y.skipToContent': 'Aller au contenu',
+  'a11y.formattingToolbar': 'Barre de mise en forme',
+  'a11y.boldLabel': 'Gras',
+  'a11y.italicLabel': 'Italique',
+  'a11y.strikeLabel': 'Barr\u00e9',
+  'a11y.codeLabel': 'Code en ligne',
+  'a11y.heading1Label': 'Titre 1',
+  'a11y.heading2Label': 'Titre 2',
+  'a11y.heading3Label': 'Titre 3',
+  'a11y.bulletListLabel': 'Liste \u00e0 puces',
+  'a11y.orderedListLabel': 'Liste num\u00e9rot\u00e9e',
+  'a11y.blockquoteLabel': 'Citation',
+  'a11y.codeBlockLabel': 'Bloc de code',
+  'a11y.horizontalRuleLabel': 'Ligne horizontale',
+  'a11y.tableLabel': 'Ins\u00e9rer un tableau',
+  'a11y.imageLabel': 'Ins\u00e9rer une image',
+  'a11y.findLabel': 'Rechercher et remplacer',
+  'a11y.commentLabel': 'Ajouter un commentaire',
+  'a11y.shortcutsLabel': 'Raccourcis clavier',
+  'a11y.boldOn': 'Gras activ\u00e9',
+  'a11y.boldOff': 'Gras d\u00e9sactiv\u00e9',
+  'a11y.italicOn': 'Italique activ\u00e9',
+  'a11y.italicOff': 'Italique d\u00e9sactiv\u00e9',
+  'a11y.strikeOn': 'Barr\u00e9 activ\u00e9',
+  'a11y.strikeOff': 'Barr\u00e9 d\u00e9sactiv\u00e9',
+  'a11y.codeOn': 'Code en ligne activ\u00e9',
+  'a11y.codeOff': 'Code en ligne d\u00e9sactiv\u00e9',
+  'a11y.commentAdded': 'Commentaire ajout\u00e9',
+  'a11y.searchMatches': '{current} sur {total} r\u00e9sultats',
+  'a11y.commentSidebar': 'Panneau des commentaires',
+  'a11y.mainEditor': '\u00c9diteur de document',
+
+  // Raccourcis clavier
+  'shortcuts.title': 'Raccourcis clavier',
+  'shortcuts.close': 'Fermer les raccourcis',
+  'shortcuts.formatting': 'Mise en forme',
+  'shortcuts.navigation': 'Navigation',
+  'shortcuts.comments': 'Commentaires',
+  'shortcuts.search': 'Recherche',
+  'shortcuts.document': 'Document',
+  'shortcuts.bold': 'Gras',
+  'shortcuts.italic': 'Italique',
+  'shortcuts.strikethrough': 'Barr\u00e9',
+  'shortcuts.code': 'Code en ligne',
+  'shortcuts.heading1': 'Titre 1',
+  'shortcuts.heading2': 'Titre 2',
+  'shortcuts.heading3': 'Titre 3',
+  'shortcuts.bulletList': 'Liste \u00e0 puces',
+  'shortcuts.orderedList': 'Liste num\u00e9rot\u00e9e',
+  'shortcuts.blockquote': 'Citation',
+  'shortcuts.codeBlock': 'Bloc de code',
+  'shortcuts.horizontalRule': 'Ligne horizontale',
+  'shortcuts.addComment': 'Ajouter un commentaire',
+  'shortcuts.find': 'Rechercher',
+  'shortcuts.findReplace': 'Rechercher et remplacer',
+  'shortcuts.undo': 'Annuler',
+  'shortcuts.redo': 'R\u00e9tablir',
+  'shortcuts.showShortcuts': 'Afficher les raccourcis clavier',
+
+  // Impression & PDF
+  'toolbar.print': 'Imprimer',
+  'toolbar.pdf': 'PDF',
+  'toolbar.pageBreak': 'Saut de page',
+  'print.title': 'Imprimer le document',
+  'pdf.title': 'Exporter en PDF',
+  'pageBreak.title': 'Insérer un saut de page',
+
+  // Mobile / débordement
+  'toolbar.moreOptions': 'Plus d\u2019options',
+  'comments.dismissSheet': 'Fermer les commentaires',
 };
