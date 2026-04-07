@@ -3,6 +3,7 @@ import type { Editor } from '@tiptap/core';
 import type { CommentStore } from './comment-store.ts';
 import { t } from '../i18n/index.ts';
 import { renderCommentCard } from './comment-card.ts';
+import { isMobileViewport } from '../touch-support.ts';
 
 /**
  * Builds and manages the comment sidebar panel.
@@ -18,6 +19,10 @@ export function buildCommentSidebar(
   sidebar.className = 'comment-sidebar';
   sidebar.setAttribute('role', 'complementary');
   sidebar.setAttribute('aria-label', t('comments.sidebarLabel'));
+
+  const handle = document.createElement('div');
+  handle.className = 'comment-sheet-handle';
+  sidebar.appendChild(handle);
 
   const header = document.createElement('div');
   header.className = 'comment-sidebar-header';
@@ -59,12 +64,65 @@ export function buildCommentSidebar(
 
   render();
   store.onChange(render);
+  setupSwipeToDismiss(sidebar, handle);
 
   return sidebar;
 }
 
-/** Toggle the comment sidebar visibility. */
+/** Toggle the comment sidebar visibility with optional backdrop. */
 export function toggleSidebar(sidebar: HTMLElement, show?: boolean): void {
   const visible = show ?? !sidebar.classList.contains('comment-sidebar-open');
   sidebar.classList.toggle('comment-sidebar-open', visible);
+
+  const existingBackdrop = document.querySelector('.comment-sheet-backdrop');
+  if (visible && isMobileViewport()) {
+    if (!existingBackdrop) {
+      const backdrop = document.createElement('div');
+      backdrop.className = 'comment-sheet-backdrop is-visible';
+      backdrop.addEventListener('click', () => toggleSidebar(sidebar, false));
+      document.body.appendChild(backdrop);
+    } else {
+      existingBackdrop.classList.add('is-visible');
+    }
+  } else if (existingBackdrop) {
+    existingBackdrop.classList.remove('is-visible');
+  }
+}
+
+/** Attach swipe-down-to-dismiss on the handle element. */
+function setupSwipeToDismiss(sidebar: HTMLElement, handle: HTMLElement): void {
+  let startY = 0;
+  let currentY = 0;
+  let dragging = false;
+
+  handle.addEventListener('touchstart', (e: TouchEvent) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    startY = touch.clientY;
+    currentY = startY;
+    dragging = true;
+    sidebar.style.transition = 'none';
+  }, { passive: true });
+
+  handle.addEventListener('touchmove', (e: TouchEvent) => {
+    if (!dragging) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+    currentY = touch.clientY;
+    const deltaY = currentY - startY;
+    if (deltaY > 0) {
+      sidebar.style.transform = `translateY(${deltaY}px)`;
+    }
+  }, { passive: true });
+
+  handle.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    sidebar.style.transition = '';
+    const deltaY = currentY - startY;
+    if (deltaY > 80) {
+      toggleSidebar(sidebar, false);
+    }
+    sidebar.style.transform = '';
+  }, { passive: true });
 }

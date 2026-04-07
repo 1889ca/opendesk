@@ -19,6 +19,7 @@ import { buildSearchPanel } from './search/search-panel.ts';
 import { buildFormattingToolbar } from './formatting-toolbar.ts';
 import { CommentMark, CommentStore, buildCommentSidebar, toggleSidebar, showCommentInput } from './comments/index.ts';
 import { PageBreak } from './page-break.ts';
+import { initTouchSupport } from './touch-support.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -46,6 +47,8 @@ function getDocumentId() {
 }
 
 function init() {
+  initTouchSupport();
+
   const locale = resolveLocale();
   setLocale(locale);
   persistLocale(locale);
