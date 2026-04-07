@@ -142,6 +142,15 @@ Implemented:
 - [x] Awareness state is ephemeral (never persisted)
 - [x] i18n: EN and FR locales supported
 - [x] Centralized translation keys with TypeScript enforcement
+- [x] Comments system (comment marks, sidebar, replies, store)
+- [x] Suggestions/track changes (suggest mode, suggestion marks, sidebar, actions)
+- [x] Find and replace (search extension, panel, keyboard shortcuts)
+- [x] Tables support (table toolbar)
+- [x] Image upload and handling
+- [x] Print/PDF export utilities
+- [x] Accessibility announcer
+- [x] Touch support
+- [x] Keyboard shortcut dialog
 
 Post-MVP (deferred):
 - [ ] Block ID assignment extension (`blockId` UUIDv4 on new top-level blocks) — blocks exist but auto-ID assignment extension not yet built
