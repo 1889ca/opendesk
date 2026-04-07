@@ -192,4 +192,18 @@ export const en: TranslationKeys = {
   // Mobile / overflow
   'toolbar.moreOptions': 'More options',
   'comments.dismissSheet': 'Dismiss comments',
+
+  // Document statistics
+  'stats.words': '{count} words',
+  'stats.characters': '{count} characters',
+  'stats.paragraphs': '{count} paragraphs',
+  'stats.readingTime': '~{time} min read',
+  'stats.selected': '{selected} of {total} words selected',
+  'stats.minRead': '< 1 min read',
+
+  // Table of contents
+  'toolbar.toc': 'TOC',
+  'toc.title': 'Table of Contents',
+  'toc.noHeadings': 'No headings in this document',
+  'toc.heading': 'Heading',
 };

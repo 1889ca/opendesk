@@ -31,6 +31,7 @@ import {
 import { bindShortcutDialogKey } from './shortcut-dialog.ts';
 import { announce } from './a11y-announcer.ts';
 import { initTouchSupport } from './touch-support.ts';
+import { buildStatusBar } from './status-bar.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -140,6 +141,12 @@ function init() {
   buildLanguageSwitcher();
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
+
+  // Status bar (word count & stats)
+  const editorWrapper = editorEl.closest('.editor-wrapper');
+  if (editorWrapper) {
+    editorWrapper.appendChild(buildStatusBar(editor));
+  }
 
   // Comment sidebar
   const commentSidebar = buildCommentSidebar(editor, commentStore, documentId, user);

@@ -197,4 +197,18 @@ export const fr: TranslationKeys = {
   // Mobile / débordement
   'toolbar.moreOptions': 'Plus d\u2019options',
   'comments.dismissSheet': 'Fermer les commentaires',
+
+  // Statistiques du document
+  'stats.words': '{count} mots',
+  'stats.characters': '{count} caractères',
+  'stats.paragraphs': '{count} paragraphes',
+  'stats.readingTime': '~{time} min de lecture',
+  'stats.selected': '{selected} sur {total} mots sélectionnés',
+  'stats.minRead': '< 1 min de lecture',
+
+  // Table des mati\u00e8res
+  'toolbar.toc': 'TDM',
+  'toc.title': 'Table des mati\u00e8res',
+  'toc.noHeadings': 'Aucun titre dans ce document',
+  'toc.heading': 'Titre',
 };

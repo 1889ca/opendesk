@@ -194,6 +194,20 @@ export interface TranslationKeys {
   // Mobile / overflow
   'toolbar.moreOptions': string;
   'comments.dismissSheet': string;
+
+  // Document statistics
+  'stats.words': string;
+  'stats.characters': string;
+  'stats.paragraphs': string;
+  'stats.readingTime': string;
+  'stats.selected': string;
+  'stats.minRead': string;
+
+  // Table of contents
+  'toolbar.toc': string;
+  'toc.title': string;
+  'toc.noHeadings': string;
+  'toc.heading': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;
