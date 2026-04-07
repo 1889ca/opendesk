@@ -1,0 +1,98 @@
+/* Presentation editor styles */
+
+.presentation-wrapper {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.slide-panel {
+  width: 12rem;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 0.75rem;
+}
+
+.slide-panel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.slide-thumb {
+  aspect-ratio: 16 / 9;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  position: relative;
+}
+
+.slide-thumb:hover {
+  border-color: var(--accent);
+}
+
+.slide-thumb.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.slide-thumb-number {
+  position: absolute;
+  top: 0.2rem;
+  left: 0.35rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.slide-canvas {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 2rem;
+}
+
+.slide-viewport {
+  width: 100%;
+  max-width: 60rem;
+  aspect-ratio: 16 / 9;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.slide-element {
+  position: absolute;
+  border: 1px solid transparent;
+  cursor: move;
+  padding: 0.5rem;
+  outline: none;
+}
+
+.slide-element:hover {
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.slide-element:focus,
+.slide-element.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.slide-element[data-type="text"] {
+  min-width: 4rem;
+  min-height: 1.5rem;
+}

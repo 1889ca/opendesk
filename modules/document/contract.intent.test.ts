@@ -8,7 +8,7 @@ import {
   DeleteBlockIntentSchema,
   UpdateMarksIntentSchema,
   IntentActionSchema,
-} from './contract.ts';
+} from './contract/index.ts';
 
 // --- Helpers ---
 

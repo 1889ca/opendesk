@@ -2,6 +2,7 @@
 import { apiFetch } from './api-client.ts';
 import { t, onLocaleChange } from './i18n/index.ts';
 import { formatRelativeTime } from './time-format.ts';
+import { getDocumentId } from './identity.ts';
 
 interface VersionEntry {
   id: string;
@@ -10,11 +11,6 @@ interface VersionEntry {
   created_by: string;
   created_at: string;
   version_number: number;
-}
-
-function getDocumentId(): string {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('doc') || 'default';
 }
 
 async function fetchVersions(docId: string): Promise<VersionEntry[]> {

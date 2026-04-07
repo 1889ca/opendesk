@@ -11,6 +11,7 @@ function readEnv(): unknown {
     server: {
       port: env.PORT,
       nodeEnv: env.NODE_ENV,
+      corsOrigins: env.CORS_ORIGINS ? env.CORS_ORIGINS.split(',').map((s: string) => s.trim()) : undefined,
     },
     auth: {
       mode: env.AUTH_MODE,

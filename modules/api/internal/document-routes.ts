@@ -10,8 +10,10 @@ import {
   deleteDocument,
   updateDocumentTitle,
   getTemplate,
+  type DocumentType,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
+import { loadConfig } from '../../config/index.ts';
 import type { CacheClient } from './redis.ts';
 import { asyncHandler } from './async-handler.ts';
 
@@ -31,6 +33,8 @@ const UpdateDocumentBody = z.object({
   title: z.string().min(1).max(200),
 });
 
+const VALID_DOC_TYPES: DocumentType[] = ['text', 'spreadsheet', 'presentation'];
+
 export type DocumentRoutesOptions = {
   permissions: PermissionsModule;
   cache?: CacheClient;
@@ -45,6 +49,7 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   const { permissions, cache } = opts;
 
   // List documents — accepts optional ?folderId= to filter by folder
+  // Filters results by principal's grants (except in dev mode)
   router.get('/', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     const queryResult = ListDocumentsQuery.safeParse(req.query);
     if (!queryResult.success) {
@@ -52,7 +57,18 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
       return;
     }
     const docs = await listDocuments(queryResult.data.folderId ?? null);
-    res.json(docs);
+
+    if (loadConfig().auth.mode === 'dev') {
+      res.json(docs);
+      return;
+    }
+
+    const principal = req.principal!;
+    const grants = await permissions.grantStore.findByPrincipal(principal.id);
+    const allowedIds = new Set(
+      grants.filter((g) => g.resourceType === 'document').map((g) => g.resourceId),
+    );
+    res.json(docs.filter((doc) => allowedIds.has(doc.id)));
   }));
 
   // Create document — requires auth, auto-grants owner role to creator
@@ -69,6 +85,11 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
     }
 
     const title = bodyResult.data.title || 'Untitled';
+    const documentType: DocumentType = req.body?.documentType || 'text';
+    if (!VALID_DOC_TYPES.includes(documentType)) {
+      res.status(400).json({ error: `Invalid documentType. Must be one of: ${VALID_DOC_TYPES.join(', ')}` });
+      return;
+    }
     const id = randomUUID();
 
     const templateId = queryResult.data.templateId;
@@ -82,7 +103,7 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
       templateContent = template.content;
     }
 
-    const doc = await createDocument(id, title);
+    const doc = await createDocument(id, title, documentType);
 
     const principal = req.principal!;
     await permissions.grantStore.create({

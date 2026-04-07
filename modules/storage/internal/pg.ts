@@ -1,9 +1,12 @@
 /** Contract: contracts/storage/rules.md */
 import { pool } from './pool.ts';
 
+export type DocumentType = 'text' | 'spreadsheet' | 'presentation';
+
 export interface DocumentRow {
   id: string;
   title: string;
+  document_type: DocumentType;
   yjs_state: Buffer | null;
   folder_id: string | null;
   created_at: Date;
@@ -13,13 +16,13 @@ export interface DocumentRow {
 export async function listDocuments(folderId?: string | null): Promise<DocumentRow[]> {
   if (folderId) {
     const result = await pool.query<DocumentRow>(
-      'SELECT id, title, folder_id, created_at, updated_at FROM documents WHERE folder_id = $1 ORDER BY updated_at DESC',
+      'SELECT id, title, document_type, folder_id, created_at, updated_at FROM documents WHERE folder_id = $1 ORDER BY updated_at DESC',
       [folderId],
     );
     return result.rows;
   }
   const result = await pool.query<DocumentRow>(
-    'SELECT id, title, folder_id, created_at, updated_at FROM documents WHERE folder_id IS NULL ORDER BY updated_at DESC',
+    'SELECT id, title, document_type, folder_id, created_at, updated_at FROM documents WHERE folder_id IS NULL ORDER BY updated_at DESC',
   );
   return result.rows;
 }
@@ -32,10 +35,14 @@ export async function getDocument(id: string): Promise<DocumentRow | null> {
   return result.rows[0] || null;
 }
 
-export async function createDocument(id: string, title: string): Promise<DocumentRow> {
+export async function createDocument(
+  id: string,
+  title: string,
+  documentType: DocumentType = 'text',
+): Promise<DocumentRow> {
   const result = await pool.query<DocumentRow>(
-    'INSERT INTO documents (id, title) VALUES ($1, $2) RETURNING *',
-    [id, title]
+    'INSERT INTO documents (id, title, document_type) VALUES ($1, $2, $3) RETURNING *',
+    [id, title, documentType]
   );
   return result.rows[0];
 }

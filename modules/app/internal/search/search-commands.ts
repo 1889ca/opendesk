@@ -1,11 +1,22 @@
 /** Contract: contracts/app/rules.md */
-import type { PluginKey } from '@tiptap/pm/state';
+import type { PluginKey, EditorState, Transaction } from '@tiptap/pm/state';
 import {
   type SearchState,
   createInitialState,
   findMatches,
   clampIndex,
 } from './search-state.ts';
+
+type CommandArgs = {
+  tr: Transaction;
+  dispatch?: (tr: Transaction) => void;
+  state: EditorState;
+};
+
+type DispatchOnlyArgs = {
+  tr: Transaction;
+  dispatch?: (tr: Transaction) => void;
+};
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -29,7 +40,7 @@ export function buildSearchCommands(pluginKey: PluginKey<SearchState>) {
   return {
     find:
       (term: string) =>
-      ({ tr, dispatch, state }: { tr: any; dispatch?: any; state: any }) => {
+      ({ tr, dispatch, state }: CommandArgs) => {
         if (dispatch) {
           const prev = pluginKey.getState(state) as SearchState;
           tr.setMeta(pluginKey, {
@@ -44,7 +55,7 @@ export function buildSearchCommands(pluginKey: PluginKey<SearchState>) {
 
     findNext:
       () =>
-      ({ tr, dispatch, state }: { tr: any; dispatch?: any; state: any }) => {
+      ({ tr, dispatch, state }: CommandArgs) => {
         const search = pluginKey.getState(state) as SearchState;
         if (!search?.searchTerm) return false;
         const total = findMatches(state.doc, search).length;
@@ -58,7 +69,7 @@ export function buildSearchCommands(pluginKey: PluginKey<SearchState>) {
 
     findPrev:
       () =>
-      ({ tr, dispatch, state }: { tr: any; dispatch?: any; state: any }) => {
+      ({ tr, dispatch, state }: CommandArgs) => {
         const search = pluginKey.getState(state) as SearchState;
         if (!search?.searchTerm) return false;
         const total = findMatches(state.doc, search).length;
@@ -72,7 +83,7 @@ export function buildSearchCommands(pluginKey: PluginKey<SearchState>) {
 
     replaceMatch:
       (replacement: string) =>
-      ({ tr, dispatch, state }: { tr: any; dispatch?: any; state: any }) => {
+      ({ tr, dispatch, state }: CommandArgs) => {
         const search = pluginKey.getState(state) as SearchState;
         if (!search?.searchTerm) return false;
         const matches = findMatches(state.doc, search);
@@ -90,7 +101,7 @@ export function buildSearchCommands(pluginKey: PluginKey<SearchState>) {
 
     replaceAll:
       (replacement: string) =>
-      ({ tr, dispatch, state }: { tr: any; dispatch?: any; state: any }) => {
+      ({ tr, dispatch, state }: CommandArgs) => {
         const search = pluginKey.getState(state) as SearchState;
         if (!search?.searchTerm) return false;
         const matches = findMatches(state.doc, search);
@@ -106,7 +117,7 @@ export function buildSearchCommands(pluginKey: PluginKey<SearchState>) {
 
     clearSearch:
       () =>
-      ({ tr, dispatch }: { tr: any; dispatch?: any }) => {
+      ({ tr, dispatch }: DispatchOnlyArgs) => {
         if (dispatch) {
           tr.setMeta(pluginKey, createInitialState());
         }
@@ -115,7 +126,7 @@ export function buildSearchCommands(pluginKey: PluginKey<SearchState>) {
 
     setSearchOption:
       (key: 'caseSensitive' | 'useRegex', value: boolean) =>
-      ({ tr, dispatch }: { tr: any; dispatch?: any }) => {
+      ({ tr, dispatch }: DispatchOnlyArgs) => {
         if (dispatch) {
           tr.setMeta(pluginKey, { [key]: value, currentMatchIndex: 0 });
         }

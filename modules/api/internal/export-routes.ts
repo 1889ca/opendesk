@@ -42,7 +42,10 @@ export function createExportRoutes(opts: ExportRoutesOptions): Router {
       : 'text/plain; charset=utf-8';
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
-    res.send(content);
+    const output = format === 'text'
+      ? String(content).replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim()
+      : content;
+    res.send(output);
   }));
 
   // Import HTML into document — requires write permission

@@ -3,11 +3,12 @@
 import { Router } from 'express';
 import { GrantRoleSchema, ShareLinkOptionsSchema } from '../contract.ts';
 import type { ShareLinkService } from './share-links.ts';
-import type { GrantStore, Role } from '../../permissions/index.ts';
+import type { GrantStore, Role, PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/index.ts';
 
 export type ShareRouteDeps = {
   grantStore?: GrantStore;
+  permissions?: PermissionsModule;
 };
 
 /**
@@ -17,8 +18,11 @@ export type ShareRouteDeps = {
 export function createShareRoutes(service: ShareLinkService, deps?: ShareRouteDeps): Router {
   const router = Router();
 
-  /** POST /api/documents/:id/share -- create a share link */
-  router.post('/api/documents/:id/share', asyncHandler(async (req, res) => {
+  /** POST /api/documents/:id/share -- create a share link (requires write permission) */
+  const shareMiddleware = deps?.permissions
+    ? [deps.permissions.require('write')]
+    : [];
+  router.post('/api/documents/:id/share', ...shareMiddleware, asyncHandler(async (req, res) => {
     const docId = req.params.id;
     const roleResult = GrantRoleSchema.safeParse(req.body?.role);
     if (!roleResult.success) {
@@ -80,13 +84,19 @@ export function createShareRoutes(service: ShareLinkService, deps?: ShareRouteDe
     res.json({ grant: { docId: safeLink.docId, role: safeLink.role }, link: safeLink });
   }));
 
-  /** DELETE /api/share/:token -- revoke a share link */
+  /** DELETE /api/share/:token -- revoke a share link (only grantor can revoke) */
   router.delete('/api/share/:token', asyncHandler(async (req, res) => {
-    const revoked = await service.revoke(String(req.params.token));
-    if (!revoked) {
+    const token = String(req.params.token);
+    const link = await service.getByToken(token);
+    if (!link) {
       res.status(404).json({ error: 'not_found' });
       return;
     }
+    if (req.principal?.id !== link.grantorId) {
+      res.status(403).json({ error: 'Only the share link creator can revoke it' });
+      return;
+    }
+    await service.revoke(token);
     res.json({ ok: true });
   }));
 

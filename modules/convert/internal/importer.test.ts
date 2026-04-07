@@ -2,11 +2,19 @@
 
 import { describe, it, expect } from 'vitest';
 import { buildSnapshot, ImportError } from './importer.ts';
+import type { TextDocumentSnapshot } from '../../document/contract/index.ts';
+
+/** buildSnapshot always returns a text snapshot; narrow the type for test assertions */
+function buildTextSnapshot(html: string): TextDocumentSnapshot {
+  const snapshot = buildSnapshot(html);
+  if (snapshot.documentType !== 'text') throw new Error('Expected text snapshot');
+  return snapshot;
+}
 
 describe('buildSnapshot', () => {
   it('produces a valid DocumentSnapshot from simple HTML', () => {
     const html = '<p>Hello world</p>';
-    const snapshot = buildSnapshot(html);
+    const snapshot = buildTextSnapshot(html);
 
     expect(snapshot.documentType).toBe('text');
     expect(snapshot.schemaVersion).toBe('1.0.0');
@@ -16,7 +24,7 @@ describe('buildSnapshot', () => {
 
   it('produces a snapshot with correct paragraph content', () => {
     const html = '<p>Test content</p>';
-    const snapshot = buildSnapshot(html);
+    const snapshot = buildTextSnapshot(html);
     const firstBlock = snapshot.content.content[0];
 
     expect(firstBlock.type).toBe('paragraph');
@@ -26,14 +34,14 @@ describe('buildSnapshot', () => {
 
   it('handles multiple paragraphs', () => {
     const html = '<p>First</p><p>Second</p>';
-    const snapshot = buildSnapshot(html);
+    const snapshot = buildTextSnapshot(html);
 
     expect(snapshot.content.content).toHaveLength(2);
   });
 
   it('handles headings', () => {
     const html = '<h1>Title</h1><p>Body text</p>';
-    const snapshot = buildSnapshot(html);
+    const snapshot = buildTextSnapshot(html);
 
     expect(snapshot.content.content[0].type).toBe('heading');
     expect(snapshot.content.content[0].attrs?.level).toBe(1);
@@ -41,14 +49,14 @@ describe('buildSnapshot', () => {
   });
 
   it('produces a default paragraph for empty HTML', () => {
-    const snapshot = buildSnapshot('');
+    const snapshot = buildTextSnapshot('');
     expect(snapshot.content.content).toHaveLength(1);
     expect(snapshot.content.content[0].type).toBe('paragraph');
   });
 
   it('handles inline formatting (bold)', () => {
     const html = '<p><strong>bold text</strong></p>';
-    const snapshot = buildSnapshot(html);
+    const snapshot = buildTextSnapshot(html);
     const textNode = snapshot.content.content[0].content?.[0];
 
     expect(textNode?.text).toBe('bold text');
@@ -57,7 +65,7 @@ describe('buildSnapshot', () => {
 
   it('each block has a unique UUIDv4 blockId', () => {
     const html = '<p>A</p><p>B</p><p>C</p>';
-    const snapshot = buildSnapshot(html);
+    const snapshot = buildTextSnapshot(html);
     const ids = snapshot.content.content.map((n) => n.attrs?.blockId);
 
     ids.forEach((id) => expect(id).toBeDefined());
@@ -71,7 +79,7 @@ describe('buildSnapshot', () => {
 
   it('snapshot passes DocumentSnapshotSchema validation', () => {
     const html = '<h2>Heading</h2><p>Paragraph with <em>italic</em></p>';
-    expect(() => buildSnapshot(html)).not.toThrow();
+    expect(() => buildTextSnapshot(html)).not.toThrow();
   });
 });
 

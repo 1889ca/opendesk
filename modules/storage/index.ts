@@ -26,7 +26,7 @@ export {
   loadYjsState,
 } from './internal/pg.ts';
 
-export type { DocumentRow } from './internal/pg.ts';
+export type { DocumentRow, DocumentType } from './internal/pg.ts';
 
 // Template storage
 export type { TemplateRow, TemplateUpdates } from './internal/templates.ts';
@@ -61,6 +61,10 @@ export {
   APPLY_SEARCH_SCHEMA,
   searchDocuments,
 } from './internal/pg-search.ts';
+
+// Schema initialization and pool (for server startup)
+export { initSchema } from './internal/schema.ts';
+export { pool } from './internal/pool.ts';
 
 // Folder storage
 export type { FolderRow } from './internal/folders.ts';

@@ -1,7 +1,8 @@
 /** Contract: contracts/api/rules.md */
 import { createServer } from 'node:http';
 import express, { type Request, type Response, type NextFunction } from 'express';
-import { resolve, dirname } from 'node:path';
+import { resolve, dirname, join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createCollabServer } from '../../collab/index.ts';
 import { getRedisClient, disconnectRedis } from './redis.ts';
@@ -23,11 +24,14 @@ import {
   createPgShareLinkStore,
   createShareRoutes,
 } from '../../sharing/index.ts';
-import { pool } from '../../storage/internal/pool.ts';
-import { initSchema } from '../../storage/internal/schema.ts';
+import { pool, initSchema } from '../../storage/index.ts';
 import { ensureS3Bucket } from './s3-client.ts';
+import { applySecurityMiddleware } from './security.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const PKG_VERSION = JSON.parse(
+  readFileSync(join(__dirname, '../../../package.json'), 'utf-8'),
+).version as string;
 
 export async function startServer(port = 3000) {
   try {
@@ -45,6 +49,9 @@ export async function startServer(port = 3000) {
   }
   const app = express();
 
+  // Security middleware (CORS, helmet, rate limiting) — must be first
+  applySecurityMiddleware(app);
+
   // Wire auth module (dev mode uses bypass verifiers)
   const auth = createAuth({
     serviceAccountStore: { findByKeyHash: async () => null },
@@ -53,7 +60,7 @@ export async function startServer(port = 3000) {
       findServiceAccountById: async () => null,
       revokeServiceAccount: async () => {},
     },
-    publicPaths: ['/api/health'],
+    publicPaths: ['/api/health', '/share'],
   });
 
   // Wire collab server with auth dependency
@@ -69,7 +76,10 @@ export async function startServer(port = 3000) {
 
   // Idempotency middleware for mutating endpoints (POST, PUT, DELETE)
   const redisClient = getRedisClient();
-  app.use('/api', idempotencyMiddleware({ cache: redisClient }));
+  app.use('/api', idempotencyMiddleware({
+    cache: redisClient,
+    exemptPaths: ['/share/'],
+  }));
 
   // Serve static frontend
   const publicDir = resolve(__dirname, '../../app/internal/public');
@@ -79,13 +89,13 @@ export async function startServer(port = 3000) {
   app.use('/api', auth.middleware);
 
   // Collabora convert routes (import/export binary formats) — after auth
-  app.use(createConvertRoutes());
+  app.use(createConvertRoutes({ permissions }));
 
   // Health check (public, skipped by auth middleware)
   app.get('/api/health', async (_req, res) => {
     try {
       await pool.query('SELECT 1');
-      res.json({ status: 'ok', version: '0.1.0' });
+      res.json({ status: 'ok', version: PKG_VERSION });
     } catch {
       res.status(503).json({ status: 'unhealthy' });
     }
@@ -118,7 +128,7 @@ export async function startServer(port = 3000) {
   // Share link routes (create, resolve, revoke) — after auth
   const shareLinkStore = createPgShareLinkStore(pool);
   const shareLinkService = createShareLinkService(shareLinkStore);
-  app.use(createShareRoutes(shareLinkService, { grantStore: permissions.grantStore }));
+  app.use(createShareRoutes(shareLinkService, { grantStore: permissions.grantStore, permissions }));
 
   // File upload and serving routes — after auth
   app.use('/api', createUploadRoutes());

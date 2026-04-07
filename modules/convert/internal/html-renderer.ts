@@ -5,11 +5,15 @@
  * Used for export: snapshot -> HTML -> Collabora -> target format.
  */
 
-import type { ProseMirrorNode, DocumentSnapshot } from '../../document/contract.ts';
+import type { ProseMirrorNode, DocumentSnapshot, TextDocumentSnapshot } from '../../document/contract/index.ts';
 
-/** Render a full DocumentSnapshot to an HTML document string */
+/** Render a text DocumentSnapshot to an HTML document string */
 export function snapshotToHtml(snapshot: DocumentSnapshot): string {
-  const bodyHtml = renderNodes(snapshot.content.content);
+  if (snapshot.documentType !== 'text') {
+    throw new Error(`snapshotToHtml only supports text documents, got: ${snapshot.documentType}`);
+  }
+  const textSnapshot = snapshot as TextDocumentSnapshot;
+  const bodyHtml = renderNodes(textSnapshot.content.content);
   return wrapHtmlDocument(bodyHtml);
 }
 
@@ -53,6 +57,24 @@ export function renderNode(node: ProseMirrorNode): string {
       return `<ol>${renderNodes(node.content)}</ol>`;
     case 'listItem':
       return `<li>${renderNodes(node.content)}</li>`;
+    case 'table':
+      return `<table>${renderNodes(node.content)}</table>`;
+    case 'tableRow':
+      return `<tr>${renderNodes(node.content)}</tr>`;
+    case 'tableCell': {
+      const cs = node.attrs?.colspan && (node.attrs.colspan as number) > 1
+        ? ` colspan="${node.attrs.colspan}"` : '';
+      const rs = node.attrs?.rowspan && (node.attrs.rowspan as number) > 1
+        ? ` rowspan="${node.attrs.rowspan}"` : '';
+      return `<td${cs}${rs}>${renderNodes(node.content)}</td>`;
+    }
+    case 'tableHeader': {
+      const cs = node.attrs?.colspan && (node.attrs.colspan as number) > 1
+        ? ` colspan="${node.attrs.colspan}"` : '';
+      const rs = node.attrs?.rowspan && (node.attrs.rowspan as number) > 1
+        ? ` rowspan="${node.attrs.rowspan}"` : '';
+      return `<th${cs}${rs}>${renderNodes(node.content)}</th>`;
+    }
     case 'horizontalRule':
       return '<hr>';
     case 'text':

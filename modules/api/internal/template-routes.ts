@@ -36,8 +36,8 @@ export function createTemplateRoutes(opts: TemplateRoutesOptions): Router {
   const { permissions } = opts;
   const router = Router();
 
-  // List all templates
-  router.get('/', asyncHandler(async (_req: Request, res: Response) => {
+  // List all templates (requires auth)
+  router.get('/', permissions.requireAuth, asyncHandler(async (_req: Request, res: Response) => {
     const templates = await listTemplates();
     res.json(templates);
   }));
@@ -55,8 +55,8 @@ export function createTemplateRoutes(opts: TemplateRoutesOptions): Router {
     res.status(201).json(template);
   }));
 
-  // Get a single template
-  router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
+  // Get a single template (requires auth)
+  router.get('/:id', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     const template = await getTemplate(String(req.params.id));
     if (!template) {
       res.status(404).json({ error: 'Template not found' });

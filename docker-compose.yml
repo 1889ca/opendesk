@@ -12,6 +12,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    command: redis-server --requirepass opendesk_dev
     ports:
       - "6379:6379"
     volumes:
@@ -53,7 +54,7 @@ services:
       S3_ACCESS_KEY: opendesk
       S3_SECRET_KEY: opendesk_dev
       S3_BUCKET: opendesk
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://:opendesk_dev@redis:6379
       COLLABORA_URL: http://convert:9980
     ports:
       - "3000:3000"
