@@ -52,6 +52,11 @@ export function createUploadRoutes(): Router {
       }
 
       const documentId = (req.body?.documentId as string) || 'general';
+      if (!/^[0-9a-f-]+$/i.test(documentId) && documentId !== 'general') {
+        res.status(400).json({ error: 'Invalid documentId' });
+        return;
+      }
+
       const ext = extFromMime(file.mimetype);
       const uuid = randomUUID();
       const key = `uploads/${documentId}/${uuid}.${ext}`;
