@@ -109,17 +109,15 @@ Phase 3 is the smallest of the three in scope. Most organizations can live witho
 
 6. **Testing** -- 17 Playwright E2E tests covering the MVP workflow. Yjs collaboration stress tests and HTTP load testing. 32+ unit/integration test files across all modules.
 
+7. **Conversion Service** -- Collabora/LibreOffice microservice in Docker Compose. Import .docx/.odt/.pdf via convert-import API, export to .docx/.odt via convert-export API. Frontend import/export buttons wired to Collabora endpoints.
+
+8. **Auth + Sharing Integration** -- OIDC token verification (jose library), auth middleware on all /api routes, share link creation with 256-bit tokens, grant persistence on link redemption, share dialog UI with role selector and link generation.
+
 ### In Progress
 
-7. **Editor Core Hardening** -- Performance optimization for large documents and many collaborators. Stress test validation ongoing.
+9. **Editor Core Hardening** -- Performance optimization for large documents and many collaborators. Stress test validation ongoing.
 
-### Remaining
-
-8. **Conversion Service** -- LibreOffice-based microservice for import/export. User can upload a .docx and get it into the editor. User can export back to .docx.
-
-9. **Auth + Sharing Integration** -- OpenID Connect provider integration. Link-based sharing with view/edit permissions wired end-to-end.
-
-10. **Beta** -- Invite-only testing with real users and real documents. Bug fixing, performance tuning, format conversion quality improvements. Feedback loop before public launch.
+10. **Beta** -- End-to-end testing of the create→edit→share→export workflow with real documents. Bug fixing, performance tuning, format conversion quality improvements.
 
 ---
 
