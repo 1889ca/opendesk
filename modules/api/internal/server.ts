@@ -20,6 +20,7 @@ import { createVersionRoutes } from './version-routes.ts';
 import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts';
 import { createSearchRoutes } from './search-routes.ts';
 import { createReferenceRoutes } from './reference-routes.ts';
+import { createImportExportRoutes } from './reference-import-routes.ts';
 import {
   createShareLinkService,
   createPgShareLinkStore,
@@ -74,6 +75,7 @@ export async function startServer(port = 3000) {
   const permissions = createPermissions({ grantStore });
 
   app.use(express.json());
+  app.use(express.text({ type: ['application/x-bibtex', 'application/x-ris'] }));
 
   // Idempotency middleware for mutating endpoints (POST, PUT, DELETE)
   const redisClient = getRedisClient();
@@ -125,6 +127,9 @@ export async function startServer(port = 3000) {
 
   // Reference management routes (DOI/ISBN lookup + CRUD)
   app.use('/api/references', createReferenceRoutes({ permissions }));
+
+  // Reference import/export (BibTeX, RIS)
+  app.use('/api/references', createImportExportRoutes({ permissions }));
 
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));

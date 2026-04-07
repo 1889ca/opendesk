@@ -39,3 +39,11 @@ export {
   listCitationsForDocument,
   listDocumentsForReference,
 } from './internal/pg-citations.ts';
+
+// BibTeX import/export
+export { parseBibTeX } from './internal/bibtex-parser.ts';
+export { serializeBibTeX } from './internal/bibtex-serializer.ts';
+
+// RIS import/export
+export { parseRIS } from './internal/ris-parser.ts';
+export { serializeRIS } from './internal/ris-serializer.ts';

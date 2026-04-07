@@ -6,6 +6,9 @@ export {
   formatBibliographyEntry,
   formatCitation,
 } from './citation-render.ts';
+export type { CitationStyle } from './citation-render.ts';
+export { createBibliography, getBibliographyHtml } from './bibliography.ts';
+export type { BibliographyHandle } from './bibliography.ts';
 export type {
   CitationAttrs,
   ReferenceData,

@@ -90,3 +90,33 @@
   font-size: 0.8125rem;
   padding: 1.5rem 0;
 }
+
+/* Bibliography section (rendered outside editable content) */
+.bibliography {
+  border-top: 2px solid var(--border);
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  page-break-before: always;
+}
+
+.bibliography h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  color: var(--text);
+}
+
+.bibliography-entry {
+  text-indent: -2rem;
+  padding-left: 2rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.bibliography-empty {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+}

@@ -1,140 +1,161 @@
 /** Contract: contracts/app/rules.md */
 import type { ReferenceData, ReferenceAuthor, FormattedCitation } from './types.ts';
+import {
+  extractYear, surname, bibAuthorsApa, bibAuthorsMla,
+  bibAuthorsVancouver, appendDoi,
+} from './bib-formatters.ts';
 
-/** Extract the year from an ISO date string or year-only string. */
-function extractYear(date?: string): string {
-  if (!date) return 'n.d.';
-  const match = date.match(/^(\d{4})/);
-  return match ? match[1] : 'n.d.';
-}
+export type CitationStyle = 'apa' | 'mla' | 'chicago' | 'vancouver';
 
-/** Format a single author name in APA style: "Family, G. I." */
-function formatAuthorApa(author: ReferenceAuthor): string {
-  if (author.literal) return author.literal;
-  const family = author.family ?? '';
-  if (!author.given) return family;
-  const initials = author.given
-    .split(/[\s-]+/)
-    .map((part) => `${part[0]}.`)
-    .join(' ');
-  return `${family}, ${initials}`;
-}
+/* ---------- Inline author lists per style ---------- */
 
-/** Format an author list for APA inline citation. */
 function inlineAuthorsApa(authors: ReferenceAuthor[]): string {
   if (authors.length === 0) return 'Unknown';
-  const surname = (a: ReferenceAuthor) => a.family ?? a.literal ?? 'Unknown';
   if (authors.length === 1) return surname(authors[0]);
   if (authors.length === 2) return `${surname(authors[0])} & ${surname(authors[1])}`;
   return `${surname(authors[0])} et al.`;
 }
 
-/** Format a full author list for APA bibliography entry. */
-function bibAuthorsApa(authors: ReferenceAuthor[]): string {
+function inlineAuthorsMla(authors: ReferenceAuthor[]): string {
   if (authors.length === 0) return 'Unknown';
-  if (authors.length === 1) return formatAuthorApa(authors[0]);
-  if (authors.length <= 7) {
-    const all = authors.map(formatAuthorApa);
-    const last = all.pop()!;
-    return `${all.join(', ')}, & ${last}`;
-  }
-  const first = authors.slice(0, 6).map(formatAuthorApa);
-  return `${first.join(', ')}, ... ${formatAuthorApa(authors[authors.length - 1])}`;
+  return surname(authors[0]);
 }
 
+/* ---------- Inline citation formatting ---------- */
+
 /**
- * Format a reference as an inline APA citation.
- * Returns e.g. "(Smith, 2024)" or "(Smith & Jones, 2024)".
+ * Format a reference as an inline citation.
+ * APA: (Smith, 2024)  MLA: (Smith 45)  Chicago: (Smith 2024, 45)  Vancouver: [1]
  */
 export function formatInlineCitation(
   ref: ReferenceData,
-  _style?: string,
+  style: CitationStyle = 'apa',
+  index?: number,
 ): string {
-  const authors = inlineAuthorsApa(ref.authors);
   const year = extractYear(ref.issuedDate);
-  return `(${authors}, ${year})`;
+  switch (style) {
+    case 'mla': {
+      const author = inlineAuthorsMla(ref.authors);
+      return ref.pages ? `(${author} ${ref.pages})` : `(${author})`;
+    }
+    case 'chicago': {
+      const author = inlineAuthorsApa(ref.authors);
+      return ref.pages
+        ? `(${author} ${year}, ${ref.pages})`
+        : `(${author} ${year})`;
+    }
+    case 'vancouver':
+      return `[${index ?? 1}]`;
+    default: {
+      const author = inlineAuthorsApa(ref.authors);
+      return `(${author}, ${year})`;
+    }
+  }
 }
 
-/**
- * Format a full APA bibliography entry.
- * Covers article-journal, book, chapter, and generic fallback.
- */
-export function formatBibliographyEntry(
-  ref: ReferenceData,
-  _style?: string,
-): string {
+/* ---------- Bibliography entry formatting ---------- */
+
+function bibEntryApa(ref: ReferenceData): string {
   const authors = bibAuthorsApa(ref.authors);
   const year = extractYear(ref.issuedDate);
-  const title = ref.title;
+  const { title } = ref;
 
   if (ref.type === 'article-journal') {
-    return buildJournalEntry(authors, year, title, ref);
+    let e = `${authors} (${year}). ${title}.`;
+    if (ref.containerTitle) {
+      e += ` *${ref.containerTitle}*`;
+      if (ref.volume) e += `, *${ref.volume}*`;
+      if (ref.issue) e += `(${ref.issue})`;
+      if (ref.pages) e += `, ${ref.pages}`;
+      e += '.';
+    }
+    return appendDoi(e, ref);
   }
-  if (ref.type === 'book') {
-    return buildBookEntry(authors, year, title, ref);
-  }
+  if (ref.type === 'book') return appendDoi(`${authors} (${year}). *${title}*.`, ref);
   if (ref.type === 'chapter') {
-    return buildChapterEntry(authors, year, title, ref);
+    let e = `${authors} (${year}). ${title}.`;
+    if (ref.containerTitle) {
+      e += ` In *${ref.containerTitle}*`;
+      if (ref.pages) e += ` (pp. ${ref.pages})`;
+      e += '.';
+    }
+    return appendDoi(e, ref);
   }
-  return buildGenericEntry(authors, year, title, ref);
+  let e = `${authors} (${year}). ${title}.`;
+  if (ref.containerTitle) e += ` ${ref.containerTitle}.`;
+  return appendDoi(e, ref);
 }
 
-function buildJournalEntry(
-  authors: string, year: string, title: string, ref: ReferenceData,
-): string {
-  let entry = `${authors} (${year}). ${title}.`;
+function bibEntryMla(ref: ReferenceData): string {
+  const authors = bibAuthorsMla(ref.authors);
+  const { title } = ref;
+
+  let e = `${authors}. "${title}."`;
+  if (ref.containerTitle) e += ` *${ref.containerTitle}*`;
+  if (ref.volume) e += `, vol. ${ref.volume}`;
+  if (ref.issue) e += `, no. ${ref.issue}`;
+  const year = extractYear(ref.issuedDate);
+  if (year !== 'n.d.') e += `, ${year}`;
+  if (ref.pages) e += `, pp. ${ref.pages}`;
+  e += '.';
+  if (ref.doi) e += ` https://doi.org/${ref.doi}`;
+  return e;
+}
+
+function bibEntryChicago(ref: ReferenceData): string {
+  const authors = bibAuthorsApa(ref.authors);
+  const year = extractYear(ref.issuedDate);
+  const { title } = ref;
+
+  if (ref.type === 'book') return appendDoi(`${authors}. ${year}. *${title}*.`, ref);
+  let e = `${authors}. ${year}. "${title}."`;
   if (ref.containerTitle) {
-    entry += ` *${ref.containerTitle}*`;
-    if (ref.volume) entry += `, *${ref.volume}*`;
-    if (ref.issue) entry += `(${ref.issue})`;
-    if (ref.pages) entry += `, ${ref.pages}`;
-    entry += '.';
+    e += ` *${ref.containerTitle}*`;
+    if (ref.volume) e += ` ${ref.volume}`;
+    if (ref.issue) e += `, no. ${ref.issue}`;
+    if (ref.pages) e += `: ${ref.pages}`;
   }
-  return appendDoi(entry, ref);
+  e += '.';
+  return appendDoi(e, ref);
 }
 
-function buildBookEntry(
-  authors: string, year: string, title: string, ref: ReferenceData,
-): string {
-  let entry = `${authors} (${year}). *${title}*.`;
-  return appendDoi(entry, ref);
+function bibEntryVancouver(ref: ReferenceData): string {
+  const authors = bibAuthorsVancouver(ref.authors);
+  const { title } = ref;
+  const year = extractYear(ref.issuedDate);
+
+  let e = `${authors}. ${title}.`;
+  if (ref.containerTitle) e += ` ${ref.containerTitle}.`;
+  if (year !== 'n.d.') e += ` ${year}`;
+  if (ref.volume) e += `;${ref.volume}`;
+  if (ref.issue) e += `(${ref.issue})`;
+  if (ref.pages) e += `:${ref.pages}`;
+  e += '.';
+  if (ref.doi) e += ` doi:${ref.doi}`;
+  return e;
 }
 
-function buildChapterEntry(
-  authors: string, year: string, title: string, ref: ReferenceData,
+/** Format a full bibliography entry in the given style. */
+export function formatBibliographyEntry(
+  ref: ReferenceData,
+  style: CitationStyle = 'apa',
 ): string {
-  let entry = `${authors} (${year}). ${title}.`;
-  if (ref.containerTitle) {
-    entry += ` In *${ref.containerTitle}*`;
-    if (ref.pages) entry += ` (pp. ${ref.pages})`;
-    entry += '.';
+  switch (style) {
+    case 'mla': return bibEntryMla(ref);
+    case 'chicago': return bibEntryChicago(ref);
+    case 'vancouver': return bibEntryVancouver(ref);
+    default: return bibEntryApa(ref);
   }
-  return appendDoi(entry, ref);
 }
 
-function buildGenericEntry(
-  authors: string, year: string, title: string, ref: ReferenceData,
-): string {
-  let entry = `${authors} (${year}). ${title}.`;
-  if (ref.containerTitle) entry += ` ${ref.containerTitle}.`;
-  return appendDoi(entry, ref);
-}
-
-function appendDoi(entry: string, ref: ReferenceData): string {
-  if (ref.doi) return `${entry} https://doi.org/${ref.doi}`;
-  if (ref.url) return `${entry} ${ref.url}`;
-  return entry;
-}
-
-/**
- * Format both inline and bibliography in one call.
- */
+/** Format both inline and bibliography in one call. */
 export function formatCitation(
   ref: ReferenceData,
-  style?: string,
+  style: CitationStyle = 'apa',
+  index?: number,
 ): FormattedCitation {
   return {
-    inline: formatInlineCitation(ref, style),
+    inline: formatInlineCitation(ref, style, index),
     bibliography: formatBibliographyEntry(ref, style),
   };
 }

@@ -24,7 +24,7 @@ import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts'
 import { buildStatusBar } from './status-bar.ts';
 import { buildThemeToggle } from '../shared/theme-toggle.ts';
 import { openEmojiPicker } from './emoji/index.ts';
-import { openCitationPicker } from './citations/index.ts';
+import { openCitationPicker, createBibliography } from './citations/index.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
 import { buildEditorExtensions } from './editor-extensions.ts';
 import { getUserIdentity, getDocumentId } from '../shared/identity.ts';
@@ -106,6 +106,13 @@ function init() {
   const editorWrapper = editorEl.closest('.editor-wrapper');
   if (editorWrapper) {
     editorWrapper.appendChild(buildStatusBar(editor));
+  }
+
+  const bib = createBibliography(editor);
+  if (editorWrapper) {
+    editorWrapper.appendChild(bib.element);
+  } else {
+    editorEl.parentElement?.appendChild(bib.element);
   }
 
   const commentSidebar = buildCommentSidebar(editor, commentStore, documentId, user);
