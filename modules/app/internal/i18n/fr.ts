@@ -111,4 +111,18 @@ export const fr: TranslationKeys = {
   'lang.label': 'Langue',
   'lang.en': 'English',
   'lang.fr': 'Français',
+
+  // Sélecteur de modèles
+  'templates.title': 'Choisir un modèle',
+  'templates.blank': 'Vierge',
+  'templates.blankDesc': 'Commencer avec une page vide',
+  'templates.meetingNotes': 'Notes de réunion',
+  'templates.meetingNotesDesc': 'Participants, ordre du jour et actions à suivre',
+  'templates.projectBrief': 'Brief de projet',
+  'templates.projectBriefDesc': 'Objectifs, périmètre, calendrier et équipe',
+  'templates.report': 'Rapport',
+  'templates.reportDesc': 'Rapport structuré avec résumé et conclusions',
+  'templates.selectTitle': 'Nouveau document',
+  'templates.loading': 'Chargement des modèles...',
+  'templates.loadFailed': 'Impossible de charger les modèles',
 };

@@ -114,6 +114,20 @@ export interface TranslationKeys {
   'lang.label': string;
   'lang.en': string;
   'lang.fr': string;
+
+  // Template picker
+  'templates.title': string;
+  'templates.blank': string;
+  'templates.blankDesc': string;
+  'templates.meetingNotes': string;
+  'templates.meetingNotesDesc': string;
+  'templates.projectBrief': string;
+  'templates.projectBriefDesc': string;
+  'templates.report': string;
+  'templates.reportDesc': string;
+  'templates.selectTitle': string;
+  'templates.loading': string;
+  'templates.loadFailed': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;

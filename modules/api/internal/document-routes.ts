@@ -8,6 +8,7 @@ import {
   getDocument,
   deleteDocument,
   updateDocumentTitle,
+  getTemplate,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import type { CacheClient } from './redis.ts';
@@ -33,9 +34,23 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   }));
 
   // Create document — requires auth, auto-grants owner role to creator
+  // Accepts optional ?templateId= query param to pre-fill content from a template
   router.post('/', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     const title = req.body?.title || 'Untitled';
     const id = randomUUID();
+
+    // If a templateId is provided, fetch the template content
+    const templateId = req.query.templateId as string | undefined;
+    let templateContent: Record<string, unknown> | null = null;
+    if (templateId) {
+      const template = await getTemplate(templateId);
+      if (!template) {
+        res.status(404).json({ error: 'Template not found' });
+        return;
+      }
+      templateContent = template.content;
+    }
+
     const doc = await createDocument(id, title);
 
     // Auto-grant owner role to document creator
@@ -48,7 +63,7 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
       grantedBy: principal.id,
     });
 
-    res.status(201).json(doc);
+    res.status(201).json({ ...doc, templateContent });
   }));
 
   // Get document — requires read permission
