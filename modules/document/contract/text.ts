@@ -51,7 +51,7 @@ export const ProseMirrorJSONSchema = z.object({
 
 export type ProseMirrorJSON = z.infer<typeof ProseMirrorJSONSchema>;
 
-// --- DocumentSnapshot ---
+// --- TextDocumentSnapshot ---
 
 export const TextDocumentSnapshotSchema = z.object({
   documentType: z.literal('text'),
@@ -61,19 +61,7 @@ export const TextDocumentSnapshotSchema = z.object({
 
 export type TextDocumentSnapshot = z.infer<typeof TextDocumentSnapshotSchema>;
 
-export const DocumentSnapshotSchema = z.discriminatedUnion('documentType', [
-  TextDocumentSnapshotSchema,
-]);
-
-export type DocumentSnapshot = z.infer<typeof DocumentSnapshotSchema>;
-
-// --- RevisionId ---
-
-export type RevisionId = string;
-
-export const RevisionIdSchema = z.string().regex(/^[0-9a-f]{64}$/, 'Must be a SHA-256 hex string');
-
-// --- DocumentIntent ---
+// --- Text Intent Actions ---
 
 export const MarkSpecSchema = z.object({
   type: z.string().min(1),
@@ -114,30 +102,11 @@ export const UpdateMarksIntentSchema = z.object({
   action: z.enum(['add', 'remove']),
 });
 
-export const IntentActionSchema = z.discriminatedUnion('type', [
+export const TextIntentActionSchema = z.discriminatedUnion('type', [
   InsertBlockIntentSchema,
   UpdateBlockIntentSchema,
   DeleteBlockIntentSchema,
   UpdateMarksIntentSchema,
 ]);
 
-export type IntentAction = z.infer<typeof IntentActionSchema>;
-
-export const DocumentIntentSchema = z.object({
-  idempotencyKey: z.string().uuid(),
-  baseRevision: RevisionIdSchema,
-  actorId: z.string().min(1),
-  actorType: z.enum(['human', 'agent', 'system']),
-  documentId: z.string().min(1),
-  action: IntentActionSchema,
-});
-
-export type DocumentIntent = z.infer<typeof DocumentIntentSchema>;
-
-// --- Migration ---
-
-export type Migration = {
-  from: TextSchemaVersion;
-  to: TextSchemaVersion;
-  up: (snapshot: TextDocumentSnapshot) => TextDocumentSnapshot;
-};
+export type TextIntentAction = z.infer<typeof TextIntentActionSchema>;

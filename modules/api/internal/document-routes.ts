@@ -8,8 +8,11 @@ import {
   getDocument,
   deleteDocument,
   updateDocumentTitle,
+  type DocumentType,
 } from '../../storage/internal/pg.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
+
+const VALID_DOC_TYPES: DocumentType[] = ['text', 'spreadsheet', 'presentation'];
 
 export type DocumentRoutesOptions = {
   permissions: PermissionsModule;
@@ -32,8 +35,13 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   // Create document — requires auth, auto-grants owner role to creator
   router.post('/', permissions.requireAuth, async (req: Request, res: Response) => {
     const title = req.body?.title || 'Untitled';
+    const documentType: DocumentType = req.body?.documentType || 'text';
+    if (!VALID_DOC_TYPES.includes(documentType)) {
+      res.status(400).json({ error: `Invalid documentType. Must be one of: ${VALID_DOC_TYPES.join(', ')}` });
+      return;
+    }
     const id = randomUUID();
-    const doc = await createDocument(id, title);
+    const doc = await createDocument(id, title, documentType);
 
     // Auto-grant owner role to document creator
     const principal = req.principal!;

@@ -1,38 +1,83 @@
 /** Contract: contracts/document/rules.md */
 
-// Schemas (Zod)
+// --- Text ---
 export {
+  TextSchemaVersion,
   TextSchemaVersionSchema,
   ProseMirrorNodeSchema,
   ProseMirrorJSONSchema,
   MarkSchema,
   TextDocumentSnapshotSchema,
-  DocumentSnapshotSchema,
-  RevisionIdSchema,
   MarkSpecSchema,
   InsertBlockIntentSchema,
   UpdateBlockIntentSchema,
   DeleteBlockIntentSchema,
   UpdateMarksIntentSchema,
-  IntentActionSchema,
-  DocumentIntentSchema,
-} from './contract.ts';
+  TextIntentActionSchema,
+} from './contract/index.ts';
 
-// Types
 export type {
   ProseMirrorNode,
   ProseMirrorJSON,
   TextDocumentSnapshot,
+  MarkSpec,
+  TextIntentAction,
+} from './contract/index.ts';
+
+// --- Spreadsheet ---
+export {
+  SpreadsheetSchemaVersion,
+  SpreadsheetSchemaVersionSchema,
+  CellSchema,
+  SheetSchema,
+  SpreadsheetContentSchema,
+  SpreadsheetDocumentSnapshotSchema,
+  SpreadsheetIntentActionSchema,
+} from './contract/index.ts';
+
+export type {
+  Cell,
+  Sheet,
+  SpreadsheetContent,
+  SpreadsheetDocumentSnapshot,
+  SpreadsheetIntentAction,
+} from './contract/index.ts';
+
+// --- Presentation ---
+export {
+  PresentationSchemaVersion,
+  PresentationSchemaVersionSchema,
+  SlideElementSchema,
+  SlideSchema,
+  PresentationContentSchema,
+  PresentationDocumentSnapshotSchema,
+  PresentationIntentActionSchema,
+} from './contract/index.ts';
+
+export type {
+  SlideLayout,
+  SlideElement,
+  Slide,
+  PresentationContent,
+  PresentationDocumentSnapshot,
+  PresentationIntentAction,
+} from './contract/index.ts';
+
+// --- Unified ---
+export {
+  DocumentSnapshotSchema,
+  RevisionIdSchema,
+  IntentActionSchema,
+  DocumentIntentSchema,
+} from './contract/index.ts';
+
+export type {
   DocumentSnapshot,
   RevisionId,
-  MarkSpec,
   IntentAction,
   DocumentIntent,
   Migration,
-} from './contract.ts';
-
-// Enums
-export { TextSchemaVersion } from './contract.ts';
+} from './contract/index.ts';
 
 // Pure functions
 export { migrateToLatest } from './internal/migrations.ts';

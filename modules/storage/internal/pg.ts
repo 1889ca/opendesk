@@ -10,9 +10,12 @@ const pool = new pg.Pool({
   max: 10,
 });
 
+export type DocumentType = 'text' | 'spreadsheet' | 'presentation';
+
 export interface DocumentRow {
   id: string;
   title: string;
+  document_type: DocumentType;
   yjs_state: Buffer | null;
   created_at: Date;
   updated_at: Date;
@@ -20,7 +23,7 @@ export interface DocumentRow {
 
 export async function listDocuments(): Promise<DocumentRow[]> {
   const result = await pool.query<DocumentRow>(
-    'SELECT id, title, created_at, updated_at FROM documents ORDER BY updated_at DESC'
+    'SELECT id, title, document_type, created_at, updated_at FROM documents ORDER BY updated_at DESC'
   );
   return result.rows;
 }
@@ -33,10 +36,14 @@ export async function getDocument(id: string): Promise<DocumentRow | null> {
   return result.rows[0] || null;
 }
 
-export async function createDocument(id: string, title: string): Promise<DocumentRow> {
+export async function createDocument(
+  id: string,
+  title: string,
+  documentType: DocumentType = 'text',
+): Promise<DocumentRow> {
   const result = await pool.query<DocumentRow>(
-    'INSERT INTO documents (id, title) VALUES ($1, $2) RETURNING *',
-    [id, title]
+    'INSERT INTO documents (id, title, document_type) VALUES ($1, $2, $3) RETURNING *',
+    [id, title, documentType]
   );
   return result.rows[0];
 }

@@ -12,7 +12,11 @@
       <h1 class="logo">OpenDesk</h1>
     </div>
     <div class="toolbar-right">
-      <button id="new-doc-btn" class="btn btn-primary">New Document</button>
+      <div class="new-doc-group">
+        <button id="new-doc-btn" class="btn btn-primary" data-type="text">New Document</button>
+        <button id="new-sheet-btn" class="btn btn-secondary" data-type="spreadsheet">New Spreadsheet</button>
+        <button id="new-slides-btn" class="btn btn-secondary" data-type="presentation">New Presentation</button>
+      </div>
     </div>
   </header>
   <main class="doc-list-wrapper">
@@ -42,6 +46,12 @@
         return months + (months === 1 ? ' month ago' : ' months ago');
       }
 
+      var TYPE_META = {
+        text:         { icon: '\u{1F4C4}', label: 'Document',     editor: '/editor.html' },
+        spreadsheet:  { icon: '\u{1F4CA}', label: 'Spreadsheet',  editor: '/spreadsheet.html' },
+        presentation: { icon: '\u{1F3AC}', label: 'Presentation', editor: '/presentation.html' },
+      };
+
       function renderDocuments(docs) {
         if (!docs.length) {
           listEl.innerHTML =
@@ -54,23 +64,34 @@
 
         listEl.innerHTML = '';
         docs.forEach(function (doc) {
+          var meta = TYPE_META[doc.document_type] || TYPE_META.text;
           var row = document.createElement('a');
           row.className = 'doc-row';
-          row.href = '/editor.html?doc=' + encodeURIComponent(doc.id);
+          row.href = meta.editor + '?doc=' + encodeURIComponent(doc.id);
 
           var info = document.createElement('div');
           info.className = 'doc-row-info';
+
+          var titleRow = document.createElement('div');
+          titleRow.className = 'doc-row-title-row';
+
+          var icon = document.createElement('span');
+          icon.className = 'doc-row-icon';
+          icon.textContent = meta.icon;
 
           var title = document.createElement('span');
           title.className = 'doc-row-title';
           title.textContent = doc.title || 'Untitled';
 
-          var time = document.createElement('span');
-          time.className = 'doc-row-time';
-          time.textContent = 'Updated ' + timeAgo(doc.updated_at);
+          titleRow.appendChild(icon);
+          titleRow.appendChild(title);
 
-          info.appendChild(title);
-          info.appendChild(time);
+          var subtitle = document.createElement('span');
+          subtitle.className = 'doc-row-time';
+          subtitle.textContent = meta.label + ' \u00B7 Updated ' + timeAgo(doc.updated_at);
+
+          info.appendChild(titleRow);
+          info.appendChild(subtitle);
 
           var deleteBtn = document.createElement('button');
           deleteBtn.className = 'btn btn-delete';
@@ -101,19 +122,26 @@
           });
       }
 
-      newBtn.addEventListener('click', function () {
-        var title = prompt('Document title:');
+      function createDocument(documentType) {
+        var meta = TYPE_META[documentType] || TYPE_META.text;
+        var title = prompt(meta.label + ' title:');
         if (!title) return;
         fetch('/api/documents', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: title })
+          body: JSON.stringify({ title: title, documentType: documentType })
         })
           .then(function (res) { return res.json(); })
           .then(function (doc) {
-            window.location.href = '/editor.html?doc=' + encodeURIComponent(doc.id);
+            window.location.href = meta.editor + '?doc=' + encodeURIComponent(doc.id);
           })
           .catch(function (err) { console.error('Create failed', err); });
+      }
+
+      document.querySelectorAll('[data-type]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          createDocument(btn.getAttribute('data-type'));
+        });
       });
 
       loadDocuments();

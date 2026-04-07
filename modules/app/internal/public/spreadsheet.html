@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenDesk Spreadsheet</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="spreadsheet.css">
+</head>
+<body>
+  <header class="toolbar">
+    <div class="toolbar-left">
+      <a href="/" class="back-link">Back to documents</a>
+      <span class="toolbar-separator"></span>
+      <input
+        id="doc-title"
+        class="doc-title-input"
+        type="text"
+        value="Loading..."
+        spellcheck="false"
+      />
+    </div>
+    <div class="toolbar-right">
+      <span id="status" class="status disconnected">Connecting...</span>
+      <span class="users-label">Editors:</span>
+      <span id="users" class="users">-</span>
+    </div>
+  </header>
+  <div id="formula-bar" class="formula-bar">
+    <label class="formula-bar-cell" id="cell-ref">A1</label>
+    <input id="formula-input" class="formula-bar-input" type="text" placeholder="Enter value or formula" />
+  </div>
+  <main class="spreadsheet-wrapper">
+    <div id="spreadsheet" class="spreadsheet-grid"></div>
+  </main>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var docId = params.get('doc');
+      if (!docId) { window.location.href = '/'; return; }
+
+      var titleInput = document.getElementById('doc-title');
+
+      fetch('/api/documents/' + encodeURIComponent(docId))
+        .then(function (res) {
+          if (!res.ok) throw new Error('Not found');
+          return res.json();
+        })
+        .then(function (doc) {
+          titleInput.value = doc.title || 'Untitled';
+          document.title = doc.title + ' - OpenDesk Spreadsheet';
+        })
+        .catch(function () { window.location.href = '/'; });
+
+      var debounceTimer;
+      titleInput.addEventListener('blur', function () {
+        clearTimeout(debounceTimer);
+        saveTitle();
+      });
+      titleInput.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(saveTitle, 800);
+      });
+
+      function saveTitle() {
+        var newTitle = titleInput.value.trim();
+        if (!newTitle) return;
+        document.title = newTitle + ' - OpenDesk Spreadsheet';
+        fetch('/api/documents/' + encodeURIComponent(docId), {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: newTitle })
+        }).catch(function (err) { console.error('Title save failed', err); });
+      }
+    })();
+  </script>
+  <script src="spreadsheet.bundle.js?v=1"></script>
+</body>
+</html>
