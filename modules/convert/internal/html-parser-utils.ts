@@ -106,25 +106,55 @@ export function findBalancedClose(
   return null;
 }
 
+/** CSS style to mark type mapping for Collabora's span-based output */
+const STYLE_MARKS: Array<{ pattern: RegExp; mark: string }> = [
+  { pattern: /font-weight\s*:\s*(bold|[7-9]00)/i, mark: 'bold' },
+  { pattern: /font-style\s*:\s*italic/i, mark: 'italic' },
+  { pattern: /text-decoration[^:]*:\s*[^;]*underline/i, mark: 'underline' },
+  { pattern: /text-decoration[^:]*:\s*[^;]*line-through/i, mark: 'strike' },
+];
+
+/** Extract marks from a style attribute string */
+function marksFromStyle(style: string): Array<{ type: string }> {
+  const marks: Array<{ type: string }> = [];
+  for (const { pattern, mark } of STYLE_MARKS) {
+    if (pattern.test(style)) marks.push({ type: mark });
+  }
+  return marks;
+}
+
 /** Parse inline content (bold, italic, etc.) within a block */
 export function parseInlineContent(html: string): ProseMirrorNode[] {
   const nodes: ProseMirrorNode[] = [];
+  // Match: semantic tags | span with style | any other tag (skip) | text
   const inlinePattern =
-    /<(strong|b|em|i|u|s|strike|code)\b[^>]*>([\s\S]*?)<\/\1>|([^<]+)/gi;
+    /<(strong|b|em|i|u|s|strike|code)\b[^>]*>([\s\S]*?)<\/\1>|<span\b([^>]*)>([\s\S]*?)<\/span>|<\/?[a-z][^>]*>|([^<]+)/gi;
   let match: RegExpExecArray | null;
 
   while ((match = inlinePattern.exec(html)) !== null) {
-    if (match[3]) {
-      const text = decodeEntities(match[3]);
+    if (match[5]) {
+      // Plain text
+      const text = decodeEntities(match[5]);
       if (text) nodes.push(textNode(text));
-    } else if (match[1] && match[2]) {
+    } else if (match[1] && match[2] !== undefined) {
+      // Semantic inline tag (strong, em, etc.)
       const tag = match[1].toUpperCase();
       const markType = INLINE_TAG_MARKS[tag];
       const text = decodeEntities(stripTags(match[2]));
       if (text && markType) {
         nodes.push(textNode(text, [{ type: markType }]));
       }
+    } else if (match[4] !== undefined) {
+      // <span> with attributes — extract marks from style
+      const attrs = match[3] || '';
+      const styleMatch = /style\s*=\s*["']([^"']*)["']/i.exec(attrs);
+      const marks = styleMatch ? marksFromStyle(styleMatch[1]) : [];
+      const text = decodeEntities(stripTags(match[4]));
+      if (text) {
+        nodes.push(marks.length > 0 ? textNode(text, marks) : textNode(text));
+      }
     }
+    // Other tags (match[0] starts with <) are silently skipped
   }
 
   if (nodes.length === 0) {
