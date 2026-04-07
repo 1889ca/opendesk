@@ -271,3 +271,23 @@ When adding a new document type (e.g. `SpreadsheetSnapshot`):
 4. Add a corresponding `SpreadsheetSchemaVersion` enum and migration registry.
 5. Extend `IntentAction` with spreadsheet-specific actions if needed.
 6. All existing consumers that switch on `documentType` will get compile errors until they handle the new variant. This is by design.
+
+## MVP Scope
+
+Implemented:
+- [x] `DocumentSnapshot` discriminated union type (with `TextDocumentSnapshot` variant)
+- [x] `TextSchemaVersion` enum with `current` export
+- [x] `ProseMirrorJSON` type and Zod schema
+- [x] `DocumentIntent` and `IntentAction` types with Zod schemas
+- [x] `computeRevisionId` pure function (SHA-256 of state vector)
+- [x] `migrateToLatest` idempotent migration function
+- [x] Migration registry (sequential, pure, deterministic)
+- [x] Leaf module with no runtime dependencies
+- [x] Block-ID-based intent targeting (no JSON paths)
+- [x] Zod schemas for all exported types
+- [x] `contract.ts` under 200 lines
+
+Post-MVP (deferred):
+- [ ] Property-based tests for snapshot schema validity — unit tests exist, property-based tests planned
+- [ ] Block ID uniqueness test (assert all blockIds in a document are distinct)
+- [ ] Exhaustiveness compile-time test (`assertNever` pattern for `documentType` switch)

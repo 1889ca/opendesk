@@ -108,3 +108,22 @@ How to test each invariant:
 - One-directional status transitions --> Unit test: attempt to transition a `revoked` grant to `active`, assert rejection. Attempt to transition `active` to `pending`, assert rejection.
 - No collab dependency --> Code-level audit: grep the module source for any import of `collab`. Assert zero references.
 - No direct email sending --> Code-level audit: grep the module source for SMTP, sendmail, or email transport imports. Assert zero references.
+
+## MVP Scope
+
+Implemented:
+- [x] Share link creation with cryptographically random tokens (256-bit entropy)
+- [x] Share link redemption resolving to access
+- [x] Share link revocation
+- [x] Share link expiration and max-redemption enforcement
+- [x] One-directional grant status transitions
+- [x] No direct collab module dependency
+- [x] No direct email sending
+
+Post-MVP (deferred):
+- [ ] Full `Grant` record creation in permissions store on share link redemption — currently grants access without formal Grant record
+- [ ] "Cannot grant higher than own role" enforcement — requires auth wiring to look up grantor's role
+- [ ] `GrantCreated` event emission — requires events module implementation
+- [ ] `GrantRevoked` event emission — requires events module implementation
+- [ ] Invite-by-email workflow (pending grants that activate on authentication)
+- [ ] `updateGrant` role change support

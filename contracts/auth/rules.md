@@ -61,3 +61,20 @@ How to test each invariant:
 - API keys stored hashed -> Integration test (with `storage`): create a service account, read the stored record, assert the stored key does not match the raw key returned at creation. Assert the raw key is not retrievable after creation.
 - No permission evaluation -> Code-level audit: grep the module source for any import of `permissions`. Assert zero references. Contract test: confirm no method signature accepts a "resource" or "action" for access-control purposes.
 - Stateless verification -> Code-level audit: assert no in-memory cache, session store, or request-scoped mutable state persists between calls.
+
+## MVP Scope
+
+Implemented:
+- [x] OIDC/OAuth2 token resolution to `Principal` with `actorType: 'human'`
+- [x] API key resolution to `Principal` with `actorType: 'agent'`
+- [x] System principal resolution (`actorType: 'system'`)
+- [x] `actorType` on every `Principal`, unconditionally
+- [x] Typed `AuthError` responses (TOKEN_EXPIRED, TOKEN_INVALID, etc.)
+- [x] Service account CRUD (create, read, revoke)
+- [x] API keys stored hashed; raw key returned only at creation
+- [x] Stateless verification (no session state, no caching)
+- [x] No permission evaluation (delegated to `permissions` module)
+- [x] WebSocket authentication (connection auth before handshake)
+
+Post-MVP (deferred):
+- (none — all contract invariants are met)

@@ -105,3 +105,24 @@ HTTP boundary layer that exposes REST endpoints for document CRUD, sharing, expo
 - **SSE replay invariant** -> Integration test: connect to SSE with valid `Last-Event-ID`; assert replayed events; connect with ID older than 7 days; assert 410 Gone
 - **No business logic invariant** -> Code review rule: route handlers must contain only validation, auth, permission check, delegation call, and response serialization -- no domain logic
 - **WebSocket upgrade** -> Integration test: send HTTP upgrade request to collab path; assert 101 Switching Protocols and handoff to Hocuspocus
+
+## MVP Scope
+
+Implemented:
+- [x] REST endpoints for document CRUD (GET/POST /api/documents, GET /api/documents/:id)
+- [x] Authentication middleware resolving bearer tokens to `Principal`
+- [x] Permission checks before document operations
+- [x] WebSocket upgrade delegation to collab module's Hocuspocus handler
+- [x] Structured error responses (401, 403, 404)
+- [x] No business logic in route handlers (pure orchestration)
+- [x] Share link endpoints (POST /api/shares, DELETE /api/shares/:id)
+- [x] Export/import endpoints (POST /api/documents/:id/export, POST /api/documents/:id/import)
+
+Post-MVP (deferred):
+- [ ] Zod validation on all request bodies — currently using ad-hoc validation checks
+- [ ] Rate limiting per-principal with actorType discrimination (human vs agent token bucket)
+- [ ] `ETag` / `If-Match` header support for causal reads (304 Not Modified)
+- [ ] SSE event stream endpoint (GET /api/events/stream) — requires events module implementation
+- [ ] Intent submission endpoint (POST /api/documents/:id/intents) — requires collab IntentExecutor
+- [ ] `410 Gone` for expired SSE Last-Event-ID — requires events module
+- [ ] Pagination parameters (page, limit) on list endpoints
