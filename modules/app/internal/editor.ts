@@ -27,6 +27,7 @@ import { openEmojiPicker } from './emoji/index.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
 import { buildEditorExtensions } from './editor-extensions.ts';
 import { getUserIdentity, getDocumentId } from './identity.ts';
+import { initEditorPage } from './editor-page.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -149,4 +150,7 @@ function init() {
   Object.assign(window, { editor, provider, ydoc, commentStore });
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  initEditorPage();
+  init();
+});
