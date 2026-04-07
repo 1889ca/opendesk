@@ -245,4 +245,8 @@ export const en: TranslationKeys = {
   'search.noResults': 'No documents match your search.',
   'search.searching': 'Searching...',
   'search.resultCount': '{count} result(s) found',
+
+  // Mentions
+  'mentions.placeholder': 'Type a name...',
+  'mentions.noResults': 'No users found',
 };

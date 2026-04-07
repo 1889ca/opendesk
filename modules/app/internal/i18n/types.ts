@@ -247,6 +247,10 @@ export interface TranslationKeys {
   'search.noResults': string;
   'search.searching': string;
   'search.resultCount': string;
+
+  // Mentions
+  'mentions.placeholder': string;
+  'mentions.noResults': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;

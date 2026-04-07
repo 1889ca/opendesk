@@ -250,4 +250,8 @@ export const fr: TranslationKeys = {
   'search.noResults': 'Aucun document ne correspond \u00e0 votre recherche.',
   'search.searching': 'Recherche en cours...',
   'search.resultCount': '{count} r\u00e9sultat(s) trouv\u00e9(s)',
+
+  // Mentions
+  'mentions.placeholder': 'Saisir un nom...',
+  'mentions.noResults': 'Aucun utilisateur trouv\u00e9',
 };

@@ -35,6 +35,7 @@ import { buildTocPanel, toggleTocPanel } from './toc/index.ts';
 import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts';
 import { buildStatusBar } from './status-bar.ts';
 import { buildThemeToggle } from './theme-toggle.ts';
+import { createMentionExtension } from './mentions/index.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -129,6 +130,7 @@ function init() {
       SuggestionDeleteMark,
       Collaboration.configure({ document: ydoc }),
       CollaborationCursor.configure({ provider, user: { name: user.name, color: user.color } }),
+      createMentionExtension(provider),
     ],
     editorProps: { attributes: { class: 'editor-content' } },
   });
