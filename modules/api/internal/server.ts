@@ -24,8 +24,13 @@ import { initSchema } from '../../storage/internal/schema.ts';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export async function startServer(port = 3000) {
-  await initSchema();
-  console.log('[opendesk] database schema initialized');
+  try {
+    await initSchema();
+    console.log('[opendesk] database schema initialized');
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[opendesk] schema init failed: ${msg} — continuing anyway`);
+  }
   const app = express();
 
   // Wire auth module (dev mode uses bypass verifiers)
@@ -36,7 +41,7 @@ export async function startServer(port = 3000) {
       findServiceAccountById: async () => null,
       revokeServiceAccount: async () => {},
     },
-    publicPaths: ['/api/health'],
+    publicPaths: ['/health'],
   });
 
   // Wire collab server with auth dependency
