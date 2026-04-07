@@ -1,5 +1,4 @@
 /** Contract: contracts/app/rules.md */
-
 /**
  * All translation keys used in the app.
  * Both en.ts and fr.ts must implement this type fully.

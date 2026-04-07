@@ -186,7 +186,6 @@ export const fr: TranslationKeys = {
   'shortcuts.redo': 'R\u00e9tablir',
   'shortcuts.showShortcuts': 'Afficher les raccourcis clavier',
 
-
   // Impression & PDF
   'toolbar.print': 'Imprimer',
   'toolbar.pdf': 'PDF',
