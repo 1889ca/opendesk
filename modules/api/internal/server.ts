@@ -17,6 +17,7 @@ import { createFileRoutes } from './file-routes.ts';
 import { createTemplateRoutes } from './template-routes.ts';
 import { createVersionRoutes } from './version-routes.ts';
 import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts';
+import { createSearchRoutes } from './search-routes.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -62,6 +63,9 @@ export function startServer(port = 3000) {
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', version: '0.1.0' });
   });
+
+  // Search must be mounted before document CRUD so /search is matched before /:id
+  app.use('/api/documents', createSearchRoutes({ permissions }));
 
   // Document CRUD with permission checks
   app.use('/api/documents', createDocumentRoutes({ permissions, cache: redisClient }));

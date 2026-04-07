@@ -238,4 +238,11 @@ export const en: TranslationKeys = {
   'theme.light': 'Light',
   'theme.dark': 'Dark',
   'theme.system': 'System',
+
+  // Global search
+  'search.global': 'Search documents',
+  'search.placeholder': 'Search all documents...',
+  'search.noResults': 'No documents match your search.',
+  'search.searching': 'Searching...',
+  'search.resultCount': '{count} result(s) found',
 };

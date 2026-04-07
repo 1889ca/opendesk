@@ -240,6 +240,13 @@ export interface TranslationKeys {
   'theme.light': string;
   'theme.dark': string;
   'theme.system': string;
+
+  // Global search
+  'search.global': string;
+  'search.placeholder': string;
+  'search.noResults': string;
+  'search.searching': string;
+  'search.resultCount': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;
