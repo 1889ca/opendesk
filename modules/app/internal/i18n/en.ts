@@ -185,4 +185,12 @@ export const en: TranslationKeys = {
   'shortcuts.undo': 'Undo',
   'shortcuts.redo': 'Redo',
   'shortcuts.showShortcuts': 'Show keyboard shortcuts',
+
+  // Print & PDF
+  'toolbar.print': 'Print',
+  'toolbar.pdf': 'PDF',
+  'toolbar.pageBreak': 'Page Break',
+  'print.title': 'Print document',
+  'pdf.title': 'Export as PDF',
+  'pageBreak.title': 'Insert page break',
 };

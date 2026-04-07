@@ -185,4 +185,13 @@ export const fr: TranslationKeys = {
   'shortcuts.undo': 'Annuler',
   'shortcuts.redo': 'R\u00e9tablir',
   'shortcuts.showShortcuts': 'Afficher les raccourcis clavier',
+
+
+  // Impression & PDF
+  'toolbar.print': 'Imprimer',
+  'toolbar.pdf': 'PDF',
+  'toolbar.pageBreak': 'Saut de page',
+  'print.title': 'Imprimer le document',
+  'pdf.title': 'Exporter en PDF',
+  'pageBreak.title': 'Insérer un saut de page',
 };
