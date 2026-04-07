@@ -8,7 +8,7 @@ import { getRedisClient, disconnectRedis } from './redis.ts';
 import { idempotencyMiddleware } from './idempotency.ts';
 import { createConvertRoutes } from './convert-routes.ts';
 import { createAuth } from '../../auth/index.ts';
-import { createPermissions } from '../../permissions/index.ts';
+import { createPermissions, createPgGrantStore } from '../../permissions/index.ts';
 import { createDocumentRoutes } from './document-routes.ts';
 import { createExportRoutes } from './export-routes.ts';
 import { createAdminRoutes } from './admin-routes.ts';
@@ -20,7 +20,7 @@ import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts'
 import { createSearchRoutes } from './search-routes.ts';
 import {
   createShareLinkService,
-  createInMemoryShareLinkStore,
+  createPgShareLinkStore,
   createShareRoutes,
 } from '../../sharing/index.ts';
 import { pool } from '../../storage/internal/pool.ts';
@@ -54,8 +54,9 @@ export async function startServer(port = 3000) {
     tokenVerifier: auth.tokenVerifier,
   });
 
-  // Wire permissions module
-  const permissions = createPermissions();
+  // Wire permissions module with PG-backed grant store
+  const grantStore = createPgGrantStore(pool);
+  const permissions = createPermissions({ grantStore });
 
   app.use(express.json());
 
@@ -108,7 +109,7 @@ export async function startServer(port = 3000) {
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
 
   // Share link routes (create, resolve, revoke) — after auth
-  const shareLinkStore = createInMemoryShareLinkStore();
+  const shareLinkStore = createPgShareLinkStore(pool);
   const shareLinkService = createShareLinkService(shareLinkStore);
   app.use(createShareRoutes(shareLinkService, { grantStore: permissions.grantStore }));
 
