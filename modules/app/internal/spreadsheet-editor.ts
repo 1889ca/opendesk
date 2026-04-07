@@ -2,6 +2,7 @@
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
 import { getUserIdentity, getDocumentId } from './identity.ts';
+import { setupTitleSync } from './title-sync.ts';
 
 const DEFAULT_COLS = 26;
 const DEFAULT_ROWS = 50;
@@ -25,6 +26,7 @@ function init() {
   if (!gridEl) return;
 
   const documentId = getDocumentId();
+  setupTitleSync(documentId, 'OpenDesk Spreadsheet');
   const user = getUserIdentity();
   const ydoc = new Y.Doc();
 

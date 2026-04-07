@@ -19,7 +19,14 @@ interface DocEntry {
   id: string;
   title: string;
   updated_at: string;
+  document_type?: string;
 }
+
+const TYPE_META: Record<string, { icon: string; label: string; editor: string }> = {
+  text:         { icon: '\u{1F4C4}', label: 'Document',     editor: '/editor.html' },
+  spreadsheet:  { icon: '\u{1F4CA}', label: 'Spreadsheet',  editor: '/spreadsheet.html' },
+  presentation: { icon: '\u{1F3AC}', label: 'Presentation', editor: '/presentation.html' },
+};
 
 function renderDocuments(listEl: HTMLElement, docs: DocEntry[]) {
   if (!docs.length) {
@@ -38,22 +45,33 @@ function renderDocuments(listEl: HTMLElement, docs: DocEntry[]) {
   }
 
   for (const doc of docs) {
+    const meta = TYPE_META[doc.document_type || 'text'] || TYPE_META.text;
     const row = document.createElement('a');
     row.className = 'doc-row';
-    row.href = '/editor.html?doc=' + encodeURIComponent(doc.id);
+    row.href = meta.editor + '?doc=' + encodeURIComponent(doc.id);
 
     const info = document.createElement('div');
     info.className = 'doc-row-info';
+
+    const titleRow = document.createElement('div');
+    titleRow.className = 'doc-row-title-row';
+
+    const icon = document.createElement('span');
+    icon.className = 'doc-row-icon';
+    icon.textContent = meta.icon;
 
     const title = document.createElement('span');
     title.className = 'doc-row-title';
     title.textContent = doc.title || t('editor.untitled');
 
+    titleRow.appendChild(icon);
+    titleRow.appendChild(title);
+
     const time = document.createElement('span');
     time.className = 'doc-row-time';
-    time.textContent = t('docList.updated', { time: formatRelativeTime(doc.updated_at) });
+    time.textContent = meta.label + ' \u00B7 ' + t('docList.updated', { time: formatRelativeTime(doc.updated_at) });
 
-    info.appendChild(title);
+    info.appendChild(titleRow);
     info.appendChild(time);
 
     const deleteBtn = document.createElement('button');
@@ -110,6 +128,24 @@ async function loadAll(listEl: HTMLElement) {
   }
 }
 
+async function createTypedDocument(documentType: string): Promise<void> {
+  const meta = TYPE_META[documentType] || TYPE_META.text;
+  const titleText = prompt(`${meta.label} title:`);
+  if (!titleText) return;
+  try {
+    const res = await apiFetch('/api/documents', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: titleText, documentType }),
+    });
+    if (!res.ok) throw new Error('Failed to create document');
+    const doc = await res.json();
+    window.location.href = meta.editor + '?doc=' + encodeURIComponent(doc.id);
+  } catch (err) {
+    console.error('Create failed', err);
+  }
+}
+
 function init() {
   initTheme();
   const listEl = document.getElementById('doc-list');
@@ -141,6 +177,12 @@ function init() {
       console.error('Create failed', err);
     }
   });
+
+  // Wire up spreadsheet/presentation creation buttons
+  document.getElementById('new-sheet-btn')
+    ?.addEventListener('click', () => createTypedDocument('spreadsheet'));
+  document.getElementById('new-slides-btn')
+    ?.addEventListener('click', () => createTypedDocument('presentation'));
 
   loadAll(listEl);
 }

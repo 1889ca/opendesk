@@ -8,6 +8,7 @@
 import { getDocumentId } from './identity.ts';
 import { apiFetch } from './api-client.ts';
 import { setupShareDialog } from './share-dialog.ts';
+import { setupTitleSync } from './title-sync.ts';
 
 function getTitle(): string {
   const input = document.getElementById('doc-title') as HTMLInputElement | null;
@@ -35,36 +36,6 @@ function downloadBlob(content: BlobPart, filename: string, mimeType: string): vo
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-}
-
-function setupTitleSync(docId: string): void {
-  const titleInput = document.getElementById('doc-title') as HTMLInputElement;
-
-  apiFetch(`/api/documents/${encodeURIComponent(docId)}`)
-    .then((res) => { if (!res.ok) throw new Error('Not found'); return res.json(); })
-    .then((doc: { title?: string }) => {
-      titleInput.value = doc.title || 'Untitled';
-      document.title = `${doc.title} - OpenDesk`;
-    })
-    .catch(() => { window.location.href = '/'; });
-
-  let debounceTimer: ReturnType<typeof setTimeout>;
-  titleInput.addEventListener('blur', () => { clearTimeout(debounceTimer); saveTitle(docId); });
-  titleInput.addEventListener('input', () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => saveTitle(docId), 800);
-  });
-}
-
-function saveTitle(docId: string): void {
-  const newTitle = getTitle();
-  if (!newTitle) return;
-  document.title = `${newTitle} - OpenDesk`;
-  apiFetch(`/api/documents/${encodeURIComponent(docId)}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title: newTitle }),
-  }).catch((err) => console.error('Title save failed', err));
 }
 
 function setupClientExports(): void {

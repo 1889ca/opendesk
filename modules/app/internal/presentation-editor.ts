@@ -2,6 +2,7 @@
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
 import { getUserIdentity, getDocumentId } from './identity.ts';
+import { setupTitleSync } from './title-sync.ts';
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -26,6 +27,7 @@ function init() {
   if (!slideListEl || !viewportEl) return;
 
   const documentId = getDocumentId();
+  setupTitleSync(documentId, 'OpenDesk Presentation');
   const user = getUserIdentity();
   const ydoc = new Y.Doc();
 

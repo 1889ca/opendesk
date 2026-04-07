@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenDesk</title>
-  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="doc-list.bundle.css">
   <script>
     // Apply stored theme immediately to prevent flash of wrong theme
     (function() {
@@ -15,12 +15,6 @@
       document.documentElement.setAttribute('data-theme', theme);
     })();
   </script>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="toolbar.css">
-  <link rel="stylesheet" href="doc-list.css">
-  <link rel="stylesheet" href="templates.css">
-  <link rel="stylesheet" href="folders.css">
-  <link rel="stylesheet" href="global-search.css">
 </head>
 <body>
   <header class="toolbar">
@@ -42,146 +36,6 @@
     </div>
   </main>
 
-  <script>
-    // Theme toggle for doc list page
-    (function () {
-      var STORAGE_KEY = 'opendesk-theme';
-      var MODES = ['light', 'dark', 'system'];
-      var ICONS = { light: '\u2600', dark: '\u263E', system: '\u25D0' };
-      var LABELS = { light: 'Light', dark: 'Dark', system: 'System' };
-
-      function getStored() {
-        var s = localStorage.getItem(STORAGE_KEY);
-        return (s === 'light' || s === 'dark' || s === 'system') ? s : 'system';
-      }
-
-      function resolve(mode) {
-        if (mode === 'light' || mode === 'dark') return mode;
-        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      }
-
-      var current = getStored();
-      var btn = document.getElementById('theme-toggle');
-
-      function apply() {
-        document.documentElement.setAttribute('data-theme', resolve(current));
-        if (btn) {
-          btn.textContent = ICONS[current] + ' ' + LABELS[current];
-          btn.setAttribute('aria-label', 'Theme: ' + LABELS[current]);
-        }
-      }
-
-      var TYPE_META = {
-        text:         { icon: '\u{1F4C4}', label: 'Document',     editor: '/editor.html' },
-        spreadsheet:  { icon: '\u{1F4CA}', label: 'Spreadsheet',  editor: '/spreadsheet.html' },
-        presentation: { icon: '\u{1F3AC}', label: 'Presentation', editor: '/presentation.html' },
-      };
-
-      var listEl = document.getElementById('doc-list');
-
-      function renderDocuments(docs) {
-        if (!docs.length) {
-          listEl.innerHTML =
-            '<div class="doc-list-empty">' +
-              '<p class="empty-title">No documents yet</p>' +
-              '<p class="empty-subtitle">Create your first document to get started.</p>' +
-            '</div>';
-          return;
-        }
-      }
-
-      apply();
-
-      if (btn) {
-        btn.addEventListener('click', function (e) {
-          e.preventDefault();
-          var idx = MODES.indexOf(current);
-          current = MODES[(idx + 1) % MODES.length];
-          localStorage.setItem(STORAGE_KEY, current);
-          apply();
-        });
-      }
-
-        listEl.innerHTML = '';
-        docs.forEach(function (doc) {
-          var meta = TYPE_META[doc.document_type] || TYPE_META.text;
-          var row = document.createElement('a');
-          row.className = 'doc-row';
-          row.href = meta.editor + '?doc=' + encodeURIComponent(doc.id);
-
-          var info = document.createElement('div');
-          info.className = 'doc-row-info';
-
-          var titleRow = document.createElement('div');
-          titleRow.className = 'doc-row-title-row';
-
-          var icon = document.createElement('span');
-          icon.className = 'doc-row-icon';
-          icon.textContent = meta.icon;
-
-          var title = document.createElement('span');
-          title.className = 'doc-row-title';
-          title.textContent = doc.title || 'Untitled';
-
-          titleRow.appendChild(icon);
-          titleRow.appendChild(title);
-
-          var subtitle = document.createElement('span');
-          subtitle.className = 'doc-row-time';
-          subtitle.textContent = meta.label + ' \u00B7 Updated ' + timeAgo(doc.updated_at);
-
-          info.appendChild(titleRow);
-          info.appendChild(subtitle);
-
-          var deleteBtn = document.createElement('button');
-          deleteBtn.className = 'btn btn-delete';
-          deleteBtn.textContent = 'Delete';
-          deleteBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var name = doc.title || 'Untitled';
-            if (!confirm('Delete "' + name + '"? This cannot be undone.')) return;
-            fetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
-              .then(function () { loadDocuments(); })
-              .catch(function (err) { console.error('Delete failed', err); });
-          });
-
-          row.appendChild(info);
-          row.appendChild(deleteBtn);
-          listEl.appendChild(row);
-        });
-
-      if (window.matchMedia) {
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
-          if (current === 'system') apply();
-        });
-      }
-
-      function createDocument(documentType) {
-        var meta = TYPE_META[documentType] || TYPE_META.text;
-        var title = prompt(meta.label + ' title:');
-        if (!title) return;
-        fetch('/api/documents', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: title, documentType: documentType })
-        })
-          .then(function (res) { return res.json(); })
-          .then(function (doc) {
-            window.location.href = meta.editor + '?doc=' + encodeURIComponent(doc.id);
-          })
-          .catch(function (err) { console.error('Create failed', err); });
-      }
-
-      document.querySelectorAll('[data-type]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          createDocument(btn.getAttribute('data-type'));
-        });
-      });
-
-      loadDocuments();
-    })();
-  </script>
   <script type="module" src="doc-list.bundle.js"></script>
 </body>
 </html>

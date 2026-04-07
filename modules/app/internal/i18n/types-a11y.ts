@@ -1,0 +1,62 @@
+/** Contract: contracts/app/rules.md */
+/**
+ * Accessibility and keyboard shortcut translation keys.
+ */
+export interface A11yTranslationKeys {
+  'a11y.skipToContent': string;
+  'a11y.formattingToolbar': string;
+  'a11y.boldLabel': string;
+  'a11y.italicLabel': string;
+  'a11y.strikeLabel': string;
+  'a11y.codeLabel': string;
+  'a11y.heading1Label': string;
+  'a11y.heading2Label': string;
+  'a11y.heading3Label': string;
+  'a11y.bulletListLabel': string;
+  'a11y.orderedListLabel': string;
+  'a11y.blockquoteLabel': string;
+  'a11y.codeBlockLabel': string;
+  'a11y.horizontalRuleLabel': string;
+  'a11y.tableLabel': string;
+  'a11y.imageLabel': string;
+  'a11y.findLabel': string;
+  'a11y.commentLabel': string;
+  'a11y.shortcutsLabel': string;
+  'a11y.boldOn': string;
+  'a11y.boldOff': string;
+  'a11y.italicOn': string;
+  'a11y.italicOff': string;
+  'a11y.strikeOn': string;
+  'a11y.strikeOff': string;
+  'a11y.codeOn': string;
+  'a11y.codeOff': string;
+  'a11y.commentAdded': string;
+  'a11y.searchMatches': string;
+  'a11y.commentSidebar': string;
+  'a11y.mainEditor': string;
+  'shortcuts.title': string;
+  'shortcuts.close': string;
+  'shortcuts.formatting': string;
+  'shortcuts.navigation': string;
+  'shortcuts.comments': string;
+  'shortcuts.search': string;
+  'shortcuts.document': string;
+  'shortcuts.bold': string;
+  'shortcuts.italic': string;
+  'shortcuts.strikethrough': string;
+  'shortcuts.code': string;
+  'shortcuts.heading1': string;
+  'shortcuts.heading2': string;
+  'shortcuts.heading3': string;
+  'shortcuts.bulletList': string;
+  'shortcuts.orderedList': string;
+  'shortcuts.blockquote': string;
+  'shortcuts.codeBlock': string;
+  'shortcuts.horizontalRule': string;
+  'shortcuts.addComment': string;
+  'shortcuts.find': string;
+  'shortcuts.findReplace': string;
+  'shortcuts.undo': string;
+  'shortcuts.redo': string;
+  'shortcuts.showShortcuts': string;
+}
