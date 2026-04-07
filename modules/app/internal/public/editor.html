@@ -117,7 +117,7 @@
         document.title = newTitle + ' - OpenDesk';
         fetch('/api/documents/' + encodeURIComponent(docId), {
           method: 'PATCH',
-          headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders),
+          headers: Object.assign({ 'Content-Type': 'application/json', 'idempotency-key': crypto.randomUUID() }, authHeaders),
           body: JSON.stringify({ title: newTitle })
         }).catch(function (err) { console.error('Title save failed', err); });
       }
@@ -201,7 +201,7 @@
 
           fetch('/api/documents/' + encodeURIComponent(docId) + '/convert-export', {
             method: 'POST',
-            headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders),
+            headers: Object.assign({ 'Content-Type': 'application/json', 'idempotency-key': crypto.randomUUID() }, authHeaders),
             body: JSON.stringify({ format: format, content: html })
           })
           .then(function (res) {
@@ -258,7 +258,7 @@
         file.arrayBuffer().then(function (buf) {
           return fetch('/api/documents/' + encodeURIComponent(docId) + '/convert-import', {
             method: 'POST',
-            headers: Object.assign({ 'X-Filename': file.name }, authHeaders),
+            headers: Object.assign({ 'X-Filename': file.name, 'idempotency-key': crypto.randomUUID() }, authHeaders),
             body: buf
           });
         })
@@ -334,7 +334,7 @@
 
         fetch('/api/documents/' + encodeURIComponent(docId) + '/share', {
           method: 'POST',
-          headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders),
+          headers: Object.assign({ 'Content-Type': 'application/json', 'idempotency-key': crypto.randomUUID() }, authHeaders),
           body: JSON.stringify({ role: role })
         })
         .then(function (res) {
