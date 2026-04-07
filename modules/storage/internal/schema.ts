@@ -52,6 +52,39 @@ const CREATE_VERSIONS_TABLE = `
   )
 `;
 
+const CREATE_GRANTS_TABLE = `
+  CREATE TABLE IF NOT EXISTS grants (
+    id UUID PRIMARY KEY,
+    principal_id TEXT NOT NULL,
+    resource_id TEXT NOT NULL,
+    resource_type TEXT NOT NULL DEFAULT 'document',
+    role TEXT NOT NULL,
+    granted_by TEXT NOT NULL DEFAULT '',
+    granted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMPTZ
+  )
+`;
+
+const CREATE_GRANTS_INDEX = `
+  CREATE INDEX IF NOT EXISTS idx_grants_principal_resource
+    ON grants (principal_id, resource_id, resource_type)
+`;
+
+const CREATE_SHARE_LINKS_TABLE = `
+  CREATE TABLE IF NOT EXISTS share_links (
+    token TEXT PRIMARY KEY,
+    doc_id TEXT NOT NULL,
+    grantor_id TEXT NOT NULL,
+    role TEXT NOT NULL,
+    expires_at TIMESTAMPTZ,
+    max_redemptions INTEGER,
+    redemption_count INTEGER NOT NULL DEFAULT 0,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
+    password_hash TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )
+`;
+
 /**
  * Initialize all database tables in dependency order.
  * Safe to call multiple times (uses IF NOT EXISTS).
@@ -62,5 +95,8 @@ export async function initSchema(): Promise<void> {
   await pool.query(ADD_FOLDER_FK);
   await pool.query(CREATE_TEMPLATES_TABLE);
   await pool.query(CREATE_VERSIONS_TABLE);
+  await pool.query(CREATE_GRANTS_TABLE);
+  await pool.query(CREATE_GRANTS_INDEX);
+  await pool.query(CREATE_SHARE_LINKS_TABLE);
   await pool.query(APPLY_SEARCH_SCHEMA);
 }

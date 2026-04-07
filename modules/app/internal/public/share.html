@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenDesk — Opening shared document...</title>
+  <link rel="stylesheet" href="theme.css">
+  <script>
+    (function() {
+      var stored = localStorage.getItem('opendesk-theme');
+      var theme = stored === 'dark' ? 'dark'
+        : stored === 'light' ? 'light'
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .share-resolve {
+      max-width: 28rem;
+      margin: 4rem auto;
+      text-align: center;
+      padding: 2rem;
+    }
+    .share-resolve h2 { margin-bottom: 0.5rem; }
+    .share-resolve p { color: var(--text-secondary); }
+    .share-error { color: var(--error, #c00); }
+    .share-password { margin-top: 1rem; }
+    .share-password input {
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.875rem;
+      width: 100%;
+      max-width: 16rem;
+      margin-bottom: 0.5rem;
+    }
+    .share-password button {
+      padding: 0.5rem 1rem;
+      background: var(--accent);
+      color: var(--accent-text, #fff);
+      border: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="share-resolve">
+    <h2 id="heading">Opening shared document...</h2>
+    <p id="message">Resolving your share link.</p>
+    <div id="password-form" class="share-password" hidden>
+      <input id="password-input" type="password" placeholder="Enter password">
+      <br>
+      <button id="password-submit">Submit</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var token = params.get('token');
+      var heading = document.getElementById('heading');
+      var message = document.getElementById('message');
+
+      if (!token) {
+        heading.textContent = 'Invalid link';
+        message.textContent = 'This share link is missing a token.';
+        message.classList.add('share-error');
+        return;
+      }
+
+      var authToken = localStorage.getItem('opendesk-auth-token') || 'dev';
+
+      function resolve(password) {
+        var body = password ? JSON.stringify({ password: password }) : '{}';
+        fetch('/api/share/' + encodeURIComponent(token) + '/resolve', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + authToken,
+            'idempotency-key': crypto.randomUUID()
+          },
+          body: body
+        })
+        .then(function (res) {
+          if (res.status === 403) {
+            // Password required or wrong
+            heading.textContent = 'Password required';
+            message.textContent = 'This link is password-protected.';
+            message.classList.remove('share-error');
+            document.getElementById('password-form').hidden = false;
+            document.getElementById('password-input').focus();
+            return null;
+          }
+          if (!res.ok) return res.json().then(function (d) { throw new Error(d.error || 'Failed'); });
+          return res.json();
+        })
+        .then(function (data) {
+          if (!data) return;
+          var docId = data.grant && data.grant.docId;
+          if (docId) {
+            window.location.href = '/editor.html?doc=' + encodeURIComponent(docId);
+          } else {
+            heading.textContent = 'Error';
+            message.textContent = 'Could not determine document ID.';
+            message.classList.add('share-error');
+          }
+        })
+        .catch(function (err) {
+          heading.textContent = 'Link unavailable';
+          var reason = err.message;
+          var messages = {
+            not_found: 'This share link does not exist or has been deleted.',
+            expired: 'This share link has expired.',
+            revoked: 'This share link has been revoked.',
+            exhausted: 'This share link has reached its maximum number of uses.',
+          };
+          message.textContent = messages[reason] || 'Could not resolve this share link.';
+          message.classList.add('share-error');
+        });
+      }
+
+      document.getElementById('password-submit').addEventListener('click', function () {
+        var pw = document.getElementById('password-input').value;
+        if (pw) resolve(pw);
+      });
+
+      document.getElementById('password-input').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          var pw = document.getElementById('password-input').value;
+          if (pw) resolve(pw);
+        }
+      });
+
+      resolve();
+    })();
+  </script>
+</body>
+</html>

@@ -106,6 +106,7 @@ function init() {
     editorProps: { attributes: { class: 'editor-content' } },
   });
 
+
   setSuggestUser(() => user);
   editor.registerPlugin(createSuggestModePlugin(editor));
   setupSuggestionClickHandler(editor);
@@ -152,6 +153,7 @@ function init() {
     toggleSidebar(commentSidebar, true);
     announce(t('a11y.commentAdded'));
   });
+
 
   document.addEventListener('opendesk:toggle-suggestions', () => {
     toggleSuggestionSidebar(suggestionSidebar);

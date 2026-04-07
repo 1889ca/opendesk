@@ -1,17 +1,27 @@
 /** Contract: contracts/sharing/rules.md */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import express from 'express';
+import express, { type Request, type Response, type NextFunction } from 'express';
 import request from 'supertest';
 import { createShareRoutes } from './routes.ts';
 import { createShareLinkService } from './share-links.ts';
 import { createInMemoryShareLinkStore, type ShareLinkStore } from './store.ts';
+import { createInMemoryGrantStore, type GrantStore } from '../../permissions/index.ts';
 
-function createTestApp(store: ShareLinkStore) {
+/** Middleware that simulates auth by attaching a fake principal. */
+function fakePrincipal(id = 'user-1') {
+  return (req: Request, _res: Response, next: NextFunction) => {
+    req.principal = { id, actorType: 'human', displayName: 'Test', scopes: [] };
+    next();
+  };
+}
+
+function createTestApp(store: ShareLinkStore, grantStore?: GrantStore) {
   const app = express();
   app.use(express.json());
+  app.use(fakePrincipal());
   const service = createShareLinkService(store);
-  app.use(createShareRoutes(service));
+  app.use(createShareRoutes(service, { grantStore }));
   return app;
 }
 
@@ -136,6 +146,24 @@ describe('share routes', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.grant.role).toBe('viewer');
+    });
+
+    it('persists a Grant in the grant store on redemption', async () => {
+      const grantStore = createInMemoryGrantStore();
+      const appWithGrants = createTestApp(store, grantStore);
+
+      const createRes = await request(appWithGrants)
+        .post('/api/documents/doc-1/share')
+        .send({ role: 'editor' });
+
+      await request(appWithGrants)
+        .post(`/api/share/${createRes.body.token}/resolve`)
+        .send({});
+
+      const grants = await grantStore.findByPrincipal('user-1');
+      expect(grants).toHaveLength(1);
+      expect(grants[0].resourceId).toBe('doc-1');
+      expect(grants[0].role).toBe('editor');
     });
   });
 

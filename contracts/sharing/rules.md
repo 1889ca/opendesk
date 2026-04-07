@@ -119,9 +119,10 @@ Implemented:
 - [x] One-directional grant status transitions
 - [x] No direct collab module dependency
 - [x] No direct email sending
+- [x] Full `Grant` record creation in permissions store on share link redemption
+- [x] Share routes mounted in Express server with auth middleware
 
 Post-MVP (deferred):
-- [ ] Full `Grant` record creation in permissions store on share link redemption — currently grants access without formal Grant record
 - [ ] "Cannot grant higher than own role" enforcement — requires auth wiring to look up grantor's role
 - [ ] `GrantCreated` event emission — requires events module implementation
 - [ ] `GrantRevoked` event emission — requires events module implementation
