@@ -81,6 +81,35 @@ export interface TranslationKeys {
   'image.unsupportedType': string;
   'image.insertTitle': string;
 
+  // Search & Replace
+  'search.find': string;
+  'search.replace': string;
+  'search.findNext': string;
+  'search.findPrev': string;
+  'search.replaceOne': string;
+  'search.replaceAll': string;
+  'search.caseSensitive': string;
+  'search.useRegex': string;
+  'search.matchCount': string;
+  'search.noMatches': string;
+  'search.close': string;
+  'toolbar.find': string;
+
+  // Comments
+  'toolbar.comment': string;
+  'comments.title': string;
+  'comments.sidebarLabel': string;
+  'comments.closeSidebar': string;
+  'comments.noComments': string;
+  'comments.placeholder': string;
+  'comments.replyPlaceholder': string;
+  'comments.add': string;
+  'comments.cancel': string;
+  'comments.reply': string;
+  'comments.resolve': string;
+  'comments.reopen': string;
+  'comments.delete': string;
+
   // Language switcher
   'lang.label': string;
   'lang.en': string;

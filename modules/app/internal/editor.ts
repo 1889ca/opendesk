@@ -13,7 +13,11 @@ import { TableHeader } from '@tiptap/extension-table-header';
 import { t, setLocale, resolveLocale, persistLocale, onLocaleChange } from './i18n/index.ts';
 import { buildLanguageSwitcher, updateStaticText } from './locale-ui.ts';
 import { buildTableToolbar } from './table-toolbar.ts';
-import { openImagePicker, setupImageHandlers } from './image-handlers.ts';
+import { setupImageHandlers } from './image-handlers.ts';
+import { SearchExtension } from './search/search-extension.ts';
+import { buildSearchPanel } from './search/search-panel.ts';
+import { buildFormattingToolbar } from './formatting-toolbar.ts';
+import { CommentMark, CommentStore, buildCommentSidebar, toggleSidebar, showCommentInput } from './comments/index.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -40,68 +44,6 @@ function getDocumentId() {
   return params.get('doc') || 'default';
 }
 
-function buildToolbar(editor: Editor) {
-  const toolbar = document.getElementById('formatting-toolbar');
-  if (!toolbar) return;
-
-  const render = () => {
-    toolbar.innerHTML = '';
-    const buttons = buildToolbarButtons(editor);
-    renderToolbarButtons(toolbar, buttons, editor);
-  };
-
-  render();
-  onLocaleChange(render);
-}
-
-function buildToolbarButtons(editor: Editor) {
-  return [
-    { key: 'toolbar.bold' as const, action: () => editor.chain().focus().toggleBold().run(), isActive: () => editor.isActive('bold') },
-    { key: 'toolbar.italic' as const, action: () => editor.chain().focus().toggleItalic().run(), isActive: () => editor.isActive('italic') },
-    { key: 'toolbar.strike' as const, action: () => editor.chain().focus().toggleStrike().run(), isActive: () => editor.isActive('strike') },
-    { key: 'toolbar.code' as const, action: () => editor.chain().focus().toggleCode().run(), isActive: () => editor.isActive('code') },
-    { key: null, action: () => false },
-    { key: 'toolbar.heading1' as const, action: () => editor.chain().focus().toggleHeading({ level: 1 }).run(), isActive: () => editor.isActive('heading', { level: 1 }) },
-    { key: 'toolbar.heading2' as const, action: () => editor.chain().focus().toggleHeading({ level: 2 }).run(), isActive: () => editor.isActive('heading', { level: 2 }) },
-    { key: 'toolbar.heading3' as const, action: () => editor.chain().focus().toggleHeading({ level: 3 }).run(), isActive: () => editor.isActive('heading', { level: 3 }) },
-    { key: null, action: () => false },
-    { key: 'toolbar.bulletList' as const, action: () => editor.chain().focus().toggleBulletList().run(), isActive: () => editor.isActive('bulletList') },
-    { key: 'toolbar.orderedList' as const, action: () => editor.chain().focus().toggleOrderedList().run(), isActive: () => editor.isActive('orderedList') },
-    { key: 'toolbar.blockquote' as const, action: () => editor.chain().focus().toggleBlockquote().run(), isActive: () => editor.isActive('blockquote') },
-    { key: 'toolbar.codeBlock' as const, action: () => editor.chain().focus().toggleCodeBlock().run(), isActive: () => editor.isActive('codeBlock') },
-    { key: 'toolbar.horizontalRule' as const, action: () => editor.chain().focus().setHorizontalRule().run() },
-    { key: null, action: () => false },
-    { key: 'table.insert' as const, action: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
-    { key: 'toolbar.image' as const, action: () => { openImagePicker(editor); return true; } },
-  ];
-}
-
-function renderToolbarButtons(
-  toolbar: HTMLElement,
-  buttons: ReturnType<typeof buildToolbarButtons>,
-  editor: Editor,
-) {
-  for (const { key, action, isActive } of buttons) {
-    if (key === null) {
-      const sep = document.createElement('span');
-      sep.className = 'toolbar-separator';
-      toolbar.appendChild(sep);
-      continue;
-    }
-    const btn = document.createElement('button');
-    btn.className = 'toolbar-btn';
-    btn.textContent = t(key);
-    btn.addEventListener('click', (e) => { e.preventDefault(); action(); });
-    toolbar.appendChild(btn);
-
-    if (isActive) {
-      const update = () => btn.classList.toggle('is-active', isActive());
-      editor.on('selectionUpdate', update);
-      editor.on('transaction', update);
-    }
-  }
-}
-
 function init() {
   const locale = resolveLocale();
   setLocale(locale);
@@ -120,6 +62,7 @@ function init() {
   onLocaleChange(() => updateStaticText(statusEl));
 
   const ydoc = new Y.Doc();
+  const commentStore = new CommentStore(ydoc);
 
   const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/collab`;
   const provider = new HocuspocusProvider({
@@ -153,6 +96,8 @@ function init() {
         allowBase64: false,
         resize: { enabled: true, minWidth: 100, minHeight: 50 },
       }),
+      SearchExtension,
+      CommentMark,
       Collaboration.configure({ document: ydoc }),
       CollaborationCursor.configure({
         provider,
@@ -164,12 +109,21 @@ function init() {
     },
   });
 
-  // Awareness user info is set by CollaborationCursor extension
-
-  buildToolbar(editor);
+  buildFormattingToolbar(editor);
   buildTableToolbar(editor);
+  buildSearchPanel(editor);
   buildLanguageSwitcher();
   setupImageHandlers(editor, editorEl);
+
+  // Comment sidebar
+  const sidebar = buildCommentSidebar(editor, commentStore, documentId, user);
+  document.body.appendChild(sidebar);
+
+  // Listen for add-comment events (from toolbar button or Cmd+Shift+M)
+  document.addEventListener('opendesk:add-comment', () => {
+    showCommentInput(editor, commentStore, documentId, user);
+    toggleSidebar(sidebar, true);
+  });
 
   function updateUsers() {
     if (!usersEl || !provider.awareness) return;
@@ -183,7 +137,7 @@ function init() {
   provider.awareness?.on('change', updateUsers);
   updateUsers();
 
-  Object.assign(window, { editor, provider, ydoc });
+  Object.assign(window, { editor, provider, ydoc, commentStore });
 }
 
 document.addEventListener('DOMContentLoaded', init);
