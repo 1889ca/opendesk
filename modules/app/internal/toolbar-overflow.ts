@@ -11,17 +11,25 @@ const HIGH_PRIORITY_KEYS = new Set([
  * Detects available toolbar width via ResizeObserver and moves
  * buttons that don't fit into an overflow dropdown.
  */
-export function setupToolbarOverflow(toolbar: HTMLElement): void {
-  const wrapper = createOverflowWrapper(toolbar);
+export function setupToolbarOverflow(toolbar: HTMLElement): () => void {
+  const { wrapper, removeDocClickListener } = createOverflowWrapper(toolbar);
   const observer = new ResizeObserver(() => reflow(toolbar, wrapper));
   observer.observe(toolbar);
 
-  onLocaleChange(() => {
+  const unsubLocale = onLocaleChange(() => {
     requestAnimationFrame(() => reflow(toolbar, wrapper));
   });
+
+  return () => {
+    observer.disconnect();
+    removeDocClickListener();
+    unsubLocale();
+  };
 }
 
-function createOverflowWrapper(toolbar: HTMLElement): HTMLElement {
+function createOverflowWrapper(
+  toolbar: HTMLElement,
+): { wrapper: HTMLElement; removeDocClickListener: () => void } {
   const wrapper = document.createElement('div');
   wrapper.className = 'toolbar-overflow-wrapper';
 
@@ -42,9 +50,13 @@ function createOverflowWrapper(toolbar: HTMLElement): HTMLElement {
   toolbar.appendChild(wrapper);
 
   // Close menu on outside click
-  document.addEventListener('click', () => menu.classList.remove('is-open'));
+  const onDocClick = () => menu.classList.remove('is-open');
+  document.addEventListener('click', onDocClick);
 
-  return wrapper;
+  return {
+    wrapper,
+    removeDocClickListener: () => document.removeEventListener('click', onDocClick),
+  };
 }
 
 function reflow(toolbar: HTMLElement, wrapper: HTMLElement): void {

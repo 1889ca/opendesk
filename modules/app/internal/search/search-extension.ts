@@ -51,6 +51,10 @@ function scrollToMatch(view: EditorView, search: SearchState): void {
 export const SearchExtension = Extension.create({
   name: 'search',
 
+  addStorage() {
+    return { lastMatchIndex: -1 };
+  },
+
   addProseMirrorPlugins() {
     const plugin = new Plugin<SearchState>({
       key: searchPluginKey,
@@ -101,17 +105,18 @@ export const SearchExtension = Extension.create({
     if (!state?.searchTerm) return;
 
     const matches = findMatches(editor.state.doc, state);
+    const clamped = clampIndex(state.currentMatchIndex, matches.length);
     document.dispatchEvent(
       new CustomEvent('opendesk:search-update', {
         detail: {
           totalMatches: matches.length,
-          currentMatchIndex: clampIndex(
-            state.currentMatchIndex,
-            matches.length,
-          ),
+          currentMatchIndex: clamped,
         },
       }),
     );
-    scrollToMatch(editor.view, state);
+    if (clamped !== this.storage.lastMatchIndex) {
+      this.storage.lastMatchIndex = clamped;
+      scrollToMatch(editor.view, state);
+    }
   },
 });
