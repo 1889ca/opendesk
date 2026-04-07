@@ -13,6 +13,7 @@ import {
   type DocumentType,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
+import { loadConfig } from '../../config/index.ts';
 import type { CacheClient } from './redis.ts';
 import { asyncHandler } from './async-handler.ts';
 
@@ -48,6 +49,7 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   const { permissions, cache } = opts;
 
   // List documents — accepts optional ?folderId= to filter by folder
+  // Filters results by principal's grants (except in dev mode)
   router.get('/', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     const queryResult = ListDocumentsQuery.safeParse(req.query);
     if (!queryResult.success) {
@@ -55,7 +57,18 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
       return;
     }
     const docs = await listDocuments(queryResult.data.folderId ?? null);
-    res.json(docs);
+
+    if (loadConfig().auth.mode === 'dev') {
+      res.json(docs);
+      return;
+    }
+
+    const principal = req.principal!;
+    const grants = await permissions.grantStore.findByPrincipal(principal.id);
+    const allowedIds = new Set(
+      grants.filter((g) => g.resourceType === 'document').map((g) => g.resourceId),
+    );
+    res.json(docs.filter((doc) => allowedIds.has(doc.id)));
   }));
 
   // Create document — requires auth, auto-grants owner role to creator

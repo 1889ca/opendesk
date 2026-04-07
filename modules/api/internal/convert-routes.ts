@@ -17,20 +17,27 @@ import {
   ImportError,
 } from '../../convert/index.ts';
 import { getDocument } from '../../storage/index.ts';
+import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from './async-handler.ts';
 
 const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50 MB
 
-export function createConvertRoutes(): Router {
+export type ConvertRoutesOptions = {
+  permissions: PermissionsModule;
+};
+
+export function createConvertRoutes(opts: ConvertRoutesOptions): Router {
   const router = Router();
+  const { permissions } = opts;
 
   router.post(
     '/api/documents/:id/convert-import',
+    permissions.require('write'),
     raw({ type: '*/*', limit: MAX_UPLOAD_SIZE }),
     asyncHandler(handleImport)
   );
 
-  router.post('/api/documents/:id/convert-export', asyncHandler(handleExport));
+  router.post('/api/documents/:id/convert-export', permissions.require('read'), asyncHandler(handleExport));
 
   return router;
 }

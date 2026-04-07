@@ -1,6 +1,7 @@
 /** Contract: contracts/storage/rules.md */
 import { pool } from './pool.ts';
 import { APPLY_SEARCH_SCHEMA } from './pg-search.ts';
+import { CREATE_TEMPLATES_TABLE } from './templates.ts';
 
 const CREATE_DOCUMENTS_TABLE = `
   CREATE TABLE IF NOT EXISTS documents (
@@ -26,17 +27,6 @@ const CREATE_FOLDERS_TABLE = `
 const ADD_FOLDER_FK = `
   ALTER TABLE documents
     ADD COLUMN IF NOT EXISTS folder_id UUID REFERENCES folders(id) ON DELETE SET NULL
-`;
-
-const CREATE_TEMPLATES_TABLE = `
-  CREATE TABLE IF NOT EXISTS templates (
-    id UUID PRIMARY KEY,
-    name TEXT NOT NULL,
-    description TEXT NOT NULL DEFAULT '',
-    content JSONB NOT NULL DEFAULT '{}',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-  )
 `;
 
 const CREATE_VERSIONS_TABLE = `

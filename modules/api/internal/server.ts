@@ -82,7 +82,7 @@ export async function startServer(port = 3000) {
   app.use('/api', auth.middleware);
 
   // Collabora convert routes (import/export binary formats) — after auth
-  app.use(createConvertRoutes());
+  app.use(createConvertRoutes({ permissions }));
 
   // Health check (public, skipped by auth middleware)
   app.get('/api/health', async (_req, res) => {
@@ -121,7 +121,7 @@ export async function startServer(port = 3000) {
   // Share link routes (create, resolve, revoke) — after auth
   const shareLinkStore = createPgShareLinkStore(pool);
   const shareLinkService = createShareLinkService(shareLinkStore);
-  app.use(createShareRoutes(shareLinkService, { grantStore: permissions.grantStore }));
+  app.use(createShareRoutes(shareLinkService, { grantStore: permissions.grantStore, permissions }));
 
   // File upload and serving routes — after auth
   app.use('/api', createUploadRoutes());
