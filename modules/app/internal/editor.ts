@@ -34,6 +34,7 @@ import { initTouchSupport } from './touch-support.ts';
 import { buildTocPanel, toggleTocPanel } from './toc/index.ts';
 import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts';
 import { buildStatusBar } from './status-bar.ts';
+import { buildThemeToggle } from './theme-toggle.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -141,6 +142,7 @@ function init() {
   buildTableToolbar(editor);
   buildSearchPanel(editor);
   buildLanguageSwitcher();
+  buildThemeToggle();
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
 

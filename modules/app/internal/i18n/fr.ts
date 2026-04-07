@@ -194,7 +194,7 @@ export const fr: TranslationKeys = {
   'pdf.title': 'Exporter en PDF',
   'pageBreak.title': 'Insérer un saut de page',
 
-  // Mobile / débordement
+  // Mobile / d\u00e9bordement
   'toolbar.moreOptions': 'Plus d\u2019options',
   'comments.dismissSheet': 'Fermer les commentaires',
 
@@ -237,4 +237,10 @@ export const fr: TranslationKeys = {
   'folders.deleteConfirm': 'Supprimer le dossier \u00ab {name} \u00bb ? Les documents seront d\u00e9plac\u00e9s vers le dossier parent.',
   'folders.renamePrompt': 'Renommer le dossier :',
   'folders.namePrompt': 'Nom du dossier :',
+
+  // Th\u00e8me
+  'toolbar.theme': 'Th\u00e8me',
+  'theme.light': 'Clair',
+  'theme.dark': 'Sombre',
+  'theme.system': 'Syst\u00e8me',
 };

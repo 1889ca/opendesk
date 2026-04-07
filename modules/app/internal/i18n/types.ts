@@ -234,6 +234,12 @@ export interface TranslationKeys {
   'folders.deleteConfirm': string;
   'folders.renamePrompt': string;
   'folders.namePrompt': string;
+
+  // Theme
+  'toolbar.theme': string;
+  'theme.light': string;
+  'theme.dark': string;
+  'theme.system': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;

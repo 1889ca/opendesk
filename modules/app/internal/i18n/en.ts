@@ -232,4 +232,10 @@ export const en: TranslationKeys = {
   'folders.deleteConfirm': 'Delete folder "{name}"? Contents will be moved to the parent folder.',
   'folders.renamePrompt': 'New folder name:',
   'folders.namePrompt': 'Folder name:',
+
+  // Theme
+  'toolbar.theme': 'Theme',
+  'theme.light': 'Light',
+  'theme.dark': 'Dark',
+  'theme.system': 'System',
 };

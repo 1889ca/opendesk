@@ -11,6 +11,7 @@ import {
   loadFolders,
   createNewFolderButton,
 } from './folder-list.ts';
+import { initTheme } from './theme-toggle.ts';
 
 interface DocEntry {
   id: string;
@@ -98,6 +99,7 @@ async function loadAll(listEl: HTMLElement) {
 }
 
 function init() {
+  initTheme();
   const listEl = document.getElementById('doc-list');
   const newBtn = document.getElementById('new-doc-btn');
   const toolbarRight = document.querySelector('.toolbar-right');

@@ -1,17 +1,17 @@
 /* Comment highlights */
 .comment-highlight {
-  background: rgba(255, 235, 120, 0.35);
-  border-bottom: 2px solid rgba(255, 200, 0, 0.5);
+  background: var(--comment-highlight);
+  border-bottom: 2px solid var(--comment-border);
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .comment-highlight:hover {
-  background: rgba(255, 220, 80, 0.55);
+  background: var(--comment-highlight-hover);
 }
 
 .comment-highlight.comment-active {
-  background: rgba(255, 200, 0, 0.5);
+  background: var(--comment-highlight-active);
 }
 
 /* Comment sidebar */
@@ -23,7 +23,7 @@
   height: 100vh;
   background: var(--surface);
   border-left: 1px solid var(--border);
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.06);
+  box-shadow: -2px 0 8px var(--shadow-medium);
   transform: translateX(100%);
   transition: transform 0.2s ease;
   z-index: 40;
@@ -150,7 +150,7 @@
 
 .comment-action-delete:hover {
   color: var(--disconnected);
-  background: #fee2e2;
+  background: var(--status-disconnected-bg);
 }
 
 /* Comment thread */
@@ -210,7 +210,7 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.625rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px var(--shadow-heavy);
   min-width: 16rem;
   max-width: 22rem;
 }

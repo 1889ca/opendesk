@@ -245,7 +245,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 
 .doc-row:hover {
   border-color: var(--accent);
-  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.08);
+  box-shadow: 0 1px 4px var(--accent-shadow);
 }
 
 .doc-row:hover .btn-delete {
@@ -290,7 +290,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 }
 
 .btn-primary:hover {
-  background: #1d4ed8;
+  background: var(--accent-hover);
 }
 
 .btn-delete {
@@ -304,7 +304,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 }
 
 .btn-delete:hover {
-  background: #fee2e2;
+  background: var(--status-disconnected-bg);
 }
 
 /* Editor Title Input */
@@ -413,7 +413,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 .template-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--overlay-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -428,7 +428,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   max-width: 32rem;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 32px var(--shadow-heavy);
 }
 
 .template-modal-title {
@@ -461,7 +461,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 
 .template-card:hover {
   border-color: var(--accent);
-  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 1px 4px var(--accent-shadow-strong);
 }
 
 .template-card-blank {
@@ -545,7 +545,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(37, 99, 235, 0.1);
+  background: var(--selection-bg);
   pointer-events: none;
   z-index: 1;
 }
@@ -650,7 +650,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px var(--shadow-heavy);
   min-width: 20rem;
 }
 
@@ -748,13 +748,13 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 
 /* Search match highlights */
 .search-match {
-  background: #fef08a;
+  background: var(--search-match-bg);
   border-radius: 1px;
 }
 
 .search-match--current {
-  background: #fb923c;
-  color: #fff;
+  background: var(--search-match-current-bg);
+  color: var(--search-match-current-text);
   border-radius: 1px;
 }
 

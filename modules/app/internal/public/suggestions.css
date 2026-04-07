@@ -3,30 +3,30 @@
    ========================================================================== */
 
 .suggestion-insert {
-  background: rgba(34, 197, 94, 0.15);
+  background: var(--suggestion-insert-bg);
   text-decoration: underline;
-  text-decoration-color: rgba(34, 197, 94, 0.6);
+  text-decoration-color: var(--suggestion-insert-line);
   text-underline-offset: 2px;
   border-radius: 1px;
   transition: background 0.15s;
 }
 
 .suggestion-insert:hover {
-  background: rgba(34, 197, 94, 0.3);
+  background: var(--suggestion-insert-hover);
   cursor: pointer;
 }
 
 .suggestion-delete {
-  background: rgba(239, 68, 68, 0.12);
+  background: var(--suggestion-delete-bg);
   text-decoration: line-through;
-  text-decoration-color: rgba(239, 68, 68, 0.6);
+  text-decoration-color: var(--suggestion-delete-line);
   color: var(--text-muted);
   border-radius: 1px;
   transition: background 0.15s;
 }
 
 .suggestion-delete:hover {
-  background: rgba(239, 68, 68, 0.25);
+  background: var(--suggestion-delete-hover);
   cursor: pointer;
 }
 
@@ -38,7 +38,7 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px var(--shadow-heavy);
   min-width: 10rem;
 }
 
@@ -70,7 +70,7 @@
 }
 
 .suggestion-popover-accept:hover {
-  background: #dcfce7;
+  background: var(--status-connected-bg);
 }
 
 .suggestion-popover-reject {
@@ -78,7 +78,7 @@
 }
 
 .suggestion-popover-reject:hover {
-  background: #fee2e2;
+  background: var(--status-disconnected-bg);
 }
 
 /* Suggestion sidebar */
@@ -90,7 +90,7 @@
   height: 100vh;
   background: var(--surface);
   border-left: 1px solid var(--border);
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.06);
+  box-shadow: -2px 0 8px var(--shadow-medium);
   transform: translateX(100%);
   transition: transform 0.2s ease;
   z-index: 41;
@@ -167,7 +167,7 @@
 }
 
 .suggestion-bulk-accept:hover {
-  background: #dcfce7;
+  background: var(--status-connected-bg);
 }
 
 .suggestion-bulk-reject {
@@ -175,7 +175,7 @@
 }
 
 .suggestion-bulk-reject:hover {
-  background: #fee2e2;
+  background: var(--status-disconnected-bg);
 }
 
 /* Suggestion card */
@@ -194,11 +194,11 @@
 }
 
 .suggestion-card-insert {
-  border-left: 3px solid rgba(34, 197, 94, 0.6);
+  border-left: 3px solid var(--suggestion-insert-line);
 }
 
 .suggestion-card-delete {
-  border-left: 3px solid rgba(239, 68, 68, 0.6);
+  border-left: 3px solid var(--suggestion-delete-line);
 }
 
 .suggestion-card-meta {
