@@ -11,16 +11,17 @@
 
 import type { ExportFormat } from '../contract.ts';
 import { getCollaboraFilter } from './formats.ts';
+import { loadConfig } from '../../config/index.ts';
 
 export interface CollaboraConfig {
   baseUrl: string;
   timeoutMs: number;
 }
 
-const DEFAULT_CONFIG: CollaboraConfig = {
-  baseUrl: process.env.COLLABORA_URL || 'http://localhost:9980',
-  timeoutMs: parseInt(process.env.COLLABORA_TIMEOUT_MS || '30000', 10),
-};
+function getDefaultConfig(): CollaboraConfig {
+  const cc = loadConfig().collabora;
+  return { baseUrl: cc.baseUrl, timeoutMs: cc.timeoutMs };
+}
 
 export class CollaboraError extends Error {
   constructor(
@@ -41,7 +42,7 @@ export async function convertFile(
   fileBuffer: Buffer,
   filename: string,
   targetFormat: ExportFormat,
-  config: CollaboraConfig = DEFAULT_CONFIG
+  config: CollaboraConfig = getDefaultConfig()
 ): Promise<Buffer> {
   const filter = getCollaboraFilter(targetFormat);
   const url = `${config.baseUrl}/cool/convert-to/${filter}`;
@@ -96,7 +97,7 @@ export async function convertFile(
 export async function convertToHtml(
   fileBuffer: Buffer,
   filename: string,
-  config: CollaboraConfig = DEFAULT_CONFIG
+  config: CollaboraConfig = getDefaultConfig()
 ): Promise<string> {
   const url = `${config.baseUrl}/cool/convert-to/html`;
 

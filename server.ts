@@ -1,5 +1,6 @@
 /** OpenDesk entry point */
+import { loadConfig } from './modules/config/index.ts';
 import { startServer } from './modules/api/index.ts';
 
-const port = parseInt(process.env.PORT || '3000', 10);
-startServer(port);
+const config = loadConfig();
+startServer(config.server.port);

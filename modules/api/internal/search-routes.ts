@@ -3,6 +3,7 @@
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { searchDocuments } from '../../storage/index.ts';
+import { loadConfig } from '../../config/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from './async-handler.ts';
 
@@ -39,7 +40,7 @@ export function createSearchRoutes(opts: SearchRoutesOptions): Router {
       let allowedIds: string[] | undefined;
 
       // In dev mode, skip permission filtering (matches middleware behavior)
-      if (process.env.AUTH_MODE !== 'dev') {
+      if (loadConfig().auth.mode !== 'dev') {
         const grants = await permissions.grantStore.findByPrincipal(principal.id);
         allowedIds = grants
           .filter((g) => g.resourceType === 'document')
