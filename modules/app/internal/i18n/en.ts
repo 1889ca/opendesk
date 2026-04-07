@@ -206,4 +206,18 @@ export const en: TranslationKeys = {
   'toc.title': 'Table of Contents',
   'toc.noHeadings': 'No headings in this document',
   'toc.heading': 'Heading',
+
+  // Version history
+  'versions.title': 'Version History',
+  'versions.save': 'Save Version',
+  'versions.restore': 'Restore',
+  'versions.delete': 'Delete',
+  'versions.current': 'Current',
+  'versions.preview': 'Preview',
+  'versions.restoreConfirm': 'Restore this version? Current content will be replaced.',
+  'versions.autoSaved': 'Auto-saved',
+  'versions.noVersions': 'No versions saved yet',
+  'versions.versionNumber': 'Version {n}',
+  'versions.close': 'Close version history',
+  'toolbar.versions': 'Versions',
 };

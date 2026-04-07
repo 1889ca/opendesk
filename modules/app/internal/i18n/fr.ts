@@ -211,4 +211,18 @@ export const fr: TranslationKeys = {
   'toc.title': 'Table des mati\u00e8res',
   'toc.noHeadings': 'Aucun titre dans ce document',
   'toc.heading': 'Titre',
+
+  // Historique des versions
+  'versions.title': 'Historique des versions',
+  'versions.save': 'Enregistrer la version',
+  'versions.restore': 'Restaurer',
+  'versions.delete': 'Supprimer',
+  'versions.current': 'Actuelle',
+  'versions.preview': 'Aper\u00e7u',
+  'versions.restoreConfirm': 'Restaurer cette version ? Le contenu actuel sera remplac\u00e9.',
+  'versions.autoSaved': 'Sauvegarde automatique',
+  'versions.noVersions': 'Aucune version enregistr\u00e9e',
+  'versions.versionNumber': 'Version {n}',
+  'versions.close': 'Fermer l\u2019historique',
+  'toolbar.versions': 'Versions',
 };

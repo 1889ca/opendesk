@@ -208,6 +208,20 @@ export interface TranslationKeys {
   'toc.title': string;
   'toc.noHeadings': string;
   'toc.heading': string;
+
+  // Version history
+  'versions.title': string;
+  'versions.save': string;
+  'versions.restore': string;
+  'versions.delete': string;
+  'versions.current': string;
+  'versions.preview': string;
+  'versions.restoreConfirm': string;
+  'versions.autoSaved': string;
+  'versions.noVersions': string;
+  'versions.versionNumber': string;
+  'versions.close': string;
+  'toolbar.versions': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;
