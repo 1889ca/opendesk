@@ -7,7 +7,8 @@ docs
 decisions
 audits
 reviews
-scripts
+scripts/*.sh
+scripts/watch-frontend.mjs
 *.md
 !package.json
 .env

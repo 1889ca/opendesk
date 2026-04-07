@@ -3,10 +3,20 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type pg from 'pg';
 
-const MIGRATIONS_DIR = path.resolve(
+/** Walk up from a starting directory to find the project root (contains package.json). */
+function findProjectRoot(startDir: string): string {
+  let dir = startDir;
+  while (dir !== path.dirname(dir)) {
+    if (fs.existsSync(path.join(dir, 'package.json'))) return dir;
+    dir = path.dirname(dir);
+  }
+  return startDir;
+}
+
+const PROJECT_ROOT = findProjectRoot(
   import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname),
-  '../../../../migrations',
 );
+const MIGRATIONS_DIR = path.join(PROJECT_ROOT, 'migrations');
 
 const CREATE_TRACKING_TABLE = `
   CREATE TABLE IF NOT EXISTS schema_migrations (

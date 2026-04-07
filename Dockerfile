@@ -15,6 +15,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/modules ./modules
 COPY --from=build /app/contracts ./contracts
+COPY --from=build /app/migrations ./migrations
 COPY package.json server.ts tsconfig.json ./
 EXPOSE 3000
 CMD ["node", "--import=tsx", "server.ts"]

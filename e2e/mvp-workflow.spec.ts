@@ -144,7 +144,7 @@ test.describe('Editor', () => {
     await expect(page.getByRole('button', { name: 'Text' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'DOCX' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'ODT' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Import' })).toBeVisible();
+    await expect(page.getByTitle('Import .docx, .odt, or .pdf')).toBeVisible();
   });
 
   test('share dialog opens and creates link', async ({ page }) => {

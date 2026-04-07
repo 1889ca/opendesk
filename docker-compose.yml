@@ -9,6 +9,11 @@ services:
       - "5433:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opendesk"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:7-alpine
@@ -59,10 +64,14 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - postgres
-      - redis
-      - minio
-      - convert
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+      convert:
+        condition: service_started
 
   nginx:
     image: nginx:alpine

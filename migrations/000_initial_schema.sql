@@ -84,14 +84,3 @@ END $$;
 CREATE INDEX IF NOT EXISTS idx_documents_search
   ON documents USING GIN (search_vector);
 
--- document_type constraint
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'chk_document_type'
-  ) THEN
-    ALTER TABLE documents
-      ADD CONSTRAINT chk_document_type
-      CHECK (document_type IN ('text', 'spreadsheet', 'presentation'));
-  END IF;
-END $$;
