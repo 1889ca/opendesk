@@ -238,4 +238,10 @@ export const en: TranslationKeys = {
   'theme.light': 'Light',
   'theme.dark': 'Dark',
   'theme.system': 'System',
+
+  // Code block
+  'codeBlock.language': 'Language',
+  'codeBlock.copy': 'Copy',
+  'codeBlock.copied': 'Copied!',
+  'codeBlock.plainText': 'Plain text',
 };

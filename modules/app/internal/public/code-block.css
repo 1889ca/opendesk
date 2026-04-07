@@ -1,0 +1,161 @@
+/* ==========================================================================
+   Code block syntax highlighting + UI controls
+   ========================================================================== */
+
+/* --- Syntax highlight tokens (theme-aware) --- */
+:root {
+  --hl-keyword: #c586c0;
+  --hl-string: #ce9178;
+  --hl-number: #b5cea8;
+  --hl-comment: #6a9955;
+  --hl-function: #dcdcaa;
+  --hl-variable: #9cdcfe;
+  --hl-type: #4ec9b0;
+  --hl-builtin: #4fc1ff;
+  --hl-attr: #9cdcfe;
+  --hl-tag: #569cd6;
+  --hl-operator: #d4d4d4;
+  --hl-punctuation: #808080;
+  --hl-meta: #d7ba7d;
+  --hl-title: #dcdcaa;
+}
+
+[data-theme="dark"] {
+  --hl-keyword: #c586c0;
+  --hl-string: #ce9178;
+  --hl-number: #b5cea8;
+  --hl-comment: #6a9955;
+  --hl-function: #dcdcaa;
+  --hl-variable: #9cdcfe;
+  --hl-type: #4ec9b0;
+  --hl-builtin: #4fc1ff;
+  --hl-attr: #9cdcfe;
+  --hl-tag: #569cd6;
+  --hl-operator: #d4d4d4;
+  --hl-punctuation: #808080;
+  --hl-meta: #d7ba7d;
+  --hl-title: #dcdcaa;
+}
+
+/* --- Code block base styling --- */
+.editor-content pre {
+  position: relative;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Menlo, monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  tab-size: 2;
+}
+
+.editor-content pre code {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* --- Lowlight / highlight.js token classes --- */
+.editor-content pre .hljs-keyword,
+.editor-content pre .hljs-selector-tag { color: var(--hl-keyword); }
+
+.editor-content pre .hljs-string,
+.editor-content pre .hljs-doctag { color: var(--hl-string); }
+
+.editor-content pre .hljs-number,
+.editor-content pre .hljs-literal { color: var(--hl-number); }
+
+.editor-content pre .hljs-comment { color: var(--hl-comment); font-style: italic; }
+
+.editor-content pre .hljs-title,
+.editor-content pre .hljs-title\\.function_ { color: var(--hl-title); }
+
+.editor-content pre .hljs-variable,
+.editor-content pre .hljs-template-variable { color: var(--hl-variable); }
+
+.editor-content pre .hljs-type,
+.editor-content pre .hljs-title\\.class_ { color: var(--hl-type); }
+
+.editor-content pre .hljs-built_in { color: var(--hl-builtin); }
+
+.editor-content pre .hljs-attr,
+.editor-content pre .hljs-attribute { color: var(--hl-attr); }
+
+.editor-content pre .hljs-tag { color: var(--hl-tag); }
+
+.editor-content pre .hljs-name { color: var(--hl-tag); }
+
+.editor-content pre .hljs-operator,
+.editor-content pre .hljs-symbol { color: var(--hl-operator); }
+
+.editor-content pre .hljs-punctuation { color: var(--hl-punctuation); }
+
+.editor-content pre .hljs-meta { color: var(--hl-meta); }
+
+.editor-content pre .hljs-params { color: var(--hl-variable); }
+
+.editor-content pre .hljs-property { color: var(--hl-variable); }
+
+.editor-content pre .hljs-section { color: var(--hl-title); font-weight: 600; }
+
+.editor-content pre .hljs-regexp { color: var(--hl-string); }
+
+/* --- Code block overlay (language select + copy) --- */
+.code-block-overlay {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.code-block-lang-select {
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.15rem 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--code-block-text);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.code-block-lang-select:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.code-block-lang-select:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}
+
+.code-block-copy-btn {
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--code-block-text);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.editor-content pre:hover ~ .code-block-overlay .code-block-copy-btn,
+.code-block-overlay:hover .code-block-copy-btn,
+.code-block-copy-btn:focus-visible {
+  opacity: 1;
+}
+
+.code-block-copy-btn:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.code-block-copy-btn:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}

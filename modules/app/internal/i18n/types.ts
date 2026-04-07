@@ -240,6 +240,12 @@ export interface TranslationKeys {
   'theme.light': string;
   'theme.dark': string;
   'theme.system': string;
+
+  // Code block
+  'codeBlock.language': string;
+  'codeBlock.copy': string;
+  'codeBlock.copied': string;
+  'codeBlock.plainText': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;
