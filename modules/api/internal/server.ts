@@ -18,6 +18,11 @@ import { createTemplateRoutes } from './template-routes.ts';
 import { createVersionRoutes } from './version-routes.ts';
 import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts';
 import { createSearchRoutes } from './search-routes.ts';
+import {
+  createShareLinkService,
+  createInMemoryShareLinkStore,
+  createShareRoutes,
+} from '../../sharing/index.ts';
 import { pool } from '../../storage/internal/pool.ts';
 import { initSchema } from '../../storage/internal/schema.ts';
 
@@ -101,6 +106,11 @@ export async function startServer(port = 3000) {
 
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
+
+  // Share link routes (create, resolve, revoke) — after auth
+  const shareLinkStore = createInMemoryShareLinkStore();
+  const shareLinkService = createShareLinkService(shareLinkStore);
+  app.use(createShareRoutes(shareLinkService, { grantStore: permissions.grantStore }));
 
   // File upload and serving routes — after auth
   app.use('/api', createUploadRoutes());
