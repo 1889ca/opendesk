@@ -55,7 +55,9 @@ The native document format is open and documented. Legacy formats are a bridge, 
 
 ## Project Status
 
-**Pre-alpha / Foundation phase.** We are building the contract framework, setting up the agent development pipeline, and standing up the core editing prototype. This is not usable software yet. If you are here, you are here to build.
+**Pre-alpha / Editor Core phase.** The foundation is complete: 11 modules with enforced contracts, barrel-file boundaries, unified role types, full i18n (English/French), and Docker Compose deployment. The collaborative document editor is functional with real-time Yjs/CRDT sync, comments, suggestions, tables, image upload, templates, find/replace, print/PDF export, accessibility, and mobile support. E2E and stress test suites are in place. We are now hardening the editor, building the conversion service, and preparing for beta.
+
+See [docs/mvp.md](./docs/mvp.md) for the full roadmap and current progress.
 
 ## Contributing
 

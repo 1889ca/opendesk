@@ -3,6 +3,9 @@ import { test, expect, type Page } from '@playwright/test';
 const API = 'http://localhost:3000';
 const AUTH = { Authorization: 'Bearer dev' };
 
+/** Track all documents created during tests for cleanup. */
+const createdDocIds: string[] = [];
+
 /** Create a document via API and return its ID */
 async function createDocViaAPI(title = 'E2E Test Doc'): Promise<string> {
   const res = await fetch(`${API}/api/documents`, {
@@ -11,8 +14,25 @@ async function createDocViaAPI(title = 'E2E Test Doc'): Promise<string> {
     body: JSON.stringify({ title }),
   });
   const doc = await res.json();
+  createdDocIds.push(doc.id);
   return doc.id;
 }
+
+/** Delete a document via API (best-effort, ignores errors). */
+async function deleteDocViaAPI(docId: string): Promise<void> {
+  await fetch(`${API}/api/documents/${docId}`, {
+    method: 'DELETE',
+    headers: { ...AUTH, 'idempotency-key': crypto.randomUUID() },
+  }).catch(() => {});
+}
+
+/** Clean up all documents created during this test run. */
+test.afterAll(async () => {
+  for (const id of createdDocIds) {
+    await deleteDocViaAPI(id);
+  }
+  createdDocIds.length = 0;
+});
 
 /** Navigate to editor for a specific document */
 async function openEditor(page: Page, docId: string) {
@@ -122,8 +142,20 @@ test.describe('Editor', () => {
     await openEditor(page, docId);
     await expect(page.getByRole('button', { name: 'HTML' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Text' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Print' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'PDF' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'DOCX' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'ODT' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Import' })).toBeVisible();
+  });
+
+  test('share dialog opens and creates link', async ({ page }) => {
+    await openEditor(page, docId);
+    await page.getByRole('button', { name: 'Share' }).click();
+    await expect(page.locator('.share-dialog')).toBeVisible();
+    await expect(page.locator('#share-role')).toBeVisible();
+    await page.getByRole('button', { name: 'Create link' }).click();
+    await expect(page.locator('#share-url')).toBeVisible({ timeout: 5000 });
+    const url = await page.locator('#share-url').inputValue();
+    expect(url).toContain('/share.html?token=');
   });
 
   test('table of contents panel toggles', async ({ page }) => {

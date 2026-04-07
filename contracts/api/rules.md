@@ -91,8 +91,9 @@ HTTP boundary layer that exposes REST endpoints for document CRUD, sharing, expo
 | POST | `/api/documents/:id/export` | Request export job | required | write |
 | POST | `/api/documents/:id/import` | Import file | required | write |
 | GET | `/api/events/stream` | SSE event stream (filterable) | required | standard |
-| POST | `/api/shares` | Create share link | required | write |
-| DELETE | `/api/shares/:id` | Revoke share | required | write |
+| POST | `/api/documents/:id/share` | Create share link | required | write |
+| POST | `/api/share/:token/resolve` | Resolve (redeem) share link | required | write |
+| DELETE | `/api/share/:token` | Revoke share link | required | write |
 | GET | `/api/templates` | List all templates | none | standard |
 | POST | `/api/templates` | Create template | required | write |
 | GET | `/api/templates/:id` | Get template by ID | none | standard |
@@ -129,8 +130,8 @@ Implemented:
 - [x] WebSocket upgrade delegation to collab module's Hocuspocus handler
 - [x] Structured error responses (401, 403, 404)
 - [x] No business logic in route handlers (pure orchestration)
-- [x] Share link endpoints (POST /api/shares, DELETE /api/shares/:id)
-- [x] Export/import endpoints (POST /api/documents/:id/export, POST /api/documents/:id/import)
+- [x] Share link endpoints (POST /api/documents/:id/share, POST /api/share/:token/resolve, DELETE /api/share/:token)
+- [x] Export/import via Collabora (POST /api/documents/:id/convert-export, POST /api/documents/:id/convert-import)
 - [x] Template CRUD endpoints (see `contracts/api/templates.md`)
 - [x] File upload and serving endpoints (see `contracts/api/uploads.md`)
 - [x] Admin user data purge endpoint (see `contracts/api/admin.md`)

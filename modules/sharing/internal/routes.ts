@@ -3,13 +3,18 @@
 import { Router } from 'express';
 import { GrantRoleSchema, ShareLinkOptionsSchema } from '../contract.ts';
 import type { ShareLinkService } from './share-links.ts';
+import type { GrantStore, Role } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/index.ts';
+
+export type ShareRouteDeps = {
+  grantStore?: GrantStore;
+};
 
 /**
  * Create Express routes for share link management.
  * Mounts on the parent router; does not create its own app.
  */
-export function createShareRoutes(service: ShareLinkService): Router {
+export function createShareRoutes(service: ShareLinkService, deps?: ShareRouteDeps): Router {
   const router = Router();
 
   /** POST /api/documents/:id/share -- create a share link */
@@ -27,8 +32,7 @@ export function createShareRoutes(service: ShareLinkService): Router {
       return;
     }
 
-    // TODO: once auth middleware is wired, use req.principal.id
-    const grantorId = (req as unknown as Record<string, unknown>).principalId as string ?? 'anonymous';
+    const grantorId = req.principal?.id ?? 'anonymous';
 
     const link = await service.create({
       docId: String(docId),
@@ -58,6 +62,18 @@ export function createShareRoutes(service: ShareLinkService): Router {
       } as const;
       res.status(statusMap[result.reason]).json({ error: result.reason });
       return;
+    }
+
+    // Persist a Grant so the redeemer gets lasting access
+    const granteeId = req.principal?.id;
+    if (granteeId && deps?.grantStore) {
+      await deps.grantStore.create({
+        principalId: granteeId,
+        resourceId: result.link.docId,
+        resourceType: 'document',
+        role: result.link.role as Role,
+        grantedBy: result.link.grantorId,
+      });
     }
 
     const { passwordHash: _, ...safeLink } = result.link;

@@ -20,8 +20,18 @@ function authHeaders(): Record<string, string> {
   };
 }
 
+/** Methods that require an idempotency key header. */
+const IDEMPOTENT_METHODS = new Set(['POST', 'PUT', 'DELETE']);
+
+/** Generate a unique idempotency key using crypto.randomUUID. */
+function generateIdempotencyKey(): string {
+  return crypto.randomUUID();
+}
+
 /**
  * Authenticated fetch wrapper. Adds Authorization header automatically.
+ * For mutating requests (POST/PUT/DELETE), auto-generates an idempotency-key
+ * header if one is not already present.
  */
 export async function apiFetch(
   url: string,
@@ -32,5 +42,11 @@ export async function apiFetch(
   for (const [key, value] of Object.entries(auth)) {
     if (!headers.has(key)) headers.set(key, value);
   }
+
+  const method = (init?.method ?? 'GET').toUpperCase();
+  if (IDEMPOTENT_METHODS.has(method) && !headers.has('idempotency-key')) {
+    headers.set('idempotency-key', generateIdempotencyKey());
+  }
+
   return fetch(url, { ...init, headers });
 }

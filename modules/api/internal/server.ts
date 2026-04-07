@@ -8,7 +8,7 @@ import { getRedisClient, disconnectRedis } from './redis.ts';
 import { idempotencyMiddleware } from './idempotency.ts';
 import { createConvertRoutes } from './convert-routes.ts';
 import { createAuth } from '../../auth/index.ts';
-import { createPermissions } from '../../permissions/index.ts';
+import { createPermissions, createPgGrantStore } from '../../permissions/index.ts';
 import { createDocumentRoutes } from './document-routes.ts';
 import { createExportRoutes } from './export-routes.ts';
 import { createAdminRoutes } from './admin-routes.ts';
@@ -18,8 +18,14 @@ import { createTemplateRoutes } from './template-routes.ts';
 import { createVersionRoutes } from './version-routes.ts';
 import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts';
 import { createSearchRoutes } from './search-routes.ts';
+import {
+  createShareLinkService,
+  createPgShareLinkStore,
+  createShareRoutes,
+} from '../../sharing/index.ts';
 import { pool } from '../../storage/internal/pool.ts';
 import { initSchema } from '../../storage/internal/schema.ts';
+import { ensureS3Bucket } from './s3-client.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -30,6 +36,12 @@ export async function startServer(port = 3000) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn(`[opendesk] schema init failed: ${msg} — continuing anyway`);
+  }
+  try {
+    await ensureS3Bucket();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[s3] bucket init failed: ${msg} — uploads may fail`);
   }
   const app = express();
 
@@ -49,8 +61,9 @@ export async function startServer(port = 3000) {
     tokenVerifier: auth.tokenVerifier,
   });
 
-  // Wire permissions module
-  const permissions = createPermissions();
+  // Wire permissions module with PG-backed grant store
+  const grantStore = createPgGrantStore(pool);
+  const permissions = createPermissions({ grantStore });
 
   app.use(express.json());
 
@@ -101,6 +114,11 @@ export async function startServer(port = 3000) {
 
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
+
+  // Share link routes (create, resolve, revoke) — after auth
+  const shareLinkStore = createPgShareLinkStore(pool);
+  const shareLinkService = createShareLinkService(shareLinkStore);
+  app.use(createShareRoutes(shareLinkService, { grantStore: permissions.grantStore }));
 
   // File upload and serving routes — after auth
   app.use('/api', createUploadRoutes());

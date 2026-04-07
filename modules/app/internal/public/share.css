@@ -1,0 +1,124 @@
+/* Share dialog */
+
+.share-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.share-dialog {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 28rem;
+  box-shadow: 0 8px 32px var(--shadow-heavy);
+}
+
+.share-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.share-header h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.share-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  line-height: 1;
+  padding: 0.25rem;
+}
+
+.share-close-btn:hover {
+  color: var(--text-primary);
+}
+
+.share-body label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.375rem;
+  color: var(--text-secondary);
+}
+
+.share-body select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: var(--surface);
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.share-create-btn {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: var(--accent-text, #fff);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.share-create-btn:hover {
+  opacity: 0.9;
+}
+
+.share-create-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.share-result {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.share-url {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  background: var(--surface-alt, var(--surface));
+  color: var(--text-primary);
+}
+
+.share-copy-btn {
+  padding: 0.5rem 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.share-copy-btn:hover {
+  background: var(--surface-hover, var(--surface));
+}
+
+.share-btn {
+  font-weight: 600;
+}
