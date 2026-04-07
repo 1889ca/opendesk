@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenDesk</title>
   <link rel="stylesheet" href="theme.css">
+  <script>
+    // Apply stored theme immediately to prevent flash of wrong theme
+    (function() {
+      var stored = localStorage.getItem('opendesk-theme');
+      var theme = stored === 'dark' ? 'dark'
+        : stored === 'light' ? 'light'
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="toolbar.css">
   <link rel="stylesheet" href="doc-list.css">
@@ -18,6 +28,7 @@
       <h1 class="logo">OpenDesk</h1>
     </div>
     <div class="toolbar-right">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
       <button id="new-doc-btn" class="btn btn-primary">New Document</button>
     </div>
   </header>
@@ -27,6 +38,54 @@
     </div>
   </main>
 
+  <script>
+    // Theme toggle for doc list page
+    (function () {
+      var STORAGE_KEY = 'opendesk-theme';
+      var MODES = ['light', 'dark', 'system'];
+      var ICONS = { light: '\u2600', dark: '\u263E', system: '\u25D0' };
+      var LABELS = { light: 'Light', dark: 'Dark', system: 'System' };
+
+      function getStored() {
+        var s = localStorage.getItem(STORAGE_KEY);
+        return (s === 'light' || s === 'dark' || s === 'system') ? s : 'system';
+      }
+
+      function resolve(mode) {
+        if (mode === 'light' || mode === 'dark') return mode;
+        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+
+      var current = getStored();
+      var btn = document.getElementById('theme-toggle');
+
+      function apply() {
+        document.documentElement.setAttribute('data-theme', resolve(current));
+        if (btn) {
+          btn.textContent = ICONS[current] + ' ' + LABELS[current];
+          btn.setAttribute('aria-label', 'Theme: ' + LABELS[current]);
+        }
+      }
+
+      apply();
+
+      if (btn) {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          var idx = MODES.indexOf(current);
+          current = MODES[(idx + 1) % MODES.length];
+          localStorage.setItem(STORAGE_KEY, current);
+          apply();
+        });
+      }
+
+      if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+          if (current === 'system') apply();
+        });
+      }
+    })();
+  </script>
   <script type="module" src="doc-list.bundle.js"></script>
 </body>
 </html>

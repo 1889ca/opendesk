@@ -24,5 +24,5 @@ export {
 export { createCollabServer } from './internal/server.ts';
 
 // Public API — purge compaction
-export { purgeDocument } from './internal/purge-compaction.ts';
-export type { PurgeResult } from './internal/purge-compaction.ts';
+export { compactDocument, needsCompaction } from './internal/purge-compaction.ts';
+export type { CompactionResult } from './internal/purge-compaction.ts';

@@ -16,7 +16,7 @@ export type SearchRoutesOptions = {
 
 /**
  * Mount search routes onto a router.
- * GET /api/documents/search?q=term — full-text search across all documents.
+ * GET /api/documents/search?q=term — full-text search, filtered by user permissions.
  */
 export function createSearchRoutes(opts: SearchRoutesOptions): Router {
   const router = Router();
@@ -35,7 +35,18 @@ export function createSearchRoutes(opts: SearchRoutesOptions): Router {
         return;
       }
 
-      const results = await searchDocuments(parsed.data.q);
+      const principal = req.principal!;
+      let allowedIds: string[] | undefined;
+
+      // In dev mode, skip permission filtering (matches middleware behavior)
+      if (process.env.AUTH_MODE !== 'dev') {
+        const grants = await permissions.grantStore.findByPrincipal(principal.id);
+        allowedIds = grants
+          .filter((g) => g.resourceType === 'document')
+          .map((g) => g.resourceId);
+      }
+
+      const results = await searchDocuments(parsed.data.q, allowedIds);
       res.json(results);
     }),
   );

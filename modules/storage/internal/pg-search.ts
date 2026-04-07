@@ -30,19 +30,20 @@ export const APPLY_SEARCH_SCHEMA = `
 `;
 
 /**
- * Full-text search across all documents.
- * Uses plainto_tsquery for safe user input handling (no special syntax needed).
- * Returns results ranked by relevance with highlighted snippets.
+ * Full-text search filtered by permission.
+ * When allowedDocumentIds is provided, only documents in that list are returned.
+ * When omitted (dev mode), all matching documents are returned.
  */
-/**
- * TODO: Search currently returns all matching documents regardless of ownership.
- * This is a known limitation — row-level security (filtering by principal) is not
- * yet implemented. Once a `created_by` or ACL column exists on documents, add a
- * `principalId` parameter and filter results to documents the caller can read.
- */
-export async function searchDocuments(query: string): Promise<SearchResult[]> {
-  const result = await pool.query<SearchResult>(
-    `SELECT
+export async function searchDocuments(
+  query: string,
+  allowedDocumentIds?: string[],
+): Promise<SearchResult[]> {
+  if (allowedDocumentIds && allowedDocumentIds.length === 0) {
+    return [];
+  }
+
+  const useFilter = allowedDocumentIds !== undefined;
+  const sql = `SELECT
        id,
        title,
        ts_headline(
@@ -55,9 +56,11 @@ export async function searchDocuments(query: string): Promise<SearchResult[]> {
        updated_at
      FROM documents
      WHERE search_vector @@ plainto_tsquery('english', $1)
+       ${useFilter ? 'AND id = ANY($2)' : ''}
      ORDER BY rank DESC, updated_at DESC
-     LIMIT 50`,
-    [query],
-  );
+     LIMIT 50`;
+
+  const params = useFilter ? [query, allowedDocumentIds] : [query];
+  const result = await pool.query<SearchResult>(sql, params);
   return result.rows;
 }

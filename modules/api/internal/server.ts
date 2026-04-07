@@ -36,7 +36,7 @@ export function startServer(port = 3000) {
   });
 
   // Wire collab server with auth dependency
-  const { handleUpgrade } = createCollabServer({
+  const { handleUpgrade, hocuspocus } = createCollabServer({
     tokenVerifier: auth.tokenVerifier,
   });
 
@@ -70,8 +70,8 @@ export function startServer(port = 3000) {
   // Document CRUD with permission checks
   app.use('/api/documents', createDocumentRoutes({ permissions, cache: redisClient }));
 
-  // Version history routes
-  app.use('/api/documents/:id/versions', createVersionRoutes({ permissions }));
+  // Version history routes (hocuspocus needed to invalidate sessions on restore)
+  app.use('/api/documents/:id/versions', createVersionRoutes({ permissions, hocuspocus }));
 
   // Move document to folder
   app.use('/api/documents', createMoveDocumentRoute({ permissions }));

@@ -5,7 +5,7 @@ import { createPermissions } from '../../permissions/index.ts';
 
 // Stub the storage module to avoid real PG connections
 vi.mock('../../storage/index.ts', () => ({
-  searchDocuments: vi.fn(async (query: string) => {
+  searchDocuments: vi.fn(async (query: string, _allowedIds?: string[]) => {
     if (query === 'match') {
       return [
         {
