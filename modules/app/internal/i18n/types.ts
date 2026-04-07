@@ -195,6 +195,15 @@ export interface TranslationKeys {
   'toolbar.moreOptions': string;
   'comments.dismissSheet': string;
 
+  // Document statistics
+  'stats.words': string;
+  'stats.characters': string;
+  'stats.paragraphs': string;
+  'stats.readingTime': string;
+  'stats.selected': string;
+  'stats.minRead': string;
+
+
   // Version history
   'versions.title': string;
   'versions.save': string;

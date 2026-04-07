@@ -198,6 +198,20 @@ export const fr: TranslationKeys = {
   'toolbar.moreOptions': 'Plus d\u2019options',
   'comments.dismissSheet': 'Fermer les commentaires',
 
+  // Statistiques du document
+  'stats.words': '{count} mots',
+  'stats.characters': '{count} caractères',
+  'stats.paragraphs': '{count} paragraphes',
+  'stats.readingTime': '~{time} min de lecture',
+  'stats.selected': '{selected} sur {total} mots sélectionnés',
+  'stats.minRead': '< 1 min de lecture',
+
+  // Table des mati\u00e8res
+  'toolbar.toc': 'TDM',
+  'toc.title': 'Table des mati\u00e8res',
+  'toc.noHeadings': 'Aucun titre dans ce document',
+  'toc.heading': 'Titre',
+
   // Historique des versions
   'versions.title': 'Historique des versions',
   'versions.save': 'Enregistrer la version',
@@ -211,12 +225,6 @@ export const fr: TranslationKeys = {
   'versions.versionNumber': 'Version {n}',
   'versions.close': 'Fermer l\u2019historique',
   'toolbar.versions': 'Versions',
-
-  // Table des mati\u00e8res
-  'toolbar.toc': 'TDM',
-  'toc.title': 'Table des mati\u00e8res',
-  'toc.noHeadings': 'Aucun titre dans ce document',
-  'toc.heading': 'Titre',
 
   // Dossiers
   'folders.new': 'Nouveau dossier',

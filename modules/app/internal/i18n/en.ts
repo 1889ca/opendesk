@@ -193,6 +193,15 @@ export const en: TranslationKeys = {
   'toolbar.moreOptions': 'More options',
   'comments.dismissSheet': 'Dismiss comments',
 
+  // Document statistics
+  'stats.words': '{count} words',
+  'stats.characters': '{count} characters',
+  'stats.paragraphs': '{count} paragraphs',
+  'stats.readingTime': '~{time} min read',
+  'stats.selected': '{selected} of {total} words selected',
+  'stats.minRead': '< 1 min read',
+
+
   // Version history
   'versions.title': 'Version History',
   'versions.save': 'Save Version',

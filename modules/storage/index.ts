@@ -42,3 +42,14 @@ export {
 
 export { defaultTemplates } from './internal/default-templates.ts';
 export type { DefaultTemplate } from './internal/default-templates.ts';
+
+// Version history
+export type { VersionRow } from './internal/pg-versions.ts';
+
+export {
+  CREATE_VERSIONS_TABLE,
+  saveVersion,
+  listVersions,
+  getVersion,
+  deleteVersion as deleteVersionRecord,
+} from './internal/pg-versions.ts';

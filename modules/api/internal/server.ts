@@ -15,6 +15,7 @@ import { createAdminRoutes } from './admin-routes.ts';
 import { createUploadRoutes } from './upload-routes.ts';
 import { createFileRoutes } from './file-routes.ts';
 import { createTemplateRoutes } from './template-routes.ts';
+import { createVersionRoutes } from './version-routes.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -63,6 +64,9 @@ export function startServer(port = 3000) {
 
   // Document CRUD with permission checks
   app.use('/api/documents', createDocumentRoutes({ permissions, cache: redisClient }));
+
+  // Version history routes
+  app.use('/api/documents/:id/versions', createVersionRoutes({ permissions }));
 
   // Export/import routes with permission checks
   app.use('/api/documents', createExportRoutes({ permissions }));

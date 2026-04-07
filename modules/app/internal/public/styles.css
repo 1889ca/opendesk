@@ -7,14 +7,14 @@
 }
 
 :root {
-  --bg: #fafafa;
-  --surface: #ffffff;
-  --border: #e2e2e2;
-  --text: #1a1a1a;
-  --text-muted: #666;
-  --accent: #2563eb;
-  --connected: #16a34a;
-  --disconnected: #dc2626;
+  --bg: var(--bg-primary);
+  --surface: var(--bg-surface);
+  --border: var(--border-color);
+  --text: var(--text-primary);
+  --text-muted: var(--text-secondary);
+  --accent: var(--accent-color);
+  --connected: var(--status-connected);
+  --disconnected: var(--status-disconnected);
 }
 
 body {
@@ -75,12 +75,12 @@ body {
 }
 
 .status.connected {
-  background: #dcfce7;
+  background: var(--status-connected-bg);
   color: var(--connected);
 }
 
 .status.disconnected {
-  background: #fee2e2;
+  background: var(--status-disconnected-bg);
   color: var(--disconnected);
 }
 
@@ -93,7 +93,8 @@ body {
 .editor-wrapper {
   flex: 1;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   padding: 2rem 1rem;
   transition: margin-right 0.2s ease;
 }
@@ -108,7 +109,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px var(--shadow-color);
   min-height: 60vh;
 }
 
@@ -172,8 +173,8 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 }
 
 .editor-content pre {
-  background: #1e1e1e;
-  color: #d4d4d4;
+  background: var(--code-block-bg);
+  color: var(--code-block-text);
   padding: 1rem;
   border-radius: 6px;
   overflow-x: auto;

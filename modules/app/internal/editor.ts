@@ -32,6 +32,8 @@ import { bindShortcutDialogKey } from './shortcut-dialog.ts';
 import { announce } from './a11y-announcer.ts';
 import { initTouchSupport } from './touch-support.ts';
 import { buildTocPanel, toggleTocPanel } from './toc/index.ts';
+import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts';
+import { buildStatusBar } from './status-bar.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -142,6 +144,12 @@ function init() {
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
 
+  // Status bar (word count & stats)
+  const editorWrapper = editorEl.closest('.editor-wrapper');
+  if (editorWrapper) {
+    editorWrapper.appendChild(buildStatusBar(editor));
+  }
+
   // Comment sidebar
   const commentSidebar = buildCommentSidebar(editor, commentStore, documentId, user);
   document.body.appendChild(commentSidebar);
@@ -155,6 +163,13 @@ function init() {
   document.body.appendChild(tocPanel);
   document.addEventListener('opendesk:toggle-toc', () => {
     toggleTocPanel(tocPanel);
+  });
+
+  // Version history sidebar
+  const versionSidebar = buildVersionSidebar();
+  document.body.appendChild(versionSidebar);
+  document.addEventListener('opendesk:toggle-versions', () => {
+    toggleVersionSidebar(versionSidebar);
   });
 
   document.addEventListener('opendesk:add-comment', () => {
