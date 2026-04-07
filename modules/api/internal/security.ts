@@ -30,7 +30,13 @@ export function applySecurityMiddleware(app: Express): void {
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          // Theme-detection inline scripts (editor.html + index.html)
+          "'sha256-P0tJR3Q9jyRl1vNpgiYrKQGPWs8ReNY1F3D0m/F6QzA='",
+          // Theme-detection inline script (share.html — no comment variant)
+          "'sha256-2u/Uh4z9crM/+6p4RwTBXMk5W4tz0+QA4BL+MIhhclQ='",
+        ],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'blob:'],
         connectSrc: ["'self'", 'ws:', 'wss:'],

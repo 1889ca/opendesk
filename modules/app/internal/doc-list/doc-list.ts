@@ -114,7 +114,9 @@ async function loadAll(listEl: HTMLElement) {
       ? '/api/documents?folderId=' + encodeURIComponent(folderId)
       : '/api/documents';
     const res = await apiFetch(url);
-    const docs: DocEntry[] = await res.json();
+    if (!res.ok) throw new Error(`API returned ${res.status}`);
+    const data = await res.json();
+    const docs: DocEntry[] = Array.isArray(data) ? data : [];
     renderDocuments(listEl, docs);
   } catch (err) {
     console.error('Failed to load documents', err);

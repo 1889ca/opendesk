@@ -162,7 +162,9 @@ export async function loadFolders(parentId: string | null): Promise<FolderEntry[
     ? '/api/folders?parentId=' + encodeURIComponent(parentId)
     : '/api/folders';
   const res = await apiFetch(url);
-  return res.json();
+  if (!res.ok) return [];
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
 }
 
 export function createNewFolderButton(container: HTMLElement): void {
