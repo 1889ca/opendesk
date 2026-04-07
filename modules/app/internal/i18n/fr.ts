@@ -78,8 +78,51 @@ export const fr: TranslationKeys = {
   'image.unsupportedType': 'Type de fichier non pris en charge',
   'image.insertTitle': 'Ins\u00e9rer une image',
 
-  // Sélecteur de langue
+  // Recherche & Remplacement
+  'search.find': 'Rechercher...',
+  'search.replace': 'Remplacer...',
+  'search.findNext': 'Suivant',
+  'search.findPrev': 'Pr\u00e9c\u00e9dent',
+  'search.replaceOne': 'Remplacer',
+  'search.replaceAll': 'Tout remplacer',
+  'search.caseSensitive': 'Respecter la casse',
+  'search.useRegex': 'Expression r\u00e9guli\u00e8re',
+  'search.matchCount': '{current} sur {total}',
+  'search.noMatches': 'Aucun r\u00e9sultat',
+  'search.close': 'Fermer la recherche',
+  'toolbar.find': 'Rechercher',
+
+  // Commentaires
+  'toolbar.comment': 'Commenter',
+  'comments.title': 'Commentaires',
+  'comments.sidebarLabel': 'Commentaires du document',
+  'comments.closeSidebar': 'Fermer les commentaires',
+  'comments.noComments': 'Aucun commentaire',
+  'comments.placeholder': 'Ajouter un commentaire...',
+  'comments.replyPlaceholder': 'R\u00e9pondre...',
+  'comments.add': 'Commenter',
+  'comments.cancel': 'Annuler',
+  'comments.reply': 'R\u00e9pondre',
+  'comments.resolve': 'R\u00e9soudre',
+  'comments.reopen': 'Rouvrir',
+  'comments.delete': 'Supprimer',
+
+  // S\u00e9lecteur de langue
   'lang.label': 'Langue',
   'lang.en': 'English',
   'lang.fr': 'Français',
+
+  // Sélecteur de modèles
+  'templates.title': 'Choisir un modèle',
+  'templates.blank': 'Vierge',
+  'templates.blankDesc': 'Commencer avec une page vide',
+  'templates.meetingNotes': 'Notes de réunion',
+  'templates.meetingNotesDesc': 'Participants, ordre du jour et actions à suivre',
+  'templates.projectBrief': 'Brief de projet',
+  'templates.projectBriefDesc': 'Objectifs, périmètre, calendrier et équipe',
+  'templates.report': 'Rapport',
+  'templates.reportDesc': 'Rapport structuré avec résumé et conclusions',
+  'templates.selectTitle': 'Nouveau document',
+  'templates.loading': 'Chargement des modèles...',
+  'templates.loadFailed': 'Impossible de charger les modèles',
 };

@@ -1,14 +1,5 @@
 /** Contract: contracts/storage/rules.md */
-import pg from 'pg';
-
-const pool = new pg.Pool({
-  host: process.env.PG_HOST || 'localhost',
-  port: parseInt(process.env.PG_PORT || '5433', 10),
-  database: process.env.PG_DATABASE || 'opendesk',
-  user: process.env.PG_USER || 'opendesk',
-  password: process.env.PG_PASSWORD || 'opendesk_dev',
-  max: 10,
-});
+import { pool } from './pool.ts';
 
 export interface DocumentRow {
   id: string;
@@ -72,4 +63,3 @@ export async function updateDocumentTitle(id: string, title: string): Promise<vo
   );
 }
 
-// pool is intentionally not exported — use the public API functions above

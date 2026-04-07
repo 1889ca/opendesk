@@ -78,8 +78,51 @@ export const en: TranslationKeys = {
   'image.unsupportedType': 'Unsupported file type',
   'image.insertTitle': 'Insert image',
 
+  // Search & Replace
+  'search.find': 'Find...',
+  'search.replace': 'Replace...',
+  'search.findNext': 'Next match',
+  'search.findPrev': 'Previous match',
+  'search.replaceOne': 'Replace',
+  'search.replaceAll': 'Replace all',
+  'search.caseSensitive': 'Match case',
+  'search.useRegex': 'Regular expression',
+  'search.matchCount': '{current} of {total}',
+  'search.noMatches': 'No matches',
+  'search.close': 'Close search',
+  'toolbar.find': 'Find',
+
+  // Comments
+  'toolbar.comment': 'Comment',
+  'comments.title': 'Comments',
+  'comments.sidebarLabel': 'Document comments',
+  'comments.closeSidebar': 'Close comments',
+  'comments.noComments': 'No comments yet',
+  'comments.placeholder': 'Add a comment...',
+  'comments.replyPlaceholder': 'Reply...',
+  'comments.add': 'Comment',
+  'comments.cancel': 'Cancel',
+  'comments.reply': 'Reply',
+  'comments.resolve': 'Resolve',
+  'comments.reopen': 'Reopen',
+  'comments.delete': 'Delete',
+
   // Language switcher
   'lang.label': 'Language',
   'lang.en': 'English',
   'lang.fr': 'Français',
+
+  // Template picker
+  'templates.title': 'Choose a template',
+  'templates.blank': 'Blank',
+  'templates.blankDesc': 'Start with a clean slate',
+  'templates.meetingNotes': 'Meeting Notes',
+  'templates.meetingNotesDesc': 'Capture attendees, agenda, and action items',
+  'templates.projectBrief': 'Project Brief',
+  'templates.projectBriefDesc': 'Outline goals, scope, timeline, and team',
+  'templates.report': 'Report',
+  'templates.reportDesc': 'Structured report with executive summary and findings',
+  'templates.selectTitle': 'New Document',
+  'templates.loading': 'Loading templates...',
+  'templates.loadFailed': 'Failed to load templates',
 };
