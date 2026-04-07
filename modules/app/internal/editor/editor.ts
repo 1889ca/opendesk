@@ -24,7 +24,7 @@ import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts'
 import { buildStatusBar } from './status-bar.ts';
 import { buildThemeToggle } from '../shared/theme-toggle.ts';
 import { openEmojiPicker } from './emoji/index.ts';
-import { openCitationPicker, createBibliography } from './citations/index.ts';
+import { openCitationPicker, createBibliography, buildReferenceLibrary } from './citations/index.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
 import { buildEditorExtensions } from './editor-extensions.ts';
 import { getUserIdentity, getDocumentId } from '../shared/identity.ts';
@@ -131,6 +131,12 @@ function init() {
   document.body.appendChild(versionSidebar);
   document.addEventListener('opendesk:toggle-versions', () => {
     toggleVersionSidebar(versionSidebar);
+  });
+
+  const refLibrary = buildReferenceLibrary(editor);
+  document.body.appendChild(refLibrary.element);
+  document.addEventListener('opendesk:toggle-reference-library', () => {
+    refLibrary.toggle();
   });
 
   document.addEventListener('opendesk:insert-citation', () => {

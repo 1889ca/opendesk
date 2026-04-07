@@ -13,6 +13,7 @@ import {
   deleteReference,
 } from '../../references/index.ts';
 import { lookupDOI, lookupISBN } from '../../references/internal/doi-lookup.ts';
+import { ensureLibraryGrant, checkLibraryAccess } from '../../references/internal/library-permissions.ts';
 
 const CreateReferenceBody = z.object({
   title: z.string().min(1).max(500),
@@ -67,6 +68,13 @@ export function createReferenceRoutes(opts: ReferenceRoutesOptions): Router {
       return;
     }
     const workspaceId = '00000000-0000-0000-0000-000000000000'; // default workspace
+    const principal = req.principal!;
+    await ensureLibraryGrant(permissions.grantStore, principal.id, workspaceId);
+    const canRead = await checkLibraryAccess(permissions.grantStore, principal.id, workspaceId, 'read');
+    if (!canRead) {
+      res.status(403).json({ error: 'No read access to reference library' });
+      return;
+    }
     const refs = await listReferences(queryResult.data.documentId ?? workspaceId);
     res.json(refs);
   }));
@@ -81,6 +89,12 @@ export function createReferenceRoutes(opts: ReferenceRoutesOptions): Router {
     const id = randomUUID();
     const principal = req.principal!;
     const workspaceId = '00000000-0000-0000-0000-000000000000'; // default workspace
+    await ensureLibraryGrant(permissions.grantStore, principal.id, workspaceId);
+    const canWrite = await checkLibraryAccess(permissions.grantStore, principal.id, workspaceId, 'write');
+    if (!canWrite) {
+      res.status(403).json({ error: 'No write access to reference library' });
+      return;
+    }
     const ref = await createReference(id, workspaceId, principal.id, bodyResult.data);
     res.status(201).json(ref);
   }));
@@ -124,6 +138,13 @@ export function createReferenceRoutes(opts: ReferenceRoutesOptions): Router {
       res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
       return;
     }
+    const principal = req.principal!;
+    const workspaceId = '00000000-0000-0000-0000-000000000000';
+    const canWrite = await checkLibraryAccess(permissions.grantStore, principal.id, workspaceId, 'write');
+    if (!canWrite) {
+      res.status(403).json({ error: 'No write access to reference library' });
+      return;
+    }
     const updated = await updateReference(String(req.params.id), bodyResult.data);
     if (!updated) {
       res.status(404).json({ error: 'Reference not found' });
@@ -134,6 +155,13 @@ export function createReferenceRoutes(opts: ReferenceRoutesOptions): Router {
 
   // Delete reference
   router.delete('/:id', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
+    const principal = req.principal!;
+    const workspaceId = '00000000-0000-0000-0000-000000000000';
+    const canDelete = await checkLibraryAccess(permissions.grantStore, principal.id, workspaceId, 'delete');
+    if (!canDelete) {
+      res.status(403).json({ error: 'No delete access to reference library' });
+      return;
+    }
     const deleted = await deleteReference(String(req.params.id));
     if (!deleted) {
       res.status(404).json({ error: 'Reference not found' });

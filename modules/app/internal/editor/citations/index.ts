@@ -15,3 +15,4 @@ export type {
   ReferenceAuthor,
   FormattedCitation,
 } from './types.ts';
+export { buildReferenceLibrary } from './reference-library.ts';

@@ -47,3 +47,10 @@ export { serializeBibTeX } from './internal/bibtex-serializer.ts';
 // RIS import/export
 export { parseRIS } from './internal/ris-parser.ts';
 export { serializeRIS } from './internal/ris-serializer.ts';
+
+// Library permissions
+export {
+  ensureLibraryGrant,
+  checkLibraryAccess,
+  LIBRARY_RESOURCE_TYPE,
+} from './internal/library-permissions.ts';

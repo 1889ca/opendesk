@@ -14,6 +14,7 @@ import { parseRIS } from '../../references/internal/ris-parser.ts';
 import { serializeRIS } from '../../references/internal/ris-serializer.ts';
 import type { ReferenceRow } from '../../references/internal/pg-references.ts';
 import type { Reference, Author } from '../../references/contract.ts';
+import { ensureLibraryGrant, checkLibraryAccess } from '../../references/internal/library-permissions.ts';
 
 /** Convert a DB row to the Reference shape expected by serializers. */
 function rowToReference(row: ReferenceRow): Reference {
@@ -83,6 +84,13 @@ export function createImportExportRoutes(opts: ImportExportRoutesOptions): Route
     const principal = req.principal!;
     const workspaceId = '00000000-0000-0000-0000-000000000000';
 
+    await ensureLibraryGrant(permissions.grantStore, principal.id, workspaceId);
+    const canWrite = await checkLibraryAccess(permissions.grantStore, principal.id, workspaceId, 'write');
+    if (!canWrite) {
+      res.status(403).json({ error: 'No write access to reference library' });
+      return;
+    }
+
     const created = [];
     for (const input of parsed) {
       const id = randomUUID();
@@ -119,6 +127,13 @@ export function createImportExportRoutes(opts: ImportExportRoutesOptions): Route
     }
 
     const workspaceId = '00000000-0000-0000-0000-000000000000';
+    const principal = req.principal!;
+    await ensureLibraryGrant(permissions.grantStore, principal.id, workspaceId);
+    const canRead = await checkLibraryAccess(permissions.grantStore, principal.id, workspaceId, 'read');
+    if (!canRead) {
+      res.status(403).json({ error: 'No read access to reference library' });
+      return;
+    }
     const rows = await listReferences(workspaceId);
     const refs = rows.map(rowToReference);
 

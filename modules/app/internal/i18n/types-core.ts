@@ -23,6 +23,7 @@ export interface CoreTranslationKeys {
   'toolbar.pdf': string;
   'toolbar.pageBreak': string;
   'toolbar.versions': string;
+  'toolbar.references': string;
   'toolbar.toc': string;
   'toolbar.theme': string;
   'toolbar.emoji': string;
