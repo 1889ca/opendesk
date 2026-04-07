@@ -1,6 +1,6 @@
 /** Contract: contracts/sharing/rules.md */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createShareLinkService, hashPassword, generateToken, type ShareLinkService } from './share-links.ts';
+import { createShareLinkService, hashPassword, verifyPassword, generateToken, type ShareLinkService } from './share-links.ts';
 import { createInMemoryShareLinkStore, type ShareLinkStore } from './store.ts';
 
 describe('share-links', () => {
@@ -65,7 +65,10 @@ describe('share-links', () => {
         options: { password: 'secret123' },
       });
 
-      expect(link.passwordHash).toBe(hashPassword('secret123'));
+      expect(link.passwordHash).toBeDefined();
+      // bcrypt hash should verify against the original password
+      const matches = await verifyPassword('secret123', link.passwordHash!);
+      expect(matches).toBe(true);
     });
   });
 

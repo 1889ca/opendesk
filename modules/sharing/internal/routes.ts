@@ -41,10 +41,10 @@ export function createShareRoutes(service: ShareLinkService): Router {
     res.status(201).json(safeLink);
   });
 
-  /** GET /api/share/:token -- resolve (redeem) a share link */
-  router.get('/api/share/:token', async (req, res) => {
+  /** POST /api/share/:token/resolve -- resolve (redeem) a share link */
+  router.post('/api/share/:token/resolve', async (req, res) => {
     const { token } = req.params;
-    const password = req.query.password as string | undefined;
+    const password = req.body?.password as string | undefined;
     const result = await service.resolve(token, password);
 
     if (!result.ok) {
