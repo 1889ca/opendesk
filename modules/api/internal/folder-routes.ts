@@ -50,7 +50,7 @@ export function createFolderRoutes(opts: FolderRoutesOptions): Router {
     res.json(folders);
   }));
 
-  // Create folder
+  // Create folder — auto-grants owner role to creator
   router.post('/', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     const bodyResult = CreateFolderBody.safeParse(req.body ?? {});
     if (!bodyResult.success) {
@@ -59,13 +59,23 @@ export function createFolderRoutes(opts: FolderRoutesOptions): Router {
     }
     const { name, parentId } = bodyResult.data;
     const id = randomUUID();
-    const principalId = req.principal?.id ?? '';
-    const folder = await createFolder(id, name, parentId ?? null, principalId);
+    const principal = req.principal!;
+    const folder = await createFolder(id, name, parentId ?? null, principal.id);
+
+    // Auto-grant owner role to folder creator
+    await permissions.grantStore.create({
+      principalId: principal.id,
+      resourceId: id,
+      resourceType: 'folder',
+      role: 'owner',
+      grantedBy: principal.id,
+    });
+
     res.status(201).json(folder);
   }));
 
-  // Rename folder (owner only)
-  router.put('/:id', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  // Rename folder — requires write permission via grants
+  router.put('/:id', permissions.requireForResource('write', 'folder'), asyncHandler(async (req: Request, res: Response) => {
     const bodyResult = RenameFolderBody.safeParse(req.body ?? {});
     if (!bodyResult.success) {
       res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
@@ -76,23 +86,15 @@ export function createFolderRoutes(opts: FolderRoutesOptions): Router {
       res.status(404).json({ error: 'Folder not found' });
       return;
     }
-    if (folder.created_by && folder.created_by !== req.principal?.id) {
-      res.status(403).json({ error: 'Forbidden' });
-      return;
-    }
     await renameFolder(String(req.params.id), bodyResult.data.name);
     res.json({ ok: true });
   }));
 
-  // Delete folder (owner only, moves contents to parent)
-  router.delete('/:id', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  // Delete folder — requires delete permission via grants
+  router.delete('/:id', permissions.requireForResource('delete', 'folder'), asyncHandler(async (req: Request, res: Response) => {
     const folder = await getFolder(String(req.params.id));
     if (!folder) {
       res.status(404).json({ error: 'Folder not found' });
-      return;
-    }
-    if (folder.created_by && folder.created_by !== req.principal?.id) {
-      res.status(403).json({ error: 'Forbidden' });
       return;
     }
     await deleteFolder(String(req.params.id));
