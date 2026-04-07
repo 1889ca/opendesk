@@ -10,7 +10,7 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
-import { t, setLocale, resolveLocale, persistLocale, onLocaleChange } from './i18n/index.ts';
+import { t, setLocale, getLocale, resolveLocale, persistLocale, onLocaleChange } from './i18n/index.ts';
 import { buildLanguageSwitcher, updateStaticText } from './locale-ui.ts';
 import { buildTableToolbar } from './table-toolbar.ts';
 import { setupImageHandlers } from './image-handlers.ts';
@@ -18,6 +18,8 @@ import { SearchExtension } from './search/search-extension.ts';
 import { buildSearchPanel } from './search/search-panel.ts';
 import { buildFormattingToolbar } from './formatting-toolbar.ts';
 import { CommentMark, CommentStore, buildCommentSidebar, toggleSidebar, showCommentInput } from './comments/index.ts';
+import { bindShortcutDialogKey } from './shortcut-dialog.ts';
+import { announce } from './a11y-announcer.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -44,17 +46,33 @@ function getDocumentId() {
   return params.get('doc') || 'default';
 }
 
+function updateHtmlLang(): void {
+  document.documentElement.lang = getLocale();
+}
+
+function addSkipLink(): void {
+  if (document.getElementById('skip-link')) return;
+  const link = document.createElement('a');
+  link.id = 'skip-link';
+  link.href = '#editor';
+  link.className = 'skip-to-content';
+  link.textContent = t('a11y.skipToContent');
+  document.body.insertBefore(link, document.body.firstChild);
+  onLocaleChange(() => { link.textContent = t('a11y.skipToContent'); });
+}
+
 function init() {
   const locale = resolveLocale();
   setLocale(locale);
   persistLocale(locale);
+  updateHtmlLang();
+  onLocaleChange(updateHtmlLang);
+  addSkipLink();
 
   const editorEl = document.getElementById('editor');
   if (!editorEl) return;
-
   const documentId = getDocumentId();
   const user = getUserIdentity();
-
   const statusEl = document.getElementById('status');
   const usersEl = document.getElementById('users');
 
@@ -63,23 +81,14 @@ function init() {
 
   const ydoc = new Y.Doc();
   const commentStore = new CommentStore(ydoc);
-
   const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/collab`;
   const provider = new HocuspocusProvider({
-    url: wsUrl,
-    name: documentId,
-    document: ydoc,
+    url: wsUrl, name: documentId, document: ydoc,
     onConnect() {
-      if (statusEl) {
-        statusEl.textContent = t('status.connected');
-        statusEl.className = 'status connected';
-      }
+      if (statusEl) { statusEl.textContent = t('status.connected'); statusEl.className = 'status connected'; }
     },
     onDisconnect() {
-      if (statusEl) {
-        statusEl.textContent = t('status.disconnected');
-        statusEl.className = 'status disconnected';
-      }
+      if (statusEl) { statusEl.textContent = t('status.disconnected'); statusEl.className = 'status disconnected'; }
     },
   });
 
@@ -87,26 +96,13 @@ function init() {
     element: editorEl,
     extensions: [
       StarterKit.configure({ undoRedo: false }),
-      Table.configure({ resizable: true }),
-      TableRow,
-      TableCell,
-      TableHeader,
-      Image.configure({
-        inline: false,
-        allowBase64: false,
-        resize: { enabled: true, minWidth: 100, minHeight: 50 },
-      }),
-      SearchExtension,
-      CommentMark,
+      Table.configure({ resizable: true }), TableRow, TableCell, TableHeader,
+      Image.configure({ inline: false, allowBase64: false, resize: { enabled: true, minWidth: 100, minHeight: 50 } }),
+      SearchExtension, CommentMark,
       Collaboration.configure({ document: ydoc }),
-      CollaborationCursor.configure({
-        provider,
-        user: { name: user.name, color: user.color },
-      }),
+      CollaborationCursor.configure({ provider, user: { name: user.name, color: user.color } }),
     ],
-    editorProps: {
-      attributes: { class: 'editor-content' },
-    },
+    editorProps: { attributes: { class: 'editor-content' } },
   });
 
   buildFormattingToolbar(editor);
@@ -114,15 +110,15 @@ function init() {
   buildSearchPanel(editor);
   buildLanguageSwitcher();
   setupImageHandlers(editor, editorEl);
+  bindShortcutDialogKey();
 
-  // Comment sidebar
   const sidebar = buildCommentSidebar(editor, commentStore, documentId, user);
   document.body.appendChild(sidebar);
 
-  // Listen for add-comment events (from toolbar button or Cmd+Shift+M)
   document.addEventListener('opendesk:add-comment', () => {
     showCommentInput(editor, commentStore, documentId, user);
     toggleSidebar(sidebar, true);
+    announce(t('a11y.commentAdded'));
   });
 
   function updateUsers() {
@@ -136,7 +132,6 @@ function init() {
   }
   provider.awareness?.on('change', updateUsers);
   updateUsers();
-
   Object.assign(window, { editor, provider, ydoc, commentStore });
 }
 

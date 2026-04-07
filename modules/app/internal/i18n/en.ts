@@ -2,7 +2,6 @@
 import type { TranslationKeys } from './types.ts';
 
 export const en: TranslationKeys = {
-  // Toolbar - formatting buttons
   'toolbar.bold': 'B',
   'toolbar.italic': 'I',
   'toolbar.strike': 'S',
@@ -15,25 +14,17 @@ export const en: TranslationKeys = {
   'toolbar.blockquote': 'Quote',
   'toolbar.codeBlock': '<>',
   'toolbar.horizontalRule': 'HR',
-
-  // Editor status
   'status.connected': 'Connected',
   'status.disconnected': 'Disconnected',
   'status.connecting': 'Connecting...',
-
-  // Editor chrome
   'editor.editors': 'Editors:',
   'editor.backToDocuments': 'Back to documents',
   'editor.loading': 'Loading...',
   'editor.untitled': 'Untitled',
-
-  // Export
   'export.html': 'HTML',
   'export.text': 'Text',
   'export.htmlTitle': 'Export as HTML',
   'export.textTitle': 'Export as plain text',
-
-  // Document list
   'docList.newDocument': 'New Document',
   'docList.loading': 'Loading documents...',
   'docList.noDocuments': 'No documents yet',
@@ -43,8 +34,6 @@ export const en: TranslationKeys = {
   'docList.updated': 'Updated {time}',
   'docList.loadFailed': 'Failed to load documents',
   'docList.titlePrompt': 'Document title:',
-
-  // Time ago
   'time.justNow': 'just now',
   'time.secondsAgo': '{n} seconds ago',
   'time.minuteAgo': '1 minute ago',
@@ -55,8 +44,6 @@ export const en: TranslationKeys = {
   'time.daysAgo': '{n} days ago',
   'time.monthAgo': '1 month ago',
   'time.monthsAgo': '{n} months ago',
-
-  // Table toolbar
   'table.insert': 'Table',
   'table.addRowBefore': '+ Row above',
   'table.addRowAfter': '+ Row below',
@@ -69,16 +56,12 @@ export const en: TranslationKeys = {
   'table.toggleHeaderRow': 'Header row',
   'table.toggleHeaderColumn': 'Header col',
   'table.deleteTable': 'Delete table',
-
-  // Images
   'toolbar.image': 'Image',
   'image.uploading': 'Uploading...',
   'image.uploadFailed': 'Upload failed',
   'image.tooLarge': 'File too large (max 10 MB)',
   'image.unsupportedType': 'Unsupported file type',
   'image.insertTitle': 'Insert image',
-
-  // Search & Replace
   'search.find': 'Find...',
   'search.replace': 'Replace...',
   'search.findNext': 'Next match',
@@ -91,8 +74,6 @@ export const en: TranslationKeys = {
   'search.noMatches': 'No matches',
   'search.close': 'Close search',
   'toolbar.find': 'Find',
-
-  // Comments
   'toolbar.comment': 'Comment',
   'comments.title': 'Comments',
   'comments.sidebarLabel': 'Document comments',
@@ -106,13 +87,9 @@ export const en: TranslationKeys = {
   'comments.resolve': 'Resolve',
   'comments.reopen': 'Reopen',
   'comments.delete': 'Delete',
-
-  // Language switcher
   'lang.label': 'Language',
   'lang.en': 'English',
-  'lang.fr': 'Français',
-
-  // Template picker
+  'lang.fr': 'Fran\u00e7ais',
   'templates.title': 'Choose a template',
   'templates.blank': 'Blank',
   'templates.blankDesc': 'Start with a clean slate',
@@ -125,4 +102,62 @@ export const en: TranslationKeys = {
   'templates.selectTitle': 'New Document',
   'templates.loading': 'Loading templates...',
   'templates.loadFailed': 'Failed to load templates',
+  // Accessibility
+  'a11y.skipToContent': 'Skip to content',
+  'a11y.formattingToolbar': 'Formatting toolbar',
+  'a11y.boldLabel': 'Bold',
+  'a11y.italicLabel': 'Italic',
+  'a11y.strikeLabel': 'Strikethrough',
+  'a11y.codeLabel': 'Inline code',
+  'a11y.heading1Label': 'Heading 1',
+  'a11y.heading2Label': 'Heading 2',
+  'a11y.heading3Label': 'Heading 3',
+  'a11y.bulletListLabel': 'Bullet list',
+  'a11y.orderedListLabel': 'Ordered list',
+  'a11y.blockquoteLabel': 'Blockquote',
+  'a11y.codeBlockLabel': 'Code block',
+  'a11y.horizontalRuleLabel': 'Horizontal rule',
+  'a11y.tableLabel': 'Insert table',
+  'a11y.imageLabel': 'Insert image',
+  'a11y.findLabel': 'Find and replace',
+  'a11y.commentLabel': 'Add comment',
+  'a11y.shortcutsLabel': 'Keyboard shortcuts',
+  'a11y.boldOn': 'Bold on',
+  'a11y.boldOff': 'Bold off',
+  'a11y.italicOn': 'Italic on',
+  'a11y.italicOff': 'Italic off',
+  'a11y.strikeOn': 'Strikethrough on',
+  'a11y.strikeOff': 'Strikethrough off',
+  'a11y.codeOn': 'Inline code on',
+  'a11y.codeOff': 'Inline code off',
+  'a11y.commentAdded': 'Comment added',
+  'a11y.searchMatches': '{current} of {total} matches',
+  'a11y.commentSidebar': 'Comments sidebar',
+  'a11y.mainEditor': 'Document editor',
+  // Shortcut dialog
+  'shortcuts.title': 'Keyboard Shortcuts',
+  'shortcuts.close': 'Close shortcuts',
+  'shortcuts.formatting': 'Formatting',
+  'shortcuts.navigation': 'Navigation',
+  'shortcuts.comments': 'Comments',
+  'shortcuts.search': 'Search',
+  'shortcuts.document': 'Document',
+  'shortcuts.bold': 'Bold',
+  'shortcuts.italic': 'Italic',
+  'shortcuts.strikethrough': 'Strikethrough',
+  'shortcuts.code': 'Inline code',
+  'shortcuts.heading1': 'Heading 1',
+  'shortcuts.heading2': 'Heading 2',
+  'shortcuts.heading3': 'Heading 3',
+  'shortcuts.bulletList': 'Bullet list',
+  'shortcuts.orderedList': 'Ordered list',
+  'shortcuts.blockquote': 'Blockquote',
+  'shortcuts.codeBlock': 'Code block',
+  'shortcuts.horizontalRule': 'Horizontal rule',
+  'shortcuts.addComment': 'Add comment',
+  'shortcuts.find': 'Find',
+  'shortcuts.findReplace': 'Find and replace',
+  'shortcuts.undo': 'Undo',
+  'shortcuts.redo': 'Redo',
+  'shortcuts.showShortcuts': 'Show keyboard shortcuts',
 };
