@@ -192,4 +192,36 @@ export const en: TranslationKeys = {
   // Mobile / overflow
   'toolbar.moreOptions': 'More options',
   'comments.dismissSheet': 'Dismiss comments',
+
+  // Version history
+  'versions.title': 'Version History',
+  'versions.save': 'Save Version',
+  'versions.restore': 'Restore',
+  'versions.delete': 'Delete',
+  'versions.current': 'Current',
+  'versions.preview': 'Preview',
+  'versions.restoreConfirm': 'Restore this version? Current content will be replaced.',
+  'versions.autoSaved': 'Auto-saved',
+  'versions.noVersions': 'No versions saved yet',
+  'versions.versionNumber': 'Version {n}',
+  'versions.close': 'Close version history',
+  'toolbar.versions': 'Versions',
+
+  // Table of contents
+  'toolbar.toc': 'TOC',
+  'toc.title': 'Table of Contents',
+  'toc.noHeadings': 'No headings in this document',
+  'toc.heading': 'Heading',
+
+  // Folders
+  'folders.new': 'New Folder',
+  'folders.rename': 'Rename',
+  'folders.delete': 'Delete',
+  'folders.moveTo': 'Move to...',
+  'folders.root': 'Documents',
+  'folders.breadcrumb': 'Breadcrumb navigation',
+  'folders.empty': 'This folder is empty',
+  'folders.deleteConfirm': 'Delete folder "{name}"? Contents will be moved to the parent folder.',
+  'folders.renamePrompt': 'New folder name:',
+  'folders.namePrompt': 'Folder name:',
 };

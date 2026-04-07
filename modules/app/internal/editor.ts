@@ -31,6 +31,7 @@ import {
 import { bindShortcutDialogKey } from './shortcut-dialog.ts';
 import { announce } from './a11y-announcer.ts';
 import { initTouchSupport } from './touch-support.ts';
+import { buildTocPanel, toggleTocPanel } from './toc/index.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -148,6 +149,13 @@ function init() {
   // Suggestion sidebar
   const suggestionSidebar = buildSuggestionSidebar(editor);
   document.body.appendChild(suggestionSidebar);
+
+  // TOC panel
+  const tocPanel = buildTocPanel(editor);
+  document.body.appendChild(tocPanel);
+  document.addEventListener('opendesk:toggle-toc', () => {
+    toggleTocPanel(tocPanel);
+  });
 
   document.addEventListener('opendesk:add-comment', () => {
     showCommentInput(editor, commentStore, documentId, user);
