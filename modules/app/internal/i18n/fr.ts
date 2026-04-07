@@ -243,4 +243,8 @@ export const fr: TranslationKeys = {
   'theme.light': 'Clair',
   'theme.dark': 'Sombre',
   'theme.system': 'Syst\u00e8me',
+
+  // Mentions
+  'mentions.placeholder': 'Saisir un nom...',
+  'mentions.noResults': 'Aucun utilisateur trouv\u00e9',
 };

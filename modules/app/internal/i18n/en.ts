@@ -238,4 +238,8 @@ export const en: TranslationKeys = {
   'theme.light': 'Light',
   'theme.dark': 'Dark',
   'theme.system': 'System',
+
+  // Mentions
+  'mentions.placeholder': 'Type a name...',
+  'mentions.noResults': 'No users found',
 };

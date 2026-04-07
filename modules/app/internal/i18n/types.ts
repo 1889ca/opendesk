@@ -240,6 +240,10 @@ export interface TranslationKeys {
   'theme.light': string;
   'theme.dark': string;
   'theme.system': string;
+
+  // Mentions
+  'mentions.placeholder': string;
+  'mentions.noResults': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;
