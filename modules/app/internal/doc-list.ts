@@ -12,6 +12,7 @@ import {
   createNewFolderButton,
 } from './folder-list.ts';
 import { initTheme } from './theme-toggle.ts';
+import { createGlobalSearch } from './global-search.ts';
 
 interface DocEntry {
   id: string;
@@ -108,6 +109,14 @@ function init() {
   if (toolbarRight) {
     createNewFolderButton(toolbarRight as HTMLElement);
   }
+
+  // Global search — insert before the doc list
+  const searchEl = createGlobalSearch((active) => {
+    listEl.style.display = active ? 'none' : '';
+    const breadcrumbs = document.getElementById('folder-breadcrumbs');
+    if (breadcrumbs) breadcrumbs.style.display = active ? 'none' : '';
+  });
+  listEl.parentElement?.insertBefore(searchEl, listEl);
 
   setNavigateCallback(() => loadAll(listEl));
 

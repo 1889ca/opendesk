@@ -54,6 +54,14 @@ export {
   deleteVersion as deleteVersionRecord,
 } from './internal/pg-versions.ts';
 
+// Search
+export type { SearchResult } from './internal/pg-search.ts';
+
+export {
+  APPLY_SEARCH_SCHEMA,
+  searchDocuments,
+} from './internal/pg-search.ts';
+
 // Folder storage
 export type { FolderRow } from './internal/folders.ts';
 

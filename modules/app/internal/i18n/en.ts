@@ -238,4 +238,37 @@ export const en: TranslationKeys = {
   'theme.light': 'Light',
   'theme.dark': 'Dark',
   'theme.system': 'System',
+
+  // Global search
+  'search.global': 'Search documents',
+  'search.placeholder': 'Search all documents...',
+  'search.noResults': 'No documents match your search.',
+  'search.searching': 'Searching...',
+  'search.resultCount': '{count} result(s) found',
+
+  // Mentions
+  'mentions.placeholder': 'Type a name...',
+  'mentions.noResults': 'No users found',
+
+  // Code block
+  'codeBlock.language': 'Language',
+  'codeBlock.copy': 'Copy',
+  'codeBlock.copied': 'Copied!',
+  'codeBlock.plainText': 'Plain text',
+
+  // Emoji
+  'toolbar.emoji': 'Emoji',
+  'emoji.search': 'Search emoji...',
+  'emoji.recent': 'Recently used',
+  'emoji.smileys': 'Smileys & Emotion',
+  'emoji.people': 'People & Body',
+  'emoji.animals': 'Animals & Nature',
+  'emoji.food': 'Food & Drink',
+  'emoji.activities': 'Activities',
+  'emoji.travel': 'Travel & Places',
+  'emoji.objects': 'Objects',
+  'emoji.symbols': 'Symbols',
+
+  // Drag handle
+  'dragHandle.tooltip': 'Drag to reorder',
 };

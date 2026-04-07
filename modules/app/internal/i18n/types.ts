@@ -240,6 +240,39 @@ export interface TranslationKeys {
   'theme.light': string;
   'theme.dark': string;
   'theme.system': string;
+
+  // Global search
+  'search.global': string;
+  'search.placeholder': string;
+  'search.noResults': string;
+  'search.searching': string;
+  'search.resultCount': string;
+
+  // Mentions
+  'mentions.placeholder': string;
+  'mentions.noResults': string;
+
+  // Code block
+  'codeBlock.language': string;
+  'codeBlock.copy': string;
+  'codeBlock.copied': string;
+  'codeBlock.plainText': string;
+
+  // Emoji
+  'toolbar.emoji': string;
+  'emoji.search': string;
+  'emoji.recent': string;
+  'emoji.smileys': string;
+  'emoji.people': string;
+  'emoji.animals': string;
+  'emoji.food': string;
+  'emoji.activities': string;
+  'emoji.travel': string;
+  'emoji.objects': string;
+  'emoji.symbols': string;
+
+  // Drag handle
+  'dragHandle.tooltip': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;

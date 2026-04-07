@@ -38,6 +38,7 @@ function buildToolbarButtons(editor: Editor): ToolbarButton[] {
     { key: null, action: () => false },
     { key: 'table.insert', ariaKey: 'a11y.tableLabel', action: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
     { key: 'toolbar.image', ariaKey: 'a11y.imageLabel', action: () => { openImagePicker(editor); return true; } },
+    { key: 'toolbar.emoji', action: () => { document.dispatchEvent(new CustomEvent('opendesk:open-emoji')); return true; } },
     { key: null, action: () => false },
     { key: 'toolbar.find', ariaKey: 'a11y.findLabel', action: () => { document.dispatchEvent(new CustomEvent('opendesk:open-search')); return true; } },
     { key: 'toolbar.comment', ariaKey: 'a11y.commentLabel', action: () => { document.dispatchEvent(new CustomEvent('opendesk:add-comment')); return true; } },

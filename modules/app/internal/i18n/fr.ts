@@ -243,4 +243,37 @@ export const fr: TranslationKeys = {
   'theme.light': 'Clair',
   'theme.dark': 'Sombre',
   'theme.system': 'Syst\u00e8me',
+
+  // Recherche globale
+  'search.global': 'Rechercher des documents',
+  'search.placeholder': 'Rechercher dans tous les documents...',
+  'search.noResults': 'Aucun document ne correspond \u00e0 votre recherche.',
+  'search.searching': 'Recherche en cours...',
+  'search.resultCount': '{count} r\u00e9sultat(s) trouv\u00e9(s)',
+
+  // Mentions
+  'mentions.placeholder': 'Saisir un nom...',
+  'mentions.noResults': 'Aucun utilisateur trouv\u00e9',
+
+  // Bloc de code
+  'codeBlock.language': 'Langage',
+  'codeBlock.copy': 'Copier',
+  'codeBlock.copied': 'Copié !',
+  'codeBlock.plainText': 'Texte brut',
+
+  // Emoji
+  'toolbar.emoji': 'Emoji',
+  'emoji.search': 'Rechercher un emoji...',
+  'emoji.recent': 'Utilis\u00e9s r\u00e9cemment',
+  'emoji.smileys': 'Sourires et \u00e9motions',
+  'emoji.people': 'Personnes et corps',
+  'emoji.animals': 'Animaux et nature',
+  'emoji.food': 'Nourriture et boissons',
+  'emoji.activities': 'Activit\u00e9s',
+  'emoji.travel': 'Voyages et lieux',
+  'emoji.objects': 'Objets',
+  'emoji.symbols': 'Symboles',
+
+  // Poign\u00e9e de glissement
+  'dragHandle.tooltip': 'Glisser pour r\u00e9ordonner',
 };
