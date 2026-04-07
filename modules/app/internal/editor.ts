@@ -35,6 +35,7 @@ import { buildTocPanel, toggleTocPanel } from './toc/index.ts';
 import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts';
 import { buildStatusBar } from './status-bar.ts';
 import { buildThemeToggle } from './theme-toggle.ts';
+import { EmojiInputRule, openEmojiPicker } from './emoji/index.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -127,6 +128,7 @@ function init() {
       CommentMark,
       SuggestionInsertMark,
       SuggestionDeleteMark,
+      EmojiInputRule,
       Collaboration.configure({ document: ydoc }),
       CollaborationCursor.configure({ provider, user: { name: user.name, color: user.color } }),
     ],
@@ -145,6 +147,12 @@ function init() {
   buildThemeToggle();
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
+
+  // Emoji picker — triggered from toolbar button
+  document.addEventListener('opendesk:open-emoji', () => {
+    const emojiBtn = document.querySelector('[data-i18n-key="toolbar.emoji"]') as HTMLElement | null;
+    if (emojiBtn) openEmojiPicker(editor, emojiBtn);
+  });
 
   // Status bar (word count & stats)
   const editorWrapper = editorEl.closest('.editor-wrapper');

@@ -243,4 +243,17 @@ export const fr: TranslationKeys = {
   'theme.light': 'Clair',
   'theme.dark': 'Sombre',
   'theme.system': 'Syst\u00e8me',
+
+  // Emoji
+  'toolbar.emoji': 'Emoji',
+  'emoji.search': 'Rechercher un emoji...',
+  'emoji.recent': 'Utilis\u00e9s r\u00e9cemment',
+  'emoji.smileys': 'Sourires et \u00e9motions',
+  'emoji.people': 'Personnes et corps',
+  'emoji.animals': 'Animaux et nature',
+  'emoji.food': 'Nourriture et boissons',
+  'emoji.activities': 'Activit\u00e9s',
+  'emoji.travel': 'Voyages et lieux',
+  'emoji.objects': 'Objets',
+  'emoji.symbols': 'Symboles',
 };
