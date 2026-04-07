@@ -243,4 +243,7 @@ export const fr: TranslationKeys = {
   'theme.light': 'Clair',
   'theme.dark': 'Sombre',
   'theme.system': 'Syst\u00e8me',
+
+  // Poign\u00e9e de glissement
+  'dragHandle.tooltip': 'Glisser pour r\u00e9ordonner',
 };

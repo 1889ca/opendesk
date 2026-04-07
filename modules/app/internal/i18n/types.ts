@@ -240,6 +240,9 @@ export interface TranslationKeys {
   'theme.light': string;
   'theme.dark': string;
   'theme.system': string;
+
+  // Drag handle
+  'dragHandle.tooltip': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;

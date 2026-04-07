@@ -238,4 +238,7 @@ export const en: TranslationKeys = {
   'theme.light': 'Light',
   'theme.dark': 'Dark',
   'theme.system': 'System',
+
+  // Drag handle
+  'dragHandle.tooltip': 'Drag to reorder',
 };
