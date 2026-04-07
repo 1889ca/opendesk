@@ -3,11 +3,7 @@
 import type { Editor } from '@tiptap/core';
 import { t } from './i18n/index.ts';
 import { uploadImage, validateImageFile, extractImageFiles } from './image-upload.ts';
-
-function getDocumentId(): string {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('doc') || 'default';
-}
+import { getDocumentId } from './identity.ts';
 
 /** Open a native file picker and insert the chosen image. */
 export function openImagePicker(editor: Editor): void {

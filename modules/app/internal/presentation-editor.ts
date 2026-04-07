@@ -1,27 +1,7 @@
 /** Contract: contracts/app/rules.md */
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
-
-function getDocumentId() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('doc') || 'default';
-}
-
-function getUserIdentity() {
-  let name = localStorage.getItem('opendesk:userName');
-  let color = localStorage.getItem('opendesk:userColor');
-  if (!name) {
-    const names = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank'];
-    name = names[Math.floor(Math.random() * names.length)];
-    localStorage.setItem('opendesk:userName', name);
-  }
-  if (!color) {
-    const colors = ['#958DF1', '#F98181', '#FBBC88', '#FAF594', '#70CFF8', '#94FADB'];
-    color = colors[Math.floor(Math.random() * colors.length)];
-    localStorage.setItem('opendesk:userColor', color);
-  }
-  return { name, color };
-}
+import { getUserIdentity, getDocumentId } from './identity.ts';
 
 function generateId(): string {
   return crypto.randomUUID();

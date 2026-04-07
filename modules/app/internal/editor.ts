@@ -26,31 +26,7 @@ import { buildThemeToggle } from './theme-toggle.ts';
 import { openEmojiPicker } from './emoji/index.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
 import { buildEditorExtensions } from './editor-extensions.ts';
-
-const COLORS = [
-  '#958DF1', '#F98181', '#FBBC88', '#FAF594',
-  '#70CFF8', '#94FADB', '#B9F18D', '#C3E2C2',
-];
-
-function getUserIdentity() {
-  let name = localStorage.getItem('opendesk:userName');
-  let color = localStorage.getItem('opendesk:userColor');
-  if (!name) {
-    const defaultNames = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Hank'];
-    name = defaultNames[Math.floor(Math.random() * defaultNames.length)];
-    localStorage.setItem('opendesk:userName', name);
-  }
-  if (!color) {
-    color = COLORS[Math.floor(Math.random() * COLORS.length)];
-    localStorage.setItem('opendesk:userColor', color);
-  }
-  return { name, color };
-}
-
-function getDocumentId() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('doc') || 'default';
-}
+import { getUserIdentity, getDocumentId } from './identity.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
