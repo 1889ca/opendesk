@@ -194,6 +194,12 @@ export interface TranslationKeys {
   // Mobile / overflow
   'toolbar.moreOptions': string;
   'comments.dismissSheet': string;
+
+  // Theme
+  'toolbar.theme': string;
+  'theme.light': string;
+  'theme.dark': string;
+  'theme.system': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;

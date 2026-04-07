@@ -31,6 +31,7 @@ import {
 import { bindShortcutDialogKey } from './shortcut-dialog.ts';
 import { announce } from './a11y-announcer.ts';
 import { initTouchSupport } from './touch-support.ts';
+import { buildThemeToggle } from './theme-toggle.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -138,6 +139,7 @@ function init() {
   buildTableToolbar(editor);
   buildSearchPanel(editor);
   buildLanguageSwitcher();
+  buildThemeToggle();
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
 

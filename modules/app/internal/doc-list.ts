@@ -3,6 +3,7 @@
 import { createDocumentFromTemplate } from './template-picker.ts';
 import { t } from './i18n/index.ts';
 import { formatRelativeTime } from './time-format.ts';
+import { initTheme } from './theme-toggle.ts';
 
 interface DocEntry {
   id: string;
@@ -70,6 +71,7 @@ function loadDocuments(listEl: HTMLElement) {
 }
 
 function init() {
+  initTheme();
   const listEl = document.getElementById('doc-list');
   const newBtn = document.getElementById('new-doc-btn');
   if (!listEl || !newBtn) return;

@@ -192,4 +192,10 @@ export const en: TranslationKeys = {
   // Mobile / overflow
   'toolbar.moreOptions': 'More options',
   'comments.dismissSheet': 'Dismiss comments',
+
+  // Theme
+  'toolbar.theme': 'Theme',
+  'theme.light': 'Light',
+  'theme.dark': 'Dark',
+  'theme.system': 'System',
 };

@@ -194,7 +194,13 @@ export const fr: TranslationKeys = {
   'pdf.title': 'Exporter en PDF',
   'pageBreak.title': 'Insérer un saut de page',
 
-  // Mobile / débordement
+  // Mobile / d\u00e9bordement
   'toolbar.moreOptions': 'Plus d\u2019options',
   'comments.dismissSheet': 'Fermer les commentaires',
+
+  // Th\u00e8me
+  'toolbar.theme': 'Th\u00e8me',
+  'theme.light': 'Clair',
+  'theme.dark': 'Sombre',
+  'theme.system': 'Syst\u00e8me',
 };
