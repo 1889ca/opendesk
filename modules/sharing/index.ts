@@ -40,5 +40,7 @@ export {
   type ShareLinkStore,
 } from './internal/store.ts';
 
+export { createPgShareLinkStore } from './internal/pg-store.ts';
+
 // Routes
 export { createShareRoutes } from './internal/routes.ts';

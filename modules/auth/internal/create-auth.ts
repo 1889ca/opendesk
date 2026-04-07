@@ -36,6 +36,9 @@ export function createAuth(deps: AuthDependencies): AuthModule {
   let apiKeyVerifier: ApiKeyVerifier;
 
   if (config.mode === 'dev') {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('AUTH_MODE=dev is not allowed when NODE_ENV=production');
+    }
     console.warn('[auth] Running in DEV mode — no real token verification');
     tokenVerifier = createDevTokenVerifier();
     apiKeyVerifier = createDevApiKeyVerifier();
