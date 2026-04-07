@@ -16,7 +16,7 @@ import {
   CollaboraError,
   ImportError,
 } from '../../convert/index.ts';
-import { getDocument } from '../../storage/internal/pg.ts';
+import { getDocument } from '../../storage/index.ts';
 import { asyncHandler } from './async-handler.ts';
 
 const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50 MB

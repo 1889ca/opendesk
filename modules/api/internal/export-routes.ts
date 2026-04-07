@@ -1,8 +1,8 @@
 /** Contract: contracts/api/rules.md */
 
 import { Router, type Request, type Response } from 'express';
-import { getDocument } from '../../storage/internal/pg.ts';
-import { getDocumentForExport } from '../../convert/internal/converter.ts';
+import { getDocument } from '../../storage/index.ts';
+import { getDocumentForExport } from '../../convert/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from './async-handler.ts';
 

@@ -14,7 +14,7 @@ import { randomUUID } from 'node:crypto';
 import type { ExportFormat, ConversionResult } from '../contract.ts';
 import { EventType, type DomainEvent, type EventBus } from '../../events/contract.ts';
 import { convertFile } from './libreoffice.ts';
-import { getDocument } from '../../storage/internal/pg.ts';
+import { getDocument } from '../../storage/index.ts';
 
 const FLUSH_TIMEOUT_MS = parseInt(
   process.env.FLUSH_TIMEOUT_MS || '10000',

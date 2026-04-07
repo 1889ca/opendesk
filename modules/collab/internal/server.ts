@@ -4,7 +4,7 @@ import { WebSocketServer } from 'ws';
 import * as Y from 'yjs';
 import type { IncomingMessage } from 'node:http';
 import type { Duplex } from 'node:stream';
-import { saveYjsState, loadYjsState } from '../../storage/internal/pg.ts';
+import { saveYjsState, loadYjsState } from '../../storage/index.ts';
 import { CompactionManager } from './compaction-manager.ts';
 import { createOnAuthenticate } from './authenticate.ts';
 import type { CollabConfig } from '../contract.ts';

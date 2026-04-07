@@ -3,7 +3,7 @@ import { createServer } from 'node:http';
 import express, { type Request, type Response, type NextFunction } from 'express';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createCollabServer } from '../../collab/internal/server.ts';
+import { createCollabServer } from '../../collab/index.ts';
 import { getRedisClient, disconnectRedis } from './redis.ts';
 import { idempotencyMiddleware } from './idempotency.ts';
 import { createConvertRoutes } from './convert-routes.ts';

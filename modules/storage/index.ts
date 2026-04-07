@@ -14,3 +14,16 @@ export type {
   SaveYjsBinaryParams,
   DocumentRepository,
 } from './contract.ts';
+
+// Public API — database operations
+export {
+  listDocuments,
+  createDocument,
+  getDocument,
+  deleteDocument,
+  updateDocumentTitle,
+  saveYjsState,
+  loadYjsState,
+} from './internal/pg.ts';
+
+export type { DocumentRow } from './internal/pg.ts';

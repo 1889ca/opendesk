@@ -13,7 +13,7 @@ import {
   type ExportResult,
 } from './exporter.ts';
 import { contentToHtml } from './html-renderer.ts';
-import { getDocument } from '../../storage/internal/pg.ts';
+import { getDocument } from '../../storage/index.ts';
 
 export type { ExportResult };
 
