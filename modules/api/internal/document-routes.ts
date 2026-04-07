@@ -2,6 +2,7 @@
 
 import { Router, type Request, type Response } from 'express';
 import { randomUUID } from 'node:crypto';
+import { z } from 'zod';
 import {
   listDocuments,
   createDocument,
@@ -13,6 +14,18 @@ import {
 import type { PermissionsModule } from '../../permissions/index.ts';
 import type { CacheClient } from './redis.ts';
 import { asyncHandler } from './async-handler.ts';
+
+const CreateDocumentBody = z.object({
+  title: z.string().min(1).max(200).optional(),
+});
+
+const CreateDocumentQuery = z.object({
+  templateId: z.string().uuid().optional(),
+});
+
+const UpdateDocumentBody = z.object({
+  title: z.string().min(1).max(200),
+});
 
 export type DocumentRoutesOptions = {
   permissions: PermissionsModule;
@@ -36,11 +49,22 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   // Create document — requires auth, auto-grants owner role to creator
   // Accepts optional ?templateId= query param to pre-fill content from a template
   router.post('/', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
-    const title = req.body?.title || 'Untitled';
+    const bodyResult = CreateDocumentBody.safeParse(req.body ?? {});
+    if (!bodyResult.success) {
+      res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
+      return;
+    }
+    const queryResult = CreateDocumentQuery.safeParse(req.query);
+    if (!queryResult.success) {
+      res.status(400).json({ error: 'Validation failed', issues: queryResult.error.issues });
+      return;
+    }
+
+    const title = bodyResult.data.title || 'Untitled';
     const id = randomUUID();
 
     // If a templateId is provided, fetch the template content
-    const templateId = req.query.templateId as string | undefined;
+    const templateId = queryResult.data.templateId;
     let templateContent: Record<string, unknown> | null = null;
     if (templateId) {
       const template = await getTemplate(templateId);
@@ -78,11 +102,12 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
 
   // Update document title — requires write permission
   router.patch('/:id', permissions.require('write'), asyncHandler(async (req: Request, res: Response) => {
-    const { title } = req.body;
-    if (!title) {
-      res.status(400).json({ error: 'title is required' });
+    const bodyResult = UpdateDocumentBody.safeParse(req.body);
+    if (!bodyResult.success) {
+      res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
       return;
     }
+    const { title } = bodyResult.data;
     await updateDocumentTitle(String(req.params.id), title);
     res.json({ ok: true });
   }));
