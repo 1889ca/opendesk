@@ -196,6 +196,10 @@ export interface TranslationKeys {
   'shortcuts.undo': string;
   'shortcuts.redo': string;
   'shortcuts.showShortcuts': string;
+
+  // Mobile / overflow
+  'toolbar.moreOptions': string;
+  'comments.dismissSheet': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;

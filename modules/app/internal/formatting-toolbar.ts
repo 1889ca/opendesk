@@ -2,6 +2,7 @@
 import type { Editor } from '@tiptap/core';
 import { t, onLocaleChange, type TranslationKey } from './i18n/index.ts';
 import { openImagePicker } from './image-handlers.ts';
+import { setupToolbarOverflow } from './toolbar-overflow.ts';
 import { printDocument, exportPdf } from './print-utils.ts';
 import './page-break.ts';
 
@@ -56,6 +57,7 @@ function renderToolbarButtons(
     const btn = document.createElement('button');
     btn.className = 'toolbar-btn';
     btn.textContent = t(key);
+    btn.setAttribute('data-i18n-key', key);
     btn.addEventListener('click', (e) => { e.preventDefault(); action(); });
     toolbar.appendChild(btn);
 
@@ -80,4 +82,5 @@ export function buildFormattingToolbar(editor: Editor): void {
 
   render();
   onLocaleChange(render);
+  setupToolbarOverflow(toolbar);
 }

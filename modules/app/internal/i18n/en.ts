@@ -193,4 +193,8 @@ export const en: TranslationKeys = {
   'print.title': 'Print document',
   'pdf.title': 'Export as PDF',
   'pageBreak.title': 'Insert page break',
+
+  // Mobile / overflow
+  'toolbar.moreOptions': 'More options',
+  'comments.dismissSheet': 'Dismiss comments',
 };
