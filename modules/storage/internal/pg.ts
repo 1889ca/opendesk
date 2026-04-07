@@ -5,13 +5,21 @@ export interface DocumentRow {
   id: string;
   title: string;
   yjs_state: Buffer | null;
+  folder_id: string | null;
   created_at: Date;
   updated_at: Date;
 }
 
-export async function listDocuments(): Promise<DocumentRow[]> {
+export async function listDocuments(folderId?: string | null): Promise<DocumentRow[]> {
+  if (folderId) {
+    const result = await pool.query<DocumentRow>(
+      'SELECT id, title, folder_id, created_at, updated_at FROM documents WHERE folder_id = $1 ORDER BY updated_at DESC',
+      [folderId],
+    );
+    return result.rows;
+  }
   const result = await pool.query<DocumentRow>(
-    'SELECT id, title, created_at, updated_at FROM documents ORDER BY updated_at DESC'
+    'SELECT id, title, folder_id, created_at, updated_at FROM documents WHERE folder_id IS NULL ORDER BY updated_at DESC',
   );
   return result.rows;
 }
@@ -62,4 +70,3 @@ export async function updateDocumentTitle(id: string, title: string): Promise<vo
     [title, id]
   );
 }
-

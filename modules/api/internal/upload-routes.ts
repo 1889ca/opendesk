@@ -3,9 +3,14 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { randomUUID } from 'node:crypto';
+import { z } from 'zod';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3, s3Bucket } from './s3-client.ts';
 import { asyncHandler } from './async-handler.ts';
+
+const UploadBody = z.object({
+  documentId: z.string().regex(/^[0-9a-f-]+$/i).optional().default('general'),
+});
 
 const ALLOWED_TYPES = new Set([
   'image/png',
@@ -51,7 +56,13 @@ export function createUploadRoutes(): Router {
         return;
       }
 
-      const documentId = (req.body?.documentId as string) || 'general';
+      const bodyResult = UploadBody.safeParse(req.body ?? {});
+      if (!bodyResult.success) {
+        res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
+        return;
+      }
+      const { documentId } = bodyResult.data;
+
       const ext = extFromMime(file.mimetype);
       const uuid = randomUUID();
       const key = `uploads/${documentId}/${uuid}.${ext}`;

@@ -42,6 +42,11 @@ export function createAdminRoutes(opts: AdminRoutesOptions): Router {
     '/users/:id/data',
     permissions.requireAuth,
     asyncHandler(async (req: Request, res: Response) => {
+      if (req.principal?.id !== req.params.id) {
+        res.status(403).json({ error: 'Can only purge your own data' });
+        return;
+      }
+
       const userId = String(req.params.id);
       const action = (req.query.action as string) || 'delete';
       const transferTo = req.query.transferTo as string | undefined;

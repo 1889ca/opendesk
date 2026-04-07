@@ -1,3 +1,4 @@
+/** Contract: contracts/api/rules.md */
 /** Shared test helpers for api module tests. */
 import type { Request, Response } from 'express';
 import type { CacheClient } from './redis.ts';

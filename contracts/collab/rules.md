@@ -117,6 +117,14 @@ Broadcasts cursor positions and user presence metadata over the Yjs awareness ch
 - Compaction MUST run in a `worker_threads` thread. Running compaction on the main thread is a contract violation.
 - Compaction MUST NOT alter the logical document state. The Yjs document before and after compaction MUST produce identical `DocumentSnapshot` output.
 
+### Purge Compaction (distinct from regular compaction)
+
+Purge compaction is a separate operation documented in `contracts/collab/purge.md`. Key distinctions:
+- **Runs on main thread** (intentional — infrequent admin operation, not routine)
+- Creates a brand-new Yjs Doc with fresh client ID, destroying all CRDT history and tombstones
+- Used for GDPR erasure and storage reclamation, NOT for routine size management
+- Known limitation: rich text formatting is lost during extraction (plain text preserved)
+
 ### Crash Recovery
 
 - The operation journal MUST contain sufficient state to reconstruct any document to its last-persisted state vector.
@@ -201,6 +209,7 @@ Implemented:
 - [x] Server-only module (no browser-compatible exports)
 - [x] No per-keystroke Zod validation
 - [x] Single-node Hocuspocus (no multi-node coordination)
+- [x] Purge compaction — main-thread history erasure (see `contracts/collab/purge.md`)
 
 Post-MVP (deferred):
 - [ ] IntentExecutor subsystem (OCC-based agent intent application) — required for agent writes

@@ -35,6 +35,11 @@ function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+/** Check for potentially catastrophic regex patterns (nested quantifiers). */
+function hasNestedQuantifiers(pattern: string): boolean {
+  return /\([^)]*[+*]\)[+*?]/.test(pattern);
+}
+
 /** Build a regex from the search state. */
 function buildSearchRegex(search: SearchState): RegExp | null {
   if (!search.searchTerm) return null;
@@ -44,6 +49,11 @@ function buildSearchRegex(search: SearchState): RegExp | null {
     const pattern = search.useRegex
       ? search.searchTerm
       : escapeRegex(search.searchTerm);
+
+    if (search.useRegex && hasNestedQuantifiers(pattern)) {
+      return null;
+    }
+
     return new RegExp(pattern, flags);
   } catch {
     return null;

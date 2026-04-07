@@ -1,11 +1,14 @@
 /** Contract: contracts/storage/rules.md */
 import pg from 'pg';
+import { loadConfig } from '../../config/index.ts';
+
+const pgConfig = loadConfig().postgres;
 
 export const pool = new pg.Pool({
-  host: process.env.PG_HOST || 'localhost',
-  port: parseInt(process.env.PG_PORT || '5433', 10),
-  database: process.env.PG_DATABASE || 'opendesk',
-  user: process.env.PG_USER || 'opendesk',
-  password: process.env.PG_PASSWORD || 'opendesk_dev',
-  max: 10,
+  host: pgConfig.host,
+  port: pgConfig.port,
+  database: pgConfig.database,
+  user: pgConfig.user,
+  password: pgConfig.password,
+  max: pgConfig.maxConnections,
 });

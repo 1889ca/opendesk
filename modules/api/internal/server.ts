@@ -15,10 +15,22 @@ import { createAdminRoutes } from './admin-routes.ts';
 import { createUploadRoutes } from './upload-routes.ts';
 import { createFileRoutes } from './file-routes.ts';
 import { createTemplateRoutes } from './template-routes.ts';
+import { createVersionRoutes } from './version-routes.ts';
+import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts';
+import { createSearchRoutes } from './search-routes.ts';
+import { pool } from '../../storage/internal/pool.ts';
+import { initSchema } from '../../storage/internal/schema.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export function startServer(port = 3000) {
+export async function startServer(port = 3000) {
+  try {
+    await initSchema();
+    console.log('[opendesk] database schema initialized');
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[opendesk] schema init failed: ${msg} — continuing anyway`);
+  }
   const app = express();
 
   // Wire auth module (dev mode uses bypass verifiers)
@@ -29,11 +41,11 @@ export function startServer(port = 3000) {
       findServiceAccountById: async () => null,
       revokeServiceAccount: async () => {},
     },
-    publicPaths: ['/api/health'],
+    publicPaths: ['/health'],
   });
 
   // Wire collab server with auth dependency
-  const { handleUpgrade } = createCollabServer({
+  const { handleUpgrade, hocuspocus } = createCollabServer({
     tokenVerifier: auth.tokenVerifier,
   });
 
@@ -57,18 +69,35 @@ export function startServer(port = 3000) {
   app.use(createConvertRoutes());
 
   // Health check (public, skipped by auth middleware)
-  app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', version: '0.1.0' });
+  app.get('/api/health', async (_req, res) => {
+    try {
+      await pool.query('SELECT 1');
+      res.json({ status: 'ok', version: '0.1.0' });
+    } catch {
+      res.status(503).json({ status: 'unhealthy' });
+    }
   });
+
+  // Search must be mounted before document CRUD so /search is matched before /:id
+  app.use('/api/documents', createSearchRoutes({ permissions }));
 
   // Document CRUD with permission checks
   app.use('/api/documents', createDocumentRoutes({ permissions, cache: redisClient }));
 
+  // Version history routes (hocuspocus needed to invalidate sessions on restore)
+  app.use('/api/documents/:id/versions', createVersionRoutes({ permissions, hocuspocus }));
+
+  // Move document to folder
+  app.use('/api/documents', createMoveDocumentRoute({ permissions }));
+
+  // Folder CRUD
+  app.use('/api/folders', createFolderRoutes({ permissions }));
+
   // Export/import routes with permission checks
   app.use('/api/documents', createExportRoutes({ permissions }));
 
-  // Template CRUD routes (no auth check for now)
-  app.use('/api/templates', createTemplateRoutes());
+  // Template CRUD routes
+  app.use('/api/templates', createTemplateRoutes({ permissions }));
 
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));

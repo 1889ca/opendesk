@@ -1,0 +1,160 @@
+/* Editor content — ProseMirror rendered content styles */
+
+.editor-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+  transition: margin-right 0.2s ease;
+}
+
+body:has(.comment-sidebar-open) .editor-wrapper {
+  margin-right: 320px;
+}
+
+#editor {
+  width: 100%;
+  max-width: 48rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px var(--shadow-color);
+  min-height: 60vh;
+}
+
+.editor-content {
+  padding: 2rem;
+  outline: none;
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+.editor-content > *:first-child {
+  margin-top: 0;
+}
+
+.editor-content h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.editor-content h2 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.editor-content h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+}
+
+.editor-content p {
+  margin: 0.5rem 0;
+}
+
+.editor-content ul,
+.editor-content ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.editor-content li {
+  margin: 0.25rem 0;
+}
+
+.editor-content blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+  margin: 0.75rem 0;
+  color: var(--text-muted);
+}
+
+.editor-content code {
+  background: var(--bg);
+  padding: 0.15rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.875em;
+  font-family: 'SF Mono', Menlo, monospace;
+}
+
+.editor-content pre {
+  background: var(--code-block-bg);
+  color: var(--code-block-text);
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+
+.editor-content pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+.editor-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5rem 0;
+}
+
+/* Images in editor */
+.editor-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1rem auto;
+  border-radius: 6px;
+  cursor: default;
+  transition: outline 0.15s;
+}
+
+.editor-content img.ProseMirror-selectednode {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.editor-content img:hover {
+  outline: 1px solid var(--border);
+  outline-offset: 2px;
+}
+
+.editor-content img[width] {
+  max-width: 100%;
+}
+
+/* Image toolbar button styling */
+.toolbar-btn[data-image-btn] {
+  position: relative;
+}
+
+/* Collaboration cursors */
+.collaboration-cursor__caret {
+  border-left: 2px solid;
+  border-right: none;
+  margin-left: -1px;
+  margin-right: -1px;
+  pointer-events: none;
+  position: relative;
+  word-break: normal;
+}
+
+.collaboration-cursor__label {
+  position: absolute;
+  top: -1.4em;
+  left: -1px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px 3px 3px 0;
+  color: #fff;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+}

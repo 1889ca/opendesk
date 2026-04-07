@@ -4,7 +4,37 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenDesk</title>
+  <link rel="stylesheet" href="theme.css">
+  <script>
+    // Apply stored theme immediately to prevent flash of wrong theme
+    (function() {
+      var stored = localStorage.getItem('opendesk-theme');
+      var theme = stored === 'dark' ? 'dark'
+        : stored === 'light' ? 'light'
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="toolbar.css">
+  <link rel="stylesheet" href="editor-content.css">
+  <link rel="stylesheet" href="tables.css">
+  <link rel="stylesheet" href="search-panel.css">
+  <link rel="stylesheet" href="templates.css">
+  <link rel="stylesheet" href="folders.css">
+  <link rel="stylesheet" href="global-search.css">
+  <link rel="stylesheet" href="comments.css">
+  <link rel="stylesheet" href="suggestions.css">
+  <link rel="stylesheet" href="a11y.css">
+  <link rel="stylesheet" href="toc.css">
+  <link rel="stylesheet" href="status-bar.css">
+  <link rel="stylesheet" href="versions.css">
+  <link rel="stylesheet" href="mentions.css">
+  <link rel="stylesheet" href="drag-handle.css">
+  <link rel="stylesheet" href="mobile.css">
+  <link rel="stylesheet" href="code-block.css">
+  <link rel="stylesheet" href="emoji.css">
+  <link rel="stylesheet" href="print.css">
 </head>
 <body>
   <header class="toolbar">
@@ -33,7 +63,7 @@
     </div>
   </header>
   <div id="formatting-toolbar" class="formatting-toolbar"></div>
-  <main class="editor-wrapper">
+  <main class="editor-wrapper" role="main" aria-label="Document editor">
     <div id="editor"></div>
   </main>
 
@@ -48,7 +78,10 @@
 
       var titleInput = document.getElementById('doc-title');
 
-      fetch('/api/documents/' + encodeURIComponent(docId))
+      var authToken = localStorage.getItem('opendesk-auth-token') || 'dev';
+      var authHeaders = { 'Authorization': 'Bearer ' + authToken };
+
+      fetch('/api/documents/' + encodeURIComponent(docId), { headers: authHeaders })
         .then(function (res) {
           if (!res.ok) throw new Error('Not found');
           return res.json();
@@ -77,7 +110,7 @@
         document.title = newTitle + ' - OpenDesk';
         fetch('/api/documents/' + encodeURIComponent(docId), {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders),
           body: JSON.stringify({ title: newTitle })
         }).catch(function (err) { console.error('Title save failed', err); });
       }

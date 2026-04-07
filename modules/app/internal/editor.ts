@@ -1,32 +1,31 @@
 /** Contract: contracts/app/rules.md */
 import { Editor } from '@tiptap/core';
-import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
-import Collaboration from '@tiptap/extension-collaboration';
-import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
-import { Table } from '@tiptap/extension-table';
-import { TableRow } from '@tiptap/extension-table-row';
-import { TableCell } from '@tiptap/extension-table-cell';
-import { TableHeader } from '@tiptap/extension-table-header';
-import { t, setLocale, resolveLocale, persistLocale, onLocaleChange } from './i18n/index.ts';
+import { t, setLocale, getLocale, resolveLocale, persistLocale, onLocaleChange } from './i18n/index.ts';
 import { buildLanguageSwitcher, updateStaticText } from './locale-ui.ts';
 import { buildTableToolbar } from './table-toolbar.ts';
 import { setupImageHandlers } from './image-handlers.ts';
-import { SearchExtension } from './search/search-extension.ts';
 import { buildSearchPanel } from './search/search-panel.ts';
 import { buildFormattingToolbar } from './formatting-toolbar.ts';
-import { CommentMark, CommentStore, buildCommentSidebar, toggleSidebar, showCommentInput } from './comments/index.ts';
+import { CommentStore, buildCommentSidebar, toggleSidebar, showCommentInput } from './comments/index.ts';
 import {
-  SuggestionInsertMark,
-  SuggestionDeleteMark,
   setSuggestUser,
   createSuggestModePlugin,
   setupSuggestionClickHandler,
   buildSuggestionSidebar,
   toggleSuggestionSidebar,
 } from './suggestions/index.ts';
+import { bindShortcutDialogKey } from './shortcut-dialog.ts';
+import { announce } from './a11y-announcer.ts';
+import { initTouchSupport } from './touch-support.ts';
+import { buildTocPanel, toggleTocPanel } from './toc/index.ts';
+import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts';
+import { buildStatusBar } from './status-bar.ts';
+import { buildThemeToggle } from './theme-toggle.ts';
+import { openEmojiPicker } from './emoji/index.ts';
+import { setupCodeBlockUI } from './code-block-ui.ts';
+import { buildEditorExtensions } from './editor-extensions.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -53,17 +52,35 @@ function getDocumentId() {
   return params.get('doc') || 'default';
 }
 
+function updateHtmlLang(): void {
+  document.documentElement.lang = getLocale();
+}
+
+function addSkipLink(): void {
+  if (document.getElementById('skip-link')) return;
+  const link = document.createElement('a');
+  link.id = 'skip-link';
+  link.href = '#editor';
+  link.className = 'skip-to-content';
+  link.textContent = t('a11y.skipToContent');
+  document.body.insertBefore(link, document.body.firstChild);
+  onLocaleChange(() => { link.textContent = t('a11y.skipToContent'); });
+}
+
 function init() {
+  initTouchSupport();
+
   const locale = resolveLocale();
   setLocale(locale);
   persistLocale(locale);
+  updateHtmlLang();
+  onLocaleChange(updateHtmlLang);
+  addSkipLink();
 
   const editorEl = document.getElementById('editor');
   if (!editorEl) return;
-
   const documentId = getDocumentId();
   const user = getUserIdentity();
-
   const statusEl = document.getElementById('status');
   const usersEl = document.getElementById('users');
 
@@ -72,80 +89,72 @@ function init() {
 
   const ydoc = new Y.Doc();
   const commentStore = new CommentStore(ydoc);
-
   const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/collab`;
   const provider = new HocuspocusProvider({
-    url: wsUrl,
-    name: documentId,
-    document: ydoc,
+    url: wsUrl, name: documentId, document: ydoc, token: 'dev',
     onConnect() {
-      if (statusEl) {
-        statusEl.textContent = t('status.connected');
-        statusEl.className = 'status connected';
-      }
+      if (statusEl) { statusEl.textContent = t('status.connected'); statusEl.className = 'status connected'; }
     },
     onDisconnect() {
-      if (statusEl) {
-        statusEl.textContent = t('status.disconnected');
-        statusEl.className = 'status disconnected';
-      }
+      if (statusEl) { statusEl.textContent = t('status.disconnected'); statusEl.className = 'status disconnected'; }
     },
   });
 
   const editor = new Editor({
     element: editorEl,
-    extensions: [
-      StarterKit.configure({ undoRedo: false }),
-      Table.configure({ resizable: true }),
-      TableRow,
-      TableCell,
-      TableHeader,
-      Image.configure({
-        inline: false,
-        allowBase64: false,
-        resize: { enabled: true, minWidth: 100, minHeight: 50 },
-      }),
-      SearchExtension,
-      CommentMark,
-      SuggestionInsertMark,
-      SuggestionDeleteMark,
-      Collaboration.configure({ document: ydoc }),
-      CollaborationCursor.configure({
-        provider,
-        user: { name: user.name, color: user.color },
-      }),
-    ],
-    editorProps: {
-      attributes: { class: 'editor-content' },
-    },
+    extensions: buildEditorExtensions({ ydoc, provider, user }),
+    editorProps: { attributes: { class: 'editor-content' } },
   });
 
-  // Suggestion mode setup
+
   setSuggestUser(() => user);
   editor.registerPlugin(createSuggestModePlugin(editor));
   setupSuggestionClickHandler(editor);
 
+  setupCodeBlockUI(editor);
   buildFormattingToolbar(editor);
   buildTableToolbar(editor);
   buildSearchPanel(editor);
   buildLanguageSwitcher();
+  buildThemeToggle();
   setupImageHandlers(editor, editorEl);
+  bindShortcutDialogKey();
 
-  // Comment sidebar
+  document.addEventListener('opendesk:open-emoji', () => {
+    const emojiBtn = document.querySelector('[data-i18n-key="toolbar.emoji"]') as HTMLElement | null;
+    if (emojiBtn) openEmojiPicker(editor, emojiBtn);
+  });
+
+  const editorWrapper = editorEl.closest('.editor-wrapper');
+  if (editorWrapper) {
+    editorWrapper.appendChild(buildStatusBar(editor));
+  }
+
   const commentSidebar = buildCommentSidebar(editor, commentStore, documentId, user);
   document.body.appendChild(commentSidebar);
 
-  // Suggestion sidebar
   const suggestionSidebar = buildSuggestionSidebar(editor);
   document.body.appendChild(suggestionSidebar);
 
-  // Listen for add-comment events (from toolbar button or Cmd+Shift+M)
+  const tocPanel = buildTocPanel(editor);
+  document.body.appendChild(tocPanel);
+  document.addEventListener('opendesk:toggle-toc', () => {
+    toggleTocPanel(tocPanel);
+  });
+
+  const versionSidebar = buildVersionSidebar();
+  document.body.appendChild(versionSidebar);
+  document.addEventListener('opendesk:toggle-versions', () => {
+    toggleVersionSidebar(versionSidebar);
+  });
+
   document.addEventListener('opendesk:add-comment', () => {
     showCommentInput(editor, commentStore, documentId, user);
     toggleSidebar(commentSidebar, true);
+    announce(t('a11y.commentAdded'));
   });
 
-  // Listen for suggestion sidebar toggle
+
   document.addEventListener('opendesk:toggle-suggestions', () => {
     toggleSuggestionSidebar(suggestionSidebar);
   });
@@ -161,7 +170,6 @@ function init() {
   }
   provider.awareness?.on('change', updateUsers);
   updateUsers();
-
   Object.assign(window, { editor, provider, ydoc, commentStore });
 }
 
