@@ -270,6 +270,9 @@ export interface TranslationKeys {
   'emoji.travel': string;
   'emoji.objects': string;
   'emoji.symbols': string;
+
+  // Drag handle
+  'dragHandle.tooltip': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;

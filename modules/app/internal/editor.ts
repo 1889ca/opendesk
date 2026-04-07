@@ -40,6 +40,7 @@ import { buildThemeToggle } from './theme-toggle.ts';
 import { createMentionExtension } from './mentions/index.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
 import { EmojiInputRule, openEmojiPicker } from './emoji/index.ts';
+import { DragHandle } from './drag-handle/index.ts';
 
 const lowlight = createLowlight(common);
 
@@ -139,6 +140,7 @@ function init() {
       Collaboration.configure({ document: ydoc }),
       CollaborationCursor.configure({ provider, user: { name: user.name, color: user.color } }),
       createMentionExtension(provider),
+      DragHandle,
     ],
     editorProps: { attributes: { class: 'editor-content' } },
   });

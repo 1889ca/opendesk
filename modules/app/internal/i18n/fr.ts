@@ -273,4 +273,7 @@ export const fr: TranslationKeys = {
   'emoji.travel': 'Voyages et lieux',
   'emoji.objects': 'Objets',
   'emoji.symbols': 'Symboles',
+
+  // Poign\u00e9e de glissement
+  'dragHandle.tooltip': 'Glisser pour r\u00e9ordonner',
 };

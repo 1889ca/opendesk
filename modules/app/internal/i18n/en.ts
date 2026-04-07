@@ -268,4 +268,7 @@ export const en: TranslationKeys = {
   'emoji.travel': 'Travel & Places',
   'emoji.objects': 'Objects',
   'emoji.symbols': 'Symbols',
+
+  // Drag handle
+  'dragHandle.tooltip': 'Drag to reorder',
 };
