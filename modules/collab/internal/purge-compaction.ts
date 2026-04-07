@@ -66,8 +66,42 @@ export interface DocContentSnapshot {
 }
 
 /**
+ * Detect the shared type kind for a Yjs AbstractType loaded from binary state.
+ * After Y.applyUpdate, shared types are AbstractType instances (not Y.Text etc.),
+ * so instanceof checks fail. We inspect the internal structure instead:
+ * - _map.size > 0 → Map
+ * - _start with ContentString items → Text
+ * - _start with other items → Array
+ * - no content → empty (treat as Text, the most common default)
+ */
+function detectTypeKind(
+  type: Y.AbstractType<unknown>,
+): 'text' | 'map' | 'array' {
+  const abstractType = type as unknown as {
+    _map?: Map<string, unknown>;
+    _start?: { content?: { constructor?: { name?: string } }; right?: unknown } | null;
+  };
+
+  if (abstractType._map && abstractType._map.size > 0) {
+    return 'map';
+  }
+
+  let item = abstractType._start;
+  while (item) {
+    const contentName = item.content?.constructor?.name;
+    if (contentName === 'ContentString') return 'text';
+    if (contentName === 'ContentAny') return 'array';
+    item = item.right as typeof item;
+  }
+
+  // Default: treat as text (most common for empty shared types)
+  return 'text';
+}
+
+/**
  * Extract live content from all shared types in a Yjs document.
  * This captures the current state without any history or tombstones.
+ * Handles both directly created docs and docs loaded from binary state.
  */
 export function extractContent(doc: Y.Doc): DocContentSnapshot {
   const snapshot: DocContentSnapshot = {
@@ -77,18 +111,20 @@ export function extractContent(doc: Y.Doc): DocContentSnapshot {
     xmlFragments: [],
   };
 
-  // Iterate over all shared types in the document
   for (const [name, type] of doc.share.entries()) {
-    if (type instanceof Y.Text) {
-      snapshot.texts.push({ name, value: type.toString() });
-    } else if (type instanceof Y.Map) {
+    const kind = detectTypeKind(type as Y.AbstractType<unknown>);
+
+    if (kind === 'text') {
+      // Use getText() to get properly typed access
+      snapshot.texts.push({ name, value: doc.getText(name).toString() });
+    } else if (kind === 'map') {
+      const map = doc.getMap(name);
       const entries: Array<[string, unknown]> = [];
-      type.forEach((value, key) => entries.push([key, value]));
+      map.forEach((value, key) => entries.push([key, value]));
       snapshot.maps.push({ name, entries });
-    } else if (type instanceof Y.Array) {
-      snapshot.arrays.push({ name, items: type.toArray() });
-    } else if (type instanceof Y.XmlFragment) {
-      snapshot.xmlFragments.push({ name, xml: type.toString() });
+    } else {
+      const arr = doc.getArray(name);
+      snapshot.arrays.push({ name, items: arr.toArray() });
     }
   }
 
