@@ -56,6 +56,14 @@ export const fr: TranslationKeys = {
   'time.monthAgo': 'il y a 1 mois',
   'time.monthsAgo': 'il y a {n} mois',
 
+  // Images
+  'toolbar.image': 'Image',
+  'image.uploading': 'Envoi en cours...',
+  'image.uploadFailed': 'Échec de l\u2019envoi',
+  'image.tooLarge': 'Fichier trop volumineux (max 10 Mo)',
+  'image.unsupportedType': 'Type de fichier non pris en charge',
+  'image.insertTitle': 'Insérer une image',
+
   // Sélecteur de langue
   'lang.label': 'Langue',
   'lang.en': 'English',

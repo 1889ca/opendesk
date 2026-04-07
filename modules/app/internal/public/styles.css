@@ -447,3 +447,34 @@ body {
 .lang-select:focus {
   border-color: var(--accent);
 }
+
+/* Images in editor */
+.editor-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1rem auto;
+  border-radius: 6px;
+  cursor: default;
+  transition: outline 0.15s;
+}
+
+.editor-content img.ProseMirror-selectednode {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.editor-content img:hover {
+  outline: 1px solid var(--border);
+  outline-offset: 2px;
+}
+
+/* Image resize — TipTap images support width attribute */
+.editor-content img[width] {
+  max-width: 100%;
+}
+
+/* Image toolbar button styling */
+.toolbar-btn[data-image-btn] {
+  position: relative;
+}

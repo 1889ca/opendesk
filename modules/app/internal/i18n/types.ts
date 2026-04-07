@@ -59,6 +59,14 @@ export interface TranslationKeys {
   'time.monthAgo': string;
   'time.monthsAgo': string;
 
+  // Images
+  'toolbar.image': string;
+  'image.uploading': string;
+  'image.uploadFailed': string;
+  'image.tooLarge': string;
+  'image.unsupportedType': string;
+  'image.insertTitle': string;
+
   // Language switcher
   'lang.label': string;
   'lang.en': string;

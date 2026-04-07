@@ -11,6 +11,8 @@ import { createAuth } from '../../auth/index.ts';
 import { createPermissions } from '../../permissions/index.ts';
 import { createDocumentRoutes } from './document-routes.ts';
 import { createExportRoutes } from './export-routes.ts';
+import { createUploadRoutes } from './upload-routes.ts';
+import { createFileRoutes } from './file-routes.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -62,6 +64,10 @@ export function startServer(port = 3000) {
 
   // Export/import routes with permission checks
   app.use('/api/documents', createExportRoutes({ permissions }));
+
+  // File upload and serving routes — after auth
+  app.use('/api', createUploadRoutes());
+  app.use('/api', createFileRoutes());
 
   // Global error handler — must be registered LAST (after all routes)
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
