@@ -54,14 +54,15 @@ describe('share routes', () => {
     });
   });
 
-  describe('GET /api/share/:token', () => {
+  describe('POST /api/share/:token/resolve', () => {
     it('resolves a valid token', async () => {
       const createRes = await request(app)
         .post('/api/documents/doc-1/share')
         .send({ role: 'edit' });
 
       const res = await request(app)
-        .get(`/api/share/${createRes.body.token}`);
+        .post(`/api/share/${createRes.body.token}/resolve`)
+        .send({});
 
       expect(res.status).toBe(200);
       expect(res.body.grant.docId).toBe('doc-1');
@@ -70,7 +71,8 @@ describe('share routes', () => {
 
     it('returns 404 for invalid token', async () => {
       const res = await request(app)
-        .get('/api/share/nonexistent');
+        .post('/api/share/nonexistent/resolve')
+        .send({});
 
       expect(res.status).toBe(404);
       expect(res.body.error).toBe('not_found');
@@ -87,7 +89,8 @@ describe('share routes', () => {
       });
 
       const res = await request(app)
-        .get(`/api/share/${createRes.body.token}`);
+        .post(`/api/share/${createRes.body.token}/resolve`)
+        .send({});
 
       expect(res.status).toBe(410);
       expect(res.body.error).toBe('expired');
@@ -102,7 +105,8 @@ describe('share routes', () => {
         .delete(`/api/share/${createRes.body.token}`);
 
       const res = await request(app)
-        .get(`/api/share/${createRes.body.token}`);
+        .post(`/api/share/${createRes.body.token}/resolve`)
+        .send({});
 
       expect(res.status).toBe(410);
       expect(res.body.error).toBe('revoked');
@@ -114,7 +118,8 @@ describe('share routes', () => {
         .send({ role: 'view', options: { password: 'secret' } });
 
       const res = await request(app)
-        .get(`/api/share/${createRes.body.token}?password=wrong`);
+        .post(`/api/share/${createRes.body.token}/resolve`)
+        .send({ password: 'wrong' });
 
       expect(res.status).toBe(403);
       expect(res.body.error).toBe('wrong_password');
@@ -126,7 +131,8 @@ describe('share routes', () => {
         .send({ role: 'view', options: { password: 'secret' } });
 
       const res = await request(app)
-        .get(`/api/share/${createRes.body.token}?password=secret`);
+        .post(`/api/share/${createRes.body.token}/resolve`)
+        .send({ password: 'secret' });
 
       expect(res.status).toBe(200);
       expect(res.body.grant.role).toBe('view');

@@ -27,6 +27,7 @@
     "@tiptap/pm": "^3.22.2",
     "@tiptap/starter-kit": "^3.22.2",
     "@tiptap/y-tiptap": "^3.0.2",
+    "bcryptjs": "^3.0.3",
     "express": "^5.2.1",
     "ioredis": "^5.10.1",
     "jose": "^6.2.2",
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.6",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.20.0",
