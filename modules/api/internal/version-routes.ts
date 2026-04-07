@@ -3,6 +3,7 @@
 import { Router, type Request, type Response } from 'express';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
+import type { Hocuspocus } from '@hocuspocus/server';
 import {
   saveVersion,
   listVersions,
@@ -21,6 +22,7 @@ const CreateVersionBody = z.object({
 
 export type VersionRoutesOptions = {
   permissions: PermissionsModule;
+  hocuspocus: Hocuspocus;
 };
 
 /**
@@ -28,7 +30,7 @@ export type VersionRoutesOptions = {
  * Requires read permission to list/get, write to create/restore, delete to remove.
  */
 export function createVersionRoutes(opts: VersionRoutesOptions): Router {
-  const { permissions } = opts;
+  const { permissions, hocuspocus } = opts;
   const router = Router({ mergeParams: true });
 
   // List versions — requires read permission on the document
@@ -98,6 +100,11 @@ export function createVersionRoutes(opts: VersionRoutesOptions): Router {
       const state = new Uint8Array(Buffer.from(content.yjsBase64, 'base64'));
       await saveYjsState(version.document_id, state);
     }
+
+    // Force-disconnect all active WebSocket sessions for this document.
+    // Clients will reconnect and load the restored state from the DB.
+    const documentId = String(req.params.id);
+    hocuspocus.closeConnections(documentId);
 
     res.json({ ok: true, restoredVersion: version.version_number });
   }));
