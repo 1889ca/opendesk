@@ -43,6 +43,7 @@ export const CollaboraConfigSchema = z.object({
 export const ServerConfigSchema = z.object({
   port: z.coerce.number().int().positive().default(3000),
   nodeEnv: z.string().default('development'),
+  corsOrigins: z.array(z.string()).default([]),
 });
 
 export const AppConfigSchema = z.object({

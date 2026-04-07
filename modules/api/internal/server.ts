@@ -26,6 +26,7 @@ import {
 } from '../../sharing/index.ts';
 import { pool, initSchema } from '../../storage/index.ts';
 import { ensureS3Bucket } from './s3-client.ts';
+import { applySecurityMiddleware } from './security.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG_VERSION = JSON.parse(
@@ -47,6 +48,9 @@ export async function startServer(port = 3000) {
     console.warn(`[s3] bucket init failed: ${msg} — uploads may fail`);
   }
   const app = express();
+
+  // Security middleware (CORS, helmet, rate limiting) — must be first
+  applySecurityMiddleware(app);
 
   // Wire auth module (dev mode uses bypass verifiers)
   const auth = createAuth({
