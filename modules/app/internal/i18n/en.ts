@@ -201,7 +201,6 @@ export const en: TranslationKeys = {
   'stats.selected': '{selected} of {total} words selected',
   'stats.minRead': '< 1 min read',
 
-
   // Version history
   'versions.title': 'Version History',
   'versions.save': 'Save Version',

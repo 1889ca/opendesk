@@ -53,3 +53,16 @@ export {
   getVersion,
   deleteVersion as deleteVersionRecord,
 } from './internal/pg-versions.ts';
+
+// Folder storage
+export type { FolderRow } from './internal/folders.ts';
+
+export {
+  CREATE_FOLDERS_TABLE,
+  createFolder,
+  listFolders,
+  renameFolder,
+  getFolder,
+  deleteFolder,
+  moveDocument,
+} from './internal/folders.ts';

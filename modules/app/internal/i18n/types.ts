@@ -203,7 +203,6 @@ export interface TranslationKeys {
   'stats.selected': string;
   'stats.minRead': string;
 
-
   // Version history
   'versions.title': string;
   'versions.save': string;
