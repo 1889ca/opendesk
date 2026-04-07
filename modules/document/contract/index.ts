@@ -1,5 +1,17 @@
 /** Contract: contracts/document/rules.md */
 import { z } from 'zod';
+import {
+  TextDocumentSnapshotSchema,
+  TextIntentActionSchema,
+} from './text.ts';
+import {
+  SpreadsheetDocumentSnapshotSchema,
+  SpreadsheetIntentActionSchema,
+} from './spreadsheet.ts';
+import {
+  PresentationDocumentSnapshotSchema,
+  PresentationIntentActionSchema,
+} from './presentation.ts';
 
 // --- Re-export text types ---
 export {
@@ -82,19 +94,6 @@ export type {
 } from './presentation.ts';
 
 // --- Unified DocumentSnapshot ---
-
-import {
-  TextDocumentSnapshotSchema,
-  TextIntentActionSchema,
-} from './text.ts';
-import {
-  SpreadsheetDocumentSnapshotSchema,
-  SpreadsheetIntentActionSchema,
-} from './spreadsheet.ts';
-import {
-  PresentationDocumentSnapshotSchema,
-  PresentationIntentActionSchema,
-} from './presentation.ts';
 
 export const DocumentSnapshotSchema = z.discriminatedUnion('documentType', [
   TextDocumentSnapshotSchema,
