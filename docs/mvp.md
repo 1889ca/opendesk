@@ -165,6 +165,22 @@ Unified real-time dashboard for the entire stack's compliance posture. Transform
 
 *Milestones:* Unified telemetry pipeline -> Live compliance dashboard -> Anomaly detection -> Drill-down forensics.
 
+### Pillar 7: Reference & Citation Management
+
+Built-in reference library and citation system -- the Endnote/Zotero equivalent that no web-based editor provides natively. Google Docs forces users into third-party add-ons; Word's built-in system is limited. Academic, legal, medical, and policy users need citation management deeply integrated into the editing experience, not bolted on.
+
+This is uniquely strategic for a sovereign suite: your reference library lives on your infrastructure, not in a third-party cloud. For legal and compliance workflows, citation provenance is auditable. Combined with the AI pillar (Pillar 1), references can be suggested from local document corpora without leaking research to external services.
+
+*Milestones:*
+1. **Reference data model & storage** -- Per-workspace reference library stored in PostgreSQL. Support for standard metadata fields (author, title, date, journal, DOI, URL, etc.).
+2. **Import/export** -- BibTeX, RIS, Endnote XML import and export. DOI/ISBN lookup via CrossRef and OpenAlex APIs.
+3. **In-editor citation insertion** -- TipTap extension for inserting citations as inline marks. Footnote and endnote rendering modes. Citation picker UI with search.
+4. **Citation style formatting** -- Auto-format citations and bibliographies in standard styles (APA, MLA, Chicago, Bluebook, Vancouver). CSL (Citation Style Language) support for extensibility.
+5. **Auto-bibliography generation** -- Render a bibliography section from all cited references in the document. Update automatically as citations are added or removed.
+6. **Collaborative reference libraries** -- Shared reference collections at the workspace level. Multiple users can contribute to and cite from the same library.
+
+*Depends on:* Pillar 0 (editor must be solid). No hard dependency on other pillars, but benefits from Pillar 1 (AI-suggested citations from local corpus) and Pillar 2 (auditable citation provenance).
+
 ### Pillar Sequencing
 
 ```
@@ -185,6 +201,8 @@ Phase 0 (Complete)     Pillar 0 (Continuous)
         |
         v
   Pillar 5 (Federation) --- depends on nearly everything
+
+  Pillar 7 (References) --- independent, can start any time post-MVP
 ```
 
 Full dependency analysis: `decisions/2026-04-06-pillar-sequencing-deliberation.md`
