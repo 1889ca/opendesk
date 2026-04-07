@@ -22,6 +22,14 @@ export class InMemoryCache implements CacheClient {
     return 'OK';
   }
 
+  async del(...keys: string[]): Promise<number> {
+    let count = 0;
+    for (const key of keys) {
+      if (this.store.delete(key)) count++;
+    }
+    return count;
+  }
+
   async quit(): Promise<string> {
     this.store.clear();
     return 'OK';

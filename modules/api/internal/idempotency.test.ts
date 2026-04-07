@@ -154,6 +154,7 @@ describe('idempotencyMiddleware', () => {
     const failingCache: CacheClient = {
       get: async () => { throw new Error('connection lost'); },
       set: async () => 'OK',
+      del: async () => 0,
       quit: async () => 'OK',
       status: 'ready',
     };

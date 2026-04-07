@@ -26,6 +26,12 @@ export type GrantStore = {
 
   /** Find a grant by id. */
   findById(grantId: string): Promise<Grant | null>;
+
+  /** Find all grants for a principal (any resource). */
+  findByPrincipal(principalId: string): Promise<Grant[]>;
+
+  /** Delete all grants for a specific resource. Returns count of deleted grants. */
+  deleteByResource(resourceId: string, resourceType: string): Promise<number>;
 };
 
 /**
@@ -81,6 +87,27 @@ export function createInMemoryGrantStore(): GrantStore {
 
     async findById(grantId) {
       return grants.get(grantId) ?? null;
+    },
+
+    async findByPrincipal(principalId) {
+      const results: Grant[] = [];
+      for (const grant of grants.values()) {
+        if (grant.principalId === principalId) {
+          results.push(grant);
+        }
+      }
+      return results;
+    },
+
+    async deleteByResource(resourceId, resourceType) {
+      let count = 0;
+      for (const [id, grant] of grants.entries()) {
+        if (grant.resourceId === resourceId && grant.resourceType === resourceType) {
+          grants.delete(id);
+          count++;
+        }
+      }
+      return count;
     },
   };
 }

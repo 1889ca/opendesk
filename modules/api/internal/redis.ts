@@ -17,6 +17,7 @@ export interface RedisConfig {
 export interface CacheClient {
   get(key: string): Promise<string | null>;
   set(key: string, value: string, mode: 'EX', ttl: number): Promise<string | null>;
+  del(...keys: string[]): Promise<number>;
   quit(): Promise<string>;
   status: string;
 }
