@@ -5,8 +5,13 @@ import Collaboration from '@tiptap/extension-collaboration';
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
+import { Table } from '@tiptap/extension-table';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableCell } from '@tiptap/extension-table-cell';
+import { TableHeader } from '@tiptap/extension-table-header';
 import { t, setLocale, resolveLocale, persistLocale, onLocaleChange } from './i18n/index.ts';
 import { buildLanguageSwitcher, updateStaticText } from './locale-ui.ts';
+import { buildTableToolbar } from './table-toolbar.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -63,6 +68,8 @@ function buildToolbarButtons(editor: Editor) {
     { key: 'toolbar.blockquote' as const, action: () => editor.chain().focus().toggleBlockquote().run(), isActive: () => editor.isActive('blockquote') },
     { key: 'toolbar.codeBlock' as const, action: () => editor.chain().focus().toggleCodeBlock().run(), isActive: () => editor.isActive('codeBlock') },
     { key: 'toolbar.horizontalRule' as const, action: () => editor.chain().focus().setHorizontalRule().run() },
+    { key: null, action: () => false },
+    { key: 'table.insert' as const, action: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
   ];
 }
 
@@ -134,6 +141,10 @@ function init() {
     element: editorEl,
     extensions: [
       StarterKit.configure({ undoRedo: false }),
+      Table.configure({ resizable: true }),
+      TableRow,
+      TableCell,
+      TableHeader,
       Collaboration.configure({ document: ydoc }),
       CollaborationCursor.configure({
         provider,
@@ -148,6 +159,7 @@ function init() {
   // Awareness user info is set by CollaborationCursor extension
 
   buildToolbar(editor);
+  buildTableToolbar(editor);
   buildLanguageSwitcher();
 
   function updateUsers() {

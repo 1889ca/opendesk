@@ -56,6 +56,20 @@ export const en: TranslationKeys = {
   'time.monthAgo': '1 month ago',
   'time.monthsAgo': '{n} months ago',
 
+  // Table toolbar
+  'table.insert': 'Table',
+  'table.addRowBefore': '+ Row above',
+  'table.addRowAfter': '+ Row below',
+  'table.deleteRow': '- Row',
+  'table.addColumnBefore': '+ Col left',
+  'table.addColumnAfter': '+ Col right',
+  'table.deleteColumn': '- Col',
+  'table.mergeCells': 'Merge',
+  'table.splitCell': 'Split',
+  'table.toggleHeaderRow': 'Header row',
+  'table.toggleHeaderColumn': 'Header col',
+  'table.deleteTable': 'Delete table',
+
   // Language switcher
   'lang.label': 'Language',
   'lang.en': 'English',
