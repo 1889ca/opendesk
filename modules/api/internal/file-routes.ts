@@ -2,7 +2,7 @@
 
 import { Router } from 'express';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
-import { s3, s3Bucket } from './s3-client.ts';
+import { s3, getS3Bucket } from './s3-client.ts';
 import { asyncHandler } from './async-handler.ts';
 import type { Readable } from 'node:stream';
 import type { PermissionsModule } from '../../permissions/index.ts';
@@ -53,7 +53,7 @@ export function createFileRoutes(opts: FileRoutesOptions): Router {
 
       try {
         const response = await s3.send(
-          new GetObjectCommand({ Bucket: s3Bucket, Key: key }),
+          new GetObjectCommand({ Bucket: getS3Bucket(), Key: key }),
         );
 
         if (response.ContentType) {

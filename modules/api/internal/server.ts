@@ -149,7 +149,7 @@ export async function startServer(port = 3000) {
 
   // Global error handler — must be registered LAST (after all routes)
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-    console.error('[opendesk] unhandled error:', err.message);
+    console.error('[opendesk] unhandled error:', err.message || err.stack || err);
     res.status(500).json({ error: 'Internal server error' });
   });
 
