@@ -22,3 +22,7 @@ export {
 
 // Public API — collab server
 export { createCollabServer } from './internal/server.ts';
+
+// Public API — purge compaction
+export { purgeDocument } from './internal/purge-compaction.ts';
+export type { PurgeResult } from './internal/purge-compaction.ts';

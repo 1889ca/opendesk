@@ -11,6 +11,7 @@ import { createAuth } from '../../auth/index.ts';
 import { createPermissions } from '../../permissions/index.ts';
 import { createDocumentRoutes } from './document-routes.ts';
 import { createExportRoutes } from './export-routes.ts';
+import { createAdminRoutes } from './admin-routes.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -58,10 +59,13 @@ export function startServer(port = 3000) {
   });
 
   // Document CRUD with permission checks
-  app.use('/api/documents', createDocumentRoutes({ permissions }));
+  app.use('/api/documents', createDocumentRoutes({ permissions, cache: redisClient }));
 
   // Export/import routes with permission checks
   app.use('/api/documents', createExportRoutes({ permissions }));
+
+  // Admin routes (user data purge)
+  app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
 
   // Global error handler — must be registered LAST (after all routes)
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

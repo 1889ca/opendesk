@@ -10,10 +10,12 @@ import {
   updateDocumentTitle,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
+import type { CacheClient } from './redis.ts';
 import { asyncHandler } from './async-handler.ts';
 
 export type DocumentRoutesOptions = {
   permissions: PermissionsModule;
+  cache?: CacheClient;
 };
 
 /**
@@ -22,7 +24,7 @@ export type DocumentRoutesOptions = {
  */
 export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   const router = Router();
-  const { permissions } = opts;
+  const { permissions, cache } = opts;
 
   // List documents — requires auth only (no specific resource)
   router.get('/', permissions.requireAuth, asyncHandler(async (_req: Request, res: Response) => {
@@ -71,13 +73,33 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   }));
 
   // Delete document — requires delete permission
+  // Enhanced: removes document, yjs_state, Redis cache, and permission grants
   router.delete('/:id', permissions.require('delete'), asyncHandler(async (req: Request, res: Response) => {
-    const deleted = await deleteDocument(String(req.params.id));
+    const documentId = String(req.params.id);
+
+    const deleted = await deleteDocument(documentId);
     if (!deleted) {
       res.status(404).json({ error: 'Document not found' });
       return;
     }
-    res.json({ ok: true });
+
+    // Clean up Redis cache entries for this document
+    if (cache) {
+      try {
+        await cache.del(`doc:${documentId}`, `yjs:${documentId}`);
+      } catch {
+        // Cache cleanup is best-effort; document is already deleted
+      }
+    }
+
+    // Remove all permission grants for this document
+    await permissions.grantStore.deleteByResource(documentId, 'document');
+
+    res.json({
+      deletedAt: new Date().toISOString(),
+      documentId,
+      scope: 'full',
+    });
   }));
 
   return router;
