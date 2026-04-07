@@ -42,5 +42,12 @@ export {
 
 export { createPgShareLinkStore } from './internal/pg-store.ts';
 
+// Rate limiting
+export {
+  createPasswordRateLimiter,
+  type PasswordRateLimiter,
+  type RateLimiterOptions,
+} from './internal/rate-limit.ts';
+
 // Routes
-export { createShareRoutes } from './internal/routes.ts';
+export { createShareRoutes, type ShareRoutesOptions } from './internal/routes.ts';
