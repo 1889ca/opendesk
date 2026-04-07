@@ -35,19 +35,29 @@ export async function saveVersion(
   title: string,
   createdBy: string,
 ): Promise<VersionRow> {
-  const result = await pool.query<VersionRow>(
-    `INSERT INTO document_versions (id, document_id, content, title, created_by, version_number)
-     VALUES (
-       $1, $2, $3, $4, $5,
-       COALESCE(
-         (SELECT MAX(version_number) FROM document_versions WHERE document_id = $2),
-         0
-       ) + 1
-     )
-     RETURNING *`,
-    [id, docId, JSON.stringify(content), title, createdBy],
-  );
-  return result.rows[0];
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await client.query<VersionRow>(
+      `INSERT INTO document_versions (id, document_id, content, title, created_by, version_number)
+       VALUES (
+         $1, $2, $3, $4, $5,
+         COALESCE(
+           (SELECT MAX(version_number) FROM document_versions WHERE document_id = $2 FOR UPDATE),
+           0
+         ) + 1
+       )
+       RETURNING *`,
+      [id, docId, JSON.stringify(content), title, createdBy],
+    );
+    await client.query('COMMIT');
+    return result.rows[0];
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 /**

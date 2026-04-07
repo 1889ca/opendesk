@@ -3,6 +3,12 @@
 import { t } from './i18n/index.ts';
 import { formatRelativeTime } from './time-format.ts';
 
+/** Escape HTML to prevent XSS, then restore only <mark> tags from ts_headline. */
+function sanitizeSnippet(raw: string): string {
+  const escaped = raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return escaped.replace(/&lt;mark&gt;/g, '<mark>').replace(/&lt;\/mark&gt;/g, '</mark>');
+}
+
 interface SearchResultEntry {
   id: string;
   title: string;
@@ -56,7 +62,7 @@ function renderResults(container: HTMLElement, results: SearchResultEntry[]) {
 
     const snippet = document.createElement('div');
     snippet.className = 'search-result-snippet';
-    snippet.innerHTML = result.snippet;
+    snippet.innerHTML = sanitizeSnippet(result.snippet);
 
     const time = document.createElement('div');
     time.className = 'search-result-time';

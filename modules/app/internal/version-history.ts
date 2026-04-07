@@ -90,6 +90,7 @@ function renderVersionCard(
   deleteBtn.className = 'version-action-btn version-action-delete';
   deleteBtn.textContent = t('versions.delete');
   deleteBtn.addEventListener('click', async () => {
+    if (!confirm(t('versions.deleteConfirm'))) return;
     const ok = await removeVersion(docId, version.id);
     if (ok) onRefresh();
   });

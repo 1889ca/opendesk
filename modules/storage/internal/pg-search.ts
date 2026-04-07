@@ -34,6 +34,12 @@ export const APPLY_SEARCH_SCHEMA = `
  * Uses plainto_tsquery for safe user input handling (no special syntax needed).
  * Returns results ranked by relevance with highlighted snippets.
  */
+/**
+ * TODO: Search currently returns all matching documents regardless of ownership.
+ * This is a known limitation — row-level security (filtering by principal) is not
+ * yet implemented. Once a `created_by` or ACL column exists on documents, add a
+ * `principalId` parameter and filter results to documents the caller can read.
+ */
 export async function searchDocuments(query: string): Promise<SearchResult[]> {
   const result = await pool.query<SearchResult>(
     `SELECT

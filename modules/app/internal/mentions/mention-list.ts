@@ -15,12 +15,9 @@ interface MentionListState {
   command: ((props: { id: string; label: string }) => void) | null;
 }
 
-const state: MentionListState = {
-  items: [],
-  selectedIndex: 0,
-  element: null,
-  command: null,
-};
+function createState(): MentionListState {
+  return { items: [], selectedIndex: 0, element: null, command: null };
+}
 
 function createListElement(): HTMLDivElement {
   const el = document.createElement('div');
@@ -30,7 +27,7 @@ function createListElement(): HTMLDivElement {
   return el;
 }
 
-function renderItems(): void {
+function renderItems(state: MentionListState): void {
   const el = state.element;
   if (!el) return;
 
@@ -66,14 +63,14 @@ function renderItems(): void {
     item.appendChild(name);
     item.addEventListener('mousedown', (e) => {
       e.preventDefault();
-      selectItem(index);
+      selectItem(state, index);
     });
 
     el.appendChild(item);
   });
 }
 
-function selectItem(index: number): void {
+function selectItem(state: MentionListState, index: number): void {
   const item = state.items[index];
   if (item && state.command) {
     state.command({ id: item.id, label: item.label });
@@ -81,6 +78,7 @@ function selectItem(index: number): void {
 }
 
 function positionDropdown(
+  state: MentionListState,
   clientRect: (() => DOMRect | null) | null | undefined,
 ): void {
   const el = state.element;
@@ -94,6 +92,8 @@ function positionDropdown(
 }
 
 export function mentionSuggestionRender() {
+  const state = createState();
+
   return {
     onStart(props: SuggestionProps<MentionUser>) {
       state.element = createListElement();
@@ -101,37 +101,39 @@ export function mentionSuggestionRender() {
       state.selectedIndex = 0;
       state.command = props.command;
 
-      renderItems();
+      renderItems(state);
       document.body.appendChild(state.element);
-      positionDropdown(props.clientRect);
+      positionDropdown(state, props.clientRect);
     },
 
     onUpdate(props: SuggestionProps<MentionUser>) {
       state.items = props.items;
       state.command = props.command;
       state.selectedIndex = 0;
-      renderItems();
-      positionDropdown(props.clientRect);
+      renderItems(state);
+      positionDropdown(state, props.clientRect);
     },
 
     onKeyDown(props: SuggestionKeyDownProps): boolean {
+      if (state.items.length === 0) return false;
+
       const { event } = props;
 
       if (event.key === 'ArrowUp') {
         state.selectedIndex =
           (state.selectedIndex + state.items.length - 1) % state.items.length;
-        renderItems();
+        renderItems(state);
         return true;
       }
 
       if (event.key === 'ArrowDown') {
         state.selectedIndex = (state.selectedIndex + 1) % state.items.length;
-        renderItems();
+        renderItems(state);
         return true;
       }
 
       if (event.key === 'Enter') {
-        selectItem(state.selectedIndex);
+        selectItem(state, state.selectedIndex);
         return true;
       }
 

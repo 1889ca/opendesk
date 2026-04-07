@@ -209,6 +209,7 @@ export const en: TranslationKeys = {
   'versions.current': 'Current',
   'versions.preview': 'Preview',
   'versions.restoreConfirm': 'Restore this version? Current content will be replaced.',
+  'versions.deleteConfirm': 'Delete this version? This cannot be undone.',
   'versions.autoSaved': 'Auto-saved',
   'versions.noVersions': 'No versions saved yet',
   'versions.versionNumber': 'Version {n}',
@@ -232,6 +233,8 @@ export const en: TranslationKeys = {
   'folders.deleteConfirm': 'Delete folder "{name}"? Contents will be moved to the parent folder.',
   'folders.renamePrompt': 'New folder name:',
   'folders.namePrompt': 'Folder name:',
+  'folders.renameFailed': 'Failed to rename folder. Please try again.',
+  'folders.deleteFailed': 'Failed to delete folder. Please try again.',
 
   // Theme
   'toolbar.theme': 'Theme',

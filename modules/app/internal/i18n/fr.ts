@@ -220,6 +220,7 @@ export const fr: TranslationKeys = {
   'versions.current': 'Actuelle',
   'versions.preview': 'Aper\u00e7u',
   'versions.restoreConfirm': 'Restaurer cette version ? Le contenu actuel sera remplac\u00e9.',
+  'versions.deleteConfirm': 'Supprimer cette version ? Cette action est irr\u00e9versible.',
   'versions.autoSaved': 'Sauvegarde automatique',
   'versions.noVersions': 'Aucune version enregistr\u00e9e',
   'versions.versionNumber': 'Version {n}',
@@ -237,6 +238,8 @@ export const fr: TranslationKeys = {
   'folders.deleteConfirm': 'Supprimer le dossier \u00ab {name} \u00bb ? Les documents seront d\u00e9plac\u00e9s vers le dossier parent.',
   'folders.renamePrompt': 'Renommer le dossier :',
   'folders.namePrompt': 'Nom du dossier :',
+  'folders.renameFailed': '\u00c9chec du renommage du dossier. Veuillez r\u00e9essayer.',
+  'folders.deleteFailed': '\u00c9chec de la suppression du dossier. Veuillez r\u00e9essayer.',
 
   // Th\u00e8me
   'toolbar.theme': 'Th\u00e8me',

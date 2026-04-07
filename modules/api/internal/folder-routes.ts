@@ -9,6 +9,7 @@ import {
   renameFolder,
   deleteFolder,
   moveDocument,
+  getFolder,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from './async-handler.ts';
@@ -58,32 +59,43 @@ export function createFolderRoutes(opts: FolderRoutesOptions): Router {
     }
     const { name, parentId } = bodyResult.data;
     const id = randomUUID();
-    const folder = await createFolder(id, name, parentId ?? null);
+    const principalId = req.principal?.id ?? '';
+    const folder = await createFolder(id, name, parentId ?? null, principalId);
     res.status(201).json(folder);
   }));
 
-  // Rename folder
+  // Rename folder (owner only)
   router.put('/:id', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     const bodyResult = RenameFolderBody.safeParse(req.body ?? {});
     if (!bodyResult.success) {
       res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
       return;
     }
-    const renamed = await renameFolder(String(req.params.id), bodyResult.data.name);
-    if (!renamed) {
+    const folder = await getFolder(String(req.params.id));
+    if (!folder) {
       res.status(404).json({ error: 'Folder not found' });
       return;
     }
+    if (folder.created_by && folder.created_by !== req.principal?.id) {
+      res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+    await renameFolder(String(req.params.id), bodyResult.data.name);
     res.json({ ok: true });
   }));
 
-  // Delete folder (moves contents to parent)
+  // Delete folder (owner only, moves contents to parent)
   router.delete('/:id', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
-    const deleted = await deleteFolder(String(req.params.id));
-    if (!deleted) {
+    const folder = await getFolder(String(req.params.id));
+    if (!folder) {
       res.status(404).json({ error: 'Folder not found' });
       return;
     }
+    if (folder.created_by && folder.created_by !== req.principal?.id) {
+      res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+    await deleteFolder(String(req.params.id));
     res.json({ ok: true });
   }));
 
