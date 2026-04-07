@@ -143,9 +143,9 @@ export async function startServer(port = 3000) {
     permissions,
   }));
 
-  // File upload and serving routes — after auth
-  app.use('/api', createUploadRoutes());
-  app.use('/api', createFileRoutes());
+  // File upload and serving routes — after auth, with permission checks
+  app.use('/api', createUploadRoutes({ permissions }));
+  app.use('/api', createFileRoutes({ permissions }));
 
   // Global error handler — must be registered LAST (after all routes)
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

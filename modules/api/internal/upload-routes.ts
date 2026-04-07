@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3, s3Bucket } from './s3-client.ts';
 import { asyncHandler } from './async-handler.ts';
+import type { PermissionsModule } from '../../permissions/index.ts';
 
 const UploadBody = z.object({
   documentId: z.string().regex(/^[0-9a-f-]+$/i).optional().default('general'),
@@ -43,7 +44,12 @@ function extFromMime(mime: string): string {
   return map[mime] || 'bin';
 }
 
-export function createUploadRoutes(): Router {
+export type UploadRoutesOptions = {
+  permissions: PermissionsModule;
+};
+
+export function createUploadRoutes(opts: UploadRoutesOptions): Router {
+  const { permissions } = opts;
   const router = Router();
 
   router.post(
@@ -62,6 +68,20 @@ export function createUploadRoutes(): Router {
         return;
       }
       const { documentId } = bodyResult.data;
+
+      // Enforce write permission when uploading to a specific document
+      if (documentId !== 'general') {
+        const principal = req.principal;
+        if (!principal) {
+          res.status(401).json({ error: 'Authentication required' });
+          return;
+        }
+        const allowed = await permissions.checkPermission(principal.id, documentId, 'write');
+        if (!allowed) {
+          res.status(403).json({ error: 'You do not have write access to this document' });
+          return;
+        }
+      }
 
       const ext = extFromMime(file.mimetype);
       const uuid = randomUUID();

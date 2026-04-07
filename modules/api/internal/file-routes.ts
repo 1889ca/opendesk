@@ -5,8 +5,20 @@ import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { s3, s3Bucket } from './s3-client.ts';
 import { asyncHandler } from './async-handler.ts';
 import type { Readable } from 'node:stream';
+import type { PermissionsModule } from '../../permissions/index.ts';
 
-export function createFileRoutes(): Router {
+export type FileRoutesOptions = {
+  permissions: PermissionsModule;
+};
+
+/** Extract the documentId segment from a file key like "uploads/{docId}/{uuid}.ext" */
+function extractDocumentId(key: string): string | null {
+  const parts = key.split('/');
+  return parts.length >= 3 ? parts[1] : null;
+}
+
+export function createFileRoutes(opts: FileRoutesOptions): Router {
+  const { permissions } = opts;
   const router = Router();
 
   router.get(
@@ -22,6 +34,21 @@ export function createFileRoutes(): Router {
       if (!key.startsWith('uploads/') || key.includes('..')) {
         res.status(403).json({ error: 'Forbidden file path' });
         return;
+      }
+
+      // Enforce read permission when serving document-specific files
+      const documentId = extractDocumentId(key);
+      if (documentId && documentId !== 'general') {
+        const principal = req.principal;
+        if (!principal) {
+          res.status(401).json({ error: 'Authentication required' });
+          return;
+        }
+        const allowed = await permissions.checkPermission(principal.id, documentId, 'read');
+        if (!allowed) {
+          res.status(403).json({ error: 'You do not have read access to this document' });
+          return;
+        }
       }
 
       try {

@@ -10,7 +10,6 @@ import {
   deleteDocument,
   updateDocumentTitle,
   getTemplate,
-  type DocumentType,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { loadConfig } from '../../config/index.ts';
@@ -23,6 +22,7 @@ const ListDocumentsQuery = z.object({
 
 const CreateDocumentBody = z.object({
   title: z.string().min(1).max(200).optional(),
+  documentType: z.enum(['text', 'spreadsheet', 'presentation']).optional().default('text'),
 });
 
 const CreateDocumentQuery = z.object({
@@ -33,7 +33,6 @@ const UpdateDocumentBody = z.object({
   title: z.string().min(1).max(200),
 });
 
-const VALID_DOC_TYPES: DocumentType[] = ['text', 'spreadsheet', 'presentation'];
 
 export type DocumentRoutesOptions = {
   permissions: PermissionsModule;
@@ -85,11 +84,7 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
     }
 
     const title = bodyResult.data.title || 'Untitled';
-    const documentType: DocumentType = req.body?.documentType || 'text';
-    if (!VALID_DOC_TYPES.includes(documentType)) {
-      res.status(400).json({ error: `Invalid documentType. Must be one of: ${VALID_DOC_TYPES.join(', ')}` });
-      return;
-    }
+    const { documentType } = bodyResult.data;
     const id = randomUUID();
 
     const templateId = queryResult.data.templateId;
