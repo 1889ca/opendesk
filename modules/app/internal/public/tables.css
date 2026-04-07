@@ -1,0 +1,75 @@
+/* Table styles within editor */
+
+.editor-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.75rem 0;
+  table-layout: fixed;
+  overflow: hidden;
+}
+
+.editor-content td,
+.editor-content th {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
+  position: relative;
+  min-width: 4rem;
+}
+
+.editor-content th {
+  background: var(--bg);
+  font-weight: 600;
+}
+
+.editor-content td > *,
+.editor-content th > * {
+  margin: 0;
+}
+
+/* Selected cell highlight */
+.editor-content .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--selection-bg);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Column resize handle */
+.editor-content .column-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  bottom: -2px;
+  width: 4px;
+  background: var(--accent);
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.editor-content .tableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.editor-content.resize-cursor {
+  cursor: col-resize;
+}
+
+/* Table contextual toolbar */
+.table-toolbar {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  padding: 0.25rem 1.5rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.table-toolbar-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
