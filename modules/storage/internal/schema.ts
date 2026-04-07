@@ -75,6 +75,19 @@ const CREATE_SHARE_LINKS_TABLE = `
   )
 `;
 
+const ADD_DOCUMENT_TYPE_CHECK = `
+  DO $$
+  BEGIN
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_constraint WHERE conname = 'chk_document_type'
+    ) THEN
+      ALTER TABLE documents
+        ADD CONSTRAINT chk_document_type
+        CHECK (document_type IN ('text', 'spreadsheet', 'presentation'));
+    END IF;
+  END $$
+`;
+
 /**
  * Initialize all database tables in dependency order.
  * Safe to call multiple times (uses IF NOT EXISTS).
@@ -89,4 +102,5 @@ export async function initSchema(): Promise<void> {
   await pool.query(CREATE_GRANTS_INDEX);
   await pool.query(CREATE_SHARE_LINKS_TABLE);
   await pool.query(APPLY_SEARCH_SCHEMA);
+  await pool.query(ADD_DOCUMENT_TYPE_CHECK);
 }
