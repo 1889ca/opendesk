@@ -59,6 +59,20 @@ export interface TranslationKeys {
   'time.monthAgo': string;
   'time.monthsAgo': string;
 
+  // Table toolbar
+  'table.insert': string;
+  'table.addRowBefore': string;
+  'table.addRowAfter': string;
+  'table.deleteRow': string;
+  'table.addColumnBefore': string;
+  'table.addColumnAfter': string;
+  'table.deleteColumn': string;
+  'table.mergeCells': string;
+  'table.splitCell': string;
+  'table.toggleHeaderRow': string;
+  'table.toggleHeaderColumn': string;
+  'table.deleteTable': string;
+
   // Language switcher
   'lang.label': string;
   'lang.en': string;

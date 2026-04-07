@@ -56,6 +56,20 @@ export const fr: TranslationKeys = {
   'time.monthAgo': 'il y a 1 mois',
   'time.monthsAgo': 'il y a {n} mois',
 
+  // Barre d'outils tableau
+  'table.insert': 'Tableau',
+  'table.addRowBefore': '+ Ligne dessus',
+  'table.addRowAfter': '+ Ligne dessous',
+  'table.deleteRow': '- Ligne',
+  'table.addColumnBefore': '+ Col gauche',
+  'table.addColumnAfter': '+ Col droite',
+  'table.deleteColumn': '- Col',
+  'table.mergeCells': 'Fusionner',
+  'table.splitCell': 'Scinder',
+  'table.toggleHeaderRow': 'Ligne en-tête',
+  'table.toggleHeaderColumn': 'Col en-tête',
+  'table.deleteTable': 'Supprimer tableau',
+
   // Sélecteur de langue
   'lang.label': 'Langue',
   'lang.en': 'English',
