@@ -70,3 +70,19 @@ How to test each invariant:
 - GrantRevoked emitted after persistence -> Integration test (with `storage` and `events`): revoke a grant, assert the event is emitted only after the storage write succeeds. Simulate a storage failure, assert no event is emitted.
 - No collab dependency -> Code-level audit: grep the module source for any import of `collab`, `document`, or `sharing`. Assert zero references.
 - No I/O in evaluate -> Code-level audit: assert the evaluate function is synchronous, accepts no database handles, HTTP clients, or async parameters. Static analysis: confirm no `await`, `fetch`, or storage calls within the evaluate function body.
+
+## MVP Scope
+
+Implemented:
+- [x] Pure function permission evaluation (given Principal, query, and grants)
+- [x] Role hierarchy enforcement (owner > editor > commenter > viewer)
+- [x] Action-to-minimum-role mapping
+- [x] Expired grant rejection
+- [x] Agent-human evaluation parity
+- [x] No collab dependency (no direct imports)
+- [x] Grant CRUD operations via storage
+- [x] `reason` string in every `PermissionResult`
+
+Post-MVP (deferred):
+- [ ] `GrantCreated` event emission — requires events module implementation
+- [ ] `GrantRevoked` event emission — requires events module implementation

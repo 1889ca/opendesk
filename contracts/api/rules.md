@@ -91,8 +91,23 @@ HTTP boundary layer that exposes REST endpoints for document CRUD, sharing, expo
 | POST | `/api/documents/:id/export` | Request export job | required | write |
 | POST | `/api/documents/:id/import` | Import file | required | write |
 | GET | `/api/events/stream` | SSE event stream (filterable) | required | standard |
-| POST | `/api/shares` | Create share link | required | write |
-| DELETE | `/api/shares/:id` | Revoke share | required | write |
+| POST | `/api/documents/:id/share` | Create share link | required | write |
+| POST | `/api/share/:token/resolve` | Resolve (redeem) share link | required | write |
+| DELETE | `/api/share/:token` | Revoke share link | required | write |
+| GET | `/api/templates` | List all templates | none | standard |
+| POST | `/api/templates` | Create template | required | write |
+| GET | `/api/templates/:id` | Get template by ID | none | standard |
+| PUT | `/api/templates/:id` | Update template | required | write |
+| DELETE | `/api/templates/:id` | Delete template | required | write |
+| POST | `/api/upload` | Upload file (image) | none | write |
+| GET | `/api/files/:key(*)` | Serve uploaded file | none | standard |
+| DELETE | `/api/admin/users/:id/data` | Purge user data (self-only) | required | write |
+
+## Sub-Contracts
+
+- `contracts/api/templates.md` — Template CRUD endpoints (GET/POST/PUT/DELETE `/api/templates`)
+- `contracts/api/uploads.md` — File upload and serving endpoints (POST `/api/upload`, GET `/api/files/*`)
+- `contracts/api/admin.md` — User data purge endpoint (DELETE `/api/admin/users/:id/data`)
 
 ## Verification
 
@@ -105,3 +120,30 @@ HTTP boundary layer that exposes REST endpoints for document CRUD, sharing, expo
 - **SSE replay invariant** -> Integration test: connect to SSE with valid `Last-Event-ID`; assert replayed events; connect with ID older than 7 days; assert 410 Gone
 - **No business logic invariant** -> Code review rule: route handlers must contain only validation, auth, permission check, delegation call, and response serialization -- no domain logic
 - **WebSocket upgrade** -> Integration test: send HTTP upgrade request to collab path; assert 101 Switching Protocols and handoff to Hocuspocus
+
+## MVP Scope
+
+Implemented:
+- [x] REST endpoints for document CRUD (GET/POST /api/documents, GET /api/documents/:id)
+- [x] Authentication middleware resolving bearer tokens to `Principal`
+- [x] Permission checks before document operations
+- [x] WebSocket upgrade delegation to collab module's Hocuspocus handler
+- [x] Structured error responses (401, 403, 404)
+- [x] No business logic in route handlers (pure orchestration)
+- [x] Share link endpoints (POST /api/documents/:id/share, POST /api/share/:token/resolve, DELETE /api/share/:token)
+- [x] Export/import via Collabora (POST /api/documents/:id/convert-export, POST /api/documents/:id/convert-import)
+- [x] Template CRUD endpoints (see `contracts/api/templates.md`)
+- [x] File upload and serving endpoints (see `contracts/api/uploads.md`)
+- [x] Admin user data purge endpoint (see `contracts/api/admin.md`)
+- [x] Zod validation on document CRUD request bodies (POST, PATCH /api/documents)
+- [x] Zod validation on template CRUD request bodies (POST, PUT /api/templates)
+- [x] Zod validation on upload request body (POST /api/upload)
+
+Post-MVP (deferred):
+- [ ] Zod validation on remaining request bodies (intents, export/import params)
+- [ ] Rate limiting per-principal with actorType discrimination (human vs agent token bucket)
+- [ ] `ETag` / `If-Match` header support for causal reads (304 Not Modified)
+- [ ] SSE event stream endpoint (GET /api/events/stream) — requires events module implementation
+- [ ] Intent submission endpoint (POST /api/documents/:id/intents) — requires collab IntentExecutor
+- [ ] `410 Gone` for expired SSE Last-Event-ID — requires events module
+- [ ] Pagination parameters (page, limit) on list endpoints

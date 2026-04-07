@@ -2,8 +2,11 @@
 import { z } from 'zod';
 
 // --- Grant Role ---
+// Subset of permissions' Role that can be shared (owner is excluded).
 
-export const GrantRoleSchema = z.enum(['view', 'edit']);
+export const SHAREABLE_ROLES = ['viewer', 'editor', 'commenter'] as const;
+
+export const GrantRoleSchema = z.enum(SHAREABLE_ROLES);
 
 export type GrantRole = z.infer<typeof GrantRoleSchema>;
 

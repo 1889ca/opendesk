@@ -1,0 +1,60 @@
+/* Drag handle — grip icon shown on hover for block reordering */
+
+.drag-handle {
+  position: absolute;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 24px;
+  cursor: grab;
+  color: var(--text-muted);
+  opacity: 0.5;
+  border-radius: 3px;
+  transition: opacity 0.15s, background 0.15s;
+  z-index: 10;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.drag-handle:hover {
+  opacity: 1;
+  background: var(--bg);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle svg {
+  pointer-events: none;
+}
+
+/* Drop indicator — horizontal line between blocks during drag */
+
+.drag-drop-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+  pointer-events: none;
+  z-index: 10;
+  transform: translateY(-1px);
+}
+
+/* Dragging state — slight opacity on the source block */
+
+.drag-handle-dragging {
+  opacity: 0.4;
+  transition: opacity 0.15s;
+}
+
+/* Disable drag handle on mobile — touch needs different UX */
+
+@media (pointer: coarse) {
+  .drag-handle {
+    display: none !important;
+  }
+}

@@ -1,3 +1,4 @@
+/** Contract: contracts/api/rules.md */
 /** Shared test helpers for api module tests. */
 import type { Request, Response } from 'express';
 import type { CacheClient } from './redis.ts';
@@ -20,6 +21,14 @@ export class InMemoryCache implements CacheClient {
   async set(key: string, value: string, _mode: 'EX', ttl: number): Promise<string | null> {
     this.store.set(key, { value, expiresAt: Date.now() + ttl * 1000 });
     return 'OK';
+  }
+
+  async del(...keys: string[]): Promise<number> {
+    let count = 0;
+    for (const key of keys) {
+      if (this.store.delete(key)) count++;
+    }
+    return count;
   }
 
   async quit(): Promise<string> {

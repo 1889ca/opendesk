@@ -1,5 +1,6 @@
 /** Contract: contracts/api/rules.md */
 import { Redis as IORedis } from 'ioredis';
+import { loadConfig } from '../../config/index.ts';
 
 type RedisInstance = IORedis;
 
@@ -17,15 +18,20 @@ export interface RedisConfig {
 export interface CacheClient {
   get(key: string): Promise<string | null>;
   set(key: string, value: string, mode: 'EX', ttl: number): Promise<string | null>;
+  del(...keys: string[]): Promise<number>;
   quit(): Promise<string>;
   status: string;
 }
 
-const DEFAULT_CONFIG: Partial<RedisConfig> = {
-  keyPrefix: 'opendesk:',
-  maxRetriesPerRequest: 20,
-  connectTimeout: 5000,
-};
+function getDefaultConfig(): Partial<RedisConfig> {
+  const rc = loadConfig().redis;
+  return {
+    url: rc.url,
+    keyPrefix: rc.keyPrefix,
+    maxRetriesPerRequest: rc.maxRetries,
+    connectTimeout: rc.connectTimeoutMs,
+  };
+}
 
 let sharedClient: RedisInstance | null = null;
 
@@ -38,8 +44,9 @@ export function getRedisClient(config?: Partial<RedisConfig>): RedisInstance {
     return sharedClient;
   }
 
-  const url = config?.url ?? process.env.REDIS_URL ?? 'redis://localhost:6379';
-  const merged = { ...DEFAULT_CONFIG, ...config, url };
+  const defaults = getDefaultConfig();
+  const url = config?.url ?? defaults.url ?? 'redis://localhost:6379';
+  const merged = { ...defaults, ...config, url };
 
   const client = new IORedis(merged.url, {
     keyPrefix: merged.keyPrefix,

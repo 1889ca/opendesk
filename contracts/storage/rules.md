@@ -59,3 +59,19 @@ How to test each invariant:
 - Separate storage paths: save both a snapshot and a Yjs binary for the same doc, then independently verify each is retrievable and stored at distinct keys/rows
 - Read-your-writes: call `saveSnapshot` then immediately `getSnapshot` for the same `docId` and assert equality
 - Cold storage staleness: archive a document, wait a known duration, retrieve it, and verify `staleSeconds` reflects elapsed time within acceptable tolerance
+
+## MVP Scope
+
+Implemented:
+- [x] PostgreSQL persistence for documents (hot tier)
+- [x] Yjs binary blob storage (separate from snapshot)
+- [x] Read-your-writes consistency within PG
+- [x] Functions exported directly (saveSnapshot, getSnapshot, getYjsBinary, etc.)
+
+Post-MVP (deferred):
+- [ ] `DocumentRepository` interface abstraction — functions are exported directly for now; interface wrapper deferred
+- [ ] S3-compatible cold storage tier — all documents remain in PG hot tier
+- [ ] Hot/cold tiering lifecycle policy (archiveToCold / warmFromCold)
+- [ ] `staleSeconds` indicator on cold-tier reads — no cold tier exists yet
+- [ ] Atomic snapshot + state vector co-persistence in a single PG transaction — snapshots and state vectors are saved but not yet in the same transaction
+- [ ] State vector pruning for clients offline > 30 days

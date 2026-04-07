@@ -7,7 +7,7 @@ Manage the lifecycle of access grants: creating, updating, and revoking grants t
 ## Inputs
 
 - `createGrant(principal: Principal, targetDocId: string, granteeEmail: string, role: GrantRole)`: Creates a new access grant for the specified grantee on the target document, subject to the principal's own permission level.
-- `updateGrant(principal: Principal, grantId: string, newRole: GrantRole)`: Changes the role on an existing grant (e.g. `view` to `edit`), subject to the principal's own permission level.
+- `updateGrant(principal: Principal, grantId: string, newRole: GrantRole)`: Changes the role on an existing grant (e.g. `viewer` to `editor`), subject to the principal's own permission level.
 - `revokeGrant(principal: Principal, grantId: string)`: Revokes an existing grant immediately and emits `GrantRevoked`.
 - `createShareLink(principal: Principal, targetDocId: string, role: GrantRole, options?: ShareLinkOptions)`: Generates a shareable link token that, when accessed, resolves to a grant with the specified role.
 - `redeemShareLink(token: string, redeemer: Principal)`: Resolves a share link token into a grant for the redeeming principal.
@@ -17,7 +17,7 @@ Manage the lifecycle of access grants: creating, updating, and revoking grants t
 ### Types
 
 ```
-GrantRole: 'view' | 'edit'
+GrantRole: 'viewer' | 'editor' | 'commenter'
 
 ShareLinkOptions: {
   expiresIn?: number       // TTL in seconds; if omitted, link does not auto-expire but remains revocable
@@ -64,7 +64,7 @@ ShareLink: {
 
 ## Invariants
 
-- A principal can never grant a role higher than their own role on the target document. A `view` holder cannot grant `edit`. Enforced by querying the principal's own grant via the `permissions` module before writing.
+- A principal can never grant a role higher than their own role on the target document. A `viewer` holder cannot grant `editor`. Enforced by querying the principal's own grant via the `permissions` module before writing.
 - Every successful `revokeGrant` call emits a `GrantRevoked` event in the same transaction as the grant status change. There is no window where a grant is revoked but the event has not been emitted.
 - Share link tokens are cryptographically random (minimum 256 bits of entropy) and opaque. They contain no embedded document IDs, roles, or user information.
 - A share link with an `expiresAt` in the past cannot be redeemed. A revoked share link cannot be redeemed. A share link whose `redemptionCount >= maxRedemptions` cannot be redeemed.
@@ -99,7 +99,7 @@ ShareLink: {
 
 How to test each invariant:
 
-- Cannot grant higher than own role --> Unit test: a principal with `view` role attempts to create a grant with `edit` role. Assert rejection. A principal with `edit` role grants `view`. Assert success.
+- Cannot grant higher than own role --> Unit test: a principal with `viewer` role attempts to create a grant with `editor` role. Assert rejection. A principal with `editor` role grants `viewer`. Assert success.
 - GrantRevoked emitted transactionally --> Integration test (with `events` and `storage`): revoke a grant, verify the `GrantRevoked` event exists in the PG outbox within the same transaction. Simulate a crash after revocation but before commit; verify neither the revocation nor the event persists.
 - Share link token entropy --> Unit test: generate 1000 tokens, assert each is unique. Assert token length corresponds to >= 256 bits of randomness. Assert tokens contain no decodable document or user information.
 - Expired/revoked/exhausted links rejected --> Unit test: attempt to redeem a link with `expiresAt` in the past, assert rejection. Revoke a link, attempt redemption, assert rejection. Set `maxRedemptions: 1`, redeem once, attempt a second redemption, assert rejection.
@@ -108,3 +108,23 @@ How to test each invariant:
 - One-directional status transitions --> Unit test: attempt to transition a `revoked` grant to `active`, assert rejection. Attempt to transition `active` to `pending`, assert rejection.
 - No collab dependency --> Code-level audit: grep the module source for any import of `collab`. Assert zero references.
 - No direct email sending --> Code-level audit: grep the module source for SMTP, sendmail, or email transport imports. Assert zero references.
+
+## MVP Scope
+
+Implemented:
+- [x] Share link creation with cryptographically random tokens (256-bit entropy)
+- [x] Share link redemption resolving to access
+- [x] Share link revocation
+- [x] Share link expiration and max-redemption enforcement
+- [x] One-directional grant status transitions
+- [x] No direct collab module dependency
+- [x] No direct email sending
+- [x] Full `Grant` record creation in permissions store on share link redemption
+- [x] Share routes mounted in Express server with auth middleware
+
+Post-MVP (deferred):
+- [ ] "Cannot grant higher than own role" enforcement — requires auth wiring to look up grantor's role
+- [ ] `GrantCreated` event emission — requires events module implementation
+- [ ] `GrantRevoked` event emission — requires events module implementation
+- [ ] Invite-by-email workflow (pending grants that activate on authentication)
+- [ ] `updateGrant` role change support

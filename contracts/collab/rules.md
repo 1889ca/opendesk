@@ -117,6 +117,14 @@ Broadcasts cursor positions and user presence metadata over the Yjs awareness ch
 - Compaction MUST run in a `worker_threads` thread. Running compaction on the main thread is a contract violation.
 - Compaction MUST NOT alter the logical document state. The Yjs document before and after compaction MUST produce identical `DocumentSnapshot` output.
 
+### Purge Compaction (distinct from regular compaction)
+
+Purge compaction is a separate operation documented in `contracts/collab/purge.md`. Key distinctions:
+- **Runs on main thread** (intentional — infrequent admin operation, not routine)
+- Creates a brand-new Yjs Doc with fresh client ID, destroying all CRDT history and tombstones
+- Used for GDPR erasure and storage reclamation, NOT for routine size management
+- Known limitation: rich text formatting is lost during extraction (plain text preserved)
+
 ### Crash Recovery
 
 - The operation journal MUST contain sufficient state to reconstruct any document to its last-persisted state vector.
@@ -188,3 +196,27 @@ How to test each invariant:
 - **Crash recovery** -- write operations, kill process before materialization, restart, verify document state matches pre-crash state via journal replay
 - **No browser exports** -- attempt to bundle this module with a browser-targeted bundler, assert failure or zero collab exports in output
 - **No per-keystroke Zod validation** -- apply rapid CRDT updates, verify Zod validation only runs during materialization cycles
+
+## MVP Scope
+
+Implemented:
+- [x] Hocuspocus WebSocket server with Yjs CRDT synchronization
+- [x] WebSocket authentication before handshake (auth module integration)
+- [x] Connection-principal binding (one document, one principal per connection)
+- [x] Awareness protocol (cursor positions, user presence)
+- [x] CRDT compaction in `worker_threads`
+- [x] WebSocket upgrade handler exported for `api` module mounting
+- [x] Server-only module (no browser-compatible exports)
+- [x] No per-keystroke Zod validation
+- [x] Single-node Hocuspocus (no multi-node coordination)
+- [x] Purge compaction — main-thread history erasure (see `contracts/collab/purge.md`)
+
+Post-MVP (deferred):
+- [ ] IntentExecutor subsystem (OCC-based agent intent application) — required for agent writes
+- [ ] Document Materializer (debounced Yjs-to-DocumentSnapshot conversion) — required for search, export, API reads
+- [ ] Operation journal and crash recovery (journal replay on startup)
+- [ ] Idempotency key cache at intent level — HTTP-level idempotency exists via `api` module
+- [ ] `GrantRevoked` event subscription for connection teardown — requires events module implementation
+- [ ] `DocumentUpdated` event emission — requires events module implementation
+- [ ] `StateFlushed` event emission — requires events module implementation
+- [ ] Flush-on-demand for export workflows — requires Materializer

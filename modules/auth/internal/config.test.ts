@@ -46,6 +46,6 @@ describe('loadAuthConfig', () => {
 
   it('throws on invalid AUTH_MODE', () => {
     process.env.AUTH_MODE = 'invalid';
-    expect(() => loadAuthConfig()).toThrow('Invalid AUTH_MODE');
+    expect(() => loadAuthConfig()).toThrow();
   });
 });

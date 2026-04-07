@@ -4,7 +4,38 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenDesk</title>
+  <link rel="stylesheet" href="theme.css">
+  <script>
+    // Apply stored theme immediately to prevent flash of wrong theme
+    (function() {
+      var stored = localStorage.getItem('opendesk-theme');
+      var theme = stored === 'dark' ? 'dark'
+        : stored === 'light' ? 'light'
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="toolbar.css">
+  <link rel="stylesheet" href="editor-content.css">
+  <link rel="stylesheet" href="tables.css">
+  <link rel="stylesheet" href="search-panel.css">
+  <link rel="stylesheet" href="templates.css">
+  <link rel="stylesheet" href="folders.css">
+  <link rel="stylesheet" href="global-search.css">
+  <link rel="stylesheet" href="comments.css">
+  <link rel="stylesheet" href="suggestions.css">
+  <link rel="stylesheet" href="a11y.css">
+  <link rel="stylesheet" href="toc.css">
+  <link rel="stylesheet" href="status-bar.css">
+  <link rel="stylesheet" href="versions.css">
+  <link rel="stylesheet" href="mentions.css">
+  <link rel="stylesheet" href="drag-handle.css">
+  <link rel="stylesheet" href="mobile.css">
+  <link rel="stylesheet" href="code-block.css">
+  <link rel="stylesheet" href="emoji.css">
+  <link rel="stylesheet" href="print.css">
+  <link rel="stylesheet" href="share.css">
 </head>
 <body>
   <header class="toolbar">
@@ -21,9 +52,15 @@
     </div>
     <div class="toolbar-right">
       <div class="export-group">
+        <button id="import-file" class="export-btn" title="Import .docx, .odt, or .pdf">Import</button>
+        <span class="toolbar-separator"></span>
         <button id="export-html" class="export-btn" title="Export as HTML">HTML</button>
         <button id="export-text" class="export-btn" title="Export as plain text">Text</button>
+        <button id="export-docx" class="export-btn" title="Export as Word document">DOCX</button>
+        <button id="export-odt" class="export-btn" title="Export as OpenDocument">ODT</button>
       </div>
+      <span class="toolbar-separator"></span>
+      <button id="share-btn" class="export-btn share-btn" title="Share this document">Share</button>
       <span class="toolbar-separator"></span>
       <span id="status" class="status disconnected">Connecting...</span>
       <span class="users-label">Editors:</span>
@@ -33,7 +70,7 @@
     </div>
   </header>
   <div id="formatting-toolbar" class="formatting-toolbar"></div>
-  <main class="editor-wrapper">
+  <main class="editor-wrapper" role="main" aria-label="Document editor">
     <div id="editor"></div>
   </main>
 
@@ -48,7 +85,10 @@
 
       var titleInput = document.getElementById('doc-title');
 
-      fetch('/api/documents/' + encodeURIComponent(docId))
+      var authToken = localStorage.getItem('opendesk-auth-token') || 'dev';
+      var authHeaders = { 'Authorization': 'Bearer ' + authToken };
+
+      fetch('/api/documents/' + encodeURIComponent(docId), { headers: authHeaders })
         .then(function (res) {
           if (!res.ok) throw new Error('Not found');
           return res.json();
@@ -77,7 +117,7 @@
         document.title = newTitle + ' - OpenDesk';
         fetch('/api/documents/' + encodeURIComponent(docId), {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: Object.assign({ 'Content-Type': 'application/json', 'idempotency-key': crypto.randomUUID() }, authHeaders),
           body: JSON.stringify({ title: newTitle })
         }).catch(function (err) { console.error('Title save failed', err); });
       }
@@ -126,6 +166,199 @@
         waitForEditor(function (editor) {
           var text = editor.getText();
           downloadBlob(text, getTitle() + '.txt', 'text/plain');
+        });
+      });
+    })();
+  </script>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var docId = params.get('doc');
+      var authToken = localStorage.getItem('opendesk-auth-token') || 'dev';
+      var authHeaders = { 'Authorization': 'Bearer ' + authToken };
+
+      function waitForEditor(cb) {
+        if (window.editor) return cb(window.editor);
+        var attempts = 0;
+        var iv = setInterval(function () {
+          attempts++;
+          if (window.editor) { clearInterval(iv); cb(window.editor); }
+          if (attempts > 100) clearInterval(iv);
+        }, 100);
+      }
+
+      function getTitle() {
+        var input = document.getElementById('doc-title');
+        return (input && input.value && input.value.trim()) || 'document';
+      }
+
+      function exportViaCollabora(format) {
+        waitForEditor(function (editor) {
+          var html = editor.getHTML();
+          var btn = document.getElementById('export-' + format);
+          btn.disabled = true;
+          btn.textContent = '...';
+
+          fetch('/api/documents/' + encodeURIComponent(docId) + '/convert-export', {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json', 'idempotency-key': crypto.randomUUID() }, authHeaders),
+            body: JSON.stringify({ format: format, content: html })
+          })
+          .then(function (res) {
+            if (!res.ok) throw new Error(res.status === 502 ? 'Conversion service unavailable' : 'Export failed');
+            return res.blob();
+          })
+          .then(function (blob) {
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = getTitle() + '.' + format;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          })
+          .catch(function (err) { alert(err.message); })
+          .finally(function () {
+            btn.disabled = false;
+            btn.textContent = format.toUpperCase();
+          });
+        });
+      }
+
+      document.getElementById('export-docx').addEventListener('click', function () {
+        exportViaCollabora('docx');
+      });
+      document.getElementById('export-odt').addEventListener('click', function () {
+        exportViaCollabora('odt');
+      });
+
+      // File import
+      var fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = '.docx,.odt,.pdf';
+      fileInput.style.display = 'none';
+      document.body.appendChild(fileInput);
+
+      document.getElementById('import-file').addEventListener('click', function () {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener('change', function () {
+        var file = fileInput.files && fileInput.files[0];
+        if (!file) return;
+        fileInput.value = '';
+
+        if (!confirm('Importing will replace the current document content. Continue?')) return;
+
+        var importBtn = document.getElementById('import-file');
+        importBtn.disabled = true;
+        importBtn.textContent = '...';
+
+        file.arrayBuffer().then(function (buf) {
+          return fetch('/api/documents/' + encodeURIComponent(docId) + '/convert-import', {
+            method: 'POST',
+            headers: Object.assign({ 'X-Filename': file.name, 'idempotency-key': crypto.randomUUID() }, authHeaders),
+            body: buf
+          });
+        })
+        .then(function (res) {
+          if (!res.ok) throw new Error(res.status === 502 ? 'Conversion service unavailable' : 'Import failed');
+          return res.json();
+        })
+        .then(function (data) {
+          waitForEditor(function (editor) {
+            if (data.snapshot && data.snapshot.content) {
+              editor.commands.setContent(data.snapshot.content);
+            }
+          });
+        })
+        .catch(function (err) { alert(err.message); })
+        .finally(function () {
+          importBtn.disabled = false;
+          importBtn.textContent = 'Import';
+        });
+      });
+    })();
+  </script>
+  <div id="share-dialog" class="share-overlay" hidden>
+    <div class="share-dialog">
+      <div class="share-header">
+        <h3>Share document</h3>
+        <button id="share-close" class="share-close-btn" aria-label="Close">&times;</button>
+      </div>
+      <div class="share-body">
+        <label for="share-role">Permission level</label>
+        <select id="share-role">
+          <option value="viewer">Viewer</option>
+          <option value="commenter">Commenter</option>
+          <option value="editor">Editor</option>
+        </select>
+        <button id="share-create" class="share-create-btn">Create link</button>
+        <div id="share-result" class="share-result" hidden>
+          <input id="share-url" class="share-url" readonly>
+          <button id="share-copy" class="share-copy-btn">Copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var docId = params.get('doc');
+      var authToken = localStorage.getItem('opendesk-auth-token') || 'dev';
+      var authHeaders = { 'Authorization': 'Bearer ' + authToken };
+
+      var overlay = document.getElementById('share-dialog');
+      var resultDiv = document.getElementById('share-result');
+      var urlInput = document.getElementById('share-url');
+
+      document.getElementById('share-btn').addEventListener('click', function () {
+        resultDiv.hidden = true;
+        overlay.hidden = false;
+      });
+
+      document.getElementById('share-close').addEventListener('click', function () {
+        overlay.hidden = true;
+      });
+
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) overlay.hidden = true;
+      });
+
+      document.getElementById('share-create').addEventListener('click', function () {
+        var role = document.getElementById('share-role').value;
+        var btn = document.getElementById('share-create');
+        btn.disabled = true;
+        btn.textContent = 'Creating...';
+
+        fetch('/api/documents/' + encodeURIComponent(docId) + '/share', {
+          method: 'POST',
+          headers: Object.assign({ 'Content-Type': 'application/json', 'idempotency-key': crypto.randomUUID() }, authHeaders),
+          body: JSON.stringify({ role: role })
+        })
+        .then(function (res) {
+          if (!res.ok) throw new Error('Failed to create share link');
+          return res.json();
+        })
+        .then(function (link) {
+          var shareUrl = window.location.origin + '/share.html?token=' + encodeURIComponent(link.token);
+          urlInput.value = shareUrl;
+          resultDiv.hidden = false;
+        })
+        .catch(function (err) { alert(err.message); })
+        .finally(function () {
+          btn.disabled = false;
+          btn.textContent = 'Create link';
+        });
+      });
+
+      document.getElementById('share-copy').addEventListener('click', function () {
+        urlInput.select();
+        navigator.clipboard.writeText(urlInput.value).then(function () {
+          var copyBtn = document.getElementById('share-copy');
+          copyBtn.textContent = 'Copied!';
+          setTimeout(function () { copyBtn.textContent = 'Copy'; }, 2000);
         });
       });
     })();

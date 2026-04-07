@@ -19,3 +19,10 @@ export {
   MaterializerConfigSchema,
   CollabConfigSchema,
 } from './contract.ts';
+
+// Public API — collab server
+export { createCollabServer } from './internal/server.ts';
+
+// Public API — purge compaction
+export { compactDocument, needsCompaction } from './internal/purge-compaction.ts';
+export type { CompactionResult } from './internal/purge-compaction.ts';

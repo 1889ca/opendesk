@@ -25,9 +25,9 @@ Before contributing:
 ## Restricted Zones (require human approval)
 
 Changes to these require human maintainer sign-off:
-- `src/auth/` — authentication and authorization
-- `src/billing/` — payment processing
-- `src/crypto/` — encryption and key management
+- `modules/auth/` — authentication and authorization
+- `modules/sharing/` — sharing and grant management
+- `modules/permissions/` — access control
 - `CONSTITUTION.md`, `CONTRIBUTING.md`, `CLAUDE.md`
 - `LICENSE`
 - `.github/workflows/` — CI/CD

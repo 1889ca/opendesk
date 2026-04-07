@@ -1,0 +1,14 @@
+.git
+.github
+.claude
+.playwright-mcp
+node_modules
+docs
+decisions
+audits
+reviews
+scripts
+*.md
+!package.json
+.env
+.DS_Store

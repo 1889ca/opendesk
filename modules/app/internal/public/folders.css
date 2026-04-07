@@ -1,0 +1,121 @@
+/* Folder and breadcrumb styles */
+
+.folder-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+.breadcrumb-link {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+}
+
+.breadcrumb-link:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb-sep {
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.breadcrumb-current {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Folder Rows */
+.folder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.folder-row:hover {
+  border-color: var(--accent);
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.08);
+}
+
+.folder-row:hover .folder-actions {
+  opacity: 1;
+}
+
+.folder-row-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  color: inherit;
+  flex: 1;
+  min-width: 0;
+}
+
+.folder-icon {
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.folder-row-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folder-actions {
+  display: flex;
+  gap: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.btn-small {
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.btn-small:hover {
+  background: var(--bg);
+  border-color: var(--text-muted);
+}
+
+.btn-delete-folder {
+  color: var(--disconnected);
+}
+
+.btn-delete-folder:hover {
+  background: #fee2e2;
+  border-color: var(--disconnected);
+}

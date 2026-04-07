@@ -1,26 +1,25 @@
 /** Contract: contracts/storage/rules.md */
-import pg from 'pg';
-
-const pool = new pg.Pool({
-  host: process.env.PG_HOST || 'localhost',
-  port: parseInt(process.env.PG_PORT || '5433', 10),
-  database: process.env.PG_DATABASE || 'opendesk',
-  user: process.env.PG_USER || 'opendesk',
-  password: process.env.PG_PASSWORD || 'opendesk_dev',
-  max: 10,
-});
+import { pool } from './pool.ts';
 
 export interface DocumentRow {
   id: string;
   title: string;
   yjs_state: Buffer | null;
+  folder_id: string | null;
   created_at: Date;
   updated_at: Date;
 }
 
-export async function listDocuments(): Promise<DocumentRow[]> {
+export async function listDocuments(folderId?: string | null): Promise<DocumentRow[]> {
+  if (folderId) {
+    const result = await pool.query<DocumentRow>(
+      'SELECT id, title, folder_id, created_at, updated_at FROM documents WHERE folder_id = $1 ORDER BY updated_at DESC',
+      [folderId],
+    );
+    return result.rows;
+  }
   const result = await pool.query<DocumentRow>(
-    'SELECT id, title, created_at, updated_at FROM documents ORDER BY updated_at DESC'
+    'SELECT id, title, folder_id, created_at, updated_at FROM documents WHERE folder_id IS NULL ORDER BY updated_at DESC',
   );
   return result.rows;
 }
@@ -71,5 +70,3 @@ export async function updateDocumentTitle(id: string, title: string): Promise<vo
     [title, id]
   );
 }
-
-export { pool };

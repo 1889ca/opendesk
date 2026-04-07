@@ -90,10 +90,10 @@ Every PR must pass all of the following before merge:
 
 The following areas require **human approval** before any changes are merged:
 
-- **Authentication and authorization** (`auth/`)
-- **Billing and payments** (`billing/`)
-- **Governance rules** (anything in `governance/`)
-- **The constitutional document** (`CONSTITUTION.md`)
+- **Authentication and authorization** (`modules/auth/`)
+- **Sharing and permissions** (`modules/sharing/`, `modules/permissions/`)
+- **Governance documents** (`CONSTITUTION.md`, `CONTRIBUTING.md`, `CLAUDE.md`)
+- **CI/CD and dependencies** (`.github/workflows/`, `package.json`)
 
 PRs touching these areas must have at least one human approver in addition to agent reviewers. Do not merge without it.
 

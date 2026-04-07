@@ -138,3 +138,20 @@ services:
 ```
 
 The memory limit is a hard requirement per Decision #003. LibreOffice will OOM a shared host without explicit cgroup limits.
+
+## MVP Scope
+
+Implemented:
+- [x] Import: file-to-DocumentSnapshot conversion (docx, odt, pdf)
+- [x] Export: DocumentSnapshot-to-file conversion (docx, odt, pdf)
+- [x] LibreOffice process management in memory-limited container
+- [x] Import produces valid `DocumentSnapshot` (schema-validated)
+- [x] Stale flag on export results
+- [x] No Yjs/CRDT dependency (operates on DocumentSnapshot only)
+- [x] No long-lived connections to other modules
+
+Post-MVP (deferred):
+- [ ] Flush-before-export via `ConversionRequested` event — requires events module; currently reads last materialized snapshot directly
+- [ ] `ExportReady` event emission — requires events module implementation
+- [ ] `ConversionRequested` event emission — requires events module implementation
+- [ ] Event schema registry registration at startup — requires events module

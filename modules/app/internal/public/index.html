@@ -4,7 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenDesk</title>
+  <link rel="stylesheet" href="theme.css">
+  <script>
+    // Apply stored theme immediately to prevent flash of wrong theme
+    (function() {
+      var stored = localStorage.getItem('opendesk-theme');
+      var theme = stored === 'dark' ? 'dark'
+        : stored === 'light' ? 'light'
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="toolbar.css">
+  <link rel="stylesheet" href="doc-list.css">
+  <link rel="stylesheet" href="templates.css">
+  <link rel="stylesheet" href="folders.css">
+  <link rel="stylesheet" href="global-search.css">
 </head>
 <body>
   <header class="toolbar">
@@ -12,6 +28,7 @@
       <h1 class="logo">OpenDesk</h1>
     </div>
     <div class="toolbar-right">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
       <button id="new-doc-btn" class="btn btn-primary">New Document</button>
     </div>
   </header>
@@ -22,102 +39,53 @@
   </main>
 
   <script>
+    // Theme toggle for doc list page
     (function () {
-      const listEl = document.getElementById('doc-list');
-      const newBtn = document.getElementById('new-doc-btn');
+      var STORAGE_KEY = 'opendesk-theme';
+      var MODES = ['light', 'dark', 'system'];
+      var ICONS = { light: '\u2600', dark: '\u263E', system: '\u25D0' };
+      var LABELS = { light: 'Light', dark: 'Dark', system: 'System' };
 
-      function timeAgo(dateStr) {
-        const now = Date.now();
-        const then = new Date(dateStr).getTime();
-        const seconds = Math.floor((now - then) / 1000);
-        if (seconds < 5) return 'just now';
-        if (seconds < 60) return seconds + ' seconds ago';
-        const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) return minutes + (minutes === 1 ? ' minute ago' : ' minutes ago');
-        const hours = Math.floor(minutes / 60);
-        if (hours < 24) return hours + (hours === 1 ? ' hour ago' : ' hours ago');
-        const days = Math.floor(hours / 24);
-        if (days < 30) return days + (days === 1 ? ' day ago' : ' days ago');
-        const months = Math.floor(days / 30);
-        return months + (months === 1 ? ' month ago' : ' months ago');
+      function getStored() {
+        var s = localStorage.getItem(STORAGE_KEY);
+        return (s === 'light' || s === 'dark' || s === 'system') ? s : 'system';
       }
 
-      function renderDocuments(docs) {
-        if (!docs.length) {
-          listEl.innerHTML =
-            '<div class="doc-list-empty">' +
-              '<p class="empty-title">No documents yet</p>' +
-              '<p class="empty-subtitle">Create your first document to get started.</p>' +
-            '</div>';
-          return;
+      function resolve(mode) {
+        if (mode === 'light' || mode === 'dark') return mode;
+        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+
+      var current = getStored();
+      var btn = document.getElementById('theme-toggle');
+
+      function apply() {
+        document.documentElement.setAttribute('data-theme', resolve(current));
+        if (btn) {
+          btn.textContent = ICONS[current] + ' ' + LABELS[current];
+          btn.setAttribute('aria-label', 'Theme: ' + LABELS[current]);
         }
+      }
 
-        listEl.innerHTML = '';
-        docs.forEach(function (doc) {
-          var row = document.createElement('a');
-          row.className = 'doc-row';
-          row.href = '/editor.html?doc=' + encodeURIComponent(doc.id);
+      apply();
 
-          var info = document.createElement('div');
-          info.className = 'doc-row-info';
-
-          var title = document.createElement('span');
-          title.className = 'doc-row-title';
-          title.textContent = doc.title || 'Untitled';
-
-          var time = document.createElement('span');
-          time.className = 'doc-row-time';
-          time.textContent = 'Updated ' + timeAgo(doc.updated_at);
-
-          info.appendChild(title);
-          info.appendChild(time);
-
-          var deleteBtn = document.createElement('button');
-          deleteBtn.className = 'btn btn-delete';
-          deleteBtn.textContent = 'Delete';
-          deleteBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var name = doc.title || 'Untitled';
-            if (!confirm('Delete "' + name + '"? This cannot be undone.')) return;
-            fetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
-              .then(function () { loadDocuments(); })
-              .catch(function (err) { console.error('Delete failed', err); });
-          });
-
-          row.appendChild(info);
-          row.appendChild(deleteBtn);
-          listEl.appendChild(row);
+      if (btn) {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          var idx = MODES.indexOf(current);
+          current = MODES[(idx + 1) % MODES.length];
+          localStorage.setItem(STORAGE_KEY, current);
+          apply();
         });
       }
 
-      function loadDocuments() {
-        fetch('/api/documents')
-          .then(function (res) { return res.json(); })
-          .then(function (docs) { renderDocuments(docs); })
-          .catch(function (err) {
-            console.error('Failed to load documents', err);
-            listEl.innerHTML = '<div class="doc-list-empty"><p class="empty-title">Failed to load documents</p></div>';
-          });
+      if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+          if (current === 'system') apply();
+        });
       }
-
-      newBtn.addEventListener('click', function () {
-        var title = prompt('Document title:');
-        if (!title) return;
-        fetch('/api/documents', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: title })
-        })
-          .then(function (res) { return res.json(); })
-          .then(function (doc) {
-            window.location.href = '/editor.html?doc=' + encodeURIComponent(doc.id);
-          })
-          .catch(function (err) { console.error('Create failed', err); });
-      });
-
-      loadDocuments();
     })();
   </script>
+  <script type="module" src="doc-list.bundle.js"></script>
 </body>
 </html>

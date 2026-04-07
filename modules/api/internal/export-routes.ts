@@ -1,9 +1,10 @@
 /** Contract: contracts/api/rules.md */
 
 import { Router, type Request, type Response } from 'express';
-import { getDocument } from '../../storage/internal/pg.ts';
-import { getDocumentForExport } from '../../convert/internal/converter.ts';
+import { getDocument } from '../../storage/index.ts';
+import { getDocumentForExport } from '../../convert/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
+import { asyncHandler } from './async-handler.ts';
 
 export type ExportRoutesOptions = {
   permissions: PermissionsModule;
@@ -18,7 +19,7 @@ export function createExportRoutes(opts: ExportRoutesOptions): Router {
   const { permissions } = opts;
 
   // Export document — requires read permission
-  router.post('/:id/export', permissions.require('read'), async (req: Request, res: Response) => {
+  router.post('/:id/export', permissions.require('read'), asyncHandler(async (req: Request, res: Response) => {
     const format = req.body?.format;
     if (!format || !['html', 'text'].includes(format)) {
       res.status(400).json({ error: 'format must be "html" or "text"' });
@@ -42,10 +43,10 @@ export function createExportRoutes(opts: ExportRoutesOptions): Router {
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
     res.send(content);
-  });
+  }));
 
   // Import HTML into document — requires write permission
-  router.post('/:id/import', permissions.require('write'), async (req: Request, res: Response) => {
+  router.post('/:id/import', permissions.require('write'), asyncHandler(async (req: Request, res: Response) => {
     const html = req.body?.html;
     if (!html) {
       res.status(400).json({ error: 'html content is required' });
@@ -57,7 +58,7 @@ export function createExportRoutes(opts: ExportRoutesOptions): Router {
       return;
     }
     res.json({ ok: true, html, documentId: req.params.id });
-  });
+  }));
 
   return router;
 }

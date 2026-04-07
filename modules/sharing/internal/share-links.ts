@@ -1,12 +1,20 @@
 /** Contract: contracts/sharing/rules.md */
 
-import { randomBytes, createHash } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
+import bcrypt from 'bcryptjs';
 import type { ShareLink, ShareLinkOptions, GrantRole } from '../contract.ts';
 import type { ShareLinkStore } from './store.ts';
 
-/** Hash a password with SHA-256 (consistent with auth module). */
-export function hashPassword(password: string): string {
-  return createHash('sha256').update(password).digest('hex');
+const BCRYPT_ROUNDS = 12;
+
+/** Hash a password with bcrypt. */
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, BCRYPT_ROUNDS);
+}
+
+/** Compare a plaintext password against a bcrypt hash (timing-safe). */
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash);
 }
 
 /** Generate a cryptographically random token (256 bits / 32 bytes). */
@@ -39,6 +47,10 @@ export function createShareLinkService(store: ShareLinkStore): ShareLinkService 
         ? new Date(Date.now() + input.options.expiresIn * 1000).toISOString()
         : undefined;
 
+      const passwordHash = input.options?.password
+        ? await hashPassword(input.options.password)
+        : undefined;
+
       const link: ShareLink = {
         token: generateToken(),
         docId: input.docId,
@@ -48,9 +60,7 @@ export function createShareLinkService(store: ShareLinkStore): ShareLinkService 
         maxRedemptions: input.options?.maxRedemptions,
         redemptionCount: 0,
         revoked: false,
-        passwordHash: input.options?.password
-          ? hashPassword(input.options.password)
-          : undefined,
+        passwordHash,
         createdAt: now,
       };
 
@@ -73,9 +83,8 @@ export function createShareLinkService(store: ShareLinkStore): ShareLinkService 
 
       if (link.passwordHash) {
         if (!password) return { ok: false, reason: 'wrong_password' };
-        if (hashPassword(password) !== link.passwordHash) {
-          return { ok: false, reason: 'wrong_password' };
-        }
+        const valid = await verifyPassword(password, link.passwordHash);
+        if (!valid) return { ok: false, reason: 'wrong_password' };
       }
 
       await store.update(token, { redemptionCount: link.redemptionCount + 1 });

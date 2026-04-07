@@ -1,0 +1,96 @@
+/** Contract: contracts/permissions/rules.md */
+
+import { randomUUID } from 'node:crypto';
+import type pg from 'pg';
+import type { Grant, GrantDef } from '../contract.ts';
+import type { GrantStore } from './grant-store.ts';
+
+/**
+ * PostgreSQL-backed grant store.
+ * Survives server restarts, suitable for production.
+ */
+export function createPgGrantStore(pool: pg.Pool): GrantStore {
+  return {
+    async findByPrincipalAndResource(principalId, resourceId, resourceType) {
+      const { rows } = await pool.query(
+        `SELECT * FROM grants
+         WHERE principal_id = $1 AND resource_id = $2 AND resource_type = $3`,
+        [principalId, resourceId, resourceType],
+      );
+      return rows.map(toGrant);
+    },
+
+    async findByResource(resourceId, resourceType) {
+      const { rows } = await pool.query(
+        `SELECT * FROM grants WHERE resource_id = $1 AND resource_type = $2`,
+        [resourceId, resourceType],
+      );
+      return rows.map(toGrant);
+    },
+
+    async create(def) {
+      const id = randomUUID();
+      const now = new Date().toISOString();
+      await pool.query(
+        `INSERT INTO grants (id, principal_id, resource_id, resource_type, role, granted_by, granted_at, expires_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [id, def.principalId, def.resourceId, def.resourceType, def.role, def.grantedBy, now, def.expiresAt ?? null],
+      );
+      return {
+        id,
+        principalId: def.principalId,
+        resourceId: def.resourceId,
+        resourceType: def.resourceType,
+        role: def.role,
+        grantedBy: def.grantedBy,
+        grantedAt: now,
+        expiresAt: def.expiresAt,
+      };
+    },
+
+    async revoke(grantId) {
+      const { rowCount } = await pool.query(
+        `DELETE FROM grants WHERE id = $1`,
+        [grantId],
+      );
+      return (rowCount ?? 0) > 0;
+    },
+
+    async findById(grantId) {
+      const { rows } = await pool.query(
+        `SELECT * FROM grants WHERE id = $1`,
+        [grantId],
+      );
+      return rows.length > 0 ? toGrant(rows[0]) : null;
+    },
+
+    async findByPrincipal(principalId) {
+      const { rows } = await pool.query(
+        `SELECT * FROM grants WHERE principal_id = $1`,
+        [principalId],
+      );
+      return rows.map(toGrant);
+    },
+
+    async deleteByResource(resourceId, resourceType) {
+      const { rowCount } = await pool.query(
+        `DELETE FROM grants WHERE resource_id = $1 AND resource_type = $2`,
+        [resourceId, resourceType],
+      );
+      return rowCount ?? 0;
+    },
+  };
+}
+
+function toGrant(row: Record<string, unknown>): Grant {
+  return {
+    id: String(row.id),
+    principalId: String(row.principal_id),
+    resourceId: String(row.resource_id),
+    resourceType: String(row.resource_type),
+    role: String(row.role) as Grant['role'],
+    grantedBy: String(row.granted_by),
+    grantedAt: String(row.granted_at),
+    expiresAt: row.expires_at ? String(row.expires_at) : undefined,
+  };
+}

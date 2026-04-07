@@ -123,3 +123,49 @@ modules/app/
   styles/
     *.css                 -- Modern CSS, no preprocessors, no utility frameworks
 ```
+
+## Sub-Contracts
+
+- `contracts/app/comments.md` — Comment marks, sidebar, replies, and comment store
+- `contracts/app/suggestions.md` — Track changes / suggestion mode, suggestion marks and sidebar
+- `contracts/app/search.md` — Find-and-replace with regex support, ReDoS protection, ProseMirror decorations
+- `contracts/app/print.md` — Print stylesheet, PageBreak node, print/PDF buttons
+- `contracts/app/accessibility.md` — ARIA announcer, roving tabindex toolbar, shortcut dialog
+- `contracts/app/mobile.md` — Touch support, responsive toolbar overflow, viewport management
+
+## MVP Scope
+
+Implemented:
+- [x] HTML shell and application entry point
+- [x] TipTap editor with Yjs collaboration (`@tiptap/extension-collaboration`)
+- [x] Hocuspocus WebSocket provider for real-time sync
+- [x] Awareness protocol (collaborative cursors, user presence)
+- [x] Document list/management UI
+- [x] Share dialog UI
+- [x] Import/export controls
+- [x] Formatting toolbar
+- [x] User identity display
+- [x] Modern CSS (no Tailwind, no preprocessors)
+- [x] No business logic in app module
+- [x] Single WebSocket per document
+- [x] Awareness state is ephemeral (never persisted)
+- [x] i18n: EN and FR locales supported
+- [x] Centralized translation keys with TypeScript enforcement
+- [x] Find and replace (see `contracts/app/search.md`)
+- [x] Print/PDF support (see `contracts/app/print.md`)
+- [x] Accessibility features (see `contracts/app/accessibility.md`)
+- [x] Mobile/touch support (see `contracts/app/mobile.md`)
+- [x] Comments system (comment marks, sidebar, replies, store)
+- [x] Suggestions/track changes (suggest mode, suggestion marks, sidebar, actions)
+- [x] Tables support (table toolbar)
+- [x] Image upload and handling
+- [x] Keyboard shortcut dialog
+
+Post-MVP (deferred):
+- [ ] Block ID assignment extension (`blockId` UUIDv4 on new top-level blocks) — blocks exist but auto-ID assignment extension not yet built
+- [ ] Permission-driven UI (show/hide features based on role from `api`) — currently all features visible regardless of role
+- [ ] Modular file structure (editor/extensions.ts, editor/collaboration.ts, etc.) — currently in a flatter structure
+- [ ] ProseMirror schema parity test (automated 1:1 mapping check against `document` module)
+
+Decided against:
+- Co-located translation keys — centralized keys with TypeScript enforcement preferred (better DX for a small team)
