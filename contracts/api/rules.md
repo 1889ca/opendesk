@@ -91,8 +91,9 @@ HTTP boundary layer that exposes REST endpoints for document CRUD, sharing, expo
 | POST | `/api/documents/:id/export` | Request export job | required | write |
 | POST | `/api/documents/:id/import` | Import file | required | write |
 | GET | `/api/events/stream` | SSE event stream (filterable) | required | standard |
-| POST | `/api/shares` | Create share link | required | write |
-| DELETE | `/api/shares/:id` | Revoke share | required | write |
+| POST | `/api/documents/:id/share` | Create share link | required | write |
+| POST | `/api/share/:token/resolve` | Resolve (redeem) share link | required | write |
+| DELETE | `/api/share/:token` | Revoke share link | required | write |
 | GET | `/api/templates` | List all templates | none | standard |
 | POST | `/api/templates` | Create template | required | write |
 | GET | `/api/templates/:id` | Get template by ID | none | standard |
