@@ -129,8 +129,8 @@ Implemented:
 - [x] WebSocket upgrade delegation to collab module's Hocuspocus handler
 - [x] Structured error responses (401, 403, 404)
 - [x] No business logic in route handlers (pure orchestration)
-- [x] Share link endpoints (POST /api/shares, DELETE /api/shares/:id)
-- [x] Export/import endpoints (POST /api/documents/:id/export, POST /api/documents/:id/import)
+- [x] Share link endpoints (POST /api/documents/:id/share, POST /api/share/:token/resolve, DELETE /api/share/:token)
+- [x] Export/import via Collabora (POST /api/documents/:id/convert-export, POST /api/documents/:id/convert-import)
 - [x] Template CRUD endpoints (see `contracts/api/templates.md`)
 - [x] File upload and serving endpoints (see `contracts/api/uploads.md`)
 - [x] Admin user data purge endpoint (see `contracts/api/admin.md`)
