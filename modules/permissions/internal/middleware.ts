@@ -43,6 +43,7 @@ export function requirePermission(action: Action, opts: PermissionMiddlewareOpti
       return;
     }
 
+
     const resourceId = getResourceId(req);
     if (!resourceId) {
       res.status(400).json({

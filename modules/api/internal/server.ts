@@ -41,7 +41,7 @@ export async function startServer(port = 3000) {
       findServiceAccountById: async () => null,
       revokeServiceAccount: async () => {},
     },
-    publicPaths: ['/health'],
+    publicPaths: ['/api/health'],
   });
 
   // Wire collab server with auth dependency
