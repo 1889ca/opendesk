@@ -23,8 +23,7 @@ import {
   createPgShareLinkStore,
   createShareRoutes,
 } from '../../sharing/index.ts';
-import { pool } from '../../storage/internal/pool.ts';
-import { initSchema } from '../../storage/internal/schema.ts';
+import { pool, initSchema } from '../../storage/index.ts';
 import { ensureS3Bucket } from './s3-client.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

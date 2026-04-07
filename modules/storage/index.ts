@@ -62,6 +62,10 @@ export {
   searchDocuments,
 } from './internal/pg-search.ts';
 
+// Schema initialization and pool (for server startup)
+export { initSchema } from './internal/schema.ts';
+export { pool } from './internal/pool.ts';
+
 // Folder storage
 export type { FolderRow } from './internal/folders.ts';
 
