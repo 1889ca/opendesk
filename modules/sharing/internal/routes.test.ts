@@ -28,12 +28,12 @@ describe('share routes', () => {
     it('creates a share link (201)', async () => {
       const res = await request(app)
         .post('/api/documents/doc-1/share')
-        .send({ role: 'view' });
+        .send({ role: 'viewer' });
 
       expect(res.status).toBe(201);
       expect(res.body.token).toBeDefined();
       expect(res.body.docId).toBe('doc-1');
-      expect(res.body.role).toBe('view');
+      expect(res.body.role).toBe('viewer');
       expect(res.body.passwordHash).toBeUndefined();
     });
 
@@ -58,7 +58,7 @@ describe('share routes', () => {
     it('resolves a valid token', async () => {
       const createRes = await request(app)
         .post('/api/documents/doc-1/share')
-        .send({ role: 'edit' });
+        .send({ role: 'editor' });
 
       const res = await request(app)
         .post(`/api/share/${createRes.body.token}/resolve`)
@@ -66,7 +66,7 @@ describe('share routes', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.grant.docId).toBe('doc-1');
-      expect(res.body.grant.role).toBe('edit');
+      expect(res.body.grant.role).toBe('editor');
     });
 
     it('returns 404 for invalid token', async () => {
@@ -81,7 +81,7 @@ describe('share routes', () => {
     it('returns 410 for expired token', async () => {
       const createRes = await request(app)
         .post('/api/documents/doc-1/share')
-        .send({ role: 'view', options: { expiresIn: 1 } });
+        .send({ role: 'viewer', options: { expiresIn: 1 } });
 
       // Force expiration
       await store.update(createRes.body.token, {
@@ -99,7 +99,7 @@ describe('share routes', () => {
     it('returns 410 for revoked token', async () => {
       const createRes = await request(app)
         .post('/api/documents/doc-1/share')
-        .send({ role: 'view' });
+        .send({ role: 'viewer' });
 
       await request(app)
         .delete(`/api/share/${createRes.body.token}`);
@@ -115,7 +115,7 @@ describe('share routes', () => {
     it('returns 403 for wrong password', async () => {
       const createRes = await request(app)
         .post('/api/documents/doc-1/share')
-        .send({ role: 'view', options: { password: 'secret' } });
+        .send({ role: 'viewer', options: { password: 'secret' } });
 
       const res = await request(app)
         .post(`/api/share/${createRes.body.token}/resolve`)
@@ -128,14 +128,14 @@ describe('share routes', () => {
     it('resolves password-protected link with correct password', async () => {
       const createRes = await request(app)
         .post('/api/documents/doc-1/share')
-        .send({ role: 'view', options: { password: 'secret' } });
+        .send({ role: 'viewer', options: { password: 'secret' } });
 
       const res = await request(app)
         .post(`/api/share/${createRes.body.token}/resolve`)
         .send({ password: 'secret' });
 
       expect(res.status).toBe(200);
-      expect(res.body.grant.role).toBe('view');
+      expect(res.body.grant.role).toBe('viewer');
     });
   });
 
@@ -143,7 +143,7 @@ describe('share routes', () => {
     it('revokes an existing link', async () => {
       const createRes = await request(app)
         .post('/api/documents/doc-1/share')
-        .send({ role: 'view' });
+        .send({ role: 'viewer' });
 
       const res = await request(app)
         .delete(`/api/share/${createRes.body.token}`);
