@@ -32,7 +32,6 @@ export type { DocumentRow, DocumentType } from './internal/pg.ts';
 export type { TemplateRow, TemplateUpdates } from './internal/templates.ts';
 
 export {
-  CREATE_TEMPLATES_TABLE,
   createTemplate,
   getTemplate,
   listTemplates,
@@ -47,7 +46,6 @@ export type { DefaultTemplate } from './internal/default-templates.ts';
 export type { VersionRow } from './internal/pg-versions.ts';
 
 export {
-  CREATE_VERSIONS_TABLE,
   saveVersion,
   listVersions,
   getVersion,
@@ -70,7 +68,6 @@ export { pool } from './internal/pool.ts';
 export type { FolderRow } from './internal/folders.ts';
 
 export {
-  CREATE_FOLDERS_TABLE,
   createFolder,
   listFolders,
   renameFolder,

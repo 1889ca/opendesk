@@ -9,19 +9,6 @@ export interface FolderRow {
   created_at: Date;
 }
 
-export const CREATE_FOLDERS_TABLE = `
-  CREATE TABLE IF NOT EXISTS folders (
-    id UUID PRIMARY KEY,
-    name TEXT NOT NULL,
-    parent_id UUID REFERENCES folders(id) ON DELETE SET NULL,
-    created_by TEXT NOT NULL DEFAULT '',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-  );
-
-  ALTER TABLE documents
-    ADD COLUMN IF NOT EXISTS folder_id UUID REFERENCES folders(id) ON DELETE SET NULL;
-`;
-
 export async function createFolder(
   id: string,
   name: string,

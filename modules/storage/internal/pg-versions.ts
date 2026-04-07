@@ -11,18 +11,6 @@ export interface VersionRow {
   version_number: number;
 }
 
-export const CREATE_VERSIONS_TABLE = `
-  CREATE TABLE IF NOT EXISTS document_versions (
-    id UUID PRIMARY KEY,
-    document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
-    content JSONB NOT NULL,
-    title TEXT NOT NULL DEFAULT '',
-    created_by TEXT NOT NULL DEFAULT '',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    version_number INTEGER NOT NULL,
-    UNIQUE (document_id, version_number)
-  )
-`;
 
 /**
  * Save a new version snapshot for a document.

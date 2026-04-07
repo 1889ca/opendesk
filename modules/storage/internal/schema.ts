@@ -1,7 +1,6 @@
 /** Contract: contracts/storage/rules.md */
 import { pool } from './pool.ts';
 import { APPLY_SEARCH_SCHEMA } from './pg-search.ts';
-import { CREATE_TEMPLATES_TABLE } from './templates.ts';
 
 const CREATE_DOCUMENTS_TABLE = `
   CREATE TABLE IF NOT EXISTS documents (
@@ -72,6 +71,17 @@ const CREATE_SHARE_LINKS_TABLE = `
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     password_hash TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )
+`;
+
+const CREATE_TEMPLATES_TABLE = `
+  CREATE TABLE IF NOT EXISTS templates (
+    id UUID PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    content JSONB NOT NULL DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )
 `;
 

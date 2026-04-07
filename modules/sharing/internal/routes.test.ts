@@ -6,7 +6,7 @@ import request from 'supertest';
 import { createShareRoutes } from './routes.ts';
 import { createShareLinkService } from './share-links.ts';
 import { createInMemoryShareLinkStore, type ShareLinkStore } from './store.ts';
-import { createInMemoryGrantStore, type GrantStore } from '../../permissions/index.ts';
+import { createPermissions } from '../../permissions/index.ts';
 
 /** Middleware that simulates auth by attaching a fake principal. */
 function fakePrincipal(id = 'user-1') {
@@ -16,13 +16,28 @@ function fakePrincipal(id = 'user-1') {
   };
 }
 
-function createTestApp(store: ShareLinkStore, grantStore?: GrantStore) {
+function createTestApp(store: ShareLinkStore, principalId = 'user-1') {
   const app = express();
   app.use(express.json());
-  app.use(fakePrincipal());
+  const permissions = createPermissions();
+
+  // Grant owner role on doc-1 to the default test user
+  permissions.grantStore.create({
+    principalId,
+    resourceId: 'doc-1',
+    resourceType: 'document',
+    role: 'owner',
+    grantedBy: principalId,
+  });
+
+  app.use(fakePrincipal(principalId));
   const service = createShareLinkService(store);
-  app.use(createShareRoutes(service, { grantStore }));
-  return app;
+  app.use(createShareRoutes({
+    service,
+    grantStore: permissions.grantStore,
+    permissions,
+  }));
+  return { app, permissions };
 }
 
 describe('share routes', () => {
@@ -31,7 +46,7 @@ describe('share routes', () => {
 
   beforeEach(() => {
     store = createInMemoryShareLinkStore();
-    app = createTestApp(store);
+    ({ app } = createTestApp(store));
   });
 
   describe('POST /api/documents/:id/share', () => {
@@ -61,6 +76,14 @@ describe('share routes', () => {
         .send({});
 
       expect(res.status).toBe(400);
+    });
+
+    it('rejects user without write permission (403)', async () => {
+      const res = await request(app)
+        .post('/api/documents/no-access-doc/share')
+        .send({ role: 'viewer' });
+
+      expect(res.status).toBe(403);
     });
   });
 
@@ -148,27 +171,31 @@ describe('share routes', () => {
       expect(res.body.grant.role).toBe('viewer');
     });
 
-    it('persists a Grant in the grant store on redemption', async () => {
-      const grantStore = createInMemoryGrantStore();
-      const appWithGrants = createTestApp(store, grantStore);
-
-      const createRes = await request(appWithGrants)
+    it('rate-limits after too many wrong password attempts (429)', async () => {
+      const createRes = await request(app)
         .post('/api/documents/doc-1/share')
-        .send({ role: 'editor' });
+        .send({ role: 'viewer', options: { password: 'secret' } });
 
-      await request(appWithGrants)
-        .post(`/api/share/${createRes.body.token}/resolve`)
-        .send({});
+      const token = createRes.body.token;
 
-      const grants = await grantStore.findByPrincipal('user-1');
-      expect(grants).toHaveLength(1);
-      expect(grants[0].resourceId).toBe('doc-1');
-      expect(grants[0].role).toBe('editor');
+      // Exhaust the rate limit (5 wrong attempts)
+      for (let i = 0; i < 5; i++) {
+        await request(app)
+          .post(`/api/share/${token}/resolve`)
+          .send({ password: 'wrong' });
+      }
+
+      // 6th attempt should be rate-limited
+      const res = await request(app)
+        .post(`/api/share/${token}/resolve`)
+        .send({ password: 'wrong' });
+      expect(res.status).toBe(429);
+      expect(res.body.error).toBe('too_many_attempts');
     });
   });
 
   describe('DELETE /api/share/:token', () => {
-    it('revokes an existing link', async () => {
+    it('revokes an existing link (as creator)', async () => {
       const createRes = await request(app)
         .post('/api/documents/doc-1/share')
         .send({ role: 'viewer' });
@@ -185,6 +212,30 @@ describe('share routes', () => {
         .delete('/api/share/nonexistent');
 
       expect(res.status).toBe(404);
+    });
+
+    it('rejects revocation by non-owner without write permission (403)', async () => {
+      // Create a link as user-1
+      const createRes = await request(app)
+        .post('/api/documents/doc-1/share')
+        .send({ role: 'viewer' });
+
+      // Build a second app with a different user who has no permissions
+      const app2 = express();
+      app2.use(express.json());
+      const permissions2 = createPermissions();
+      app2.use(fakePrincipal('user-2'));
+      const service2 = createShareLinkService(store);
+      app2.use(createShareRoutes({
+        service: service2,
+        permissions: permissions2,
+      }));
+
+      const res = await request(app2)
+        .delete(`/api/share/${createRes.body.token}`);
+
+      expect(res.status).toBe(403);
+      expect(res.body.error).toBe('forbidden');
     });
   });
 });

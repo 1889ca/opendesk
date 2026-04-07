@@ -128,7 +128,11 @@ export async function startServer(port = 3000) {
   // Share link routes (create, resolve, revoke) — after auth
   const shareLinkStore = createPgShareLinkStore(pool);
   const shareLinkService = createShareLinkService(shareLinkStore);
-  app.use(createShareRoutes(shareLinkService, { grantStore: permissions.grantStore, permissions }));
+  app.use(createShareRoutes({
+    service: shareLinkService,
+    grantStore: permissions.grantStore,
+    permissions,
+  }));
 
   // File upload and serving routes — after auth
   app.use('/api', createUploadRoutes());
