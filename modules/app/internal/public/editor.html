@@ -68,7 +68,10 @@
 
       var titleInput = document.getElementById('doc-title');
 
-      fetch('/api/documents/' + encodeURIComponent(docId))
+      var authToken = localStorage.getItem('opendesk-auth-token') || 'dev';
+      var authHeaders = { 'Authorization': 'Bearer ' + authToken };
+
+      fetch('/api/documents/' + encodeURIComponent(docId), { headers: authHeaders })
         .then(function (res) {
           if (!res.ok) throw new Error('Not found');
           return res.json();
@@ -97,7 +100,7 @@
         document.title = newTitle + ' - OpenDesk';
         fetch('/api/documents/' + encodeURIComponent(docId), {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders),
           body: JSON.stringify({ title: newTitle })
         }).catch(function (err) { console.error('Title save failed', err); });
       }

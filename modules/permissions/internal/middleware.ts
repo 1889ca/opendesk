@@ -36,6 +36,12 @@ export function requirePermission(action: Action, opts: PermissionMiddlewareOpti
       return;
     }
 
+    // In dev mode, skip permission checks (no grants exist for dev users)
+    if (process.env.AUTH_MODE === 'dev') {
+      next();
+      return;
+    }
+
     const resourceId = getResourceId(req);
     if (!resourceId) {
       res.status(400).json({
