@@ -37,6 +37,11 @@
   --comment-highlight-active: rgba(255, 200, 0, 0.5);
   --comment-border: rgba(255, 200, 0, 0.5);
 
+  /* Citations */
+  --citation-highlight: rgba(147, 130, 220, 0.2);
+  --citation-highlight-hover: rgba(147, 130, 220, 0.35);
+  --citation-border: rgba(147, 130, 220, 0.5);
+
   /* Suggestions */
   --suggestion-insert-bg: rgba(34, 197, 94, 0.15);
   --suggestion-insert-hover: rgba(34, 197, 94, 0.3);
@@ -90,6 +95,11 @@
   --comment-highlight-hover: rgba(255, 220, 80, 0.35);
   --comment-highlight-active: rgba(255, 200, 0, 0.3);
   --comment-border: rgba(255, 200, 0, 0.4);
+
+  /* Citations */
+  --citation-highlight: rgba(147, 130, 220, 0.15);
+  --citation-highlight-hover: rgba(147, 130, 220, 0.3);
+  --citation-border: rgba(147, 130, 220, 0.4);
 
   /* Suggestions */
   --suggestion-insert-bg: rgba(34, 197, 94, 0.12);

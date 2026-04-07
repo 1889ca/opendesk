@@ -14,6 +14,7 @@ import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
 import { SearchExtension } from './search/search-extension.ts';
 import { CommentMark } from './comments/index.ts';
+import { CitationMark } from './citations/index.ts';
 import { PageBreak } from './page-break.ts';
 import {
   SuggestionInsertMark,
@@ -49,6 +50,7 @@ export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
     SearchExtension,
     PageBreak,
     CommentMark,
+    CitationMark,
     SuggestionInsertMark,
     SuggestionDeleteMark,
     EmojiInputRule,

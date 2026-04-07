@@ -19,6 +19,7 @@ import { createTemplateRoutes } from './template-routes.ts';
 import { createVersionRoutes } from './version-routes.ts';
 import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts';
 import { createSearchRoutes } from './search-routes.ts';
+import { createReferenceRoutes } from './reference-routes.ts';
 import {
   createShareLinkService,
   createPgShareLinkStore,
@@ -121,6 +122,9 @@ export async function startServer(port = 3000) {
 
   // Template CRUD routes
   app.use('/api/templates', createTemplateRoutes({ permissions }));
+
+  // Reference management routes (DOI/ISBN lookup + CRUD)
+  app.use('/api/references', createReferenceRoutes({ permissions }));
 
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
