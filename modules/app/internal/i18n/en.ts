@@ -82,4 +82,18 @@ export const en: TranslationKeys = {
   'lang.label': 'Language',
   'lang.en': 'English',
   'lang.fr': 'Français',
+
+  // Template picker
+  'templates.title': 'Choose a template',
+  'templates.blank': 'Blank',
+  'templates.blankDesc': 'Start with a clean slate',
+  'templates.meetingNotes': 'Meeting Notes',
+  'templates.meetingNotesDesc': 'Capture attendees, agenda, and action items',
+  'templates.projectBrief': 'Project Brief',
+  'templates.projectBriefDesc': 'Outline goals, scope, timeline, and team',
+  'templates.report': 'Report',
+  'templates.reportDesc': 'Structured report with executive summary and findings',
+  'templates.selectTitle': 'New Document',
+  'templates.loading': 'Loading templates...',
+  'templates.loadFailed': 'Failed to load templates',
 };

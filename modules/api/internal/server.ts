@@ -14,6 +14,7 @@ import { createExportRoutes } from './export-routes.ts';
 import { createAdminRoutes } from './admin-routes.ts';
 import { createUploadRoutes } from './upload-routes.ts';
 import { createFileRoutes } from './file-routes.ts';
+import { createTemplateRoutes } from './template-routes.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -65,6 +66,9 @@ export function startServer(port = 3000) {
 
   // Export/import routes with permission checks
   app.use('/api/documents', createExportRoutes({ permissions }));
+
+  // Template CRUD routes (no auth check for now)
+  app.use('/api/templates', createTemplateRoutes());
 
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
