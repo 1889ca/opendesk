@@ -2,9 +2,11 @@
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Collaboration from '@tiptap/extension-collaboration';
+import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 import { HocuspocusProvider } from '@hocuspocus/provider';
-// Cursor plugin deferred — y-prosemirror has a ProseMirror version mismatch with TipTap 3.x
 import * as Y from 'yjs';
+import { t, setLocale, resolveLocale, persistLocale, onLocaleChange } from './i18n/index.ts';
+import { buildLanguageSwitcher, updateStaticText } from './locale-ui.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -35,48 +37,66 @@ function buildToolbar(editor: Editor) {
   const toolbar = document.getElementById('formatting-toolbar');
   if (!toolbar) return;
 
-  const buttons: Array<{ label: string; action: () => boolean; isActive?: () => boolean }> = [
-    { label: 'B', action: () => editor.chain().focus().toggleBold().run(), isActive: () => editor.isActive('bold') },
-    { label: 'I', action: () => editor.chain().focus().toggleItalic().run(), isActive: () => editor.isActive('italic') },
-    { label: 'S', action: () => editor.chain().focus().toggleStrike().run(), isActive: () => editor.isActive('strike') },
-    { label: 'Code', action: () => editor.chain().focus().toggleCode().run(), isActive: () => editor.isActive('code') },
-    { label: '---', action: () => false }, // separator
-    { label: 'H1', action: () => editor.chain().focus().toggleHeading({ level: 1 }).run(), isActive: () => editor.isActive('heading', { level: 1 }) },
-    { label: 'H2', action: () => editor.chain().focus().toggleHeading({ level: 2 }).run(), isActive: () => editor.isActive('heading', { level: 2 }) },
-    { label: 'H3', action: () => editor.chain().focus().toggleHeading({ level: 3 }).run(), isActive: () => editor.isActive('heading', { level: 3 }) },
-    { label: '---', action: () => false }, // separator
-    { label: 'List', action: () => editor.chain().focus().toggleBulletList().run(), isActive: () => editor.isActive('bulletList') },
-    { label: '1.', action: () => editor.chain().focus().toggleOrderedList().run(), isActive: () => editor.isActive('orderedList') },
-    { label: 'Quote', action: () => editor.chain().focus().toggleBlockquote().run(), isActive: () => editor.isActive('blockquote') },
-    { label: '<>', action: () => editor.chain().focus().toggleCodeBlock().run(), isActive: () => editor.isActive('codeBlock') },
-    { label: 'HR', action: () => editor.chain().focus().setHorizontalRule().run() },
-  ];
+  const render = () => {
+    toolbar.innerHTML = '';
+    const buttons = buildToolbarButtons(editor);
+    renderToolbarButtons(toolbar, buttons, editor);
+  };
 
-  buttons.forEach(({ label, action, isActive }) => {
-    if (label === '---') {
+  render();
+  onLocaleChange(render);
+}
+
+function buildToolbarButtons(editor: Editor) {
+  return [
+    { key: 'toolbar.bold' as const, action: () => editor.chain().focus().toggleBold().run(), isActive: () => editor.isActive('bold') },
+    { key: 'toolbar.italic' as const, action: () => editor.chain().focus().toggleItalic().run(), isActive: () => editor.isActive('italic') },
+    { key: 'toolbar.strike' as const, action: () => editor.chain().focus().toggleStrike().run(), isActive: () => editor.isActive('strike') },
+    { key: 'toolbar.code' as const, action: () => editor.chain().focus().toggleCode().run(), isActive: () => editor.isActive('code') },
+    { key: null, action: () => false },
+    { key: 'toolbar.heading1' as const, action: () => editor.chain().focus().toggleHeading({ level: 1 }).run(), isActive: () => editor.isActive('heading', { level: 1 }) },
+    { key: 'toolbar.heading2' as const, action: () => editor.chain().focus().toggleHeading({ level: 2 }).run(), isActive: () => editor.isActive('heading', { level: 2 }) },
+    { key: 'toolbar.heading3' as const, action: () => editor.chain().focus().toggleHeading({ level: 3 }).run(), isActive: () => editor.isActive('heading', { level: 3 }) },
+    { key: null, action: () => false },
+    { key: 'toolbar.bulletList' as const, action: () => editor.chain().focus().toggleBulletList().run(), isActive: () => editor.isActive('bulletList') },
+    { key: 'toolbar.orderedList' as const, action: () => editor.chain().focus().toggleOrderedList().run(), isActive: () => editor.isActive('orderedList') },
+    { key: 'toolbar.blockquote' as const, action: () => editor.chain().focus().toggleBlockquote().run(), isActive: () => editor.isActive('blockquote') },
+    { key: 'toolbar.codeBlock' as const, action: () => editor.chain().focus().toggleCodeBlock().run(), isActive: () => editor.isActive('codeBlock') },
+    { key: 'toolbar.horizontalRule' as const, action: () => editor.chain().focus().setHorizontalRule().run() },
+  ];
+}
+
+function renderToolbarButtons(
+  toolbar: HTMLElement,
+  buttons: ReturnType<typeof buildToolbarButtons>,
+  editor: Editor,
+) {
+  for (const { key, action, isActive } of buttons) {
+    if (key === null) {
       const sep = document.createElement('span');
       sep.className = 'toolbar-separator';
       toolbar.appendChild(sep);
-      return;
+      continue;
     }
     const btn = document.createElement('button');
     btn.className = 'toolbar-btn';
-    btn.textContent = label;
+    btn.textContent = t(key);
     btn.addEventListener('click', (e) => { e.preventDefault(); action(); });
     toolbar.appendChild(btn);
 
     if (isActive) {
-      editor.on('selectionUpdate', () => {
-        btn.classList.toggle('is-active', isActive());
-      });
-      editor.on('transaction', () => {
-        btn.classList.toggle('is-active', isActive());
-      });
+      const update = () => btn.classList.toggle('is-active', isActive());
+      editor.on('selectionUpdate', update);
+      editor.on('transaction', update);
     }
-  });
+  }
 }
 
 function init() {
+  const locale = resolveLocale();
+  setLocale(locale);
+  persistLocale(locale);
+
   const editorEl = document.getElementById('editor');
   if (!editorEl) return;
 
@@ -85,6 +105,9 @@ function init() {
 
   const statusEl = document.getElementById('status');
   const usersEl = document.getElementById('users');
+
+  updateStaticText(statusEl);
+  onLocaleChange(() => updateStaticText(statusEl));
 
   const ydoc = new Y.Doc();
 
@@ -95,13 +118,13 @@ function init() {
     document: ydoc,
     onConnect() {
       if (statusEl) {
-        statusEl.textContent = 'Connected';
+        statusEl.textContent = t('status.connected');
         statusEl.className = 'status connected';
       }
     },
     onDisconnect() {
       if (statusEl) {
-        statusEl.textContent = 'Disconnected';
+        statusEl.textContent = t('status.disconnected');
         statusEl.className = 'status disconnected';
       }
     },
@@ -112,28 +135,26 @@ function init() {
     extensions: [
       StarterKit.configure({ undoRedo: false }),
       Collaboration.configure({ document: ydoc }),
+      CollaborationCursor.configure({
+        provider,
+        user: { name: user.name, color: user.color },
+      }),
     ],
     editorProps: {
       attributes: { class: 'editor-content' },
     },
   });
 
-  // Set awareness user info (used by user list, cursors deferred to Phase 2)
-  if (provider.awareness) {
-    provider.awareness.setLocalStateField('user', {
-      name: user.name,
-      color: user.color,
-    });
-  }
+  // Awareness user info is set by CollaborationCursor extension
 
   buildToolbar(editor);
+  buildLanguageSwitcher();
 
-  // Update user list from awareness
   function updateUsers() {
     if (!usersEl || !provider.awareness) return;
     const states = provider.awareness.getStates();
     const names: string[] = [];
-    states.forEach((state) => {
+    states.forEach((state: { user?: { name?: string } }) => {
       if (state.user?.name) names.push(state.user.name);
     });
     usersEl.textContent = names.join(', ') || '-';

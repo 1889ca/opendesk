@@ -5,14 +5,26 @@ import * as Y from 'yjs';
 import type { IncomingMessage } from 'node:http';
 import type { Duplex } from 'node:stream';
 import { saveYjsState, loadYjsState } from '../../storage/internal/pg.ts';
+import { CompactionManager } from './compaction-manager.ts';
+import type { CollabConfig } from '../contract.ts';
 
-export function createCollabServer() {
+const DEFAULT_COMPACTION_THRESHOLD = 1_048_576; // 1 MiB
+
+export function createCollabServer(config?: Partial<CollabConfig>) {
+  const thresholdBytes =
+    config?.compactionThresholdBytes ?? DEFAULT_COMPACTION_THRESHOLD;
+
+  const compactionManager = new CompactionManager(thresholdBytes, {
+    saveYjsState,
+    loadYjsState,
+  });
+
   const hocuspocus = new Hocuspocus({
-    name: 'opendesk-collab',
+    name: config?.hocuspocus?.name ?? 'opendesk-collab',
     timeout: 30000,
     debounce: 2000,
     maxDebounce: 10000,
-    quiet: true,
+    quiet: config?.hocuspocus?.quiet ?? true,
 
     async onLoadDocument({ document, documentName }) {
       const state = await loadYjsState(documentName);
@@ -25,6 +37,15 @@ export function createCollabServer() {
     async onStoreDocument({ documentName, document }) {
       const state = Y.encodeStateAsUpdate(document);
       await saveYjsState(documentName, state);
+
+      // Trigger compaction check asynchronously (fire-and-forget).
+      // Errors are logged but do not block the save cycle.
+      compactionManager.maybeCompact(documentName, state).catch((err) => {
+        console.error(
+          `[collab] compaction failed for ${documentName}:`,
+          err,
+        );
+      });
     },
   });
 
@@ -34,11 +55,15 @@ export function createCollabServer() {
     hocuspocus.handleConnection(ws, request);
   });
 
-  function handleUpgrade(request: IncomingMessage, socket: Duplex, head: Buffer) {
+  function handleUpgrade(
+    request: IncomingMessage,
+    socket: Duplex,
+    head: Buffer,
+  ) {
     wss.handleUpgrade(request, socket, head, (ws) => {
       wss.emit('connection', ws, request);
     });
   }
 
-  return { hocuspocus, handleUpgrade };
+  return { hocuspocus, handleUpgrade, compactionManager };
 }

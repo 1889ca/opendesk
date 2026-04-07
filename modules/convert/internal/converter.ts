@@ -1,19 +1,23 @@
 /** Contract: contracts/convert/rules.md */
 
 /**
- * MVP converter — client-side HTML/text export via TipTap editor methods.
- *
- * The full Collabora pipeline (flush -> read snapshot -> LibreOffice convert)
- * is stubbed here and will be wired up when the convert container is running.
- * For now, the actual export happens client-side using editor.getHTML() and
- * editor.getText(), with the API endpoints provided as a future hook.
+ * Unified converter facade — wires import and export pipelines
+ * and provides the public API surface for the convert module.
  */
 
-import type { ExportFormat } from '../contract.ts';
+import type { ExportFormat, ImportFormat } from '../contract.ts';
+import { importFile, buildSnapshot } from './importer.ts';
+import {
+  exportDocument,
+  toConversionResult,
+  type ExportResult,
+} from './exporter.ts';
+import { contentToHtml } from './html-renderer.ts';
 import { getDocument } from '../../storage/internal/pg.ts';
 
-// --- MVP Export Formats (no Collabora needed) ---
+export type { ExportResult };
 
+// Re-export for backward compat with existing server.ts
 export type MvpExportFormat = 'html' | 'text';
 
 export interface MvpExportResult {
@@ -26,7 +30,6 @@ export interface MvpExportResult {
 
 /**
  * Get document metadata for export (title, existence check).
- * Actual content export happens client-side for MVP.
  */
 export async function getDocumentForExport(
   documentId: string
@@ -36,20 +39,30 @@ export async function getDocumentForExport(
   return { title: doc.title };
 }
 
-// --- Collabora Integration (future) ---
-
-const COLLABORA_URL = process.env.COLLABORA_URL || 'http://localhost:9980';
-
 /**
- * Placeholder: convert HTML to a binary format via Collabora's REST API.
- * Not yet implemented — requires the convert container to be running.
+ * Convert HTML content to a binary format via Collabora.
+ * This is the main export path used by the API.
  */
 export async function convertViaCollabora(
   html: string,
-  targetFormat: ExportFormat
-): Promise<Buffer> {
-  throw new Error(
-    `Collabora conversion to ${targetFormat} not yet implemented. ` +
-    `Ensure the convert container is running at ${COLLABORA_URL}.`
-  );
+  targetFormat: ExportFormat,
+  documentId: string,
+  requestedBy: string = 'system'
+): Promise<ExportResult> {
+  const wrappedHtml = contentToHtml(html);
+  return exportDocument(documentId, targetFormat, requestedBy, wrappedHtml);
 }
+
+/**
+ * Import a file and return a DocumentSnapshot.
+ */
+export async function importViaCollabora(
+  fileBuffer: Buffer,
+  format: ImportFormat,
+  documentId: string,
+  filename: string
+) {
+  return importFile(fileBuffer, format, documentId, filename);
+}
+
+export { buildSnapshot, toConversionResult };
