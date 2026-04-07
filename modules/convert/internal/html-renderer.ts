@@ -53,6 +53,24 @@ export function renderNode(node: ProseMirrorNode): string {
       return `<ol>${renderNodes(node.content)}</ol>`;
     case 'listItem':
       return `<li>${renderNodes(node.content)}</li>`;
+    case 'table':
+      return `<table>${renderNodes(node.content)}</table>`;
+    case 'tableRow':
+      return `<tr>${renderNodes(node.content)}</tr>`;
+    case 'tableCell': {
+      const cs = node.attrs?.colspan && (node.attrs.colspan as number) > 1
+        ? ` colspan="${node.attrs.colspan}"` : '';
+      const rs = node.attrs?.rowspan && (node.attrs.rowspan as number) > 1
+        ? ` rowspan="${node.attrs.rowspan}"` : '';
+      return `<td${cs}${rs}>${renderNodes(node.content)}</td>`;
+    }
+    case 'tableHeader': {
+      const cs = node.attrs?.colspan && (node.attrs.colspan as number) > 1
+        ? ` colspan="${node.attrs.colspan}"` : '';
+      const rs = node.attrs?.rowspan && (node.attrs.rowspan as number) > 1
+        ? ` rowspan="${node.attrs.rowspan}"` : '';
+      return `<th${cs}${rs}>${renderNodes(node.content)}</th>`;
+    }
     case 'horizontalRule':
       return '<hr>';
     case 'text':
