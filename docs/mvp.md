@@ -52,7 +52,7 @@ Focus on the document editor first. Not spreadsheets, not presentations. Just do
 - Mobile apps (native mobile is a money pit; responsive web comes first)
 - Offline mode (requires service workers and conflict resolution UX -- too much scope for MVP)
 - Plugin/extension system (architecture should allow for it later, but no public API yet)
-- Advanced formatting: mail merge, macros, track changes, comments (comments likely Phase 1.5)
+- Advanced formatting: mail merge, macros, track changes (comments and suggestions are done)
 - E2E encryption (important but adds significant complexity; planned for post-MVP)
 
 ---
@@ -86,19 +86,108 @@ Phase 3 is the smallest of the three in scope. Most organizations can live witho
 
 ## Milestones
 
-1. **Foundation** (current) -- Repository setup, contracts-first methodology, governance documents, architectural decisions documented in `decisions/` directory.
+### Completed
 
-2. **Skeleton** -- Project scaffolding: monorepo structure, CI/CD pipeline, contract templates for all MVP modules, dev environment setup (Docker Compose for local dev).
+1. **Foundation** -- Repository setup, contracts-first methodology, governance documents, architectural decisions documented in `decisions/` directory.
 
-3. **Editor Core** -- Basic TipTap editor with Yjs CRDT sync. Two users can open the same document and see each other's edits in real-time. No persistence yet -- just the editing experience.
+2. **Skeleton** -- Project scaffolding: monorepo structure with 11 modules, CI/CD pipeline, contract templates for all MVP modules, dev environment setup (Docker Compose for local dev).
 
-4. **Conversion Service** -- LibreOffice-based microservice for import/export. User can upload a .docx and get it into the editor. User can export back to .docx.
+3. **Phase 0: Technical Debt Cleanup** -- Role type unification (canonical `Role` enum in permissions/contract.ts), barrel-file module boundary enforcement (11/11 modules), contract compliance from 52% to 100%.
 
-5. **Auth + Sharing** -- User accounts via OpenID Connect. Document ownership. Link-based sharing with view/edit permissions. Basic access control.
+4. **Pillar 0: Editor Foundation** -- The core editing experience, built to be competitive with Google Docs for daily use:
+   - Comments & suggestions (inline threads, suggest-mode with accept/reject)
+   - Tables (resizable columns, merged cells, header rows)
+   - Images & media (drag-and-drop upload to S3, resize handles)
+   - Document templates (picker UI, template library, create-from-template)
+   - Find & replace (with regex support)
+   - Print/PDF (CSS print stylesheet, export to PDF)
+   - Accessibility (ARIA labels, keyboard navigation, screen reader support)
+   - Mobile responsive (touch-friendly toolbar, responsive layout)
+   - i18n (English and French)
 
-6. **Self-Host** -- Docker Compose deployment that brings up the full stack: editor frontend, API backend, WebSocket server, conversion service, PostgreSQL, MinIO, identity provider. One command, everything works.
+5. **Self-Host Deployment** -- Docker Compose deployment with PostgreSQL, Redis, MinIO, nginx. Schema initialization and environment configuration.
 
-7. **Beta** -- Invite-only testing with real users and real documents. Bug fixing, performance tuning, format conversion quality improvements. Feedback loop before public launch.
+6. **Testing** -- 17 Playwright E2E tests covering the MVP workflow. Yjs collaboration stress tests and HTTP load testing. 32+ unit/integration test files across all modules.
+
+### In Progress
+
+7. **Editor Core Hardening** -- Performance optimization for large documents and many collaborators. Stress test validation ongoing.
+
+### Remaining
+
+8. **Conversion Service** -- LibreOffice-based microservice for import/export. User can upload a .docx and get it into the editor. User can export back to .docx.
+
+9. **Auth + Sharing Integration** -- OpenID Connect provider integration. Link-based sharing with view/edit permissions wired end-to-end.
+
+10. **Beta** -- Invite-only testing with real users and real documents. Bug fixing, performance tuning, format conversion quality improvements. Feedback loop before public launch.
+
+---
+
+## Strategic Pillars (Post-MVP)
+
+Beyond the MVP, OpenDesk's roadmap is organized into strategic pillars that exploit sovereign/AGPL architecture as a competitive moat. These were defined via hivemind deliberation (see `decisions/2026-04-06-strategic-roadmap-segments-deliberation.md` and `decisions/2026-04-06-pillar-sequencing-deliberation.md`).
+
+**Pillar 0: Editor Foundation** runs continuously alongside all other pillars (~30-40% of effort). The remaining pillars are sequenced by dependency:
+
+### Pillar 1: Air-Gapped Local AI (BYOM)
+
+Sovereign AI for organizations that cannot send data to cloud LLMs. BYOM abstraction over Ollama, pgvector in existing PostgreSQL, local RAG pipeline. Serves defense, healthcare, and legal sectors.
+
+*Milestones:* BYOM abstraction layer -> CRDT-to-vector pipeline -> Local semantic search -> Context-aware document assistant -> Curated sovereign model zoo.
+
+### Pillar 2: Cryptographic Audit & e-Discovery
+
+Tamper-evident, append-only cryptographic ledger of all document mutations and access events. Merkle-tree backed. Targets pharma (FDA CFR 21 Part 11), finance (FINRA), forensics.
+
+*Milestones:* Signed Yjs updates -> Append-only event store -> Point-in-time verifiability -> Automated SAR/FOIA engine.
+
+### Pillar 3: Verifiable Data Erasure & CRDT Pruning
+
+Solving the CRDT/GDPR collision -- Yjs tombstones retain deleted content, conflicting with Right to Be Forgotten. Uses structural tombstone anonymization (zero-fill payload while preserving CRDT pointers).
+
+*Milestones:* Tombstone extraction tooling -> Structural anonymization -> Targeted redaction API -> Policy-driven automated pruning.
+
+### Pillar 4: Sovereign Data Workflows & Process Automation
+
+Visual workflow builder for document pipelines -- approval chains, redaction, translation, archival. All local execution via Wasm sandboxing (Extism/Wasmtime). No data leakage to external services.
+
+*Milestones:* Trigger/action API -> Visual workflow editor -> Local service integrations -> Auditable execution logs.
+
+### Pillar 5: Cross-Sovereign Federation
+
+Real-time Yjs collaboration between isolated OpenDesk instances. Targets government-contractor collaboration, hospital networks, B2B consortiums. Uses CRDT sub-document partitioning for scoped federation.
+
+*Milestones:* OIDC/SAML identity federation -> Server-to-server sync protocol -> Federated permission mapping -> Split-brain resolution.
+
+### Pillar 6: Sovereign Observability & Compliance Control Plane
+
+Unified real-time dashboard for the entire stack's compliance posture. Transforms passive audit trails into active, queryable instrumentation. The connective tissue that consumes output from all other pillars.
+
+*Milestones:* Unified telemetry pipeline -> Live compliance dashboard -> Anomaly detection -> Drill-down forensics.
+
+### Pillar Sequencing
+
+```
+Phase 0 (Complete)     Pillar 0 (Continuous)
+  Role unification       Editor quality
+  Module boundaries      Comments, tables, images
+  Contracts 100%         Templates, search, print, a11y
+        |
+        v
+  Pillar 4 (Workflows) ----+---- Pillar 2 (Crypto Audit)
+                            |
+        +-------------------+-------------------+
+        v                                       v
+  Pillar 6 (Observability)              Pillar 1 (Local AI)
+        |                                       |
+        v                                       v
+  Pillar 3 (Erasure) --- depends on Pillar 2 ---+
+        |
+        v
+  Pillar 5 (Federation) --- depends on nearly everything
+```
+
+Full dependency analysis: `decisions/2026-04-06-pillar-sequencing-deliberation.md`
 
 ---
 
