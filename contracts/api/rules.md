@@ -134,9 +134,12 @@ Implemented:
 - [x] Template CRUD endpoints (see `contracts/api/templates.md`)
 - [x] File upload and serving endpoints (see `contracts/api/uploads.md`)
 - [x] Admin user data purge endpoint (see `contracts/api/admin.md`)
+- [x] Zod validation on document CRUD request bodies (POST, PATCH /api/documents)
+- [x] Zod validation on template CRUD request bodies (POST, PUT /api/templates)
+- [x] Zod validation on upload request body (POST /api/upload)
 
 Post-MVP (deferred):
-- [ ] Zod validation on all request bodies — currently using ad-hoc validation checks
+- [ ] Zod validation on remaining request bodies (intents, export/import params)
 - [ ] Rate limiting per-principal with actorType discrimination (human vs agent token bucket)
 - [ ] `ETag` / `If-Match` header support for causal reads (304 Not Modified)
 - [ ] SSE event stream endpoint (GET /api/events/stream) — requires events module implementation

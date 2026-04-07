@@ -155,6 +155,11 @@ Implemented:
 - [x] Print/PDF support (see `contracts/app/print.md`)
 - [x] Accessibility features (see `contracts/app/accessibility.md`)
 - [x] Mobile/touch support (see `contracts/app/mobile.md`)
+- [x] Comments system (comment marks, sidebar, replies, store)
+- [x] Suggestions/track changes (suggest mode, suggestion marks, sidebar, actions)
+- [x] Tables support (table toolbar)
+- [x] Image upload and handling
+- [x] Keyboard shortcut dialog
 
 Post-MVP (deferred):
 - [ ] Block ID assignment extension (`blockId` UUIDv4 on new top-level blocks) — blocks exist but auto-ID assignment extension not yet built
