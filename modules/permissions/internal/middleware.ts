@@ -3,6 +3,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { evaluate, type Action } from '../contract.ts';
 import type { GrantStore } from './grant-store.ts';
+import { loadConfig } from '../../config/index.ts';
 
 export type PermissionMiddlewareOptions = {
   grantStore: GrantStore;
@@ -37,7 +38,7 @@ export function requirePermission(action: Action, opts: PermissionMiddlewareOpti
     }
 
     // In dev mode, skip permission checks (no grants exist for dev users)
-    if (process.env.AUTH_MODE === 'dev') {
+    if (loadConfig().auth.mode === 'dev') {
       next();
       return;
     }
