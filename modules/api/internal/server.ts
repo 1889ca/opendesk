@@ -16,7 +16,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export function startServer(port = 3000) {
   const app = express();
-  const { handleUpgrade } = createCollabServer();
 
   // Wire auth module (dev mode uses bypass verifiers)
   const auth = createAuth({
@@ -27,6 +26,11 @@ export function startServer(port = 3000) {
       revokeServiceAccount: async () => {},
     },
     publicPaths: ['/api/health'],
+  });
+
+  // Wire collab server with auth dependency
+  const { handleUpgrade } = createCollabServer({
+    tokenVerifier: auth.tokenVerifier,
   });
 
   // Wire permissions module
