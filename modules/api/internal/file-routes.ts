@@ -19,6 +19,11 @@ export function createFileRoutes(): Router {
         return;
       }
 
+      if (!key.startsWith('uploads/') || key.includes('..')) {
+        res.status(403).json({ error: 'Forbidden file path' });
+        return;
+      }
+
       try {
         const response = await s3.send(
           new GetObjectCommand({ Bucket: s3Bucket, Key: key }),
@@ -31,10 +36,28 @@ export function createFileRoutes(): Router {
           res.setHeader('Content-Length', String(response.ContentLength));
         }
 
+        // Security headers
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        const contentType = response.ContentType || '';
+        const disposition = contentType.startsWith('image/')
+          ? 'inline'
+          : 'attachment';
+        res.setHeader('Content-Disposition', disposition);
+
         // Cache immutable uploads for 1 year (content-addressed by UUID)
         res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
 
-        const body = response.Body as Readable;
+        const body = response.Body as Readable | undefined;
+        if (!body) {
+          res.status(404).json({ error: 'Empty response body' });
+          return;
+        }
+        body.on('error', (err) => {
+          console.error('[opendesk] stream error:', err.message);
+          if (!res.headersSent) {
+            res.status(500).json({ error: 'Stream error' });
+          }
+        });
         body.pipe(res);
       } catch (err: unknown) {
         const code = (err as { name?: string }).name;

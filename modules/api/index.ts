@@ -27,3 +27,6 @@ export { OUTBOX_TTL_DAYS } from './contract.ts';
 
 // Utilities
 export { asyncHandler } from './internal/async-handler.ts';
+
+// Server entry point
+export { startServer } from './internal/server.ts';

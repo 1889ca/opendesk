@@ -79,7 +79,9 @@ export function buildSuggestionSidebar(editor: Editor): HTMLElement {
   };
 
   render();
-  editor.on('transaction', render);
+  editor.on('transaction', ({ transaction }) => {
+    if (transaction.docChanged) render();
+  });
   onLocaleChange(render);
 
   return sidebar;

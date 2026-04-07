@@ -1,22 +1,8 @@
 /** Contract: contracts/app/rules.md */
 
 import { createDocumentFromTemplate } from './template-picker.ts';
-
-function timeAgo(dateStr: string): string {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const seconds = Math.floor((now - then) / 1000);
-  if (seconds < 5) return 'just now';
-  if (seconds < 60) return seconds + ' seconds ago';
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return minutes + (minutes === 1 ? ' minute ago' : ' minutes ago');
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return hours + (hours === 1 ? ' hour ago' : ' hours ago');
-  const days = Math.floor(hours / 24);
-  if (days < 30) return days + (days === 1 ? ' day ago' : ' days ago');
-  const months = Math.floor(days / 30);
-  return months + (months === 1 ? ' month ago' : ' months ago');
-}
+import { t } from './i18n/index.ts';
+import { formatRelativeTime } from './time-format.ts';
 
 interface DocEntry {
   id: string;
@@ -28,8 +14,8 @@ function renderDocuments(listEl: HTMLElement, docs: DocEntry[]) {
   if (!docs.length) {
     listEl.innerHTML =
       '<div class="doc-list-empty">' +
-        '<p class="empty-title">No documents yet</p>' +
-        '<p class="empty-subtitle">Create your first document to get started.</p>' +
+        '<p class="empty-title">' + t('docList.noDocuments') + '</p>' +
+        '<p class="empty-subtitle">' + t('docList.noDocumentsSubtitle') + '</p>' +
       '</div>';
     return;
   }
@@ -45,23 +31,23 @@ function renderDocuments(listEl: HTMLElement, docs: DocEntry[]) {
 
     const title = document.createElement('span');
     title.className = 'doc-row-title';
-    title.textContent = doc.title || 'Untitled';
+    title.textContent = doc.title || t('editor.untitled');
 
     const time = document.createElement('span');
     time.className = 'doc-row-time';
-    time.textContent = 'Updated ' + timeAgo(doc.updated_at);
+    time.textContent = t('docList.updated', { time: formatRelativeTime(doc.updated_at) });
 
     info.appendChild(title);
     info.appendChild(time);
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'btn btn-delete';
-    deleteBtn.textContent = 'Delete';
+    deleteBtn.textContent = t('docList.delete');
     deleteBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const name = doc.title || 'Untitled';
-      if (!confirm('Delete "' + name + '"? This cannot be undone.')) return;
+      const name = doc.title || t('editor.untitled');
+      if (!confirm(t('docList.deleteConfirm', { name }))) return;
       fetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
         .then(() => { loadDocuments(listEl); })
         .catch((err) => { console.error('Delete failed', err); });
@@ -79,7 +65,7 @@ function loadDocuments(listEl: HTMLElement) {
     .then((docs: DocEntry[]) => { renderDocuments(listEl, docs); })
     .catch((err) => {
       console.error('Failed to load documents', err);
-      listEl.innerHTML = '<div class="doc-list-empty"><p class="empty-title">Failed to load documents</p></div>';
+      listEl.innerHTML = '<div class="doc-list-empty"><p class="empty-title">' + t('docList.loadFailed') + '</p></div>';
     });
 }
 

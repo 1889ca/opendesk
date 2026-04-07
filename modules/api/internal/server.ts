@@ -67,8 +67,8 @@ export function startServer(port = 3000) {
   // Export/import routes with permission checks
   app.use('/api/documents', createExportRoutes({ permissions }));
 
-  // Template CRUD routes (no auth check for now)
-  app.use('/api/templates', createTemplateRoutes());
+  // Template CRUD routes
+  app.use('/api/templates', createTemplateRoutes({ permissions }));
 
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
