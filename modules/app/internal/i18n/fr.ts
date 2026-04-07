@@ -16,13 +16,13 @@ export const fr: TranslationKeys = {
   'toolbar.codeBlock': '<>',
   'toolbar.horizontalRule': 'Ligne',
 
-  // État de l'éditeur
-  'status.connected': 'Connecté',
-  'status.disconnected': 'Déconnecté',
+  // \u00c9tat de l'\u00e9diteur
+  'status.connected': 'Connect\u00e9',
+  'status.disconnected': 'D\u00e9connect\u00e9',
   'status.connecting': 'Connexion...',
 
-  // Interface de l'éditeur
-  'editor.editors': 'Éditeurs :',
+  // Interface de l'\u00e9diteur
+  'editor.editors': '\u00c9diteurs :',
   'editor.backToDocuments': 'Retour aux documents',
   'editor.loading': 'Chargement...',
   'editor.untitled': 'Sans titre',
@@ -37,15 +37,15 @@ export const fr: TranslationKeys = {
   'docList.newDocument': 'Nouveau document',
   'docList.loading': 'Chargement des documents...',
   'docList.noDocuments': 'Aucun document',
-  'docList.noDocumentsSubtitle': 'Créez votre premier document pour commencer.',
+  'docList.noDocumentsSubtitle': 'Cr\u00e9ez votre premier document pour commencer.',
   'docList.delete': 'Supprimer',
-  'docList.deleteConfirm': 'Supprimer « {name} » ? Cette action est irréversible.',
-  'docList.updated': 'Modifié {time}',
+  'docList.deleteConfirm': 'Supprimer \u00ab {name} \u00bb ? Cette action est irr\u00e9versible.',
+  'docList.updated': 'Modifi\u00e9 {time}',
   'docList.loadFailed': 'Impossible de charger les documents',
   'docList.titlePrompt': 'Titre du document :',
 
-  // Temps écoulé
-  'time.justNow': 'à l\u2019instant',
+  // Temps \u00e9coul\u00e9
+  'time.justNow': '\u00e0 l\u2019instant',
   'time.secondsAgo': 'il y a {n} secondes',
   'time.minuteAgo': 'il y a 1 minute',
   'time.minutesAgo': 'il y a {n} minutes',
@@ -66,8 +66,8 @@ export const fr: TranslationKeys = {
   'table.deleteColumn': '- Col',
   'table.mergeCells': 'Fusionner',
   'table.splitCell': 'Scinder',
-  'table.toggleHeaderRow': 'Ligne en-tête',
-  'table.toggleHeaderColumn': 'Col en-tête',
+  'table.toggleHeaderRow': 'Ligne en-t\u00eate',
+  'table.toggleHeaderColumn': 'Col en-t\u00eate',
   'table.deleteTable': 'Supprimer tableau',
 
   // Images
@@ -107,22 +107,41 @@ export const fr: TranslationKeys = {
   'comments.reopen': 'Rouvrir',
   'comments.delete': 'Supprimer',
 
+  // Suggestions (suivi des modifications)
+  'suggestions.title': 'Suggestions',
+  'suggestions.sidebarLabel': 'Suggestions du document',
+  'suggestions.suggesting': 'Suggestion',
+  'suggestions.editing': '\u00c9dition',
+  'suggestions.accept': 'Accepter',
+  'suggestions.reject': 'Rejeter',
+  'suggestions.acceptAll': 'Tout accepter',
+  'suggestions.rejectAll': 'Tout rejeter',
+  'suggestions.none': 'Aucune suggestion',
+  'suggestions.inserted': 'Ins\u00e9r\u00e9',
+  'suggestions.deleted': 'Supprim\u00e9',
+  'suggestions.by': 'Suggestion de {name}',
+  'toolbar.suggest': 'Sugg\u00e9rer',
+
   // S\u00e9lecteur de langue
   'lang.label': 'Langue',
   'lang.en': 'English',
-  'lang.fr': 'Français',
+  'lang.fr': 'Fran\u00e7ais',
 
-  // Sélecteur de modèles
-  'templates.title': 'Choisir un modèle',
+  // S\u00e9lecteur de mod\u00e8les
+  'templates.title': 'Choisir un mod\u00e8le',
   'templates.blank': 'Vierge',
   'templates.blankDesc': 'Commencer avec une page vide',
-  'templates.meetingNotes': 'Notes de réunion',
-  'templates.meetingNotesDesc': 'Participants, ordre du jour et actions à suivre',
+  'templates.meetingNotes': 'Notes de r\u00e9union',
+  'templates.meetingNotesDesc': 'Participants, ordre du jour et actions \u00e0 suivre',
   'templates.projectBrief': 'Brief de projet',
-  'templates.projectBriefDesc': 'Objectifs, périmètre, calendrier et équipe',
+  'templates.projectBriefDesc': 'Objectifs, p\u00e9rim\u00e8tre, calendrier et \u00e9quipe',
   'templates.report': 'Rapport',
-  'templates.reportDesc': 'Rapport structuré avec résumé et conclusions',
+  'templates.reportDesc': 'Rapport structur\u00e9 avec r\u00e9sum\u00e9 et conclusions',
   'templates.selectTitle': 'Nouveau document',
-  'templates.loading': 'Chargement des modèles...',
-  'templates.loadFailed': 'Impossible de charger les modèles',
+  'templates.loading': 'Chargement des mod\u00e8les...',
+  'templates.loadFailed': 'Impossible de charger les mod\u00e8les',
+
+  // Mobile / d\u00e9bordement
+  'toolbar.moreOptions': 'Plus d\u2019options',
+  'comments.dismissSheet': 'Fermer les commentaires',
 };

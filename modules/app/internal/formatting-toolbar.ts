@@ -2,6 +2,7 @@
 import type { Editor } from '@tiptap/core';
 import { t, onLocaleChange, type TranslationKey } from './i18n/index.ts';
 import { openImagePicker } from './image-handlers.ts';
+import { isSuggesting, setSuggesting } from './suggestions/suggest-mode.ts';
 
 interface ToolbarButton {
   key: TranslationKey | null;
@@ -31,6 +32,7 @@ function buildToolbarButtons(editor: Editor): ToolbarButton[] {
     { key: null, action: () => false },
     { key: 'toolbar.find', action: () => { document.dispatchEvent(new CustomEvent('opendesk:open-search')); return true; } },
     { key: 'toolbar.comment', action: () => { document.dispatchEvent(new CustomEvent('opendesk:add-comment')); return true; } },
+    { key: 'toolbar.suggest', action: () => { setSuggesting(!isSuggesting()); return true; }, isActive: () => isSuggesting() },
   ];
 }
 
@@ -73,4 +75,5 @@ export function buildFormattingToolbar(editor: Editor): void {
 
   render();
   onLocaleChange(render);
+  document.addEventListener('opendesk:suggest-mode-changed', render);
 }

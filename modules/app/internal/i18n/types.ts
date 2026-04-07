@@ -110,6 +110,21 @@ export interface TranslationKeys {
   'comments.reopen': string;
   'comments.delete': string;
 
+  // Suggestions (track changes)
+  'suggestions.title': string;
+  'suggestions.sidebarLabel': string;
+  'suggestions.suggesting': string;
+  'suggestions.editing': string;
+  'suggestions.accept': string;
+  'suggestions.reject': string;
+  'suggestions.acceptAll': string;
+  'suggestions.rejectAll': string;
+  'suggestions.none': string;
+  'suggestions.inserted': string;
+  'suggestions.deleted': string;
+  'suggestions.by': string;
+  'toolbar.suggest': string;
+
   // Language switcher
   'lang.label': string;
   'lang.en': string;
@@ -128,6 +143,10 @@ export interface TranslationKeys {
   'templates.selectTitle': string;
   'templates.loading': string;
   'templates.loadFailed': string;
+
+  // Mobile / overflow
+  'toolbar.moreOptions': string;
+  'comments.dismissSheet': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;

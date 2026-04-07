@@ -18,6 +18,15 @@ import { SearchExtension } from './search/search-extension.ts';
 import { buildSearchPanel } from './search/search-panel.ts';
 import { buildFormattingToolbar } from './formatting-toolbar.ts';
 import { CommentMark, CommentStore, buildCommentSidebar, toggleSidebar, showCommentInput } from './comments/index.ts';
+import {
+  SuggestionInsertMark,
+  SuggestionDeleteMark,
+  setSuggestUser,
+  createSuggestModePlugin,
+  setupSuggestionClickHandler,
+  buildSuggestionSidebar,
+  toggleSuggestionSidebar,
+} from './suggestions/index.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -98,6 +107,8 @@ function init() {
       }),
       SearchExtension,
       CommentMark,
+      SuggestionInsertMark,
+      SuggestionDeleteMark,
       Collaboration.configure({ document: ydoc }),
       CollaborationCursor.configure({
         provider,
@@ -109,6 +120,11 @@ function init() {
     },
   });
 
+  // Suggestion mode setup
+  setSuggestUser(() => user);
+  editor.registerPlugin(createSuggestModePlugin(editor));
+  setupSuggestionClickHandler(editor);
+
   buildFormattingToolbar(editor);
   buildTableToolbar(editor);
   buildSearchPanel(editor);
@@ -116,13 +132,22 @@ function init() {
   setupImageHandlers(editor, editorEl);
 
   // Comment sidebar
-  const sidebar = buildCommentSidebar(editor, commentStore, documentId, user);
-  document.body.appendChild(sidebar);
+  const commentSidebar = buildCommentSidebar(editor, commentStore, documentId, user);
+  document.body.appendChild(commentSidebar);
+
+  // Suggestion sidebar
+  const suggestionSidebar = buildSuggestionSidebar(editor);
+  document.body.appendChild(suggestionSidebar);
 
   // Listen for add-comment events (from toolbar button or Cmd+Shift+M)
   document.addEventListener('opendesk:add-comment', () => {
     showCommentInput(editor, commentStore, documentId, user);
-    toggleSidebar(sidebar, true);
+    toggleSidebar(commentSidebar, true);
+  });
+
+  // Listen for suggestion sidebar toggle
+  document.addEventListener('opendesk:toggle-suggestions', () => {
+    toggleSuggestionSidebar(suggestionSidebar);
   });
 
   function updateUsers() {

@@ -107,10 +107,25 @@ export const en: TranslationKeys = {
   'comments.reopen': 'Reopen',
   'comments.delete': 'Delete',
 
+  // Suggestions (track changes)
+  'suggestions.title': 'Suggestions',
+  'suggestions.sidebarLabel': 'Document suggestions',
+  'suggestions.suggesting': 'Suggesting',
+  'suggestions.editing': 'Editing',
+  'suggestions.accept': 'Accept',
+  'suggestions.reject': 'Reject',
+  'suggestions.acceptAll': 'Accept all',
+  'suggestions.rejectAll': 'Reject all',
+  'suggestions.none': 'No suggestions',
+  'suggestions.inserted': 'Inserted',
+  'suggestions.deleted': 'Deleted',
+  'suggestions.by': 'Suggestion by {name}',
+  'toolbar.suggest': 'Suggest',
+
   // Language switcher
   'lang.label': 'Language',
   'lang.en': 'English',
-  'lang.fr': 'Français',
+  'lang.fr': 'Fran\u00e7ais',
 
   // Template picker
   'templates.title': 'Choose a template',
@@ -125,4 +140,8 @@ export const en: TranslationKeys = {
   'templates.selectTitle': 'New Document',
   'templates.loading': 'Loading templates...',
   'templates.loadFailed': 'Failed to load templates',
+
+  // Mobile / overflow
+  'toolbar.moreOptions': 'More options',
+  'comments.dismissSheet': 'Dismiss comments',
 };
