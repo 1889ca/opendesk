@@ -251,6 +251,12 @@ export interface TranslationKeys {
   // Mentions
   'mentions.placeholder': string;
   'mentions.noResults': string;
+
+  // Code block
+  'codeBlock.language': string;
+  'codeBlock.copy': string;
+  'codeBlock.copied': string;
+  'codeBlock.plainText': string;
 }
 
 export type TranslationKey = keyof TranslationKeys;

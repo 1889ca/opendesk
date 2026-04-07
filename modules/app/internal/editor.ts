@@ -1,6 +1,8 @@
 /** Contract: contracts/app/rules.md */
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { common, createLowlight } from 'lowlight';
 import Image from '@tiptap/extension-image';
 import Collaboration from '@tiptap/extension-collaboration';
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
@@ -36,6 +38,9 @@ import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts'
 import { buildStatusBar } from './status-bar.ts';
 import { buildThemeToggle } from './theme-toggle.ts';
 import { createMentionExtension } from './mentions/index.ts';
+import { setupCodeBlockUI } from './code-block-ui.ts';
+
+const lowlight = createLowlight(common);
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -113,7 +118,8 @@ function init() {
   const editor = new Editor({
     element: editorEl,
     extensions: [
-      StarterKit.configure({ undoRedo: false }),
+      StarterKit.configure({ undoRedo: false, codeBlock: false }),
+      CodeBlockLowlight.configure({ lowlight }),
       Table.configure({ resizable: true }),
       TableRow,
       TableCell,
@@ -140,6 +146,7 @@ function init() {
   editor.registerPlugin(createSuggestModePlugin(editor));
   setupSuggestionClickHandler(editor);
 
+  setupCodeBlockUI(editor);
   buildFormattingToolbar(editor);
   buildTableToolbar(editor);
   buildSearchPanel(editor);

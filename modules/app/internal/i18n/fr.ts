@@ -254,4 +254,10 @@ export const fr: TranslationKeys = {
   // Mentions
   'mentions.placeholder': 'Saisir un nom...',
   'mentions.noResults': 'Aucun utilisateur trouv\u00e9',
+
+  // Bloc de code
+  'codeBlock.language': 'Langage',
+  'codeBlock.copy': 'Copier',
+  'codeBlock.copied': 'Copié !',
+  'codeBlock.plainText': 'Texte brut',
 };
