@@ -19,3 +19,6 @@ export {
   MaterializerConfigSchema,
   CollabConfigSchema,
 } from './contract.ts';
+
+// Public API — collab server
+export { createCollabServer } from './internal/server.ts';

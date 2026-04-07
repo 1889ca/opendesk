@@ -29,13 +29,13 @@ describe('share-links', () => {
       const link = await service.create({
         docId: 'doc-1',
         grantorId: 'user-1',
-        role: 'view',
+        role: 'viewer',
       });
 
       expect(link.token).toHaveLength(64);
       expect(link.docId).toBe('doc-1');
       expect(link.grantorId).toBe('user-1');
-      expect(link.role).toBe('view');
+      expect(link.role).toBe('viewer');
       expect(link.expiresAt).toBeUndefined();
       expect(link.redemptionCount).toBe(0);
       expect(link.revoked).toBe(false);
@@ -46,7 +46,7 @@ describe('share-links', () => {
       const link = await service.create({
         docId: 'doc-1',
         grantorId: 'user-1',
-        role: 'edit',
+        role: 'editor',
         options: { expiresIn: 3600 },
       });
 
@@ -61,7 +61,7 @@ describe('share-links', () => {
       const link = await service.create({
         docId: 'doc-1',
         grantorId: 'user-1',
-        role: 'view',
+        role: 'viewer',
         options: { password: 'secret123' },
       });
 
@@ -77,14 +77,14 @@ describe('share-links', () => {
       const link = await service.create({
         docId: 'doc-1',
         grantorId: 'user-1',
-        role: 'view',
+        role: 'viewer',
       });
 
       const result = await service.resolve(link.token);
       expect(result.ok).toBe(true);
       if (result.ok) {
         expect(result.link.docId).toBe('doc-1');
-        expect(result.link.role).toBe('view');
+        expect(result.link.role).toBe('viewer');
       }
 
       // Redemption count should have been incremented in the store
@@ -101,7 +101,7 @@ describe('share-links', () => {
       const link = await service.create({
         docId: 'doc-1',
         grantorId: 'user-1',
-        role: 'view',
+        role: 'viewer',
         options: { expiresIn: 1 },
       });
 
@@ -118,7 +118,7 @@ describe('share-links', () => {
       const link = await service.create({
         docId: 'doc-1',
         grantorId: 'user-1',
-        role: 'view',
+        role: 'viewer',
       });
 
       await service.revoke(link.token);
@@ -130,7 +130,7 @@ describe('share-links', () => {
       const link = await service.create({
         docId: 'doc-1',
         grantorId: 'user-1',
-        role: 'view',
+        role: 'viewer',
         options: { maxRedemptions: 1 },
       });
 
@@ -147,7 +147,7 @@ describe('share-links', () => {
       const link = await service.create({
         docId: 'doc-1',
         grantorId: 'user-1',
-        role: 'view',
+        role: 'viewer',
         options: { password: 'correct-horse' },
       });
 
@@ -159,7 +159,7 @@ describe('share-links', () => {
       const link = await service.create({
         docId: 'doc-1',
         grantorId: 'user-1',
-        role: 'view',
+        role: 'viewer',
         options: { password: 'correct-horse' },
       });
 
@@ -171,7 +171,7 @@ describe('share-links', () => {
       const link = await service.create({
         docId: 'doc-1',
         grantorId: 'user-1',
-        role: 'view',
+        role: 'viewer',
         options: { password: 'correct-horse' },
       });
 
@@ -185,7 +185,7 @@ describe('share-links', () => {
       const link = await service.create({
         docId: 'doc-1',
         grantorId: 'user-1',
-        role: 'view',
+        role: 'viewer',
       });
 
       const revoked = await service.revoke(link.token);

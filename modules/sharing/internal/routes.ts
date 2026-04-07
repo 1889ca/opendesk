@@ -3,7 +3,7 @@
 import { Router } from 'express';
 import { GrantRoleSchema, ShareLinkOptionsSchema } from '../contract.ts';
 import type { ShareLinkService } from './share-links.ts';
-import { asyncHandler } from '../../api/internal/async-handler.ts';
+import { asyncHandler } from '../../api/index.ts';
 
 /**
  * Create Express routes for share link management.
@@ -17,7 +17,7 @@ export function createShareRoutes(service: ShareLinkService): Router {
     const docId = req.params.id;
     const roleResult = GrantRoleSchema.safeParse(req.body?.role);
     if (!roleResult.success) {
-      res.status(400).json({ error: 'role must be "view" or "edit"' });
+      res.status(400).json({ error: 'role must be "viewer", "editor", or "commenter"' });
       return;
     }
 

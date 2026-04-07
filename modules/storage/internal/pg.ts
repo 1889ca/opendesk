@@ -72,4 +72,4 @@ export async function updateDocumentTitle(id: string, title: string): Promise<vo
   );
 }
 
-export { pool };
+// pool is intentionally not exported — use the public API functions above

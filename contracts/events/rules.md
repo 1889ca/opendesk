@@ -86,3 +86,20 @@ How to test each invariant:
 - 7-day TTL pruning --> Integration test: insert outbox entries with `occurredAt` older than 7 days, run the pruner, verify deletion.
 - Schema registry uniqueness --> Unit test: register `DocumentUpdated` from `collab`, then attempt to register `DocumentUpdated` from `sharing`, expect rejection.
 - Redis Streams (not pub/sub) --> Integration test: verify the Redis commands issued are `XADD`, `XREADGROUP`, `XACK` (not `PUBLISH`/`SUBSCRIBE`).
+
+## MVP Scope
+
+Implemented:
+- [x] `DomainEvent` base type exported (types-only)
+- [x] `EventType` enum with registered event types
+
+Post-MVP (deferred):
+- [ ] EventBus implementation (emit, subscribe, acknowledge) — required before Pillar 2 (Audit) and Pillar 6 (Observability)
+- [ ] PG transactional outbox persistence
+- [ ] Redis Streams consumer group delivery
+- [ ] Outbox poller and retry logic
+- [ ] 7-day TTL pruning background job
+- [ ] Schema registry with one-owner-per-event-type enforcement
+- [ ] At-least-once delivery guarantees
+
+> **Note:** The entire events module implementation is deferred. Currently types-only. The contract defines the target architecture; implementation is blocked until a downstream module requires event delivery at runtime.

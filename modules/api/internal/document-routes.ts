@@ -8,7 +8,7 @@ import {
   getDocument,
   deleteDocument,
   updateDocumentTitle,
-} from '../../storage/internal/pg.ts';
+} from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from './async-handler.ts';
 
