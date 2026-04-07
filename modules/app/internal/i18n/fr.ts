@@ -194,4 +194,8 @@ export const fr: TranslationKeys = {
   'print.title': 'Imprimer le document',
   'pdf.title': 'Exporter en PDF',
   'pageBreak.title': 'Insérer un saut de page',
+
+  // Mobile / débordement
+  'toolbar.moreOptions': 'Plus d\u2019options',
+  'comments.dismissSheet': 'Fermer les commentaires',
 };

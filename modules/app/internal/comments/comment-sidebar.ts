@@ -16,6 +16,7 @@ export function buildCommentSidebar(
 ): HTMLElement {
   const sidebar = document.createElement('aside');
   sidebar.className = 'comment-sidebar';
+  sidebar.setAttribute('role', 'complementary');
   sidebar.setAttribute('aria-label', t('comments.sidebarLabel'));
 
   const header = document.createElement('div');
