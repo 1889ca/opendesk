@@ -1,5 +1,6 @@
 /** Contract: contracts/app/rules.md */
 
+import { apiFetch } from './api-client.ts';
 import { createDocumentFromTemplate } from './template-picker.ts';
 import { t } from './i18n/index.ts';
 import { formatRelativeTime } from './time-format.ts';
@@ -59,7 +60,7 @@ function renderDocuments(listEl: HTMLElement, docs: DocEntry[]) {
       e.stopPropagation();
       const name = doc.title || t('editor.untitled');
       if (!confirm(t('docList.deleteConfirm', { name }))) return;
-      fetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
+      apiFetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
         .then(() => { loadAll(listEl); })
         .catch((err) => { console.error('Delete failed', err); });
     });
@@ -90,7 +91,7 @@ async function loadAll(listEl: HTMLElement) {
     const url = folderId
       ? '/api/documents?folderId=' + encodeURIComponent(folderId)
       : '/api/documents';
-    const res = await fetch(url);
+    const res = await apiFetch(url);
     const docs: DocEntry[] = await res.json();
     renderDocuments(listEl, docs);
   } catch (err) {

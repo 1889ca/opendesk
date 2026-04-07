@@ -1,5 +1,6 @@
 /** Contract: contracts/app/rules.md */
 
+import { apiFetch } from './api-client.ts';
 import { t } from './i18n/index.ts';
 import { formatRelativeTime } from './time-format.ts';
 
@@ -93,7 +94,7 @@ async function executeSearch(query: string, container: HTMLElement) {
   showLoading(container);
 
   try {
-    const res = await fetch(
+    const res = await apiFetch(
       '/api/documents/search?q=' + encodeURIComponent(query),
       { signal: abortController.signal },
     );

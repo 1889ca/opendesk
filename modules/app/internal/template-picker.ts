@@ -1,5 +1,6 @@
 /** Contract: contracts/app/rules.md */
 
+import { apiFetch } from './api-client.ts';
 import { t } from './i18n/index.ts';
 
 interface TemplateOption {
@@ -60,7 +61,7 @@ export function showTemplatePicker(): Promise<string | null> {
 }
 
 async function fetchTemplates(): Promise<TemplateOption[]> {
-  const res = await fetch('/api/templates');
+  const res = await apiFetch('/api/templates');
   if (!res.ok) throw new Error('Failed to fetch templates');
   return res.json();
 }
@@ -123,7 +124,7 @@ export async function createDocumentFromTemplate(): Promise<string | null> {
     ? `/api/documents?templateId=${encodeURIComponent(templateId)}`
     : '/api/documents';
 
-  const res = await fetch(url, {
+  const res = await apiFetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ title: titleText }),

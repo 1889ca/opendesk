@@ -1,4 +1,5 @@
 /** Contract: contracts/app/rules.md */
+import { apiFetch } from './api-client.ts';
 import { t, onLocaleChange } from './i18n/index.ts';
 import { formatRelativeTime } from './time-format.ts';
 
@@ -17,13 +18,13 @@ function getDocumentId(): string {
 }
 
 async function fetchVersions(docId: string): Promise<VersionEntry[]> {
-  const res = await fetch(`/api/documents/${encodeURIComponent(docId)}/versions`);
+  const res = await apiFetch(`/api/documents/${encodeURIComponent(docId)}/versions`);
   if (!res.ok) return [];
   return res.json();
 }
 
 async function createVersion(docId: string, name?: string): Promise<VersionEntry | null> {
-  const res = await fetch(`/api/documents/${encodeURIComponent(docId)}/versions`, {
+  const res = await apiFetch(`/api/documents/${encodeURIComponent(docId)}/versions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name }),
@@ -33,7 +34,7 @@ async function createVersion(docId: string, name?: string): Promise<VersionEntry
 }
 
 async function restoreVersion(docId: string, versionId: string): Promise<boolean> {
-  const res = await fetch(
+  const res = await apiFetch(
     `/api/documents/${encodeURIComponent(docId)}/versions/${encodeURIComponent(versionId)}/restore`,
     { method: 'POST' },
   );
@@ -41,7 +42,7 @@ async function restoreVersion(docId: string, versionId: string): Promise<boolean
 }
 
 async function removeVersion(docId: string, versionId: string): Promise<boolean> {
-  const res = await fetch(
+  const res = await apiFetch(
     `/api/documents/${encodeURIComponent(docId)}/versions/${encodeURIComponent(versionId)}`,
     { method: 'DELETE' },
   );

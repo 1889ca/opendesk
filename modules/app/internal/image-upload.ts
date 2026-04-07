@@ -1,5 +1,7 @@
 /** Contract: contracts/app/rules.md */
 
+import { apiFetch } from './api-client.ts';
+
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
 const ALLOWED_TYPES = new Set([
   'image/png',
@@ -31,7 +33,7 @@ export async function uploadImage(
   form.append('file', file);
   form.append('documentId', documentId);
 
-  const res = await fetch('/api/upload', { method: 'POST', body: form });
+  const res = await apiFetch('/api/upload', { method: 'POST', body: form });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error || 'Upload failed');

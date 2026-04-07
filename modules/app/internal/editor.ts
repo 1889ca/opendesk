@@ -91,7 +91,7 @@ function init() {
   const commentStore = new CommentStore(ydoc);
   const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/collab`;
   const provider = new HocuspocusProvider({
-    url: wsUrl, name: documentId, document: ydoc,
+    url: wsUrl, name: documentId, document: ydoc, token: 'dev',
     onConnect() {
       if (statusEl) { statusEl.textContent = t('status.connected'); statusEl.className = 'status connected'; }
     },

@@ -1,5 +1,6 @@
 /** Contract: contracts/app/rules.md */
 
+import { apiFetch } from './api-client.ts';
 import { t } from './i18n/index.ts';
 
 interface FolderEntry {
@@ -117,7 +118,7 @@ function createFolderActions(folder: FolderEntry): HTMLElement {
     e.stopPropagation();
     const newName = prompt(t('folders.renamePrompt'), folder.name);
     if (!newName || newName === folder.name) return;
-    fetch('/api/folders/' + encodeURIComponent(folder.id), {
+    apiFetch('/api/folders/' + encodeURIComponent(folder.id), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: newName }),
@@ -138,7 +139,7 @@ function createFolderActions(folder: FolderEntry): HTMLElement {
   deleteBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (!confirm(t('folders.deleteConfirm', { name: folder.name }))) return;
-    fetch('/api/folders/' + encodeURIComponent(folder.id), {
+    apiFetch('/api/folders/' + encodeURIComponent(folder.id), {
       method: 'DELETE',
     })
       .then((res) => {
@@ -160,7 +161,7 @@ export async function loadFolders(parentId: string | null): Promise<FolderEntry[
   const url = parentId
     ? '/api/folders?parentId=' + encodeURIComponent(parentId)
     : '/api/folders';
-  const res = await fetch(url);
+  const res = await apiFetch(url);
   return res.json();
 }
 
@@ -172,7 +173,7 @@ export function createNewFolderButton(container: HTMLElement): void {
   btn.addEventListener('click', () => {
     const name = prompt(t('folders.namePrompt'));
     if (!name) return;
-    fetch('/api/folders', {
+    apiFetch('/api/folders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, parentId: currentFolderId }),
