@@ -1,33 +1,12 @@
 /** Contract: contracts/app/rules.md */
 import { apiFetch } from './api-client.ts';
 import { t } from '../i18n/index.ts';
-import { formatRelativeTime } from './time-format.ts';
-
-interface NotificationItem {
-  id: string;
-  type: string;
-  payload: Record<string, unknown>;
-  read: boolean;
-  created_at: string;
-}
-
-interface NotificationResponse {
-  items: NotificationItem[];
-  unreadCount: number;
-}
-
-const NOTIFICATION_LABELS: Record<string, string> = {
-  comment_added: 'notifications.commentAdded',
-  document_shared: 'notifications.documentShared',
-  workflow_triggered: 'notifications.workflowTriggered',
-  kb_updated: 'notifications.kbUpdated',
-};
-
-function getNotificationText(item: NotificationItem): string {
-  const key = NOTIFICATION_LABELS[item.type] || item.type;
-  const title = (item.payload?.title as string) || '';
-  return t(key as never, { title });
-}
+import {
+  type NotificationResponse,
+  updateBadge,
+  refreshBadge,
+  renderNotifItem,
+} from './notification-render.ts';
 
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -63,10 +42,7 @@ export function buildNotificationBell(): void {
     }
   });
 
-  document.addEventListener('click', () => {
-    dropdown.classList.remove('notif-dropdown-open');
-  });
-
+  document.addEventListener('click', () => dropdown.classList.remove('notif-dropdown-open'));
   dropdown.addEventListener('click', (e) => e.stopPropagation());
 
   // Insert before the theme toggle
@@ -80,42 +56,18 @@ export function buildNotificationBell(): void {
     toolbarRight.appendChild(wrapper);
   }
 
-  // Initial load + polling
   refreshBadge(badge);
   pollTimer = setInterval(() => refreshBadge(badge), 30_000);
 }
 
-async function refreshBadge(badge: HTMLElement): Promise<void> {
-  try {
-    const res = await apiFetch('/api/notifications?limit=1');
-    if (!res.ok) return;
-    const data: NotificationResponse = await res.json();
-    updateBadge(badge, data.unreadCount);
-  } catch { /* silent */ }
-}
-
-function updateBadge(badge: HTMLElement, count: number): void {
-  if (count > 0) {
-    badge.textContent = count > 99 ? '99+' : String(count);
-    badge.hidden = false;
-  } else {
-    badge.hidden = true;
-  }
-}
-
-async function loadNotifications(
-  dropdown: HTMLElement,
-  badge: HTMLElement,
-): Promise<void> {
+async function loadNotifications(dropdown: HTMLElement, badge: HTMLElement): Promise<void> {
   dropdown.innerHTML = '';
 
   const header = document.createElement('div');
   header.className = 'notif-header';
-
   const title = document.createElement('span');
   title.className = 'notif-title';
   title.textContent = t('notifications.title');
-
   const markAllBtn = document.createElement('button');
   markAllBtn.className = 'notif-mark-all';
   markAllBtn.textContent = t('notifications.markAllRead');
@@ -124,7 +76,6 @@ async function loadNotifications(
     updateBadge(badge, 0);
     loadNotifications(dropdown, badge);
   });
-
   header.appendChild(title);
   header.appendChild(markAllBtn);
   dropdown.appendChild(header);
@@ -145,59 +96,14 @@ async function loadNotifications(
 
     const list = document.createElement('div');
     list.className = 'notif-list';
-
     for (const item of data.items) {
-      const row = document.createElement('div');
-      row.className = 'notif-item' + (item.read ? '' : ' unread');
-
-      const text = document.createElement('div');
-      text.className = 'notif-item-text';
-      text.textContent = getNotificationText(item);
-
-      const time = document.createElement('div');
-      time.className = 'notif-item-time';
-      time.textContent = formatRelativeTime(item.created_at);
-
-      const actions = document.createElement('div');
-      actions.className = 'notif-item-actions';
-
-      if (!item.read) {
-        const readBtn = document.createElement('button');
-        readBtn.className = 'notif-action-btn';
-        readBtn.textContent = t('notifications.markRead');
-        readBtn.addEventListener('click', async () => {
-          await apiFetch(`/api/notifications/${item.id}/read`, { method: 'PATCH' });
-          row.classList.remove('unread');
-          readBtn.remove();
-          refreshBadge(badge);
-        });
-        actions.appendChild(readBtn);
-      }
-
-      const dismissBtn = document.createElement('button');
-      dismissBtn.className = 'notif-action-btn notif-action-dismiss';
-      dismissBtn.textContent = t('notifications.dismiss');
-      dismissBtn.addEventListener('click', async () => {
-        await apiFetch(`/api/notifications/${item.id}`, { method: 'DELETE' });
-        row.remove();
-        refreshBadge(badge);
-      });
-      actions.appendChild(dismissBtn);
-
-      row.appendChild(text);
-      row.appendChild(time);
-      row.appendChild(actions);
-      list.appendChild(row);
+      list.appendChild(renderNotifItem(item, badge));
     }
-
     dropdown.appendChild(list);
   } catch { /* silent */ }
 }
 
-/** Cleanup polling interval (for unmount). */
+/** Cleanup polling interval. */
 export function destroyNotificationBell(): void {
-  if (pollTimer) {
-    clearInterval(pollTimer);
-    pollTimer = null;
-  }
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
 }

@@ -49,14 +49,10 @@ export async function startServer(port = 3000) {
     log.warn('S3 bucket init failed — uploads may fail', { error: msg });
   }
   const app = express();
-
-  // Redis client needed for rate limiting + idempotency + caching
   const redisClient = getRedisClient();
-
-  // Security middleware (CORS, helmet, rate limiting) — must be first
   applySecurityMiddleware(app, { redis: redisClient });
 
-  // Wire auth module (dev mode uses bypass verifiers)
+  // Auth (dev mode uses bypass verifiers)
   const auth = createAuth({
     serviceAccountStore: { findByKeyHash: async () => null },
     serviceAccountStorage: {
@@ -67,24 +63,20 @@ export async function startServer(port = 3000) {
     publicPaths: ['/health'],
   });
 
-  // Wire collab server with auth dependency
   const { handleUpgrade, hocuspocus } = createCollabServer({
     tokenVerifier: auth.tokenVerifier,
   });
 
-  // Wire permissions module with PG-backed grant store
   const grantStore = createPgGrantStore(pool);
   const permissions = createPermissions({ grantStore });
 
   app.use(express.json());
 
-  // Idempotency middleware for mutating endpoints (POST, PUT, DELETE)
   app.use('/api', idempotencyMiddleware({
     cache: redisClient,
     exemptPaths: ['/share/'],
   }));
 
-  // Wire event bus, audit, and workflow modules
   const config = loadConfig();
   const eventBus = createEventBus(pool, redisClient);
   const audit = createAudit({
@@ -95,14 +87,9 @@ export async function startServer(port = 3000) {
   const workflow = createWorkflow({ pool, eventBus });
   eventBus.startBackgroundJobs();
 
-  // Serve static frontend
   const publicDir = resolve(__dirname, '../../app/internal/public');
   app.use(express.static(publicDir));
-
-  // Auth middleware on all /api routes (except public paths)
   app.use('/api', auth.middleware);
-
-  // BibTeX/RIS text body parser — after auth, before reference routes
   app.use(express.text({ type: ['application/x-bibtex', 'application/x-ris'] }));
 
   // Collabora convert routes (import/export binary formats) — after auth
@@ -154,16 +141,12 @@ export async function startServer(port = 3000) {
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
 
-  // Notification routes (list, mark read, dismiss)
+  // Notifications + starred documents
   const notificationStore = createPgNotificationStore(pool);
   app.use('/api/notifications', createNotificationRoutes({ permissions, notificationStore }));
-
-  // Starred documents routes (star/unstar for workspace sidebar)
   app.use('/api/starred', createStarredRoutes({ permissions, pool }));
-
-  // Subscribe to EventBus for auto-generating notifications
   subscribeNotifications(eventBus, notificationStore).catch((err) => {
-    log.warn('notification event subscription failed', { error: err instanceof Error ? err.message : String(err) });
+    log.warn('notification subscription failed', { error: err instanceof Error ? err.message : String(err) });
   });
 
   // Share link routes (create, resolve, revoke) — after auth
