@@ -134,6 +134,7 @@ modules/app/
 - `contracts/app/mobile.md` — Touch support, responsive toolbar overflow, viewport management
 - `contracts/app/slides-interaction.md` — Slide element drag, resize, rotate, snap, select, z-order
 - `contracts/app/observability-dashboard.md` — Admin observability dashboard with charts, health panel, correlation search, compliance export
+- `contracts/app/shell.md` — SPA shell, client-side router, dynamic editor loading, shared chrome
 
 ## MVP Scope
 

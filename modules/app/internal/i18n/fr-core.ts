@@ -139,4 +139,9 @@ export const coreTranslations: Partial<TranslationKeys> = {
 
   // Poign\u00e9e de glissement
   'dragHandle.tooltip': 'Glisser pour r\u00e9ordonner',
+
+  // Navigation (coquille SPA)
+  'nav.dashboard': 'Documents',
+  'nav.newDocument': 'Nouveau document',
+  'nav.recent': 'R\u00e9cents',
 };
