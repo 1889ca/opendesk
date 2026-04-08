@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge Base - OpenDesk</title>
+  <link rel="stylesheet" href="kb-browser.bundle.css">
+  <script>
+    (function() {
+      var stored = localStorage.getItem('opendesk-theme');
+      var theme = stored === 'dark' ? 'dark'
+        : stored === 'light' ? 'light'
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+<body>
+  <header class="toolbar">
+    <div class="toolbar-left">
+      <a href="/" class="logo">OpenDesk</a>
+      <span class="toolbar-divider">/</span>
+      <h1 class="toolbar-title">Knowledge Base</h1>
+    </div>
+    <div class="toolbar-right">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
+      <button id="new-kb-btn" class="btn btn-primary">New Entry</button>
+    </div>
+  </header>
+  <main class="kb-layout">
+    <div id="kb-list" class="kb-list-panel">
+      <div class="kb-list-empty">Loading entries...</div>
+    </div>
+    <div id="kb-detail"></div>
+  </main>
+
+  <script type="module" src="kb-browser.bundle.js"></script>
+</body>
+</html>
