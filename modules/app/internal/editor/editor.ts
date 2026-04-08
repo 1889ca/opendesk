@@ -21,6 +21,7 @@ import { announce } from '../shared/a11y-announcer.ts';
 import { initTouchSupport } from '../shared/touch-support.ts';
 import { buildTocPanel, toggleTocPanel } from './toc/index.ts';
 import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts';
+import { buildWorkflowPanel, toggleWorkflowPanel } from './workflow-panel.ts';
 import { buildStatusBar } from './status-bar.ts';
 import { buildThemeToggle } from '../shared/theme-toggle.ts';
 import { openEmojiPicker } from './emoji/index.ts';
@@ -141,6 +142,12 @@ function init() {
   document.body.appendChild(versionSidebar);
   document.addEventListener('opendesk:toggle-versions', () => {
     toggleVersionSidebar(versionSidebar);
+  });
+
+  const workflowPanel = buildWorkflowPanel();
+  document.body.appendChild(workflowPanel);
+  document.addEventListener('opendesk:toggle-workflows', () => {
+    toggleWorkflowPanel(workflowPanel);
   });
 
   const refLibrary = buildReferenceLibrary(editor);

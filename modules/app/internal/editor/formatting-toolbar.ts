@@ -53,6 +53,7 @@ function buildToolbarButtons(editor: Editor): ToolbarButton[] {
     { key: null, action: () => false },
     { key: 'toolbar.references', action: () => { document.dispatchEvent(new CustomEvent('opendesk:toggle-reference-library')); return true; } },
     { key: 'toolbar.versions', action: () => { document.dispatchEvent(new CustomEvent('opendesk:toggle-versions')); return true; } },
+    { key: 'toolbar.workflows', action: () => { document.dispatchEvent(new CustomEvent('opendesk:toggle-workflows')); return true; } },
   ];
 }
 
