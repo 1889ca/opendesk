@@ -19,6 +19,9 @@ export function parseSlideElements(yElements: Y.Array<Y.Map<unknown>>): SlideEle
       height: (el.get('height') as number) || 20,
       rotation: (el.get('rotation') as number) || 0,
       content: (el.get('content') as string) || '',
+      fontSize: el.get('fontSize') as number | undefined,
+      fontColor: el.get('fontColor') as string | undefined,
+      textAlign: el.get('textAlign') as SlideElement['textAlign'],
     };
 
     if (type === 'image') {

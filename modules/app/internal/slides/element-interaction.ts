@@ -14,17 +14,20 @@ import {
   applyPositionUpdates, applyBoundsUpdate, applyRotationUpdate,
   deleteElements, applyZOrderToYjs,
 } from './yjs-mutations.ts';
+import { createTextEditController, type TextEditController } from './text-edit-controller.ts';
 
 export type InteractionController = {
   destroy: () => void;
   getSelection: () => SelectionState;
   applyZOrder: (reorderedElements: SlideElement[]) => void;
+  getTextEditController: () => import('./text-edit-controller.ts').TextEditController | null;
 };
 
 type InteractionContext = {
   ydoc: Y.Doc;
   viewport: HTMLElement;
   getActiveSlideElements: () => { yElements: Y.Array<Y.Map<unknown>>; elements: SlideElement[] };
+  onStyleUpdate?: (elementId: string, field: string, value: unknown) => void;
 };
 
 /** Convert a mouse event's pixel position to percentage coordinates within the viewport */
@@ -44,45 +47,54 @@ export function createInteractionController(ctx: InteractionContext): Interactio
   let rotateState: RotateState | null = null;
   let marqueeStart: Point | null = null;
 
+  const textEditCtrl: TextEditController | null = ctx.onStyleUpdate
+    ? createTextEditController(ctx.viewport, ctx.onStyleUpdate)
+    : null;
+
   function onSelectionChange() {
     const { elements } = ctx.getActiveSlideElements();
     const selected = elements.filter((el) => selection.selectedIds.has(el.id));
     renderHandles(ctx.viewport, selected);
   }
 
+  function handleDblClick(e: MouseEvent) {
+    if (!textEditCtrl) return;
+    const { elements } = ctx.getActiveSlideElements();
+    const hit = elementAtPoint(elements, mouseToPercent(e, ctx.viewport));
+    if (!hit || (hit.type !== 'text' && hit.type !== 'shape')) return;
+    const dom = ctx.viewport.querySelector(`[data-element-id="${hit.id}"]`);
+    if (dom instanceof HTMLElement) {
+      textEditCtrl.enterEditMode(hit.id, dom);
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+
   function handleMouseDown(e: MouseEvent) {
     if (e.button !== 0) return;
+    if (textEditCtrl?.isEditing()) {
+      const target = e.target as HTMLElement;
+      const editingId = textEditCtrl.getEditingId();
+      const el = editingId ? ctx.viewport.querySelector(`[data-element-id="${editingId}"]`) : null;
+      if (el && !el.contains(target)) textEditCtrl.exitEditMode();
+      else if (el?.contains(target)) return; // let TipTap handle
+    }
     const percent = mouseToPercent(e, ctx.viewport);
     const target = e.target as HTMLElement;
 
-    // Resize handle click
     const handleAttr = target.dataset.resizeHandle as HandlePosition | undefined;
-    if (handleAttr && selection.selectedIds.size === 1) {
-      const { elements } = ctx.getActiveSlideElements();
-      const selId = [...selection.selectedIds][0];
-      const el = elements.find((el) => el.id === selId);
-      if (el) {
+    const singleSel = selection.selectedIds.size === 1 ? [...selection.selectedIds][0] : null;
+    if (singleSel && (handleAttr || target.dataset.rotateHandle)) {
+      const el = ctx.getActiveSlideElements().elements.find((el) => el.id === singleSel);
+      if (el && handleAttr) {
         mode = 'resizing';
-        resizeState = {
-          ...startResize({ x: el.x, y: el.y, width: el.width, height: el.height }, handleAttr, percent, e.shiftKey),
-          elementId: selId,
-        };
-        e.preventDefault();
-        return;
+        resizeState = { ...startResize({ x: el.x, y: el.y, width: el.width, height: el.height }, handleAttr, percent, e.shiftKey), elementId: singleSel };
+        e.preventDefault(); return;
       }
-    }
-
-    // Rotation handle click
-    if (target.dataset.rotateHandle && selection.selectedIds.size === 1) {
-      const { elements } = ctx.getActiveSlideElements();
-      const selId = [...selection.selectedIds][0];
-      const el = elements.find((el) => el.id === selId);
-      if (el) {
+      if (el && target.dataset.rotateHandle) {
         mode = 'rotating';
-        const center = getElementCenter(el.x, el.y, el.width, el.height);
-        rotateState = { ...startRotate(center, percent, el.rotation || 0), elementId: selId };
-        e.preventDefault();
-        return;
+        rotateState = { ...startRotate(getElementCenter(el.x, el.y, el.width, el.height), percent, el.rotation || 0), elementId: singleSel };
+        e.preventDefault(); return;
       }
     }
 
@@ -129,14 +141,16 @@ export function createInteractionController(ctx: InteractionContext): Interactio
 
   function handleMouseUp() {
     mode = 'idle';
-    dragState = null;
-    resizeState = null;
-    rotateState = null;
+    dragState = resizeState = rotateState = null;
     marqueeStart = null;
     clearOverlays(ctx.viewport, 'snap-guides');
   }
 
   function handleKeyDown(e: KeyboardEvent) {
+    if (textEditCtrl?.isEditing()) {
+      if (e.key === 'Escape') { e.preventDefault(); textEditCtrl.exitEditMode(); }
+      return;
+    }
     if (selection.selectedIds.size === 0) return;
     const dirs: Record<string, 'up' | 'down' | 'left' | 'right'> = {
       ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
@@ -145,8 +159,7 @@ export function createInteractionController(ctx: InteractionContext): Interactio
     if (dir) {
       e.preventDefault();
       const amount = e.shiftKey ? NUDGE_LARGE : NUDGE_SMALL;
-      const { elements } = ctx.getActiveSlideElements();
-      const updates = nudgeElements(elements, [...selection.selectedIds], dir, amount);
+      const updates = nudgeElements(ctx.getActiveSlideElements().elements, [...selection.selectedIds], dir, amount);
       applyPositionUpdates(ctx.ydoc, ctx.getActiveSlideElements(), updates);
     }
     if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -157,23 +170,26 @@ export function createInteractionController(ctx: InteractionContext): Interactio
     }
   }
 
-  ctx.viewport.addEventListener('mousedown', handleMouseDown);
+  const vp = ctx.viewport;
+  vp.addEventListener('mousedown', handleMouseDown);
+  vp.addEventListener('dblclick', handleDblClick);
+  vp.addEventListener('keydown', handleKeyDown);
+  vp.setAttribute('tabindex', '0');
   document.addEventListener('mousemove', handleMouseMove);
   document.addEventListener('mouseup', handleMouseUp);
-  ctx.viewport.addEventListener('keydown', handleKeyDown);
-  ctx.viewport.setAttribute('tabindex', '0');
 
   return {
     destroy() {
-      ctx.viewport.removeEventListener('mousedown', handleMouseDown);
+      vp.removeEventListener('mousedown', handleMouseDown);
+      vp.removeEventListener('dblclick', handleDblClick);
+      vp.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
-      ctx.viewport.removeEventListener('keydown', handleKeyDown);
-      clearOverlays(ctx.viewport, 'all');
+      textEditCtrl?.destroy();
+      clearOverlays(vp, 'all');
     },
     getSelection: () => selection,
-    applyZOrder(reorderedElements: SlideElement[]) {
-      applyZOrderToYjs(ctx.ydoc, ctx.getActiveSlideElements(), reorderedElements);
-    },
+    applyZOrder: (els: SlideElement[]) => applyZOrderToYjs(ctx.ydoc, ctx.getActiveSlideElements(), els),
+    getTextEditController: () => textEditCtrl,
   };
 }

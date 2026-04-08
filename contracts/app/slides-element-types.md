@@ -6,15 +6,18 @@ Provide element type renderers, factories, and insert UI for the slide editor. S
 
 ## Inputs
 
-- `SlideElement` objects parsed from Yjs shared state, including type-specific fields (src, shapeType, fill, stroke, strokeWidth, tableData)
-- User interactions: toolbar clicks to insert elements, file picker / drag-and-drop for images, cell editing for tables
+- `SlideElement` objects parsed from Yjs shared state, including type-specific fields (src, shapeType, fill, stroke, strokeWidth, tableData, fontSize, fontColor, textAlign)
+- User interactions: toolbar clicks to insert elements, file picker / drag-and-drop for images, cell editing for tables, double-click for text editing mode
 - `documentId` for image upload API calls
+- Text formatting commands via TipTap mini-editors (bold, italic, underline, strikethrough)
 
 ## Outputs
 
 - DOM elements rendered into the slide viewport for each element type
 - New Yjs element maps inserted via the element factory + insert functions
-- Content/cell updates written back to Yjs on blur events
+- Content/cell updates written back to Yjs on editor update events
+- Text formatting changes (fontSize, fontColor, textAlign) written to Yjs
+- Formatting toolbar DOM element shown when text element is in edit mode
 - Insert toolbar DOM element attached to the presentation header
 
 ## Side Effects
@@ -43,6 +46,9 @@ Provide element type renderers, factories, and insert UI for the slide editor. S
 - `../image-upload.ts` (parent module) -- `uploadImage`, `validateImageFile`, `extractImageFiles`
 - `yjs` (runtime) -- Yjs shared types for element insertion and mutation
 - `./element-interaction.ts` (sibling) -- interaction controller consumes rendered elements
+- `@tiptap/core` (runtime) -- TipTap editor for rich text in text/shape elements
+- `@tiptap/starter-kit` (runtime) -- base editor extensions
+- `@tiptap/extension-underline` (runtime) -- underline mark support
 
 ## Boundary Rules
 
@@ -70,9 +76,13 @@ Provide element type renderers, factories, and insert UI for the slide editor. S
 modules/app/internal/slides/
   types.ts              -- Extended with ShapeType, TableData
   element-renderer.ts   -- Dispatcher: routes element to type-specific renderer
-  render-text.ts        -- Text element renderer (contentEditable)
+  render-text.ts        -- Text element renderer (TipTap mini-editor)
   render-image.ts       -- Image element renderer (img tag)
-  render-shape.ts       -- Shape element renderer (SVG + text overlay)
+  render-shape.ts       -- Shape element renderer (SVG + TipTap text overlay)
+  tiptap-mini-editor.ts -- Lightweight TipTap editor factory for slide elements
+  text-edit-controller.ts -- Manages text editing mode (double-click enter, Escape exit)
+  text-format-toolbar.ts -- Formatting toolbar (bold, italic, underline, strikethrough, font size, color, alignment)
+  text-format.css       -- Styles for TipTap editors and formatting toolbar
   render-table.ts       -- Table element renderer (HTML table with editable cells)
   element-factory.ts    -- Factory functions for creating new elements
   insert-toolbar.ts     -- Insert toolbar UI with shape submenu and table grid picker
@@ -90,3 +100,6 @@ modules/app/internal/slides/
 4. **Table grid** -- Table renders correct number of rows and columns. Cell edits write to Yjs.
 5. **Insert toolbar** -- Each button inserts the correct element type into Yjs.
 6. **Interaction compatibility** -- Inserted elements can be dragged, resized, rotated, selected.
+7. **Text editing mode** -- Double-click activates TipTap editor; single click selects for move/resize.
+8. **Format toolbar** -- Toolbar appears when text element enters edit mode; all formatting changes sync via Yjs.
+9. **Rich text persistence** -- Content stored as HTML in Yjs content field; formatting marks (bold, italic, etc.) survive round-trips.

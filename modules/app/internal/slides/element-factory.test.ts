@@ -13,9 +13,12 @@ describe('createTextElement', () => {
     const el = createTextElement();
     expect(el.type).toBe('text');
     expect(el.id).toMatch(/^[0-9a-f]{8}-/);
-    expect(el.content).toBe('Click to edit text');
+    expect(el.content).toBe('<p>Click to edit text</p>');
     expect(el.width).toBeGreaterThan(0);
     expect(el.height).toBeGreaterThan(0);
+    expect(el.fontSize).toBe(24);
+    expect(el.fontColor).toBe('#000000');
+    expect(el.textAlign).toBe('left');
   });
 
   it('produces unique IDs on each call', () => {
@@ -34,13 +37,16 @@ describe('createImageElement', () => {
 });
 
 describe('createShapeElement', () => {
-  it('creates a rectangle shape', () => {
+  it('creates a rectangle shape with text defaults', () => {
     const el = createShapeElement('rectangle');
     expect(el.type).toBe('shape');
     expect(el.shapeType).toBe('rectangle');
     expect(el.fill).toBeTruthy();
     expect(el.stroke).toBeTruthy();
     expect(el.strokeWidth).toBeGreaterThan(0);
+    expect(el.fontSize).toBe(24);
+    expect(el.fontColor).toBe('#000000');
+    expect(el.textAlign).toBe('center');
   });
 
   it('creates a line with different default dimensions', () => {

@@ -1,7 +1,8 @@
 /** Contract: contracts/app/slides-element-types.md */
 
-import type { ShapeType, TableData } from './types.ts';
+import type { ShapeType, TableData, TextAlign } from './types.ts';
 import { createDefaultTableData } from './render-table.ts';
+import { TEXT_DEFAULTS } from './tiptap-mini-editor.ts';
 
 type NewElementBase = {
   id: string;
@@ -15,6 +16,9 @@ type NewElementBase = {
 export type NewTextElement = NewElementBase & {
   type: 'text';
   content: string;
+  fontSize: number;
+  fontColor: string;
+  textAlign: TextAlign;
 };
 
 export type NewImageElement = NewElementBase & {
@@ -26,6 +30,9 @@ export type NewImageElement = NewElementBase & {
 export type NewShapeElement = NewElementBase & {
   type: 'shape';
   content: string;
+  fontSize: number;
+  fontColor: string;
+  textAlign: TextAlign;
   shapeType: ShapeType;
   fill: string;
   stroke: string;
@@ -54,7 +61,10 @@ export function createTextElement(): NewTextElement {
     width: 60,
     height: 15,
     rotation: 0,
-    content: 'Click to edit text',
+    content: '<p>Click to edit text</p>',
+    fontSize: TEXT_DEFAULTS.fontSize,
+    fontColor: TEXT_DEFAULTS.fontColor,
+    textAlign: TEXT_DEFAULTS.textAlign,
   };
 }
 
@@ -85,6 +95,9 @@ export function createShapeElement(shapeType: ShapeType): NewShapeElement {
     height: isLine ? 5 : 30,
     rotation: 0,
     content: '',
+    fontSize: TEXT_DEFAULTS.fontSize,
+    fontColor: TEXT_DEFAULTS.fontColor,
+    textAlign: 'center',
     shapeType,
     fill: isLine ? 'none' : '#4f87e0',
     stroke: '#2563eb',

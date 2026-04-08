@@ -8,6 +8,8 @@ export type TableData = {
   cells: string[][];
 };
 
+export type TextAlign = 'left' | 'center' | 'right';
+
 export type SlideElement = {
   id: string;
   type: 'text' | 'shape' | 'image' | 'table';
@@ -17,6 +19,10 @@ export type SlideElement = {
   height: number;
   rotation: number;
   content: string;
+  // Text formatting (text + shape elements)
+  fontSize?: number;
+  fontColor?: string;
+  textAlign?: TextAlign;
   // Image elements
   src?: string;
   // Shape elements
