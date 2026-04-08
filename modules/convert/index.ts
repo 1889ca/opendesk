@@ -63,3 +63,29 @@ export { snapshotToHtml, contentToHtml } from './internal/html-renderer.ts';
 // Import/Export pipelines
 export { importFile, ImportError } from './internal/importer.ts';
 export { exportDocument, ExportError } from './internal/exporter.ts';
+
+// Spreadsheet import/export
+export {
+  importSpreadsheet,
+  SpreadsheetImportError,
+} from './internal/spreadsheet-importer.ts';
+export type { SpreadsheetImportResult } from './internal/spreadsheet-importer.ts';
+
+export {
+  exportSpreadsheet,
+  SpreadsheetExportError,
+} from './internal/spreadsheet-exporter.ts';
+export type { SpreadsheetExportResult } from './internal/spreadsheet-exporter.ts';
+
+// Spreadsheet format utilities
+export {
+  detectSpreadsheetFormat,
+  isValidSpreadsheetImportFormat,
+  isValidSpreadsheetExportFormat,
+  getSpreadsheetExportMime,
+  getSpreadsheetExportExt,
+} from './internal/spreadsheet-formats.ts';
+
+// CSV parser (direct use by sheets editor)
+export { parseCsv, gridToCsv, normalizeGrid } from './internal/csv-parser.ts';
+export type { CellGrid } from './internal/csv-parser.ts';
