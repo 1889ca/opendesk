@@ -156,7 +156,12 @@ export async function startServer(port = 3000) {
   app.use('/api/references', createImportExportRoutes({ permissions }));
 
   // Audit routes (crypto audit log + chain verification)
-  app.use('/api/audit', createAuditRoutes({ permissions, auditModule: audit }));
+  app.use('/api/audit', createAuditRoutes({
+    permissions,
+    auditModule: audit,
+    pool,
+    hmacSecret: config.audit.hmacSecret,
+  }));
 
   // Workflow routes (trigger/action CRUD + execution history)
   app.use('/api/workflows', createWorkflowRoutes({ permissions, workflowModule: workflow }));

@@ -57,6 +57,15 @@ Append-only HMAC-chained audit log recording all domain events. Provides tamper-
 - Schema validation: Parse valid and invalid `AuditEntry` objects through Zod schemas, assert correct acceptance/rejection.
 - Cursor pagination: Insert entries, query with cursor, assert correct subset returned in correct order.
 
+## Pillar 2 M2: Point-in-Time Verifiability
+
+Implemented:
+- [x] Full audit proof export (chain + metadata + verification status)
+- [x] Lightweight proof summary (anchor/head hashes, counts, time range)
+- [x] Offline proof verification (no DB needed, just proof bundle + HMAC secret)
+- [x] API endpoints: GET /proof/:documentId, GET /proof/:documentId/summary, POST /proof/verify
+- [x] 5 tests covering valid chains, tampered entries, broken links, wrong secrets, empty chains
+
 ## MVP Scope
 
 Implemented:
