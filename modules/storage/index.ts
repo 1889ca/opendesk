@@ -60,6 +60,10 @@ export {
   searchDocuments,
 } from './internal/pg-search.ts';
 
+// Global cross-type search
+export type { GlobalSearchResult, ContentType } from './internal/pg-global-search.ts';
+export { globalSearch } from './internal/pg-global-search.ts';
+
 // Schema initialization and pool (for server startup)
 export { initSchema } from './internal/schema.ts';
 export { pool, getPool } from './internal/pool.ts';

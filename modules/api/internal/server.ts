@@ -18,6 +18,7 @@ import { createTemplateRoutes } from './template-routes.ts';
 import { createVersionRoutes } from './version-routes.ts';
 import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts';
 import { createSearchRoutes } from './search-routes.ts';
+import { createGlobalSearchRoutes } from './global-search-routes.ts';
 import { createReferenceRoutes } from './reference-routes.ts';
 import { createImportExportRoutes } from './reference-import-routes.ts';
 import { createShareLinkService, createPgShareLinkStore, createShareRoutes, createPasswordRateLimiter } from '../../sharing/index.ts';
@@ -114,6 +115,9 @@ export async function startServer(port = 3000) {
       res.status(503).json({ status: 'unhealthy' });
     }
   });
+
+  // Global cross-type search
+  app.use('/api/search', createGlobalSearchRoutes({ permissions }));
 
   // Search must be mounted before document CRUD so /search is matched before /:id
   app.use('/api/documents', createSearchRoutes({ permissions }));
