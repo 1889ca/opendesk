@@ -21,5 +21,9 @@ export {
   type EventTypeRegistration,
   type PgTransaction,
   type EventBus,
+  type EventBusModule,
   type EventHandler,
-} from './contract.js';
+} from './contract.ts';
+
+// --- Factory ---
+export { createEventBus } from './internal/event-bus.ts';

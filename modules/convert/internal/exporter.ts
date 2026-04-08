@@ -98,7 +98,7 @@ async function flushAndWait(
     const timeout = setTimeout(() => resolve(true), FLUSH_TIMEOUT_MS);
 
     const group = `convert-flush-${documentId}-${Date.now()}`;
-    eventBus.subscribe(group, [EventType.StateFlushed]).then(() => {
+    eventBus.subscribe(group, [EventType.StateFlushed], async () => {
       clearTimeout(timeout);
       resolve(false);
     }).catch(() => {
