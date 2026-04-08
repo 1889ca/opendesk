@@ -20,6 +20,19 @@
       />
     </div>
     <div class="toolbar-right">
+      <div class="export-group">
+        <button id="sheet-import" class="export-btn" title="Import .xlsx, .ods, or .csv">Import</button>
+        <span class="toolbar-separator"></span>
+        <button id="sheet-export-csv" class="export-btn" title="Export as CSV">CSV</button>
+        <button id="sheet-export-xlsx" class="export-btn" title="Export as Excel">XLSX</button>
+        <button id="sheet-export-ods" class="export-btn" title="Export as OpenDocument">ODS</button>
+      </div>
+      <span class="toolbar-separator"></span>
+      <div class="dataset-group">
+        <button id="dataset-link-btn" class="export-btn" title="Link KB Dataset">Dataset</button>
+        <span id="dataset-indicator" class="dataset-indicator" hidden></span>
+      </div>
+      <span class="toolbar-separator"></span>
       <span id="status" class="status disconnected">Connecting...</span>
       <span class="users-label">Editors:</span>
       <span id="users" class="users">-</span>

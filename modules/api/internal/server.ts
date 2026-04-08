@@ -20,6 +20,9 @@ import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts'
 import { createSearchRoutes } from './search-routes.ts';
 import { createReferenceRoutes } from './reference-routes.ts';
 import { createImportExportRoutes } from './reference-import-routes.ts';
+import { createSheetConvertRoutes } from './sheet-convert-routes.ts';
+import { createKbDatasetRoutes } from './kb-dataset-routes.ts';
+import { createPgDatasetStore } from '../../kb/index.ts';
 import { createShareLinkService, createPgShareLinkStore, createShareRoutes, createPasswordRateLimiter } from '../../sharing/index.ts';
 import { pool, initSchema } from '../../storage/index.ts';
 import { ensureS3Bucket } from './s3-client.ts'; import { applySecurityMiddleware } from './security.ts';
@@ -104,6 +107,13 @@ export async function startServer(port = 3000) {
 
   // Collabora convert routes (import/export binary formats) — after auth
   app.use(createConvertRoutes({ permissions }));
+
+  // Spreadsheet convert routes (import/export .xlsx, .ods, .csv)
+  app.use(createSheetConvertRoutes({ permissions }));
+
+  // KB dataset routes (CRUD + sheet linking)
+  const datasetStore = createPgDatasetStore(pool);
+  app.use('/api/kb/datasets', createKbDatasetRoutes({ permissions, datasetStore }));
 
   // Health check (public, skipped by auth middleware)
   app.get('/api/health', async (_req, res) => {
