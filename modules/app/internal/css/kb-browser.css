@@ -1,0 +1,5 @@
+/** CSS bundle entry for kb.html (KB browser) */
+@import "../public/theme.css";
+@import "../public/styles.css";
+@import "../public/toolbar.css";
+@import "../public/kb-browser.css";
