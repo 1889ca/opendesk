@@ -14,7 +14,17 @@ export function createWorkflowRoutes(opts: WorkflowRoutesOptions): Router {
   const router = Router();
   const { permissions, workflowModule } = opts;
 
-  // Create workflow definition — requires 'manage' on documentId
+  // List all workflows (admin overview for workflow editor)
+  router.get(
+    '/all',
+    permissions.requireAuth,
+    asyncHandler(async (_req: Request, res: Response) => {
+      const defs = await workflowModule.listAllDefinitions();
+      res.json(defs);
+    }),
+  );
+
+  // Create workflow definition
   router.post(
     '/',
     permissions.requireAuth,
@@ -38,7 +48,7 @@ export function createWorkflowRoutes(opts: WorkflowRoutesOptions): Router {
     }),
   );
 
-  // List definitions for a document — requires 'read' on documentId
+  // List definitions for a document
   router.get(
     '/',
     permissions.requireAuth,
@@ -62,7 +72,7 @@ export function createWorkflowRoutes(opts: WorkflowRoutesOptions): Router {
     }),
   );
 
-  // Get single definition — requires 'read' on linked document
+  // Get single definition
   router.get(
     '/:id',
     permissions.requireAuth,
@@ -81,7 +91,7 @@ export function createWorkflowRoutes(opts: WorkflowRoutesOptions): Router {
     }),
   );
 
-  // Update definition — requires 'manage' on linked document
+  // Update definition
   router.patch(
     '/:id',
     permissions.requireAuth,
@@ -96,7 +106,9 @@ export function createWorkflowRoutes(opts: WorkflowRoutesOptions): Router {
         res.status(404).json({ error: 'Workflow definition not found' });
         return;
       }
-      const allowed = await permissions.checkPermission(req.principal!.id, existing.documentId, 'manage');
+      const allowed = await permissions.checkPermission(
+        req.principal!.id, existing.documentId, 'manage',
+      );
       if (!allowed) {
         res.status(403).json({ code: 'FORBIDDEN', message: 'Requires manage permission' });
         return;
@@ -106,7 +118,7 @@ export function createWorkflowRoutes(opts: WorkflowRoutesOptions): Router {
     }),
   );
 
-  // Delete definition — requires 'manage' on linked document
+  // Delete definition
   router.delete(
     '/:id',
     permissions.requireAuth,
@@ -116,7 +128,9 @@ export function createWorkflowRoutes(opts: WorkflowRoutesOptions): Router {
         res.status(404).json({ error: 'Workflow definition not found' });
         return;
       }
-      const allowed = await permissions.checkPermission(req.principal!.id, existing.documentId, 'manage');
+      const allowed = await permissions.checkPermission(
+        req.principal!.id, existing.documentId, 'manage',
+      );
       if (!allowed) {
         res.status(403).json({ code: 'FORBIDDEN', message: 'Requires manage permission' });
         return;
@@ -126,7 +140,7 @@ export function createWorkflowRoutes(opts: WorkflowRoutesOptions): Router {
     }),
   );
 
-  // List executions for a workflow — requires 'read' on linked document
+  // List executions for a workflow
   router.get(
     '/:id/executions',
     permissions.requireAuth,
@@ -136,7 +150,9 @@ export function createWorkflowRoutes(opts: WorkflowRoutesOptions): Router {
         res.status(404).json({ error: 'Workflow definition not found' });
         return;
       }
-      const allowed = await permissions.checkPermission(req.principal!.id, existing.documentId, 'read');
+      const allowed = await permissions.checkPermission(
+        req.principal!.id, existing.documentId, 'read',
+      );
       if (!allowed) {
         res.status(403).json({ code: 'FORBIDDEN', message: 'Requires read permission' });
         return;
@@ -144,6 +160,28 @@ export function createWorkflowRoutes(opts: WorkflowRoutesOptions): Router {
       const limitParam = Number(req.query.limit) || 50;
       const executions = await workflowModule.listExecutions(String(req.params.id), limitParam);
       res.json(executions);
+    }),
+  );
+
+  // Get execution step logs
+  router.get(
+    '/:id/executions/:executionId/steps',
+    permissions.requireAuth,
+    asyncHandler(async (req: Request, res: Response) => {
+      const existing = await workflowModule.getDefinition(String(req.params.id));
+      if (!existing) {
+        res.status(404).json({ error: 'Workflow definition not found' });
+        return;
+      }
+      const allowed = await permissions.checkPermission(
+        req.principal!.id, existing.documentId, 'read',
+      );
+      if (!allowed) {
+        res.status(403).json({ code: 'FORBIDDEN', message: 'Requires read permission' });
+        return;
+      }
+      const steps = await workflowModule.getExecutionLog(String(req.params.executionId));
+      res.json(steps);
     }),
   );
 

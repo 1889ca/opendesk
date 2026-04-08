@@ -1,0 +1,4 @@
+/** CSS bundle entry for workflows.html */
+@import "../public/theme.css";
+@import "../public/workflows.css";
+@import "../public/workflows-panels.css";

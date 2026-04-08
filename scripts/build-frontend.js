@@ -121,6 +121,24 @@ const builds = [
     minify: true,
     sourcemap: true,
   },
+  // Workflow editor JS
+  {
+    entryPoints: ['modules/app/internal/workflows/workflow-page.ts'],
+    outfile: `${OUTDIR}/workflows.bundle.js`,
+    bundle: true,
+    format: 'esm',
+    target: 'es2022',
+    minify: true,
+    sourcemap: true,
+  },
+  // Workflow editor CSS
+  {
+    entryPoints: ['modules/app/internal/css/workflows.css'],
+    outfile: `${OUTDIR}/workflows.bundle.css`,
+    bundle: true,
+    minify: true,
+    sourcemap: true,
+  },
 ];
 
 async function main() {
