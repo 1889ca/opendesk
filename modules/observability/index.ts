@@ -5,10 +5,13 @@ export {
   MetricEntrySchema,
   HealthIndicatorSchema,
   MetricsSummarySchema,
+  TimeSeriesPointSchema,
   ObservabilityConfigSchema,
   type MetricEntry,
   type HealthIndicator,
   type MetricsSummary,
+  type TimeSeriesPoint,
+  type MetricsFilter,
   type ObservabilityConfig,
   type ObservabilityModule,
 } from './contract.ts';

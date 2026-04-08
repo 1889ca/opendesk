@@ -54,6 +54,28 @@ export const MetricsSummarySchema = z.object({
 
 export type MetricsSummary = z.infer<typeof MetricsSummarySchema>;
 
+// --- TimeSeriesPoint (bucketed metrics for charting) ---
+
+export const TimeSeriesPointSchema = z.object({
+  bucket: z.string(),
+  requestCount: z.number().int(),
+  errorCount: z.number().int(),
+  avgDurationMs: z.number(),
+  p50DurationMs: z.number(),
+  p95DurationMs: z.number(),
+  p99DurationMs: z.number(),
+});
+
+export type TimeSeriesPoint = z.infer<typeof TimeSeriesPointSchema>;
+
+// --- MetricsFilter ---
+
+export interface MetricsFilter {
+  operation?: string;
+  statusCode?: number;
+  actorType?: 'human' | 'agent' | 'system';
+}
+
 // --- Module Interface ---
 
 export interface ObservabilityModule {
@@ -63,6 +85,10 @@ export interface ObservabilityModule {
   getSummary(): Promise<MetricsSummary>;
   /** Get latest health indicators. */
   getHealth(): Promise<HealthIndicator[]>;
+  /** Get time-series data for charting. */
+  getTimeSeries(rangeMinutes: number, filter?: MetricsFilter): Promise<TimeSeriesPoint[]>;
+  /** Search metrics by correlation ID. */
+  searchByCorrelationId(correlationId: string): Promise<MetricEntry[]>;
   /** Start the background health monitor. */
   startHealthMonitor(): void;
   /** Stop the background health monitor. */

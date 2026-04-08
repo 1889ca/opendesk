@@ -39,6 +39,36 @@ export function createMetricsRoutes(opts: MetricsRoutesOptions): Router {
     }),
   );
 
+  // GET /api/admin/metrics/timeseries — time-series data for charts
+  router.get(
+    '/timeseries',
+    permissions.requireAuth,
+    asyncHandler(async (req: Request, res: Response) => {
+      const rangeMinutes = Math.min(Number(req.query.range) || 60, 1440);
+      const filter: Record<string, unknown> = {};
+      if (req.query.operation) filter.operation = String(req.query.operation);
+      if (req.query.statusCode) filter.statusCode = Number(req.query.statusCode);
+      if (req.query.actorType) filter.actorType = String(req.query.actorType);
+      const points = await observability.getTimeSeries(rangeMinutes, filter);
+      res.json({ range: rangeMinutes, points });
+    }),
+  );
+
+  // GET /api/admin/metrics/search — search by correlation ID
+  router.get(
+    '/search',
+    permissions.requireAuth,
+    asyncHandler(async (req: Request, res: Response) => {
+      const correlationId = String(req.query.correlationId ?? '');
+      if (!correlationId) {
+        res.status(400).json({ error: 'correlationId query parameter required' });
+        return;
+      }
+      const entries = await observability.searchByCorrelationId(correlationId);
+      res.json({ correlationId, entries });
+    }),
+  );
+
   // GET /api/admin/metrics/audit — audit chain health summary
   router.get(
     '/audit',
