@@ -55,6 +55,16 @@ const entries = [
   },
   {
     ...sharedJS,
+    entryPoints: ['modules/app/internal/admin-dashboard.ts'],
+    outfile: 'modules/app/internal/public/admin.bundle.js',
+  },
+  {
+    ...sharedCSS,
+    entryPoints: ['modules/app/internal/css/admin.css'],
+    outfile: 'modules/app/internal/public/admin.bundle.css',
+  },
+  {
+    ...sharedJS,
     entryPoints: ['modules/app/internal/share-resolve.ts'],
     outfile: 'modules/app/internal/public/share-resolve.bundle.js',
   },
