@@ -132,6 +132,9 @@ modules/app/
 - `contracts/app/print.md` — Print stylesheet, PageBreak node, print/PDF buttons
 - `contracts/app/accessibility.md` — ARIA announcer, roving tabindex toolbar, shortcut dialog
 - `contracts/app/mobile.md` — Touch support, responsive toolbar overflow, viewport management
+- `contracts/app/theming.md` — Light/dark/system mode, accent color picker, settings dropdown
+- `contracts/app/workspace-sidebar.md` — Left nav panel with recent, starred, folders, quick search
+- `contracts/app/notifications.md` — Notification bell, dropdown panel, polling, mark-read actions
 
 ## MVP Scope
 
@@ -160,6 +163,10 @@ Implemented:
 - [x] Tables support (table toolbar)
 - [x] Image upload and handling
 - [x] Keyboard shortcut dialog
+
+- [x] Theming: light/dark/system mode with settings dropdown, accent color presets + custom picker, localStorage persistence, CSS custom property driven
+- [x] Workspace sidebar: collapsible left panel with recent docs, starred docs (API-backed), folder tree, quick search filter
+- [x] Notification bell: unread count badge, dropdown panel with mark-read/dismiss, mark-all-as-read, 30s polling
 
 Post-MVP (deferred):
 - [ ] Block ID assignment extension (`blockId` UUIDv4 on new top-level blocks) — blocks exist but auto-ID assignment extension not yet built
