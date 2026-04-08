@@ -26,6 +26,7 @@ import { ensureS3Bucket } from './s3-client.ts'; import { applySecurityMiddlewar
 import { createEventBus } from '../../events/index.ts';
 import { createAudit, createAuditRoutes } from '../../audit/index.ts';
 import { createWorkflow, createWorkflowRoutes } from '../../workflow/index.ts';
+import { createObservability, createObservabilityRoutes, createSiemRoutes } from '../../observability/index.ts';
 import { loadConfig } from '../../config/index.ts';
 import { createLogger } from '../../logger/index.ts';
 
@@ -90,6 +91,7 @@ export async function startServer(port = 3000) {
     hmacSecret: config.audit.hmacSecret,
   });
   const workflow = createWorkflow({ pool, eventBus });
+  const observability = createObservability({ pool });
   eventBus.startBackgroundJobs();
 
   // Serve static frontend
@@ -150,6 +152,10 @@ export async function startServer(port = 3000) {
 
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
+
+  // Observability routes (telemetry, anomalies, forensics, SIEM)
+  app.use('/api/observability', createObservabilityRoutes({ permissions, observability }));
+  app.use('/api/observability/siem', createSiemRoutes({ permissions, pool }));
 
   // Share link routes (create, resolve, revoke) — after auth
   const shareLinkStore = createPgShareLinkStore(pool);
