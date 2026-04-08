@@ -80,10 +80,10 @@ export function createErasureRoutes(opts: ErasureRoutesOptions): Router {
     }),
   );
 
-  // POST /api/erasure/policies — create a retention policy
+  // POST /api/erasure/policies — create a retention policy (admin only)
   router.post(
     '/policies',
-    permissions.requireAuth,
+    permissions.requireAdmin,
     asyncHandler(async (req: Request, res: Response) => {
       const parsed = CreatePolicyBody.safeParse(req.body);
       if (!parsed.success) {
@@ -100,20 +100,20 @@ export function createErasureRoutes(opts: ErasureRoutesOptions): Router {
     }),
   );
 
-  // GET /api/erasure/policies — list retention policies
+  // GET /api/erasure/policies — list retention policies (admin only)
   router.get(
     '/policies',
-    permissions.requireAuth,
+    permissions.requireAdmin,
     asyncHandler(async (_req: Request, res: Response) => {
       const policies = await erasure.listPolicies();
       res.json(policies);
     }),
   );
 
-  // DELETE /api/erasure/policies/:id — delete a retention policy
+  // DELETE /api/erasure/policies/:id — delete a retention policy (admin only)
   router.delete(
     '/policies/:id',
-    permissions.requireAuth,
+    permissions.requireAdmin,
     asyncHandler(async (req: Request, res: Response) => {
       const deleted = await erasure.deletePolicy(String(req.params.id));
       if (!deleted) {
@@ -124,20 +124,20 @@ export function createErasureRoutes(opts: ErasureRoutesOptions): Router {
     }),
   );
 
-  // GET /api/erasure/scan — scan for documents matching retention policies (dry run)
+  // GET /api/erasure/scan — scan for documents matching retention policies (admin only)
   router.get(
     '/scan',
-    permissions.requireAuth,
+    permissions.requireAdmin,
     asyncHandler(async (_req: Request, res: Response) => {
       const results = await erasure.scanRetention();
       res.json(results);
     }),
   );
 
-  // POST /api/erasure/execute — execute retention (auto-purge matching documents)
+  // POST /api/erasure/execute — execute retention / auto-purge (admin only)
   router.post(
     '/execute',
-    permissions.requireAuth,
+    permissions.requireAdmin,
     asyncHandler(async (req: Request, res: Response) => {
       const principal = req.principal!;
       const attestations = await erasure.executeRetention(principal.id);
