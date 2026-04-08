@@ -1,14 +1,16 @@
-// TODO: Convert to integration tests with real DB (see contracts/testing/rules.md)
 /** Contract: contracts/erasure/rules.md */
-import { describe, it, expect, vi } from 'vitest';
-import express from 'express';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import express, { type Request, type Response, type NextFunction } from 'express';
 import request from 'supertest';
 import { createErasureRoutes } from './erasure-routes.ts';
 import type { ErasureModule, ErasureAttestation, RetentionPolicy } from '../contract.ts';
+import { createPermissions, type PermissionsModule } from '../../permissions/index.ts';
+
+const DOC_ID = '550e8400-e29b-41d4-a716-446655440000';
 
 const testAttestation: ErasureAttestation = {
   id: '550e8400-e29b-41d4-a716-446655440001',
-  documentId: '550e8400-e29b-41d4-a716-446655440000',
+  documentId: DOC_ID,
   actorId: 'user-1',
   actorType: 'human',
   reason: 'GDPR request',
@@ -30,7 +32,8 @@ const testPolicy: RetentionPolicy = {
   createdAt: '2026-04-08T00:00:00.000Z',
 };
 
-function createStubErasure(overrides: Partial<ErasureModule> = {}): ErasureModule {
+/** In-memory erasure module — vi.fn() spies for call tracking, real fixture data. */
+function createInMemoryErasure(overrides: Partial<ErasureModule> = {}): ErasureModule {
   return {
     eraseDocument: vi.fn(async () => testAttestation),
     getAttestations: vi.fn(async () => [testAttestation]),
@@ -43,33 +46,41 @@ function createStubErasure(overrides: Partial<ErasureModule> = {}): ErasureModul
   };
 }
 
-function createStubPermissions() {
-  return {
-    requireAuth: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
-      (_req as { principal?: unknown }).principal = { id: 'user-1', scopes: ['*'] };
-      next();
-    },
-    requireAdmin: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
-      (_req as { principal?: unknown }).principal = { id: 'user-1', scopes: ['*'] };
-      next();
-    },
-    require: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
-    requireForResource: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
-    checkPermission: vi.fn(async () => true),
-    grantStore: { findByPrincipal: vi.fn(async () => []) },
-  } as unknown as import('../../permissions/index.ts').PermissionsModule;
+/** Middleware that attaches a principal with admin scopes. */
+function fakePrincipal(id = 'user-1') {
+  return (req: Request, _res: Response, next: NextFunction) => {
+    req.principal = { id, actorType: 'human', displayName: 'Admin', scopes: ['*'] };
+    next();
+  };
+}
+
+function createTestApp(erasure: ErasureModule, permissions: PermissionsModule) {
+  const app = express();
+  app.use(express.json());
+  app.use(fakePrincipal());
+  app.use('/api/erasure', createErasureRoutes({ erasure, permissions }));
+  return app;
 }
 
 describe('erasure routes', () => {
+  let permissions: PermissionsModule;
+
+  beforeEach(async () => {
+    permissions = createPermissions();
+    // Grant manage-level access on the test document
+    await permissions.grantStore.create({
+      principalId: 'user-1', resourceId: DOC_ID, resourceType: 'document',
+      role: 'owner', grantedBy: 'user-1',
+    });
+  });
+
   it('POST /erase creates an attestation', async () => {
-    const erasure = createStubErasure();
-    const app = express();
-    app.use(express.json());
-    app.use('/api/erasure', createErasureRoutes({ erasure, permissions: createStubPermissions() }));
+    const erasure = createInMemoryErasure();
+    const app = createTestApp(erasure, permissions);
 
     const res = await request(app)
       .post('/api/erasure/erase')
-      .send({ documentId: '550e8400-e29b-41d4-a716-446655440000', reason: 'GDPR request' });
+      .send({ documentId: DOC_ID, reason: 'GDPR request' });
 
     expect(res.status).toBe(201);
     expect(res.body.stateChanged).toBe(true);
@@ -77,23 +88,19 @@ describe('erasure routes', () => {
   });
 
   it('GET /attestations/:documentId returns attestations', async () => {
-    const erasure = createStubErasure();
-    const app = express();
-    app.use('/api/erasure', createErasureRoutes({ erasure, permissions: createStubPermissions() }));
+    const erasure = createInMemoryErasure();
+    const app = createTestApp(erasure, permissions);
 
-    const res = await request(app)
-      .get('/api/erasure/attestations/550e8400-e29b-41d4-a716-446655440000');
+    const res = await request(app).get(`/api/erasure/attestations/${DOC_ID}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
-    expect(res.body[0].documentId).toBe('550e8400-e29b-41d4-a716-446655440000');
+    expect(res.body[0].documentId).toBe(DOC_ID);
   });
 
   it('POST /policies creates a retention policy', async () => {
-    const erasure = createStubErasure();
-    const app = express();
-    app.use(express.json());
-    app.use('/api/erasure', createErasureRoutes({ erasure, permissions: createStubPermissions() }));
+    const erasure = createInMemoryErasure();
+    const app = createTestApp(erasure, permissions);
 
     const res = await request(app)
       .post('/api/erasure/policies')
@@ -104,20 +111,17 @@ describe('erasure routes', () => {
   });
 
   it('GET /policies lists policies', async () => {
-    const erasure = createStubErasure();
-    const app = express();
-    app.use('/api/erasure', createErasureRoutes({ erasure, permissions: createStubPermissions() }));
+    const erasure = createInMemoryErasure();
+    const app = createTestApp(erasure, permissions);
 
     const res = await request(app).get('/api/erasure/policies');
-
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
   });
 
   it('GET /scan returns retention scan results', async () => {
-    const erasure = createStubErasure();
-    const app = express();
-    app.use('/api/erasure', createErasureRoutes({ erasure, permissions: createStubPermissions() }));
+    const erasure = createInMemoryErasure();
+    const app = createTestApp(erasure, permissions);
 
     const res = await request(app).get('/api/erasure/scan');
     expect(res.status).toBe(200);
@@ -125,13 +129,10 @@ describe('erasure routes', () => {
   });
 
   it('POST /execute runs auto-purge', async () => {
-    const erasure = createStubErasure();
-    const app = express();
-    app.use(express.json());
-    app.use('/api/erasure', createErasureRoutes({ erasure, permissions: createStubPermissions() }));
+    const erasure = createInMemoryErasure();
+    const app = createTestApp(erasure, permissions);
 
     const res = await request(app).post('/api/erasure/execute');
-
     expect(res.status).toBe(200);
     expect(res.body.executed).toBe(1);
   });

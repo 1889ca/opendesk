@@ -1,10 +1,7 @@
 /**
- * Collab Stress Test — simulates N concurrent users editing a document.
+ * Collab Stress Test — main entry point.
  *
- * Each simulated user:
- * 1. Connects to the Hocuspocus WebSocket server
- * 2. Types random words into the shared Yjs document
- * 3. Reports latency and sync metrics
+ * Spawns N concurrent WebSocket users + HTTP load, then prints a report.
  *
  * Usage:
  *   npx tsx stress/collab-stress.ts [options]
@@ -17,152 +14,18 @@
  *   --typing-ms N   Interval between keystrokes in ms (default: 100)
  */
 
-import * as Y from 'yjs';
-import { HocuspocusProvider } from '@hocuspocus/provider';
-import { randomUUID } from 'node:crypto';
-import WebSocket from 'ws';
+import {
+  type UserMetrics,
+  USER_COUNT,
+  DURATION_S,
+  DOC_ID,
+  WS_URL,
+  TYPING_MS,
+  percentile,
+} from './config.js';
+import { spawnUser } from './collab-users.js';
+import { stressHttp } from './http-stress.js';
 
-// Polyfill WebSocket for Node.js (HocuspocusProvider expects a browser WebSocket)
-Object.assign(globalThis, { WebSocket });
-
-// ── Config ────────────────────────────────────────────
-const args = process.argv.slice(2);
-function flag(name: string, fallback: string): string {
-  const idx = args.indexOf(`--${name}`);
-  return idx >= 0 && args[idx + 1] ? args[idx + 1] : fallback;
-}
-
-const USER_COUNT = parseInt(flag('users', '10'), 10);
-const DURATION_S = parseInt(flag('duration', '30'), 10);
-const DOC_ID = flag('doc', `stress-${randomUUID().slice(0, 8)}`);
-const WS_URL = flag('url', 'ws://localhost:3000/collab');
-const TYPING_MS = parseInt(flag('typing-ms', '100'), 10);
-
-// ── Metrics ───────────────────────────────────────────
-interface UserMetrics {
-  userId: number;
-  connected: boolean;
-  connectTimeMs: number;
-  charsTyped: number;
-  updatesReceived: number;
-  errors: string[];
-}
-
-const metrics: UserMetrics[] = [];
-const WORDS = [
-  'the', 'quick', 'brown', 'fox', 'jumps', 'over', 'lazy', 'dog',
-  'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'hello', 'world',
-  'document', 'editor', 'collaboration', 'real-time', 'sync',
-];
-
-function randomWord(): string {
-  return WORDS[Math.floor(Math.random() * WORDS.length)];
-}
-
-// ── Simulated User ────────────────────────────────────
-function spawnUser(userId: number): Promise<UserMetrics> {
-  return new Promise((resolve) => {
-    const m: UserMetrics = {
-      userId,
-      connected: false,
-      connectTimeMs: 0,
-      charsTyped: 0,
-      updatesReceived: 0,
-      errors: [],
-    };
-    metrics.push(m);
-
-    const ydoc = new Y.Doc();
-    const connectStart = Date.now();
-    let typingInterval: ReturnType<typeof setInterval> | null = null;
-
-    const provider = new HocuspocusProvider({
-      url: WS_URL,
-      name: DOC_ID,
-      document: ydoc,
-      token: 'dev',
-      onConnect() {
-        m.connected = true;
-        m.connectTimeMs = Date.now() - connectStart;
-
-        // Start typing random content
-        const text = ydoc.getXmlFragment('default');
-        typingInterval = setInterval(() => {
-          try {
-            ydoc.transact(() => {
-              const word = randomWord() + ' ';
-              const textNode = new Y.XmlText(word);
-              const pos = Math.min(text.length, Math.floor(Math.random() * (text.length + 1)));
-              text.insert(pos, [textNode]);
-              m.charsTyped += word.length;
-            });
-          } catch (err) {
-            m.errors.push(`type error: ${err instanceof Error ? err.message : String(err)}`);
-          }
-        }, TYPING_MS);
-      },
-      onDisconnect() {
-        if (!m.connected) {
-          m.errors.push('disconnected before connecting');
-        }
-      },
-    });
-
-    // Count remote updates
-    ydoc.on('update', () => {
-      m.updatesReceived++;
-    });
-
-    // Stop after duration
-    setTimeout(() => {
-      if (typingInterval) clearInterval(typingInterval);
-      provider.disconnect();
-      ydoc.destroy();
-      resolve(m);
-    }, DURATION_S * 1000);
-  });
-}
-
-// ── HTTP Stress ───────────────────────────────────────
-interface HttpMetrics {
-  requests: number;
-  failures: number;
-  latencies: number[];
-}
-
-async function stressHttp(): Promise<HttpMetrics> {
-  const base = WS_URL.replace('ws://', 'http://').replace('wss://', 'https://').replace('/collab', '');
-  const m: HttpMetrics = { requests: 0, failures: 0, latencies: [] };
-  const endTime = Date.now() + DURATION_S * 1000;
-
-  const endpoints = [
-    { method: 'GET', url: `${base}/api/health` },
-    { method: 'GET', url: `${base}/api/documents` },
-  ];
-
-  while (Date.now() < endTime) {
-    const ep = endpoints[Math.floor(Math.random() * endpoints.length)];
-    const start = Date.now();
-    try {
-      const res = await fetch(ep.url, {
-        method: ep.method,
-        headers: { Authorization: 'Bearer dev' },
-      });
-      m.latencies.push(Date.now() - start);
-      m.requests++;
-      if (!res.ok) m.failures++;
-    } catch {
-      m.failures++;
-      m.requests++;
-    }
-    // Small delay to avoid pure spin-loop
-    await new Promise(r => setTimeout(r, 10));
-  }
-
-  return m;
-}
-
-// ── Main ──────────────────────────────────────────────
 async function main() {
   console.log('╔══════════════════════════════════════════════════╗');
   console.log('║          OpenDesk Stress Test                   ║');
@@ -178,8 +41,9 @@ async function main() {
   // Spawn all users + HTTP stress in parallel
   console.log(`Spawning ${USER_COUNT} collab users + HTTP load...`);
   const startTime = Date.now();
+  const metrics: UserMetrics[] = [];
 
-  const userPromises = Array.from({ length: USER_COUNT }, (_, i) => spawnUser(i));
+  const userPromises = Array.from({ length: USER_COUNT }, (_, i) => spawnUser(i, metrics));
   const httpPromise = stressHttp();
 
   // Progress reporter
@@ -198,6 +62,10 @@ async function main() {
   console.log('\n');
 
   // ── Report ────────────────────────────────────────
+  printReport(userResults, httpResult, startTime);
+}
+
+function printReport(userResults: UserMetrics[], httpResult: { requests: number; failures: number; latencies: number[] }, startTime: number) {
   const totalDuration = (Date.now() - startTime) / 1000;
   const connected = userResults.filter(u => u.connected).length;
   const totalChars = userResults.reduce((s, u) => s + u.charsTyped, 0);
@@ -250,13 +118,6 @@ async function main() {
     console.error(`\nFAIL: ${((httpResult.failures / httpResult.requests) * 100).toFixed(1)}% HTTP error rate (need <5%)`);
     process.exit(1);
   }
-}
-
-function percentile(sorted: number[], p: number): number {
-  if (sorted.length === 0) return 0;
-  const s = [...sorted].sort((a, b) => a - b);
-  const idx = Math.ceil((p / 100) * s.length) - 1;
-  return s[Math.max(0, idx)];
 }
 
 main().catch((err) => {

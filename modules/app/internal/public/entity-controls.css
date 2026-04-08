@@ -1,0 +1,63 @@
+/** Contract: contracts/app/rules.md */
+
+/* Entity browser controls, search, and filters */
+
+.entity-browser-wrapper {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.entity-browser-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.entity-search-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  background: var(--surface, #fff);
+  color: var(--text, #1f2937);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.entity-search-input:focus {
+  border-color: var(--accent, #2563eb);
+}
+
+.entity-filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.entity-filter {
+  padding: 0.375rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 9999px;
+  background: none;
+  color: var(--text-muted, #6b7280);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.entity-filter:hover {
+  background: var(--bg, #f3f4f6);
+  color: var(--text, #1f2937);
+}
+
+.entity-filter.is-active {
+  background: var(--accent, #2563eb);
+  color: #fff;
+  border-color: var(--accent, #2563eb);
+}

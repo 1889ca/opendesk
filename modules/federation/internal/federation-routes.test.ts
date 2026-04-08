@@ -1,12 +1,12 @@
-// TODO: Convert to integration tests with real DB (see contracts/testing/rules.md)
 /** Contract: contracts/federation/rules.md */
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { generateKeyPairSync } from 'node:crypto';
-import express from 'express';
+import express, { type Request, type Response, type NextFunction } from 'express';
 import request from 'supertest';
 import { createFederationRoutes } from './federation-routes.ts';
 import type { FederationModule, FederationPeer, TransferRecord } from '../contract.ts';
 import { signPayload } from './signing.ts';
+import { createPermissions, type PermissionsModule } from '../../permissions/index.ts';
 
 const { publicKey: testPublicKey, privateKey: testPrivateKey } = generateKeyPairSync('rsa', {
   modulusLength: 2048,
@@ -39,7 +39,8 @@ const testTransfer: TransferRecord = {
   createdAt: '2026-04-08T00:00:00Z',
 };
 
-function createStubFederation(overrides: Partial<FederationModule> = {}): FederationModule {
+/** In-memory federation module — vi.fn() spies for call tracking, real data. */
+function createInMemoryFederation(overrides: Partial<FederationModule> = {}): FederationModule {
   return {
     registerPeer: vi.fn(async () => testPeer),
     listPeers: vi.fn(async () => [testPeer]),
@@ -51,27 +52,39 @@ function createStubFederation(overrides: Partial<FederationModule> = {}): Federa
   };
 }
 
-function createStubPermissions() {
-  return {
-    requireAuth: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
-      (_req as { principal?: unknown }).principal = { id: 'user-1', scopes: ['*'] };
-      next();
-    },
-    requireAdmin: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
-      (_req as { principal?: unknown }).principal = { id: 'user-1', scopes: ['*'] };
-      next();
-    },
-    checkPermission: vi.fn(async () => true),
-    grantStore: { findByPrincipal: vi.fn(async () => []) },
-  } as unknown as import('../../permissions/index.ts').PermissionsModule;
+/** Middleware that attaches a principal with admin scopes. */
+function fakePrincipal(id = 'user-1') {
+  return (req: Request, _res: Response, next: NextFunction) => {
+    req.principal = { id, actorType: 'human', displayName: 'Admin', scopes: ['*'] };
+    next();
+  };
+}
+
+function createTestApp(fed: FederationModule, permissions: PermissionsModule) {
+  const app = express();
+  app.use(express.json());
+  app.use(fakePrincipal());
+  app.use('/api/federation', createFederationRoutes({ federation: fed, permissions }));
+  return app;
 }
 
 describe('federation routes', () => {
+  let permissions: PermissionsModule;
+
+  beforeEach(async () => {
+    permissions = createPermissions();
+    await permissions.grantStore.create({
+      principalId: 'user-1',
+      resourceId: '550e8400-e29b-41d4-a716-446655440000',
+      resourceType: 'document',
+      role: 'owner',
+      grantedBy: 'user-1',
+    });
+  });
+
   it('POST /peers registers a peer', async () => {
-    const fed = createStubFederation();
-    const app = express();
-    app.use(express.json());
-    app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: createStubPermissions() }));
+    const fed = createInMemoryFederation();
+    const app = createTestApp(fed, permissions);
 
     const res = await request(app)
       .post('/api/federation/peers')
@@ -82,9 +95,8 @@ describe('federation routes', () => {
   });
 
   it('GET /peers lists peers', async () => {
-    const fed = createStubFederation();
-    const app = express();
-    app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: createStubPermissions() }));
+    const fed = createInMemoryFederation();
+    const app = createTestApp(fed, permissions);
 
     const res = await request(app).get('/api/federation/peers');
     expect(res.status).toBe(200);
@@ -92,10 +104,8 @@ describe('federation routes', () => {
   });
 
   it('POST /send sends a document', async () => {
-    const fed = createStubFederation();
-    const app = express();
-    app.use(express.json());
-    app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: createStubPermissions() }));
+    const fed = createInMemoryFederation();
+    const app = createTestApp(fed, permissions);
 
     const res = await request(app)
       .post('/api/federation/send')
@@ -107,10 +117,8 @@ describe('federation routes', () => {
   });
 
   it('POST /receive accepts a valid transfer', async () => {
-    const fed = createStubFederation();
-    const app = express();
-    app.use(express.json());
-    app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: createStubPermissions() }));
+    const fed = createInMemoryFederation();
+    const app = createTestApp(fed, permissions);
 
     const timestamp = new Date().toISOString();
     const bundle = {
@@ -136,9 +144,8 @@ describe('federation routes', () => {
   });
 
   it('GET /transfers lists transfer history', async () => {
-    const fed = createStubFederation();
-    const app = express();
-    app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: createStubPermissions() }));
+    const fed = createInMemoryFederation();
+    const app = createTestApp(fed, permissions);
 
     const res = await request(app).get('/api/federation/transfers');
     expect(res.status).toBe(200);

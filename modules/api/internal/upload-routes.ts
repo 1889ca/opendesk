@@ -7,7 +7,10 @@ import { z } from 'zod';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3, getS3Bucket } from './s3-client.ts';
 import { asyncHandler } from './async-handler.ts';
+import { createLogger } from '../../logger/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
+
+const log = createLogger('api:upload');
 
 const UploadBody = z.object({
   documentId: z.string().regex(/^[0-9a-f-]+$/i).optional().default('general'),
@@ -77,10 +80,11 @@ export function createUploadRoutes(opts: UploadRoutesOptions): Router {
 
       if (documentId === 'general') {
         // General bucket: authenticated users may upload, but log for audit trail
-        console.info(
-          '[opendesk] general-bucket upload by %s (%s, %d bytes)',
-          principal.id, file.mimetype, file.size,
-        );
+        log.info('general-bucket upload', {
+          userId: principal.id,
+          mimetype: file.mimetype,
+          size: file.size,
+        });
       } else {
         // Document-specific bucket: enforce write permission
         const allowed = await permissions.checkPermission(principal.id, documentId, 'write');

@@ -6,6 +6,9 @@ import type { ShareLinkService } from './share-links.ts';
 import type { GrantStore, Role, PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
 import type { PasswordRateLimiter } from './rate-limit.ts';
+import { createLogger } from '../../logger/index.ts';
+
+const log = createLogger('sharing:routes');
 
 export type ShareRoutesOptions = {
   service: ShareLinkService;
@@ -69,7 +72,14 @@ export function createShareRoutes(opts: ShareRoutesOptions): Router {
       }
     }
 
-    const result = await service.resolve(token, password);
+    const isAuthenticated = !!req.principal?.id;
+    const result = await service.resolve(token, password, {
+      skipIncrement: !isAuthenticated,
+    });
+
+    if (!isAuthenticated && result.ok) {
+      log.warn('anonymous share link resolution attempted', { token: token.slice(0, 8) + '...' });
+    }
 
     if (!result.ok) {
       if (result.reason === 'wrong_password') {

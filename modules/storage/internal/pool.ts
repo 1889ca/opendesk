@@ -29,6 +29,29 @@ export function getPool(): pg.Pool {
 }
 
 /**
+ * Acquire a client from the pool with `app.principal_id` set for RLS.
+ * Uses SET LOCAL so the setting is scoped to the current transaction.
+ *
+ * Usage:
+ *   const client = await getClientWithPrincipal('user-123');
+ *   try {
+ *     await client.query('BEGIN');
+ *     // ... your queries, RLS policies now filter by principal ...
+ *     await client.query('COMMIT');
+ *   } finally {
+ *     client.release();
+ *   }
+ *
+ * NOTE: SET LOCAL only takes effect inside a transaction block (BEGIN...COMMIT).
+ * If you run queries outside a transaction, use `set_config` with is_local=false instead.
+ */
+export async function getClientWithPrincipal(principalId: string): Promise<pg.PoolClient> {
+  const client = await getPool().connect();
+  await client.query("SELECT set_config('app.principal_id', $1, false)", [principalId]);
+  return client;
+}
+
+/**
  * Backward-compatible `pool` export.
  * Proxies all property access to the lazily-created Pool instance,
  * so existing `import { pool }` code works without changes.

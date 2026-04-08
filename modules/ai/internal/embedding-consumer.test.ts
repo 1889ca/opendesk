@@ -1,27 +1,26 @@
-// TODO: Convert to integration tests with real DB (see contracts/testing/rules.md)
 /** Contract: contracts/ai/rules.md */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createEmbeddingConsumer } from './embedding-consumer.ts';
 import { EventType, type EventBusModule, type DomainEvent, type EventHandler } from '../../events/contract.ts';
 
-function createStubEventBus() {
-  const handlers: { group: string; types: string[]; handler: EventHandler }[] = [];
-  return {
-    handlers,
-    subscribe: vi.fn(async (group: string, types: string[], handler: EventHandler) => {
-      handlers.push({ group, types: types as string[], handler });
-    }),
-    // Stubs for the rest of EventBusModule
-    emit: vi.fn(),
-    acknowledge: vi.fn(),
-    registerEventType: vi.fn(),
-    startConsuming: vi.fn(),
-    stopConsuming: vi.fn(),
-    startBackgroundJobs: vi.fn(),
-    stopBackgroundJobs: vi.fn(),
-  } as unknown as EventBusModule & {
-    handlers: { group: string; types: string[]; handler: EventHandler }[];
+/** In-memory event bus that stores subscriptions and lets tests dispatch events. */
+function createInMemoryEventBus() {
+  const subscriptions: { group: string; types: string[]; handler: EventHandler }[] = [];
+
+  const bus: EventBusModule = {
+    async emit() { /* no-op for consumer tests */ },
+    async subscribe(group: string, types: string[], handler: EventHandler) {
+      subscriptions.push({ group, types: types as string[], handler });
+    },
+    async acknowledge() { /* no-op */ },
+    async registerEventType() { /* no-op */ },
+    startConsuming() { /* no-op */ },
+    stopConsuming() { /* no-op */ },
+    startBackgroundJobs() { /* no-op */ },
+    stopBackgroundJobs() { /* no-op */ },
   };
+
+  return { bus, subscriptions };
 }
 
 function createTestEvent(overrides: Partial<DomainEvent> = {}): DomainEvent {
@@ -37,32 +36,29 @@ function createTestEvent(overrides: Partial<DomainEvent> = {}): DomainEvent {
 }
 
 describe('createEmbeddingConsumer', () => {
-  let eventBus: ReturnType<typeof createStubEventBus>;
+  let eventBus: ReturnType<typeof createInMemoryEventBus>;
   let embedDocument: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    eventBus = createStubEventBus();
+    eventBus = createInMemoryEventBus();
     embedDocument = vi.fn().mockResolvedValue(5);
   });
 
   it('subscribes to StateFlushed with ai-embeddings consumer group', async () => {
-    const consumer = createEmbeddingConsumer(eventBus, embedDocument);
+    const consumer = createEmbeddingConsumer(eventBus.bus, embedDocument);
     await consumer.start();
 
-    expect(eventBus.subscribe).toHaveBeenCalledOnce();
-    expect(eventBus.subscribe).toHaveBeenCalledWith(
-      'ai-embeddings',
-      [EventType.StateFlushed],
-      expect.any(Function),
-    );
+    expect(eventBus.subscriptions).toHaveLength(1);
+    expect(eventBus.subscriptions[0].group).toBe('ai-embeddings');
+    expect(eventBus.subscriptions[0].types).toEqual([EventType.StateFlushed]);
   });
 
   it('calls embedDocument with the document ID from the event', async () => {
-    const consumer = createEmbeddingConsumer(eventBus, embedDocument);
+    const consumer = createEmbeddingConsumer(eventBus.bus, embedDocument);
     await consumer.start();
 
     const event = createTestEvent({ aggregateId: 'doc-abc' });
-    await eventBus.handlers[0].handler(event);
+    await eventBus.subscriptions[0].handler(event);
 
     expect(embedDocument).toHaveBeenCalledOnce();
     expect(embedDocument).toHaveBeenCalledWith('doc-abc');
@@ -71,24 +67,23 @@ describe('createEmbeddingConsumer', () => {
   it('does not crash when embedDocument throws', async () => {
     embedDocument.mockRejectedValueOnce(new Error('Ollama down'));
 
-    const consumer = createEmbeddingConsumer(eventBus, embedDocument);
+    const consumer = createEmbeddingConsumer(eventBus.bus, embedDocument);
     await consumer.start();
 
     const event = createTestEvent();
-    // Should not throw
-    await expect(eventBus.handlers[0].handler(event)).resolves.toBeUndefined();
+    await expect(eventBus.subscriptions[0].handler(event)).resolves.toBeUndefined();
   });
 
   it('does not subscribe twice on double start', async () => {
-    const consumer = createEmbeddingConsumer(eventBus, embedDocument);
+    const consumer = createEmbeddingConsumer(eventBus.bus, embedDocument);
     await consumer.start();
     await consumer.start();
 
-    expect(eventBus.subscribe).toHaveBeenCalledOnce();
+    expect(eventBus.subscriptions).toHaveLength(1);
   });
 
   it('stop marks consumer as stopped', async () => {
-    const consumer = createEmbeddingConsumer(eventBus, embedDocument);
+    const consumer = createEmbeddingConsumer(eventBus.bus, embedDocument);
     await consumer.start();
     consumer.stop();
     // No error — stop is a graceful no-op
