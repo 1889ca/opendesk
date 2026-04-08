@@ -8,6 +8,7 @@
 @import "../public/templates.css";
 @import "../public/folders.css";
 @import "../public/global-search.css";
+@import "../public/sidebar.css";
 @import "../public/comments.css";
 @import "../public/comment-input.css";
 @import "../public/suggestions.css";
@@ -22,5 +23,7 @@
 @import "../public/code-block.css";
 @import "../public/emoji.css";
 @import "../public/citations.css";
+@import "../public/citation-library.css";
+@import "../public/citation-library-items.css";
 @import "../public/print.css";
 @import "../public/share.css";

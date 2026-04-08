@@ -28,69 +28,6 @@ body {
   flex-direction: column;
 }
 
-/* Toolbar */
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1.5rem;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.toolbar-left,
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.logo {
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.doc-label,
-.users-label {
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-}
-
-.doc-name {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  background: var(--bg);
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-}
-
-.status {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.2rem 0.6rem;
-  border-radius: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.status.connected {
-  background: #dcfce7;
-  color: var(--connected);
-}
-
-.status.disconnected {
-  background: #fee2e2;
-  color: var(--disconnected);
-}
-
-.users {
-  font-size: 0.8125rem;
-  font-weight: 500;
-}
-
 /* Editor */
 .editor-wrapper {
   flex: 1;
@@ -187,4 +124,15 @@ body {
   border: none;
   border-top: 1px solid var(--border);
   margin: 1.5rem 0;
+}
+
+/* Shared popover base — background, border, radius, shadow */
+.emoji-picker,
+.citation-picker,
+.suggestion-popover,
+.comment-input-popover {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px var(--shadow-heavy);
 }
