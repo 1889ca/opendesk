@@ -36,20 +36,23 @@ export function createFileRoutes(opts: FileRoutesOptions): Router {
         return;
       }
 
-      // Enforce read permission when serving document-specific files
+      // Enforce authentication for all file access
       const documentId = extractDocumentId(key);
+      const principal = req.principal;
+      if (!principal) {
+        res.status(401).json({ error: 'Authentication required' });
+        return;
+      }
+
       if (documentId && documentId !== 'general') {
-        const principal = req.principal;
-        if (!principal) {
-          res.status(401).json({ error: 'Authentication required' });
-          return;
-        }
+        // Document-specific files: enforce read permission
         const allowed = await permissions.checkPermission(principal.id, documentId, 'read');
         if (!allowed) {
           res.status(403).json({ error: 'You do not have read access to this document' });
           return;
         }
       }
+      // General bucket: any authenticated user may access (images, profile assets)
 
       try {
         const response = await s3.send(

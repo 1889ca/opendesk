@@ -69,13 +69,20 @@ export function createUploadRoutes(opts: UploadRoutesOptions): Router {
       }
       const { documentId } = bodyResult.data;
 
-      // Enforce write permission when uploading to a specific document
-      if (documentId !== 'general') {
-        const principal = req.principal;
-        if (!principal) {
-          res.status(401).json({ error: 'Authentication required' });
-          return;
-        }
+      const principal = req.principal;
+      if (!principal) {
+        res.status(401).json({ error: 'Authentication required' });
+        return;
+      }
+
+      if (documentId === 'general') {
+        // General bucket: authenticated users may upload, but log for audit trail
+        console.info(
+          '[opendesk] general-bucket upload by %s (%s, %d bytes)',
+          principal.id, file.mimetype, file.size,
+        );
+      } else {
+        // Document-specific bucket: enforce write permission
         const allowed = await permissions.checkPermission(principal.id, documentId, 'write');
         if (!allowed) {
           res.status(403).json({ error: 'You do not have write access to this document' });
