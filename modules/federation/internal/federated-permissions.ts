@@ -8,6 +8,7 @@ import { signMessage } from './signing.ts';
 /** Storage interface for federated permissions. */
 export interface FederatedPermissionStore {
   save(permission: FederatedPermission): Promise<void>;
+  findById(id: string): Promise<FederatedPermission | null>;
   findByDocument(documentId: string): Promise<FederatedPermission[]>;
   findByPeer(documentId: string, peerInstanceId: string): Promise<FederatedPermission | null>;
   revoke(id: string, revokedAt: string): Promise<void>;
@@ -20,6 +21,9 @@ export function createInMemoryPermissionStore(): FederatedPermissionStore {
     async save(permission) {
       FederatedPermissionSchema.parse(permission);
       permissions.set(permission.id, permission);
+    },
+    async findById(id) {
+      return permissions.get(id) ?? null;
     },
     async findByDocument(documentId) {
       return [...permissions.values()].filter((p) => p.documentId === documentId && !p.revokedAt);
@@ -86,8 +90,7 @@ export async function revokeFederatedPermission(
   localInstanceId: string,
   privateKey: KeyObject,
 ): Promise<FederatedMessage | null> {
-  const permissions = await getAllPermissions(store);
-  const permission = permissions.find((p) => p.id === permissionId);
+  const permission = await store.findById(permissionId);
   if (!permission || permission.revokedAt) return null;
 
   const revokedAt = new Date().toISOString();
@@ -116,15 +119,6 @@ export async function checkFederatedPermission(
   const perm = await store.findByPeer(documentId, peerInstanceId);
   if (!perm) return false;
   return ROLE_RANK[perm.role] >= ROLE_RANK[requiredRole];
-}
-
-async function getAllPermissions(store: FederatedPermissionStore): Promise<FederatedPermission[]> {
-  // Use findByDocument with a wildcard approach - iterate known docs
-  // For in-memory store, this works via the store interface
-  // Production would use a direct query
-  return (store as { permissions?: Map<string, FederatedPermission> }).permissions
-    ? [...(store as { permissions: Map<string, FederatedPermission> }).permissions.values()]
-    : [];
 }
 
 export class RoleCeilingExceededError extends Error {
