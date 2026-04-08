@@ -85,6 +85,26 @@ export function deleteElements(
   });
 }
 
+/** Update a single field on a Yjs element */
+export function applyFieldUpdate(
+  ydoc: Y.Doc,
+  accessor: YjsElementAccessor,
+  elementId: string,
+  field: string,
+  value: unknown,
+): void {
+  const { yElements } = accessor;
+  ydoc.transact(() => {
+    for (let i = 0; i < yElements.length; i++) {
+      const yel = yElements.get(i);
+      if (yel.get('id') === elementId) {
+        yel.set(field, value);
+        break;
+      }
+    }
+  });
+}
+
 /** Reorder Yjs elements to match a new ordering */
 export function applyZOrderToYjs(
   ydoc: Y.Doc,

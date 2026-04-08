@@ -1,12 +1,20 @@
 /** Contract: contracts/app/slides-element-types.md */
 
 import type { ShapeType, SlideElement } from './types.ts';
+import { createMiniEditor, applyTextStyles, TEXT_DEFAULTS, type MiniEditor } from './tiptap-mini-editor.ts';
+import type { TextElementDom } from './render-text.ts';
 
-/** Render a shape element using inline SVG */
+export type ShapeElementResult = {
+  dom: HTMLElement;
+  miniEditor: MiniEditor;
+};
+
+/** Render a shape element using inline SVG with TipTap text overlay */
 export function renderShapeElement(
   el: SlideElement,
-  onTextBlur: (content: string) => void,
-): HTMLElement {
+  onTextUpdate: (content: string) => void,
+  onStyleUpdate: (field: string, value: unknown) => void,
+): ShapeElementResult {
   const div = document.createElement('div');
   div.className = 'slide-element slide-element--shape';
   div.dataset.type = 'shape';
@@ -21,17 +29,28 @@ export function renderShapeElement(
   );
   div.appendChild(svg);
 
-  // Text overlay on shape
-  const textOverlay = document.createElement('div');
-  textOverlay.className = 'slide-shape-text';
-  textOverlay.contentEditable = 'true';
-  textOverlay.textContent = el.content || '';
-  textOverlay.addEventListener('blur', () => {
-    onTextBlur(textOverlay.textContent || '');
-  });
-  div.appendChild(textOverlay);
+  // TipTap text overlay on shape
+  const fontSize = el.fontSize ?? TEXT_DEFAULTS.fontSize;
+  const fontColor = el.fontColor ?? TEXT_DEFAULTS.fontColor;
+  const textAlign = el.textAlign ?? 'center'; // shapes default center
 
-  return div;
+  const miniEditor = createMiniEditor({
+    content: el.content || '',
+    fontSize,
+    fontColor,
+    textAlign,
+    onUpdate: (html) => onTextUpdate(html),
+  });
+
+  miniEditor.element.classList.add('slide-shape-text');
+
+  div.appendChild(miniEditor.element);
+
+  // Expose for interaction controller
+  (div as TextElementDom).__styleUpdate = onStyleUpdate;
+  (div as TextElementDom).__miniEditor = miniEditor;
+
+  return { dom: div, miniEditor };
 }
 
 function createShapeSvg(
@@ -54,7 +73,7 @@ function createShapeSvg(
   return svg;
 }
 
-function createShapePath(shapeType: ShapeType, svg: SVGSVGElement): SVGElement {
+function createShapePath(shapeType: ShapeType, _svg: SVGSVGElement): SVGElement {
   const ns = 'http://www.w3.org/2000/svg';
 
   switch (shapeType) {

@@ -8,6 +8,7 @@ import type { SlideElement } from './slides/types.ts';
 import { renderElement } from './slides/element-renderer.ts';
 import { createInsertToolbar, type InsertAction } from './slides/insert-toolbar.ts';
 import { insertElement, updateTableCell } from './slides/yjs-element-insert.ts';
+import { applyFieldUpdate } from './slides/yjs-mutations.ts';
 import { createTextElement, createImageElement, createShapeElement, createTableElement } from './slides/element-factory.ts';
 import { openSlideImagePicker, setupSlideDragDrop } from './slides/slide-image-upload.ts';
 import { parseSlideElements } from './slides/parse-elements.ts';
@@ -47,7 +48,8 @@ function init() {
       const titleEl = new Y.Map<unknown>();
       const defaults: Record<string, unknown> = {
         id: crypto.randomUUID(), type: 'text', x: 10, y: 10, width: 80, height: 20,
-        rotation: 0, content: 'Click to add title',
+        rotation: 0, content: '<p>Click to add title</p>',
+        fontSize: 36, fontColor: '#000000', textAlign: 'center',
       };
       for (const [k, v] of Object.entries(defaults)) titleEl.set(k, v);
       elements.insert(0, [titleEl]);
@@ -82,6 +84,10 @@ function init() {
     });
   }
 
+  function handleStyleUpdate(elementId: string, field: string, value: unknown) {
+    applyFieldUpdate(ydoc, { yElements: getActiveYElements() }, elementId, field, value);
+  }
+
   function handleCellUpdate(elementId: string, row: number, col: number, value: string) {
     updateTableCell(ydoc, getActiveYElements(), elementId, row, col, value);
   }
@@ -109,8 +115,8 @@ function init() {
     viewportEl.innerHTML = '';
     const elements = getSlideElements(activeSlideIndex);
     for (const el of elements) {
-      const domEl = renderElement(el, handleContentUpdate, handleCellUpdate);
-      viewportEl.appendChild(domEl);
+      const result = renderElement(el, handleContentUpdate, handleStyleUpdate, handleCellUpdate);
+      viewportEl.appendChild(result.dom);
     }
   }
 
@@ -127,6 +133,7 @@ function init() {
       getActiveSlideElements() {
         return { yElements: getActiveYElements(), elements: getSlideElements(activeSlideIndex) };
       },
+      onStyleUpdate: handleStyleUpdate,
     });
   }
   initInteraction();
@@ -148,35 +155,25 @@ function init() {
   }
 
   const insertToolbar = createInsertToolbar(handleInsertAction);
-  if (toolbarRight) {
-    toolbarRight.insertBefore(insertToolbar, toolbarRight.firstChild);
-  }
+  if (toolbarRight) toolbarRight.insertBefore(insertToolbar, toolbarRight.firstChild);
 
-  // Image drag-and-drop on viewport
   setupSlideDragDrop(viewportEl, documentId, (url) => {
     insertElement(ydoc, getActiveYElements(), createImageElement(url));
   });
 
-  // Add slide button
-  if (addSlideBtn) {
-    addSlideBtn.addEventListener('click', () => {
-      ydoc.transact(() => {
-        const slide = new Y.Map<unknown>();
-        slide.set('layout', 'blank');
-        slide.set('elements', new Y.Array<Y.Map<unknown>>());
-        yslides.insert(yslides.length, [slide]);
-      });
-      activeSlideIndex = yslides.length - 1;
-      renderSlideList();
-      renderActiveSlide();
+  addSlideBtn?.addEventListener('click', () => {
+    ydoc.transact(() => {
+      const slide = new Y.Map<unknown>();
+      slide.set('layout', 'blank');
+      slide.set('elements', new Y.Array<Y.Map<unknown>>());
+      yslides.insert(yslides.length, [slide]);
     });
-  }
-
-  // Re-render on remote changes
-  yslides.observeDeep(() => {
+    activeSlideIndex = yslides.length - 1;
     renderSlideList();
     renderActiveSlide();
   });
+
+  yslides.observeDeep(() => { renderSlideList(); renderActiveSlide(); });
 
   // Presence
   function updateUsers() {

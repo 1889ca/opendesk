@@ -21,9 +21,16 @@ export function insertElement(
     yel.set('rotation', element.rotation);
     yel.set('content', element.content);
 
-    if (element.type === 'image') {
+    if (element.type === 'text') {
+      yel.set('fontSize', element.fontSize);
+      yel.set('fontColor', element.fontColor);
+      yel.set('textAlign', element.textAlign);
+    } else if (element.type === 'image') {
       yel.set('src', element.src);
     } else if (element.type === 'shape') {
+      yel.set('fontSize', element.fontSize);
+      yel.set('fontColor', element.fontColor);
+      yel.set('textAlign', element.textAlign);
       yel.set('shapeType', element.shapeType);
       yel.set('fill', element.fill);
       yel.set('stroke', element.stroke);
