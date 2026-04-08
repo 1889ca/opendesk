@@ -4,7 +4,7 @@ import { Router } from 'express';
 import { GrantRoleSchema, ShareLinkOptionsSchema } from '../contract.ts';
 import type { ShareLinkService } from './share-links.ts';
 import type { GrantStore, Role, PermissionsModule } from '../../permissions/index.ts';
-import { asyncHandler } from '../../api/index.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
 import type { PasswordRateLimiter } from './rate-limit.ts';
 
 export type ShareRoutesOptions = {

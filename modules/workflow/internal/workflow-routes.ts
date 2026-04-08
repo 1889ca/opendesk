@@ -3,7 +3,7 @@ import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { CreateWorkflowSchema, UpdateWorkflowSchema, type WorkflowModule } from '../contract.ts';
-import { asyncHandler } from '../../api/index.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
 
 export type WorkflowRoutesOptions = {
   permissions: PermissionsModule;
