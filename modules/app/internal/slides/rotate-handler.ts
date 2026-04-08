@@ -51,7 +51,7 @@ export function snapRotation(degrees: number): number {
 export function normalizeAngle(degrees: number): number {
   let result = degrees % 360;
   if (result < 0) result += 360;
-  return result;
+  return result === 0 ? 0 : result; // avoid -0
 }
 
 /** Get the center point of a bounding box */
