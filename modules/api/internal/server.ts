@@ -20,6 +20,7 @@ import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts'
 import { createSearchRoutes } from './search-routes.ts';
 import { createReferenceRoutes } from './reference-routes.ts';
 import { createImportExportRoutes } from './reference-import-routes.ts';
+import { createEntityRoutes } from './entity-routes.ts';
 import { createShareLinkService, createPgShareLinkStore, createShareRoutes, createPasswordRateLimiter } from '../../sharing/index.ts';
 import { pool, initSchema } from '../../storage/index.ts';
 import { ensureS3Bucket } from './s3-client.ts'; import { applySecurityMiddleware } from './security.ts';
@@ -141,6 +142,9 @@ export async function startServer(port = 3000) {
 
   // Reference import/export (BibTeX, RIS)
   app.use('/api/references', createImportExportRoutes({ permissions }));
+
+  // KB entity directory routes
+  app.use('/api/kb/entities', createEntityRoutes({ permissions }));
 
   // Audit routes (crypto audit log + chain verification)
   app.use('/api/audit', createAuditRoutes({ permissions, auditModule: audit }));
