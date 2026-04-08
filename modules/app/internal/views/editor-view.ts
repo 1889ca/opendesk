@@ -2,32 +2,22 @@
 
 /**
  * Editor view: wraps the TipTap editor for SPA mount/unmount lifecycle.
- * Creates the full editor chrome (toolbar, editor area, sidebars)
- * and tears everything down cleanly on unmount.
+ * Creates the full editor chrome and tears everything down on unmount.
  */
 
 import { Editor } from '@tiptap/core';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
-import { t, setLocale, getLocale, resolveLocale, persistLocale, onLocaleChange } from '../i18n/index.ts';
+import { t } from '../i18n/index.ts';
 import { buildLanguageSwitcher, updateStaticText } from '../locale-ui.ts';
 import { buildTableToolbar } from '../table-toolbar.ts';
 import { setupImageHandlers } from '../image-handlers.ts';
 import { buildSearchPanel } from '../search/search-panel.ts';
 import { buildFormattingToolbar } from '../formatting-toolbar.ts';
-import { CommentStore, buildCommentSidebar, toggleSidebar, showCommentInput } from '../comments/index.ts';
-import {
-  setSuggestUser,
-  createSuggestModePlugin,
-  setupSuggestionClickHandler,
-  buildSuggestionSidebar,
-  toggleSuggestionSidebar,
-} from '../suggestions/index.ts';
+import { CommentStore } from '../comments/index.ts';
+import { setSuggestUser, createSuggestModePlugin, setupSuggestionClickHandler } from '../suggestions/index.ts';
 import { bindShortcutDialogKey } from '../shortcut-dialog.ts';
-import { announce } from '../a11y-announcer.ts';
 import { initTouchSupport } from '../touch-support.ts';
-import { buildTocPanel, toggleTocPanel } from '../toc/index.ts';
-import { buildVersionSidebar, toggleVersionSidebar } from '../version-history.ts';
 import { buildStatusBar } from '../status-bar.ts';
 import { buildThemeToggle } from '../theme-toggle.ts';
 import { openEmojiPicker } from '../emoji/index.ts';
@@ -36,6 +26,7 @@ import { buildEditorExtensions } from '../editor-extensions.ts';
 import { apiFetch } from '../api-client.ts';
 import { navigate } from '../shell/router.ts';
 import { buildEditorToolbar } from './editor-toolbar.ts';
+import { mountSidebars } from './editor-sidebars.ts';
 
 const COLORS = [
   '#958DF1', '#F98181', '#FBBC88', '#FAF594',
@@ -62,19 +53,9 @@ function getUserIdentity() {
   return { name, color };
 }
 
-function addListener<K extends keyof DocumentEventMap>(
-  target: Document | HTMLElement,
-  event: K | string,
-  handler: EventListenerOrEventListenerObject,
-): void {
-  target.addEventListener(event, handler);
-  cleanupFns.push(() => target.removeEventListener(event, handler));
-}
-
 export async function mount(container: HTMLElement, params: Record<string, string>): Promise<void> {
   const documentId = params.id || 'default';
   cleanupFns = [];
-
   initTouchSupport();
   const user = getUserIdentity();
 
@@ -97,7 +78,6 @@ export async function mount(container: HTMLElement, params: Record<string, strin
   editorWrapper.appendChild(editorEl);
   container.appendChild(editorWrapper);
 
-  // Load document title
   loadDocTitle(documentId, titleInput);
 
   // Set up collab
@@ -132,38 +112,18 @@ export async function mount(container: HTMLElement, params: Record<string, strin
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
 
-  addListener(document, 'opendesk:open-emoji', (() => {
+  const onEmoji = () => {
     const emojiBtn = document.querySelector('[data-i18n-key="toolbar.emoji"]') as HTMLElement | null;
     if (emojiBtn && editor) openEmojiPicker(editor, emojiBtn);
-  }) as EventListener);
+  };
+  document.addEventListener('opendesk:open-emoji', onEmoji);
+  cleanupFns.push(() => document.removeEventListener('opendesk:open-emoji', onEmoji));
 
   editorWrapper.appendChild(buildStatusBar(editor));
 
-  const commentSidebar = buildCommentSidebar(editor, commentStore, documentId, user);
-  container.appendChild(commentSidebar);
-
-  const suggestionSidebar = buildSuggestionSidebar(editor);
-  container.appendChild(suggestionSidebar);
-
-  const tocPanel = buildTocPanel(editor);
-  container.appendChild(tocPanel);
-  addListener(document, 'opendesk:toggle-toc', (() => toggleTocPanel(tocPanel)) as EventListener);
-
-  const versionSidebar = buildVersionSidebar();
-  container.appendChild(versionSidebar);
-  addListener(document, 'opendesk:toggle-versions', (() => toggleVersionSidebar(versionSidebar)) as EventListener);
-
-  addListener(document, 'opendesk:add-comment', (() => {
-    if (editor) {
-      showCommentInput(editor, commentStore, documentId, user);
-      toggleSidebar(commentSidebar, true);
-      announce(t('a11y.commentAdded'));
-    }
-  }) as EventListener);
-
-  addListener(document, 'opendesk:toggle-suggestions', (() => {
-    toggleSuggestionSidebar(suggestionSidebar);
-  }) as EventListener);
+  // Mount sidebars
+  const sidebarCleanups = mountSidebars({ editor, commentStore, documentId, user, container });
+  cleanupFns.push(...sidebarCleanups);
 
   // Awareness
   function updateUsers() {
@@ -179,8 +139,12 @@ export async function mount(container: HTMLElement, params: Record<string, strin
   cleanupFns.push(() => provider?.awareness?.off('change', updateUsers));
   updateUsers();
 
-  // Expose for inline scripts / export handlers
-  Object.assign(window, { editor, provider, ydoc, commentStore });
+  // Expose for export handlers
+  const win = window as unknown as Record<string, unknown>;
+  win.editor = editor;
+  win.provider = provider;
+  win.ydoc = ydoc;
+  win.commentStore = commentStore;
 }
 
 async function loadDocTitle(docId: string, titleInput: HTMLInputElement): Promise<void> {
@@ -196,30 +160,16 @@ async function loadDocTitle(docId: string, titleInput: HTMLInputElement): Promis
 }
 
 export function unmount(): void {
-  // Run all cleanup functions
   for (const fn of cleanupFns) fn();
   cleanupFns = [];
 
-  // Destroy editor
-  if (editor) {
-    editor.destroy();
-    editor = null;
-  }
+  if (editor) { editor.destroy(); editor = null; }
+  if (provider) { provider.destroy(); provider = null; }
+  if (ydoc) { ydoc.destroy(); ydoc = null; }
 
-  // Disconnect collab
-  if (provider) {
-    provider.destroy();
-    provider = null;
-  }
-
-  if (ydoc) {
-    ydoc.destroy();
-    ydoc = null;
-  }
-
-  // Clean up window globals
-  delete (window as Record<string, unknown>).editor;
-  delete (window as Record<string, unknown>).provider;
-  delete (window as Record<string, unknown>).ydoc;
-  delete (window as Record<string, unknown>).commentStore;
+  const win = window as unknown as Record<string, unknown>;
+  delete win.editor;
+  delete win.provider;
+  delete win.ydoc;
+  delete win.commentStore;
 }

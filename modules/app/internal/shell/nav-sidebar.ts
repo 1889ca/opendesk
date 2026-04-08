@@ -1,7 +1,7 @@
 /** Contract: contracts/app/shell.md */
 
 import { navigate } from './router.ts';
-import { t, onLocaleChange } from '../i18n/index.ts';
+import { t, onLocaleChange, type TranslationKey } from '../i18n/index.ts';
 import { apiFetch } from '../api-client.ts';
 
 interface RecentDoc {
@@ -58,7 +58,7 @@ export function buildNavSidebar(): HTMLElement {
   return sidebarEl;
 }
 
-function createNavItem(href: string, i18nKey: string, icon: string): HTMLElement {
+function createNavItem(href: string, i18nKey: TranslationKey, icon: string): HTMLElement {
   const li = document.createElement('li');
   const link = document.createElement('a');
   link.href = href;
