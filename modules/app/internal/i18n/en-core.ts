@@ -139,4 +139,9 @@ export const coreTranslations: Partial<TranslationKeys> = {
 
   // Drag handle
   'dragHandle.tooltip': 'Drag to reorder',
+
+  // Navigation (SPA shell)
+  'nav.dashboard': 'Documents',
+  'nav.newDocument': 'New Document',
+  'nav.recent': 'Recent',
 };

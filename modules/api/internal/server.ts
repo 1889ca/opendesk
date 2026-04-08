@@ -103,6 +103,16 @@ export async function startServer(port = 3000) {
     shareLinkService, shareRateLimiter, publicDir,
   });
 
+  // SPA catch-all: serve spa.html for any non-API, non-static route
+  // This enables client-side routing (pushState) to work for all app routes
+  app.get('*', (req: Request, res: Response, next: NextFunction) => {
+    // Skip API routes and requests for static files (with extensions)
+    if (req.path.startsWith('/api/') || req.path.startsWith('/collab') || /\.\w+$/.test(req.path)) {
+      return next();
+    }
+    res.sendFile(resolve(publicDir, 'spa.html'));
+  });
+
   // Global error handler — must be registered LAST (after all routes)
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     log.error('unhandled error', { error: err.message || err.stack || String(err) });

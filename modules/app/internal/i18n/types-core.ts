@@ -59,4 +59,9 @@ export interface CoreTranslationKeys {
   'time.daysAgo': string;
   'time.monthAgo': string;
   'time.monthsAgo': string;
+
+  // Navigation (SPA shell)
+  'nav.dashboard': string;
+  'nav.newDocument': string;
+  'nav.recent': string;
 }
