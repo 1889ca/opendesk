@@ -56,6 +56,12 @@ function readEnv(): unknown {
       sampleRate: env.OBSERVABILITY_SAMPLE_RATE,
       healthIntervalMs: env.OBSERVABILITY_HEALTH_INTERVAL_MS,
     },
+    federation: {
+      enabled: env.FEDERATION_ENABLED,
+      instanceId: env.FEDERATION_INSTANCE_ID,
+      privateKey: env.FEDERATION_PRIVATE_KEY,
+      publicKey: env.FEDERATION_PUBLIC_KEY,
+    },
     ai: {
       enabled: env.AI_ENABLED,
       ollamaUrl: env.AI_OLLAMA_URL,

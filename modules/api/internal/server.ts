@@ -29,6 +29,7 @@ import { createWorkflow, createWorkflowRoutes } from '../../workflow/index.ts';
 import { createObservability, createTelemetryMiddleware, createMetricsRoutes } from '../../observability/index.ts';
 import { createAi, createAiRoutes } from '../../ai/index.ts';
 import { createErasure, createErasureRoutes } from '../../erasure/index.ts';
+import { createFederation, createFederationRoutes } from '../../federation/index.ts';
 import { loadConfig } from '../../config/index.ts';
 import { createLogger } from '../../logger/index.ts';
 
@@ -177,6 +178,16 @@ export async function startServer(port = 3000) {
   // Erasure routes (verifiable data erasure, retention policies)
   const erasure = createErasure({ pool });
   app.use('/api/erasure', createErasureRoutes({ erasure, permissions }));
+
+  // Federation routes (peer management, document exchange) — gated by config
+  if (config.federation.enabled) {
+    const federation = createFederation({
+      pool,
+      config: config.federation,
+      hmacSecret: config.audit.hmacSecret,
+    });
+    app.use('/api/federation', createFederationRoutes({ federation, permissions }));
+  }
 
   // AI routes (semantic search, RAG assistant, embedding) — gated by config
   if (config.ai.enabled) {

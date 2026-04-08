@@ -81,6 +81,12 @@ export const AppConfigSchema = z.object({
   logger: LoggerConfigSchema,
   observability: ObservabilityConfigSchema,
   ai: AiConfigSchema,
+  federation: z.object({
+    enabled: z.boolean().default(false),
+    instanceId: z.string().default(''),
+    privateKey: z.string().default(''),
+    publicKey: z.string().default(''),
+  }),
 });
 
 export type AuthMode = z.infer<typeof AuthModeSchema>;
