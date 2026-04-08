@@ -48,6 +48,9 @@ function readEnv(): unknown {
     audit: {
       hmacSecret: env.OPENDESK_AUDIT_HMAC_SECRET,
     },
+    logger: {
+      level: env.LOG_LEVEL,
+    },
   };
 }
 

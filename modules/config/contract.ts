@@ -50,6 +50,10 @@ export const AuditConfigSchema = z.object({
   hmacSecret: z.string().min(32).default('dev-audit-secret-must-change-in-prod-32chars'),
 });
 
+export const LoggerConfigSchema = z.object({
+  level: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+});
+
 export const AppConfigSchema = z.object({
   server: ServerConfigSchema,
   auth: AuthConfigSchema,
@@ -58,6 +62,7 @@ export const AppConfigSchema = z.object({
   redis: RedisConfigSchema,
   collabora: CollaboraConfigSchema,
   audit: AuditConfigSchema,
+  logger: LoggerConfigSchema,
 });
 
 export type AuthMode = z.infer<typeof AuthModeSchema>;
@@ -67,5 +72,6 @@ export type S3Config = z.infer<typeof S3ConfigSchema>;
 export type RedisConfig = z.infer<typeof RedisConfigSchema>;
 export type CollaboraConfig = z.infer<typeof CollaboraConfigSchema>;
 export type AuditConfig = z.infer<typeof AuditConfigSchema>;
+export type LoggerConfig = z.infer<typeof LoggerConfigSchema>;
 export type ServerConfig = z.infer<typeof ServerConfigSchema>;
 export type AppConfig = z.infer<typeof AppConfigSchema>;

@@ -9,6 +9,7 @@ import { createServiceAccountManager, type ServiceAccountStorage } from './servi
 import { createAuthMiddleware, type AuthMiddlewareOptions } from './middleware.ts';
 import { createSystemPrincipal } from './system.ts';
 import { createLogger } from '../../logger/index.ts';
+import { loadConfig } from '../../config/index.ts';
 
 const log = createLogger('auth');
 
@@ -39,7 +40,7 @@ export function createAuth(deps: AuthDependencies): AuthModule {
   let apiKeyVerifier: ApiKeyVerifier;
 
   if (config.mode === 'dev') {
-    if (process.env.NODE_ENV === 'production') {
+    if (loadConfig().server.nodeEnv === 'production') {
       throw new Error('AUTH_MODE=dev is not allowed when NODE_ENV=production');
     }
     log.warn('running in DEV mode — no real token verification');

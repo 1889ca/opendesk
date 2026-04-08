@@ -104,7 +104,12 @@ export function createVersionRoutes(opts: VersionRoutesOptions): Router {
     // Force-disconnect all active WebSocket sessions for this document.
     // Clients will reconnect and load the restored state from the DB.
     const documentId = String(req.params.id);
-    hocuspocus.closeConnections(documentId);
+    const openDoc = hocuspocus.documents.get(documentId);
+    if (openDoc) {
+      for (const connection of openDoc.getConnections()) {
+        connection.close();
+      }
+    }
 
     res.json({ ok: true, restoredVersion: version.version_number });
   }));

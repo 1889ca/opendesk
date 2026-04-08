@@ -3,7 +3,6 @@
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { searchDocuments as defaultSearchDocuments, type SearchResult } from '../../storage/index.ts';
-import { loadConfig } from '../../config/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from './async-handler.ts';
 
@@ -41,15 +40,13 @@ export function createSearchRoutes(opts: SearchRoutesOptions): Router {
       }
 
       const principal = req.principal!;
-      let allowedIds: string[] | undefined;
 
-      // In dev mode, skip permission filtering (matches middleware behavior)
-      if (loadConfig().auth.mode !== 'dev') {
-        const grants = await permissions.grantStore.findByPrincipal(principal.id);
-        allowedIds = grants
-          .filter((g) => g.resourceType === 'document')
-          .map((g) => g.resourceId);
-      }
+      // Always enforce permission filtering — even in dev mode.
+      // Skipping this was an IDOR vulnerability (see #66).
+      const grants = await permissions.grantStore.findByPrincipal(principal.id);
+      const allowedIds = grants
+        .filter((g) => g.resourceType === 'document')
+        .map((g) => g.resourceId);
 
       const results = await searchDocuments(parsed.data.q, allowedIds);
       res.json(results);

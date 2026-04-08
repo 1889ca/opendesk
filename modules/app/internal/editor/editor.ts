@@ -78,11 +78,21 @@ function init() {
     },
   });
 
-  const editor = new Editor({
-    element: editorEl,
-    extensions: buildEditorExtensions({ ydoc, provider, user }),
-    editorProps: { attributes: { class: 'editor-content' } },
-  });
+  let editor: Editor;
+  try {
+    editor = new Editor({
+      element: editorEl,
+      extensions: buildEditorExtensions({ ydoc, provider, user }),
+      editorProps: { attributes: { class: 'editor-content' } },
+    });
+  } catch (err) {
+    console.error('Editor initialization failed:', err);
+    if (statusEl) {
+      statusEl.textContent = 'Editor failed to load';
+      statusEl.className = 'status error';
+    }
+    return;
+  }
 
 
   setSuggestUser(() => user);
