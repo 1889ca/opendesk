@@ -13,7 +13,20 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "paths": {
+      "@opendesk/document": ["./modules/document/index.ts"],
+      "@opendesk/auth": ["./modules/auth/index.ts"],
+      "@opendesk/storage": ["./modules/storage/index.ts"],
+      "@opendesk/events": ["./modules/events/index.ts"],
+      "@opendesk/collab": ["./modules/collab/index.ts"],
+      "@opendesk/permissions": ["./modules/permissions/index.ts"],
+      "@opendesk/sharing": ["./modules/sharing/index.ts"],
+      "@opendesk/convert": ["./modules/convert/index.ts"],
+      "@opendesk/api": ["./modules/api/index.ts"],
+      "@opendesk/app": ["./modules/app/index.ts"],
+      "@opendesk/kb": ["./modules/kb/index.ts"]
+    }
   },
   "include": ["modules/**/*.ts"],
   "exclude": ["node_modules", "dist"]
