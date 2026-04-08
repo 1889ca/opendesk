@@ -5,6 +5,9 @@ import type { TriggerType } from '../contract.ts';
 import { findByTrigger } from './workflow-store.ts';
 import { createExecution, updateExecution } from './execution-store.ts';
 import { runAction } from './action-runner.ts';
+import { createLogger } from '../../logger/index.ts';
+
+const log = createLogger('workflow:consumer');
 
 const EVENT_TO_TRIGGER: Partial<Record<string, TriggerType>> = {
   [EventType.DocumentUpdated]: 'document.updated',
@@ -42,10 +45,9 @@ export function createWorkflowConsumer(
           status: 'failed',
           error: message,
         });
-        console.error(
-          `[workflow:consumer] execution ${execution.id} failed for workflow ${def.id}:`,
-          message,
-        );
+        log.error('execution failed', {
+          executionId: execution.id, workflowId: def.id, error: message,
+        });
       }
     }
   }

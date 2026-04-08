@@ -1,6 +1,9 @@
 /** Contract: contracts/api/rules.md */
 import { S3Client, HeadBucketCommand, CreateBucketCommand } from '@aws-sdk/client-s3';
 import { loadConfig } from '../../config/index.ts';
+import { createLogger } from '../../logger/index.ts';
+
+const log = createLogger('s3');
 
 let _s3: S3Client | null = null;
 let _bucket: string | null = null;
@@ -40,8 +43,8 @@ export async function ensureS3Bucket(): Promise<void> {
   try {
     await s3.send(new HeadBucketCommand({ Bucket: bucket }));
   } catch {
-    console.log(`[s3] bucket "${bucket}" not found, creating...`);
+    log.info('bucket not found, creating...', { bucket });
     await s3.send(new CreateBucketCommand({ Bucket: bucket }));
-    console.log(`[s3] bucket "${bucket}" created`);
+    log.info('bucket created', { bucket });
   }
 }

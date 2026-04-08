@@ -1,6 +1,9 @@
 /** Contract: contracts/api/rules.md */
 import type { Request, Response, NextFunction } from 'express';
 import type { CacheClient } from './redis.ts';
+import { createLogger } from '../../logger/index.ts';
+
+const log = createLogger('api:idempotency');
 
 /** 24 hours in seconds, per collab contract idempotency cache requirement. */
 export const IDEMPOTENCY_TTL_SECONDS = 86_400;
@@ -100,7 +103,7 @@ export function idempotencyMiddleware(options: IdempotencyOptions) {
       }
     } catch (err) {
       // Cache read failure is non-fatal — proceed without idempotency
-      console.error('[idempotency] cache read error:', err);
+      log.error('cache read error', { error: String(err) });
     }
 
     // Intercept the response to cache it
@@ -137,7 +140,7 @@ function interceptResponse(
 
       const serialized = serializeResponse(status, headers, body);
       cache.set(cacheKey, serialized, 'EX', ttlSeconds).catch((err) => {
-        console.error('[idempotency] cache write error:', err);
+        log.error('cache write error', { error: String(err) });
       });
     }
   };

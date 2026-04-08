@@ -1,6 +1,9 @@
 /** Contract: contracts/events/rules.md */
 import type { Redis } from 'ioredis';
 import { DomainEventSchema, type DomainEvent, type EventType } from '../contract.ts';
+import { createLogger } from '../../logger/index.ts';
+
+const log = createLogger('events:streams');
 
 const STREAM_PREFIX = 'opendesk:events:';
 
@@ -80,7 +83,7 @@ export async function readFromGroup(
       if (parsed.success) {
         messages.push({ messageId, event: parsed.data });
       } else {
-        console.warn(`[events] skipping malformed stream message ${messageId}:`, parsed.error.message);
+        log.warn('skipping malformed stream message', { messageId, error: parsed.error.message });
       }
     }
   }

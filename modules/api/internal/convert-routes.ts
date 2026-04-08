@@ -19,7 +19,9 @@ import {
 import { getDocument } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from './async-handler.ts';
+import { createLogger } from '../../logger/index.ts';
 
+const log = createLogger('api:convert');
 const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50 MB
 
 export type ConvertRoutesOptions = {
@@ -142,6 +144,6 @@ function handleConvertError(res: Response, err: unknown): void {
     res.status(400).json({ error: err.message, code: err.code });
     return;
   }
-  console.error('[convert] unexpected error:', err);
+  log.error('unexpected error', { error: String(err) });
   res.status(500).json({ error: 'Internal conversion error' });
 }

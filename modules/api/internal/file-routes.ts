@@ -6,6 +6,9 @@ import { s3, getS3Bucket } from './s3-client.ts';
 import { asyncHandler } from './async-handler.ts';
 import type { Readable } from 'node:stream';
 import type { PermissionsModule } from '../../permissions/index.ts';
+import { createLogger } from '../../logger/index.ts';
+
+const log = createLogger('api:files');
 
 export type FileRoutesOptions = {
   permissions: PermissionsModule;
@@ -83,7 +86,7 @@ export function createFileRoutes(opts: FileRoutesOptions): Router {
           return;
         }
         body.on('error', (err) => {
-          console.error('[opendesk] stream error:', err.message);
+          log.error('stream error', { error: err.message });
           if (!res.headersSent) {
             res.status(500).json({ error: 'Stream error' });
           }

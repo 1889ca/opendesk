@@ -3,16 +3,23 @@
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { RedisStore } from 'rate-limit-redis';
 import type { Express } from 'express';
+import type { Redis } from 'ioredis';
 import { loadConfig } from '../../config/index.ts';
+
+export interface SecurityMiddlewareOptions {
+  /** Redis client for distributed rate limiting across instances. */
+  redis?: Redis;
+}
 
 /**
  * Apply security middleware to the Express app:
  * - CORS with configurable origins
  * - Helmet security headers (CSP, HSTS, X-Frame-Options, etc.)
- * - Global rate limiting per IP
+ * - Global rate limiting per IP (Redis-backed when client provided)
  */
-export function applySecurityMiddleware(app: Express): void {
+export function applySecurityMiddleware(app: Express, opts?: SecurityMiddlewareOptions): void {
   const config = loadConfig();
   const origins = config.server.corsOrigins;
 
@@ -49,6 +56,16 @@ export function applySecurityMiddleware(app: Express): void {
   }));
 
   // Global rate limiting — 100 requests per minute per IP
+  // Uses Redis store when available for consistent counts across instances
+  const rateLimitStore = opts?.redis
+    ? new RedisStore({
+        // rate-limit-redis v4 spreads command array into sendCommand args
+        sendCommand: (...args: string[]) =>
+          opts.redis!.call(args[0], ...args.slice(1)) as Promise<number | string>,
+        prefix: 'opendesk:rl:',
+      })
+    : undefined;
+
   app.use('/api', rateLimit({
     windowMs: 60 * 1000,
     limit: 100,
@@ -56,5 +73,6 @@ export function applySecurityMiddleware(app: Express): void {
     legacyHeaders: false,
     message: { error: 'Too many requests, please try again later' },
     skip: (req) => req.path === '/health',
+    ...(rateLimitStore ? { store: rateLimitStore } : {}),
   }));
 }

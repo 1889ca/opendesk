@@ -7,6 +7,9 @@ import { computeHash, verifyHash } from './hmac-chain.ts';
 import * as store from './audit-store.ts';
 import { createAuditConsumer } from './audit-consumer.ts';
 import { randomUUID } from 'node:crypto';
+import { createLogger } from '../../logger/index.ts';
+
+const log = createLogger('audit');
 
 export type AuditDependencies = {
   pool: Pool;
@@ -23,7 +26,7 @@ export function createAudit(deps: AuditDependencies): AuditModule {
 
   // Start consuming events (fire-and-forget; errors logged internally)
   consumer.start().catch((err) => {
-    console.error('[audit] Failed to start consumer:', err);
+    log.error('failed to start consumer', { error: String(err) });
   });
 
   return {

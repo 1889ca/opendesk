@@ -19,6 +19,9 @@ import {
 } from './redis-streams.ts';
 import { startOutboxPoller, type OutboxPollerHandle } from './outbox-poller.ts';
 import { startPruner, type PrunerHandle } from './pruner.ts';
+import { createLogger } from '../../logger/index.ts';
+
+const log = createLogger('events');
 
 interface ConsumerRegistration {
   groupName: string;
@@ -117,13 +120,13 @@ export function createEventBus(pool: Pool, redis: Redis): EventBusModule {
                   await consumer.handler(event);
                   await acknowledgeEvent(redis, key, consumer.groupName, messageId);
                 } catch (err) {
-                  console.error(
-                    `[events:consumer:${consumer.groupName}] handler failed for ${event.id}:`, err,
-                  );
+                  log.error('handler failed', {
+                    consumerGroup: consumer.groupName, eventId: event.id, error: String(err),
+                  });
                 }
               }
             } catch (err) {
-              console.error(`[events:consumer:${consumer.groupName}] read failed:`, err);
+              log.error('read failed', { consumerGroup: consumer.groupName, error: String(err) });
               // Back off on error
               await new Promise((r) => setTimeout(r, 3000));
             }

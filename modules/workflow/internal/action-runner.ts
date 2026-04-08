@@ -1,6 +1,9 @@
 /** Contract: contracts/workflow/rules.md */
 import type { DomainEvent } from '../../events/contract.ts';
 import type { ActionType, WebhookConfig, ExportConfig, NotifyConfig } from '../contract.ts';
+import { createLogger } from '../../logger/index.ts';
+
+const log = createLogger('workflow:action');
 
 function buildEventPayload(event: DomainEvent): Record<string, unknown> {
   return {
@@ -29,13 +32,13 @@ async function runWebhook(config: WebhookConfig, event: DomainEvent): Promise<vo
 }
 
 function runExport(config: ExportConfig, event: DomainEvent): void {
-  console.log(
-    `[workflow:export] format=${config.format} eventId=${event.id} aggregateId=${event.aggregateId}`,
-  );
+  log.info('export action triggered', {
+    format: config.format, eventId: event.id, aggregateId: event.aggregateId,
+  });
 }
 
 function runNotify(config: NotifyConfig, event: DomainEvent): void {
-  console.log(`[workflow:notify] ${config.message} eventId=${event.id}`);
+  log.info('notify action triggered', { message: config.message, eventId: event.id });
 }
 
 export async function runAction(

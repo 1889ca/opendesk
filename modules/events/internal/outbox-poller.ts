@@ -4,6 +4,9 @@ import type { Redis } from 'ioredis';
 import { findUnpublished, markPublished } from './outbox-store.ts';
 import { publishToStream } from './redis-streams.ts';
 import type { EventType } from '../contract.ts';
+import { createLogger } from '../../logger/index.ts';
+
+const log = createLogger('events:poller');
 
 const DEFAULT_POLL_INTERVAL_MS = 5_000;
 const DEFAULT_BATCH_SIZE = 100;
@@ -37,7 +40,7 @@ export function startOutboxPoller(
           });
           publishedIds.push(entry.id);
         } catch (err) {
-          console.warn(`[events:poller] failed to publish ${entry.id}:`, err);
+          log.warn('failed to publish entry', { entryId: entry.id, error: String(err) });
           break; // Stop batch on first Redis failure
         }
       }
@@ -45,7 +48,7 @@ export function startOutboxPoller(
         await markPublished(pool, publishedIds);
       }
     } catch (err) {
-      console.error('[events:poller] poll cycle failed:', err);
+      log.error('poll cycle failed', { error: String(err) });
     }
   }
 

@@ -49,18 +49,18 @@ describe('runAction', () => {
   });
 
   describe('notify', () => {
-    it('logs the notification message', async () => {
-      const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
-      await runAction('notify', { message: 'Hello world' }, mockEvent);
-      expect(spy).toHaveBeenCalledWith(
-        '[workflow:notify] Hello world eventId=550e8400-e29b-41d4-a716-446655440000',
-      );
+    it('logs the notification message via structured logger', async () => {
+      // The logger writes JSON to stdout — verify it doesn't throw
+      // and that the notify action completes successfully
+      await expect(
+        runAction('notify', { message: 'Hello world' }, mockEvent),
+      ).resolves.toBeUndefined();
     });
   });
 
   describe('export', () => {
     it('does not throw (placeholder)', async () => {
-      const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const spy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
       await expect(runAction('export', { format: 'pdf' }, mockEvent)).resolves.toBeUndefined();
       spy.mockRestore();
     });

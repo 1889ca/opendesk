@@ -1,8 +1,7 @@
 /** Contract: contracts/api/rules.md */
 import { createServer } from 'node:http';
 import express, { type Request, type Response, type NextFunction } from 'express';
-import { resolve, dirname, join } from 'node:path';
-import { readFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createCollabServer } from '../../collab/index.ts';
 import { getRedisClient, disconnectRedis } from './redis.ts';
@@ -28,30 +27,31 @@ import { createEventBus } from '../../events/index.ts';
 import { createAudit, createAuditRoutes } from '../../audit/index.ts';
 import { createWorkflow, createWorkflowRoutes } from '../../workflow/index.ts';
 import { loadConfig } from '../../config/index.ts';
+import { createLogger } from '../../logger/index.ts';
 
+const log = createLogger('api');
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PKG_VERSION = JSON.parse(
-  readFileSync(join(__dirname, '../../../package.json'), 'utf-8'),
-).version as string;
-
 export async function startServer(port = 3000) {
   try {
     await initSchema();
-    console.log('[opendesk] database schema initialized');
+    log.info('database schema initialized');
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.warn(`[opendesk] schema init failed: ${msg} — continuing anyway`);
+    log.warn('schema init failed — continuing anyway', { error: msg });
   }
   try {
     await ensureS3Bucket();
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.warn(`[s3] bucket init failed: ${msg} — uploads may fail`);
+    log.warn('S3 bucket init failed — uploads may fail', { error: msg });
   }
   const app = express();
 
+  // Redis client needed for rate limiting + idempotency + caching
+  const redisClient = getRedisClient();
+
   // Security middleware (CORS, helmet, rate limiting) — must be first
-  applySecurityMiddleware(app);
+  applySecurityMiddleware(app, { redis: redisClient });
 
   // Wire auth module (dev mode uses bypass verifiers)
   const auth = createAuth({
@@ -77,7 +77,6 @@ export async function startServer(port = 3000) {
   app.use(express.text({ type: ['application/x-bibtex', 'application/x-ris'] }));
 
   // Idempotency middleware for mutating endpoints (POST, PUT, DELETE)
-  const redisClient = getRedisClient();
   app.use('/api', idempotencyMiddleware({
     cache: redisClient,
     exemptPaths: ['/share/'],
@@ -108,7 +107,7 @@ export async function startServer(port = 3000) {
   app.get('/api/health', async (_req, res) => {
     try {
       await pool.query('SELECT 1');
-      res.json({ status: 'ok', version: PKG_VERSION });
+      res.json({ status: 'ok' });
     } catch {
       res.status(503).json({ status: 'unhealthy' });
     }
@@ -167,7 +166,7 @@ export async function startServer(port = 3000) {
 
   // Global error handler — must be registered LAST (after all routes)
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-    console.error('[opendesk] unhandled error:', err.message || err.stack || err);
+    log.error('unhandled error', { error: err.message || err.stack || String(err) });
     res.status(500).json({ error: 'Internal server error' });
   });
 
@@ -183,13 +182,12 @@ export async function startServer(port = 3000) {
   });
 
   httpServer.listen(port, () => {
-    console.log(`[opendesk] server running at http://localhost:${port}`);
-    console.log(`[opendesk] WebSocket collab at ws://localhost:${port}/collab`);
+    log.info('server started', { port, http: `http://localhost:${port}`, ws: `ws://localhost:${port}/collab` });
   });
 
   // Graceful shutdown
   const shutdown = async () => {
-    console.log('[opendesk] shutting down...');
+    log.info('shutting down...');
     eventBus.stopConsuming();
     eventBus.stopBackgroundJobs();
     await disconnectRedis();
