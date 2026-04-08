@@ -165,28 +165,21 @@ function setupThemeToggle(): void {
 }
 
 function renderBreakdown(buckets: { contentType: string; avg: number; count: number }[]): void {
-  const container = document.getElementById('ts-breakdown');
-  if (!container) return;
-  container.innerHTML = '';
-
+  const el = document.getElementById('ts-breakdown');
+  if (!el) return;
+  el.innerHTML = '';
   const byType: Record<string, { sum: number; count: number }> = {};
   for (const b of buckets) {
-    const entry = byType[b.contentType] ??= { sum: 0, count: 0 };
-    entry.sum += b.avg;
-    entry.count += b.count;
+    const e = byType[b.contentType] ??= { sum: 0, count: 0 };
+    e.sum += b.avg;
+    e.count += b.count;
   }
-
-  for (const [ct, data] of Object.entries(byType)) {
+  for (const [ct, d] of Object.entries(byType)) {
     const card = document.createElement('div');
     card.className = 'obs-breakdown-card';
-    card.innerHTML = `
-      <h4>${ct}</h4>
-      <div class="obs-stat">${data.count}</div>
-      <div style="font-size: 0.75rem; color: var(--text-secondary)">
-        samples &mdash; avg ${(data.sum / (data.count || 1)).toFixed(2)}
-      </div>
-    `;
-    container.appendChild(card);
+    card.innerHTML = `<h4>${ct}</h4><div class="obs-stat">${d.count}</div>
+      <div style="font-size:0.75rem;color:var(--text-secondary)">samples - avg ${(d.sum / (d.count || 1)).toFixed(2)}</div>`;
+    el.appendChild(card);
   }
 }
 

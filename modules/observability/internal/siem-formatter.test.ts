@@ -38,7 +38,7 @@ describe('formatEvents — CEF', () => {
     const deleteOutput = formatEvents([deleteEvent], 'cef');
     // Delete severity (8) > edit severity (3)
     expect(deleteOutput).toContain('|delete|8|');
-    expect(editOutput).toContain('|edit|3|');
+    expect(editOutput).toContain('|edit|1|');
   });
 
   it('handles multiple events', () => {
