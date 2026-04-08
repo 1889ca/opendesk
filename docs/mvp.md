@@ -113,11 +113,17 @@ Phase 3 is the smallest of the three in scope. Most organizations can live witho
 
 8. **Auth + Sharing Integration** -- OIDC token verification (jose library), auth middleware on all /api routes, share link creation with 256-bit tokens, grant persistence on link redemption, share dialog UI with role selector and link generation.
 
+9. **Pillar 2 Milestone 1: Cryptographic Audit Foundation** -- Append-only HMAC-chained audit log. PG trigger enforces immutability. Per-document hash chain with tamper verification. API endpoints for audit log querying and chain integrity verification.
+
+10. **Pillar 4 Milestone 1: Trigger/Action API** -- Event-driven workflow definitions on documents. Trigger types (document.updated, document.exported, grant.created, grant.revoked) mapped to actions (webhook, export, notify). Full CRUD API with execution history tracking.
+
+11. **Events Module** -- Full EventBus implementation: PG transactional outbox, Redis Streams consumer groups, outbox poller for reliable delivery, 7-day TTL pruning, schema registry with one-owner-per-type enforcement.
+
 ### In Progress
 
-9. **Editor Core Hardening** -- Performance optimization for large documents and many collaborators. Stress test validation ongoing.
+12. **Editor Core Hardening** -- Performance optimization for large documents and many collaborators. Stress test validation ongoing.
 
-10. **Beta** -- End-to-end testing of the create→edit→share→export workflow with real documents. Bug fixing, performance tuning, format conversion quality improvements.
+13. **Beta** -- End-to-end testing of the create→edit→share→export workflow with real documents. Bug fixing, performance tuning, format conversion quality improvements.
 
 ---
 
