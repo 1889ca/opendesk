@@ -15,10 +15,28 @@ export const SpreadsheetSchemaVersionSchema = z.enum(['1.0.0']);
 
 // --- Cell / Sheet Types ---
 
+export const CellFormatSchema = z.object({
+  bold: z.boolean().optional(),
+  italic: z.boolean().optional(),
+  underline: z.boolean().optional(),
+  strikethrough: z.boolean().optional(),
+  fontSize: z.number().positive().optional(),
+  textColor: z.string().optional(),
+  backgroundColor: z.string().optional(),
+  alignment: z.enum(['left', 'center', 'right']).optional(),
+  numberFormat: z.enum(['general', 'number', 'currency', 'percentage', 'date']).optional(),
+  borderTop: z.boolean().optional(),
+  borderBottom: z.boolean().optional(),
+  borderLeft: z.boolean().optional(),
+  borderRight: z.boolean().optional(),
+});
+
+export type CellFormat = z.infer<typeof CellFormatSchema>;
+
 export const CellSchema = z.object({
   value: z.union([z.string(), z.number(), z.boolean(), z.null()]),
   formula: z.string().optional(),
-  format: z.record(z.unknown()).optional(),
+  format: CellFormatSchema.optional(),
 });
 
 export type Cell = z.infer<typeof CellSchema>;
