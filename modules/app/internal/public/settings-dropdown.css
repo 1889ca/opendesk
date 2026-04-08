@@ -1,0 +1,127 @@
+/* Settings dropdown — theme mode + accent color picker */
+
+.settings-dropdown-wrapper {
+  position: relative;
+}
+
+.settings-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: 240px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px var(--shadow-heavy);
+  z-index: 200;
+  padding: 0.75rem;
+}
+
+.settings-dropdown-open {
+  display: block;
+}
+
+.settings-section {
+  margin-bottom: 0.75rem;
+}
+
+.settings-section:last-child {
+  margin-bottom: 0;
+}
+
+.settings-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.settings-mode-group {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.settings-mode-btn {
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.35rem 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-primary);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.settings-mode-btn:hover {
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+.settings-mode-btn.active {
+  border-color: var(--accent-color);
+  background: var(--selection-bg);
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.settings-swatches {
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.settings-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+}
+
+.settings-swatch:hover {
+  transform: scale(1.15);
+}
+
+.settings-swatch.active {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--text-muted);
+}
+
+.settings-color-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.settings-color-input {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+}
+
+.settings-color-input::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+
+.settings-color-input::-webkit-color-swatch {
+  border: none;
+  border-radius: 2px;
+}
+
+.settings-color-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}

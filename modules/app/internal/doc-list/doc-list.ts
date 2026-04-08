@@ -12,7 +12,9 @@ import {
   loadFolders,
   createNewFolderButton,
 } from './folder-list.ts';
-import { initTheme } from '../shared/theme-toggle.ts';
+import { initTheme, buildThemeToggle } from '../shared/theme-toggle.ts';
+import { buildNotificationBell } from '../shared/notification-bell.ts';
+import { buildWorkspaceSidebar } from '../shared/workspace-sidebar.ts';
 import { createGlobalSearch } from '../editor/global-search.ts';
 
 interface DocEntry {
@@ -150,6 +152,18 @@ async function createTypedDocument(documentType: string): Promise<void> {
 
 function init() {
   initTheme();
+
+  // Build workspace sidebar
+  const sidebarSlot = document.getElementById('workspace-sidebar');
+  if (sidebarSlot) {
+    const sidebar = buildWorkspaceSidebar();
+    sidebarSlot.replaceWith(sidebar);
+  }
+
+  // Build top bar controls
+  buildThemeToggle();
+  buildNotificationBell();
+
   const listEl = document.getElementById('doc-list');
   const newBtn = document.getElementById('new-doc-btn');
   const toolbarRight = document.querySelector('.toolbar-right');
