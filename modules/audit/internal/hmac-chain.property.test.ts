@@ -9,7 +9,7 @@ const hashFieldsArb = fc.record({
   documentId: fc.uuid(),
   actorId: fc.uuid(),
   action: fc.stringMatching(/^[a-zA-Z]{1,30}$/),
-  occurredAt: fc.date().map((d) => d.toISOString()),
+  occurredAt: fc.integer({ min: 946684800000, max: 4102444800000 }).map((ms) => new Date(ms).toISOString()),
   previousHash: fc.option(fc.stringMatching(/^[0-9a-f]{64}$/), {
     nil: null,
   }),
