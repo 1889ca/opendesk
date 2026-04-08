@@ -107,11 +107,20 @@ export const featureTranslations: Partial<TranslationKeys> = {
   'folders.deleteFailed': 'Failed to delete folder. Please try again.',
 
   // Global search
-  'search.global': 'Search documents',
-  'search.placeholder': 'Search all documents...',
-  'search.noResults': 'No documents match your search.',
+  'search.global': 'Search everything',
+  'search.placeholder': 'Search docs, sheets, slides...',
+  'search.noResults': 'No results match your search.',
   'search.searching': 'Searching...',
   'search.resultCount': '{count} result(s) found',
+  'search.shortcut': 'Press {key} to search',
+  'search.tipTitle': 'Search tips',
+  'search.tipContent': 'Search by title across documents, spreadsheets, and presentations. Use 2+ characters to start.',
+  'search.recentTitle': 'Recent searches',
+  'search.clearRecent': 'Clear',
+  'search.typeDocument': 'Document',
+  'search.typeSheet': 'Spreadsheet',
+  'search.typeSlides': 'Presentation',
+  'search.typeKb': 'Knowledge Base',
 
   // Mentions
   'mentions.placeholder': 'Type a name...',

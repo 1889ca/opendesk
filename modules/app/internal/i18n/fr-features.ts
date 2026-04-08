@@ -107,11 +107,20 @@ export const featureTranslations: Partial<TranslationKeys> = {
   'folders.deleteFailed': 'Échec de la suppression du dossier. Veuillez réessayer.',
 
   // Recherche globale
-  'search.global': 'Rechercher des documents',
-  'search.placeholder': 'Rechercher dans tous les documents...',
-  'search.noResults': 'Aucun document ne correspond \u00e0 votre recherche.',
+  'search.global': 'Tout rechercher',
+  'search.placeholder': 'Rechercher docs, feuilles, diaporamas...',
+  'search.noResults': 'Aucun r\u00e9sultat ne correspond \u00e0 votre recherche.',
   'search.searching': 'Recherche en cours...',
   'search.resultCount': '{count} r\u00e9sultat(s) trouv\u00e9(s)',
+  'search.shortcut': 'Appuyez sur {key} pour rechercher',
+  'search.tipTitle': 'Conseils de recherche',
+  'search.tipContent': 'Recherchez par titre dans les documents, feuilles de calcul et pr\u00e9sentations. Utilisez 2+ caract\u00e8res.',
+  'search.recentTitle': 'Recherches r\u00e9centes',
+  'search.clearRecent': 'Effacer',
+  'search.typeDocument': 'Document',
+  'search.typeSheet': 'Feuille de calcul',
+  'search.typeSlides': 'Pr\u00e9sentation',
+  'search.typeKb': 'Base de connaissances',
 
   // Mentions
   'mentions.placeholder': 'Saisir un nom...',
