@@ -13,6 +13,9 @@ export const EventType = {
   AuditEntryCreated: 'AuditEntryCreated',
   WorkflowTriggered: 'WorkflowTriggered',
   WorkflowCompleted: 'WorkflowCompleted',
+  ErasureCompleted: 'ErasureCompleted',
+  CascadeErasureCompleted: 'CascadeErasureCompleted',
+  RetentionPruneCompleted: 'RetentionPruneCompleted',
 } as const;
 
 export type EventType = (typeof EventType)[keyof typeof EventType];
@@ -27,6 +30,9 @@ export const EventTypeSchema = z.enum([
   'AuditEntryCreated',
   'WorkflowTriggered',
   'WorkflowCompleted',
+  'ErasureCompleted',
+  'CascadeErasureCompleted',
+  'RetentionPruneCompleted',
 ]);
 
 // --- Actor ---
