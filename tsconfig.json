@@ -25,6 +25,7 @@
       "@opendesk/convert": ["./modules/convert/index.ts"],
       "@opendesk/api": ["./modules/api/index.ts"],
       "@opendesk/app": ["./modules/app/index.ts"],
+      "@opendesk/app-slides": ["./modules/app-slides/index.ts"],
       "@opendesk/kb": ["./modules/kb/index.ts"],
       "@opendesk/sheets-formula": ["./modules/sheets-formula/index.ts"]
     }

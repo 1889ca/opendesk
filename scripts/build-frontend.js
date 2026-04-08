@@ -67,9 +67,9 @@ const builds = [
     minify: true,
     sourcemap: true,
   },
-  // Presentation JS
+  // Presentation JS (app-slides module)
   {
-    entryPoints: ['modules/app/internal/presentation-editor.ts'],
+    entryPoints: ['modules/app-slides/internal/presentation-editor.ts'],
     outfile: `${OUTDIR}/presentation.bundle.js`,
     bundle: true,
     format: 'esm',
@@ -77,9 +77,9 @@ const builds = [
     minify: true,
     sourcemap: true,
   },
-  // Presentation CSS
+  // Presentation CSS (app-slides module)
   {
-    entryPoints: ['modules/app/internal/css/presentation.css'],
+    entryPoints: ['modules/app-slides/internal/css/presentation.css'],
     outfile: `${OUTDIR}/presentation.bundle.css`,
     bundle: true,
     minify: true,

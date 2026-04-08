@@ -1,9 +1,0 @@
-/** CSS bundle entry for presentation.html */
-@import "../public/styles.css";
-@import "../public/presentation.css";
-@import "../slides/interaction.css";
-@import "../slides/element-types.css";
-@import "../slides/text-format.css";
-@import "../slides/layout-theme.css";
-@import "../slides/speaker-notes.css";
-@import "../slides/transitions-sorter.css";

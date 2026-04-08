@@ -1,0 +1,129 @@
+# Contract: app-slides
+
+## Purpose
+
+Provide the presentation slide editor for OpenDesk: canvas-based element rendering (text, image, shape, table), drag/resize/rotate interactions, Yjs-backed collaborative slide editing, slide sorter, speaker notes, presenter mode, layouts, themes, and transitions. This is a pure client-side rendering and interaction module with no business logic.
+
+## Inputs
+
+- Yjs shared document containing slide elements as `Y.Array<Y.Map<unknown>>`
+- Mouse events (mousedown, mousemove, mouseup) on the slide viewport
+- Keyboard events (arrow keys, Delete, Ctrl+Z/Y) on the slide viewport
+- User interactions: toolbar clicks, file picker, cell editing, text editing
+- `documentId` for image upload API calls (via `@opendesk/app`)
+
+## Outputs
+
+- Rendered HTML/CSS slide canvas with interactive elements
+- Yjs mutations for element CRUD, position/size/rotation changes, content updates
+- DOM overlays for selection handles, snap guides, rotation handles
+
+## Side Effects
+
+- Mutates Yjs shared state inside `ydoc.transact()` for undo/redo support
+- Calls image upload endpoint via `@opendesk/app` utilities
+- Registers/removes DOM event listeners on the slide viewport
+- Opens WebSocket connection to collab via `@hocuspocus/provider`
+
+## Invariants
+
+1. **Coordinate system is percentage-based.** All element positions and sizes are stored as percentages (0-100) of the slide viewport.
+
+2. **Transforms are undoable.** Every interaction operation is wrapped in `ydoc.transact()`.
+
+3. **All element types support interaction.** Every rendered element uses `.slide-element` class and `data-element-id` attribute.
+
+4. **No business logic.** This module handles rendering and interaction geometry only.
+
+5. **No mock data.** Images use real upload. Table cells contain real user input.
+
+6. **Minimum element size.** Elements cannot be resized below 2% width or 2% height.
+
+7. **Aspect ratio lock with Shift.** Shift during resize preserves original aspect ratio.
+
+8. **Z-order maps to array position.** Element rendering order is determined by Yjs array index.
+
+## Dependencies
+
+- `@opendesk/app` (compile-time) — `uploadImage`, `validateImageFile`, `extractImageFiles`, `getUserIdentity`, `getDocumentId`, `setupTitleSync`
+- `yjs` (runtime) — Yjs shared types for collaborative element state
+- `@hocuspocus/provider` (runtime) — WebSocket transport for Yjs sync
+- `@tiptap/core`, `@tiptap/starter-kit`, `@tiptap/extension-underline` (runtime) — rich text editing in slide elements
+
+## Boundary Rules
+
+### MUST
+
+- Convert all pixel coordinates to percentage-based coordinates before applying transforms
+- Wrap all Yjs mutations in `ydoc.transact()` for undo/redo atomicity
+- Enforce minimum element size (2% x 2%) during resize
+- Render all element types with `.slide-element` class and `data-element-id`
+- Reuse `@opendesk/app` image upload utilities (never duplicate)
+- Keep every file under 200 lines
+- Use modern CSS (no Tailwind)
+
+### MUST NOT
+
+- Import server-side modules (api, auth, storage, etc.)
+- Use mock data or placeholder URLs
+- Store snap guides or selection state in Yjs
+- Mutate Yjs state outside of `ydoc.transact()` calls
+- Exceed 200 lines per file
+
+## File Structure
+
+```
+modules/app-slides/
+  index.ts                    — Public API: schemas, types
+  contract.ts                 — Zod schemas for slide elements
+  internal/
+    presentation-editor.ts    — Entry point: Hocuspocus setup, slide management
+    types.ts                  — Runtime types and constants
+    element-factory.ts        — Factory functions for new elements
+    element-renderer.ts       — Dispatcher to type-specific renderers
+    element-interaction.ts    — Interaction controller: drag/resize/rotate/select
+    drag-handler.ts           — Drag-to-move with snap
+    resize-handler.ts         — Resize with aspect ratio lock
+    rotate-handler.ts         — Rotation via handle
+    snap-engine.ts            — Snap-to-grid and snap-to-element
+    selection-manager.ts      — Single/multi select, marquee
+    z-order.ts                — Z-index management
+    interaction-overlay.ts    — Selection handles, snap guides
+    render-text.ts            — Text element renderer
+    render-image.ts           — Image element renderer
+    render-shape.ts           — Shape element renderer (SVG)
+    render-table.ts           — Table element renderer
+    tiptap-mini-editor.ts     — Lightweight TipTap factory
+    text-edit-controller.ts   — Text editing mode management
+    text-format-toolbar.ts    — Formatting toolbar UI
+    insert-toolbar.ts         — Insert toolbar with shape/table pickers
+    slide-image-upload.ts     — Image upload bridge
+    yjs-element-insert.ts     — Yjs insertion helpers
+    yjs-mutations.ts          — Yjs field update helpers
+    parse-elements.ts         — Parse Yjs maps to typed objects
+    layouts.ts                — Slide layout definitions
+    themes.ts                 — Theme definitions
+    layout-theme-init.ts      — Layout/theme initialization
+    layout-picker.ts          — Layout picker UI
+    theme-picker.ts           — Theme picker UI
+    transitions.ts            — Slide transition effects
+    slide-sorter.ts           — Slide thumbnail sorter
+    speaker-notes.ts          — Speaker notes panel
+    presenter-mode.ts         — Fullscreen presenter mode
+    toolbar-extras.ts         — Additional toolbar controls
+    css/
+      presentation.css        — Presentation editor styles
+```
+
+## Verification
+
+1. **Percentage coordinates** — Unit test: pixel-to-percent conversion.
+2. **Snap engine** — Unit test: snap targets and guide lines.
+3. **Resize constraints** — Unit test: minimum size, aspect ratio lock.
+4. **Z-order** — Unit test: reordering operations.
+5. **Selection manager** — Unit test: Shift+click toggle, marquee intersection.
+6. **Renderer dispatch** — Each element type produces correct DOM with class/dataset.
+7. **Image upload** — File picker triggers upload, URL stored in Yjs.
+8. **Table grid** — Correct rows/cols. Cell edits write to Yjs.
+9. **Insert toolbar** — Each button inserts correct element type.
+10. **Build** — `npm run build` succeeds with updated entry points.

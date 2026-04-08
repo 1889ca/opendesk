@@ -45,12 +45,12 @@ const entries = [
   },
   {
     ...sharedJS,
-    entryPoints: ['modules/app/internal/presentation-editor.ts'],
+    entryPoints: ['modules/app-slides/internal/presentation-editor.ts'],
     outfile: 'modules/app/internal/public/presentation.bundle.js',
   },
   {
     ...sharedCSS,
-    entryPoints: ['modules/app/internal/css/presentation.css'],
+    entryPoints: ['modules/app-slides/internal/css/presentation.css'],
     outfile: 'modules/app/internal/public/presentation.bundle.css',
   },
   {
