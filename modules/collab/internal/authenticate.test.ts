@@ -70,17 +70,14 @@ describe('createOnAuthenticate', () => {
     });
   });
 
-  it('authenticates with a valid token from query string', async () => {
+  it('rejects when token is only in query string (security: no query string tokens)', async () => {
     const params = new URLSearchParams({ token: 'valid:Alice' });
-    const result = await onAuthenticate(makeAuthData({
-      requestParameters: params,
-    }));
-    const principal = result.principal as Principal;
-    expect(principal.id).toBe('user-Alice');
-    expect(principal.displayName).toBe('Alice');
+    await expect(
+      onAuthenticate(makeAuthData({ requestParameters: params })),
+    ).rejects.toThrow('No authentication token provided');
   });
 
-  it('prefers data.token over query string token', async () => {
+  it('ignores query string token when data.token is provided', async () => {
     const params = new URLSearchParams({ token: 'valid:QueryUser' });
     const result = await onAuthenticate(makeAuthData({
       token: 'valid:DataUser',
@@ -102,11 +99,11 @@ describe('createOnAuthenticate', () => {
     ).rejects.toThrow('Invalid token');
   });
 
-  it('rejects when query string token is invalid', async () => {
+  it('rejects when query string token is provided without data.token', async () => {
     const params = new URLSearchParams({ token: 'garbage' });
     await expect(
       onAuthenticate(makeAuthData({ requestParameters: params })),
-    ).rejects.toThrow('Invalid token');
+    ).rejects.toThrow('No authentication token provided');
   });
 
   it('returns principal in context for downstream hooks', async () => {

@@ -11,16 +11,15 @@ import type { TokenVerifier } from '../../auth/contract.ts';
  * invalid or missing tokens, which causes Hocuspocus to reject
  * the connection before the handshake completes.
  *
- * Token sources (checked in order):
- * 1. `data.token` — the standard Hocuspocus provider token field
- * 2. Query string `?token=xxx` on the upgrade URL
+ * Token source: `data.token` — the standard Hocuspocus provider token
+ * field, sent in the WebSocket handshake body.
+ *
+ * Query-string tokens are intentionally rejected to prevent token
+ * leakage via proxy logs, browser history, and Referer headers.
  */
 export function createOnAuthenticate(tokenVerifier: TokenVerifier) {
   return async (data: onAuthenticatePayload) => {
-    const token =
-      data.token ||
-      data.requestParameters.get('token') ||
-      '';
+    const token = data.token || '';
 
     if (!token) {
       throw new Error('No authentication token provided');

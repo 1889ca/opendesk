@@ -8,8 +8,7 @@ import {
   type EventHandler,
   type EventBusModule,
 } from '../contract.ts';
-import { insertOutboxEntry } from './outbox-store.ts';
-import { markPublished } from './outbox-store.ts';
+import { insertOutboxEntry, markPublished } from './outbox-store.ts';
 import { registerType, getOwner } from './schema-registry.ts';
 import {
   publishToStream,

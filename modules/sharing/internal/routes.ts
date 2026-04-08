@@ -5,12 +5,13 @@ import { GrantRoleSchema, ShareLinkOptionsSchema } from '../contract.ts';
 import type { ShareLinkService } from './share-links.ts';
 import type { GrantStore, Role, PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/index.ts';
-import { createPasswordRateLimiter } from './rate-limit.ts';
+import type { PasswordRateLimiter } from './rate-limit.ts';
 
 export type ShareRoutesOptions = {
   service: ShareLinkService;
   grantStore?: GrantStore;
   permissions: PermissionsModule;
+  rateLimiter: PasswordRateLimiter;
 };
 
 /**
@@ -18,9 +19,8 @@ export type ShareRoutesOptions = {
  * Mounts on the parent router; does not create its own app.
  */
 export function createShareRoutes(opts: ShareRoutesOptions): Router {
-  const { service, grantStore, permissions } = opts;
+  const { service, grantStore, permissions, rateLimiter } = opts;
   const router = Router();
-  const rateLimiter = createPasswordRateLimiter();
 
   /** POST /api/documents/:id/share -- create a share link (requires write permission) */
   router.post(
@@ -62,7 +62,7 @@ export function createShareRoutes(opts: ShareRoutesOptions): Router {
 
     // Rate-limit password attempts per token
     if (password !== undefined) {
-      const allowed = rateLimiter.check(token);
+      const allowed = await rateLimiter.check(token);
       if (!allowed) {
         res.status(429).json({ error: 'too_many_attempts', retryAfterSeconds: 60 });
         return;
@@ -73,7 +73,7 @@ export function createShareRoutes(opts: ShareRoutesOptions): Router {
 
     if (!result.ok) {
       if (result.reason === 'wrong_password') {
-        rateLimiter.record(token);
+        await rateLimiter.record(token);
       }
 
       const statusMap = {
@@ -88,7 +88,7 @@ export function createShareRoutes(opts: ShareRoutesOptions): Router {
     }
 
     // Successful resolution clears rate limit state for this token
-    rateLimiter.reset(token);
+    await rateLimiter.reset(token);
 
     // Persist a Grant so the redeemer gets lasting access
     const granteeId = req.principal?.id;

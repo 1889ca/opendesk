@@ -21,7 +21,7 @@ import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts'
 import { createSearchRoutes } from './search-routes.ts';
 import { createReferenceRoutes } from './reference-routes.ts';
 import { createImportExportRoutes } from './reference-import-routes.ts';
-import { createShareLinkService, createPgShareLinkStore, createShareRoutes } from '../../sharing/index.ts';
+import { createShareLinkService, createPgShareLinkStore, createShareRoutes, createPasswordRateLimiter } from '../../sharing/index.ts';
 import { pool, initSchema } from '../../storage/index.ts';
 import { ensureS3Bucket } from './s3-client.ts'; import { applySecurityMiddleware } from './security.ts';
 import { createEventBus } from '../../events/index.ts';
@@ -153,10 +153,12 @@ export async function startServer(port = 3000) {
   // Share link routes (create, resolve, revoke) — after auth
   const shareLinkStore = createPgShareLinkStore(pool);
   const shareLinkService = createShareLinkService(shareLinkStore);
+  const shareRateLimiter = createPasswordRateLimiter(redisClient);
   app.use(createShareRoutes({
     service: shareLinkService,
     grantStore: permissions.grantStore,
     permissions,
+    rateLimiter: shareRateLimiter,
   }));
 
   // File upload and serving routes — after auth, with permission checks

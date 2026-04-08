@@ -1,8 +1,7 @@
 /** Contract: contracts/references/rules.md */
 
 import type { GrantStore } from '../../permissions/internal/grant-store.ts';
-import type { Action } from '../../permissions/contract.ts';
-import { evaluate, ROLE_RANK } from '../../permissions/contract.ts';
+import { evaluate, ROLE_RANK, type Action } from '../../permissions/contract.ts';
 
 const RESOURCE_TYPE = 'reference-library';
 

@@ -7,14 +7,16 @@ import { asyncHandler } from './async-handler.ts';
 import {
   createReference,
   listReferences,
+  parseBibTeX,
+  serializeBibTeX,
+  parseRIS,
+  serializeRIS,
+  ensureLibraryGrant,
+  checkLibraryAccess,
+  type ReferenceRow,
+  type Reference,
+  type Author,
 } from '../../references/index.ts';
-import { parseBibTeX } from '../../references/internal/bibtex-parser.ts';
-import { serializeBibTeX } from '../../references/internal/bibtex-serializer.ts';
-import { parseRIS } from '../../references/internal/ris-parser.ts';
-import { serializeRIS } from '../../references/internal/ris-serializer.ts';
-import type { ReferenceRow } from '../../references/internal/pg-references.ts';
-import type { Reference, Author } from '../../references/contract.ts';
-import { ensureLibraryGrant, checkLibraryAccess } from '../../references/internal/library-permissions.ts';
 
 /** Convert a DB row to the Reference shape expected by serializers. */
 function rowToReference(row: ReferenceRow): Reference {

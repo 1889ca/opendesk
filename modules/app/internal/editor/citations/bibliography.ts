@@ -1,9 +1,8 @@
 /** Contract: contracts/app/rules.md */
 import type { Editor } from '@tiptap/core';
 import type { ReferenceData } from './types.ts';
-import { formatBibliographyEntry } from './citation-render.ts';
+import { formatBibliographyEntry, type CitationStyle } from './citation-render.ts';
 import { apiFetch } from '../../shared/api-client.ts';
-import type { CitationStyle } from './citation-render.ts';
 
 /** Cache of fetched reference data keyed by referenceId. */
 const refCache = new Map<string, ReferenceData>();

@@ -4,7 +4,7 @@ import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import type { AuditModule } from '../contract.ts';
-import { asyncHandler } from '../../api/internal/async-handler.ts';
+import { asyncHandler } from '../../api/index.ts';
 
 const LogQueryParams = z.object({
   cursor: z.string().uuid().optional(),

@@ -7,6 +7,7 @@ import { createShareRoutes } from './routes.ts';
 import { createShareLinkService } from './share-links.ts';
 import { createInMemoryShareLinkStore, type ShareLinkStore } from './store.ts';
 import { createPermissions } from '../../permissions/index.ts';
+import { createInMemoryPasswordRateLimiter } from './rate-limit.ts';
 
 /** Middleware that simulates auth by attaching a fake principal. */
 function fakePrincipal(id = 'user-1') {
@@ -36,6 +37,7 @@ function createTestApp(store: ShareLinkStore, principalId = 'user-1') {
     service,
     grantStore: permissions.grantStore,
     permissions,
+    rateLimiter: createInMemoryPasswordRateLimiter(),
   }));
   return { app, permissions };
 }
@@ -229,6 +231,7 @@ describe('share routes', () => {
       app2.use(createShareRoutes({
         service: service2,
         permissions: permissions2,
+        rateLimiter: createInMemoryPasswordRateLimiter(),
       }));
 
       const res = await request(app2)

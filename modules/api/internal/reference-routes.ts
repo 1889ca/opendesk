@@ -11,9 +11,11 @@ import {
   listReferences,
   updateReference,
   deleteReference,
+  lookupDOI,
+  lookupISBN,
+  ensureLibraryGrant,
+  checkLibraryAccess,
 } from '../../references/index.ts';
-import { lookupDOI, lookupISBN } from '../../references/internal/doi-lookup.ts';
-import { ensureLibraryGrant, checkLibraryAccess } from '../../references/internal/library-permissions.ts';
 
 const CreateReferenceBody = z.object({
   title: z.string().min(1).max(500),

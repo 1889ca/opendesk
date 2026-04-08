@@ -2,8 +2,7 @@
 
 import { randomUUID } from 'node:crypto';
 import type { Pool } from 'pg';
-import type { EventBusModule, DomainEvent } from '../../events/contract.ts';
-import { EventType } from '../../events/contract.ts';
+import { EventType, type EventBusModule, type DomainEvent } from '../../events/contract.ts';
 import { computeHash } from './hmac-chain.ts';
 import { appendEntry, getLatestForDocument } from './audit-store.ts';
 import type { AuditEntry } from '../contract.ts';

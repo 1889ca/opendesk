@@ -1,5 +1,5 @@
 /** Contract: contracts/references/rules.md */
-import { pool } from '../../storage/internal/pool.ts';
+import { pool } from '../../storage/index.ts';
 
 export interface DocumentCitationRow {
   id: string;
