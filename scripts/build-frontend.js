@@ -49,9 +49,9 @@ const builds = [
     minify: true,
     sourcemap: true,
   },
-  // Spreadsheet JS
+  // Spreadsheet JS (app-sheets module)
   {
-    entryPoints: ['modules/app/internal/spreadsheet-editor.ts'],
+    entryPoints: ['modules/app-sheets/internal/spreadsheet-editor.ts'],
     outfile: `${OUTDIR}/spreadsheet.bundle.js`,
     bundle: true,
     format: 'esm',
@@ -59,9 +59,9 @@ const builds = [
     minify: true,
     sourcemap: true,
   },
-  // Spreadsheet CSS
+  // Spreadsheet CSS (app-sheets module)
   {
-    entryPoints: ['modules/app/internal/css/spreadsheet.css'],
+    entryPoints: ['modules/app-sheets/internal/css/spreadsheet.css'],
     outfile: `${OUTDIR}/spreadsheet.bundle.css`,
     bundle: true,
     minify: true,

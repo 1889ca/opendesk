@@ -4,5 +4,5 @@
     "lib": ["ES2022"]
   },
   "include": ["modules/**/*.ts"],
-  "exclude": ["node_modules", "dist", "modules/app/**", "modules/app-slides/**"]
+  "exclude": ["node_modules", "dist", "modules/app/**", "modules/app-slides/**", "modules/app-sheets/**"]
 }

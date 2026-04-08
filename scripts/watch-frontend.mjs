@@ -35,12 +35,12 @@ const entries = [
   },
   {
     ...sharedJS,
-    entryPoints: ['modules/app/internal/spreadsheet-editor.ts'],
+    entryPoints: ['modules/app-sheets/internal/spreadsheet-editor.ts'],
     outfile: 'modules/app/internal/public/spreadsheet.bundle.js',
   },
   {
     ...sharedCSS,
-    entryPoints: ['modules/app/internal/css/spreadsheet.css'],
+    entryPoints: ['modules/app-sheets/internal/css/spreadsheet.css'],
     outfile: 'modules/app/internal/public/spreadsheet.bundle.css',
   },
   {
