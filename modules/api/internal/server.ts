@@ -26,6 +26,7 @@ import { ensureS3Bucket } from './s3-client.ts'; import { applySecurityMiddlewar
 import { createEventBus } from '../../events/index.ts';
 import { createAudit, createAuditRoutes } from '../../audit/index.ts';
 import { createWorkflow, createWorkflowRoutes } from '../../workflow/index.ts';
+import { createObservability, createTelemetryMiddleware, createMetricsRoutes } from '../../observability/index.ts';
 import { loadConfig } from '../../config/index.ts';
 import { createLogger } from '../../logger/index.ts';
 
@@ -90,6 +91,13 @@ export async function startServer(port = 3000) {
     hmacSecret: config.audit.hmacSecret,
   });
   const workflow = createWorkflow({ pool, eventBus });
+  const observability = createObservability({
+    pool,
+    healthIntervalMs: config.observability.healthIntervalMs,
+  });
+  if (config.observability.enabled) {
+    observability.startHealthMonitor();
+  }
   eventBus.startBackgroundJobs();
 
   // Serve static frontend
@@ -98,6 +106,11 @@ export async function startServer(port = 3000) {
 
   // Auth middleware on all /api routes (except public paths)
   app.use('/api', auth.middleware);
+
+  // Telemetry middleware — after auth so we have principal info
+  if (config.observability.enabled) {
+    app.use(createTelemetryMiddleware(observability, config.observability.sampleRate));
+  }
 
   // BibTeX/RIS text body parser — after auth, before reference routes
   app.use(express.text({ type: ['application/x-bibtex', 'application/x-ris'] }));
@@ -151,6 +164,9 @@ export async function startServer(port = 3000) {
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
 
+  // Observability metrics routes
+  app.use('/api/admin/metrics', createMetricsRoutes({ observability, permissions }));
+
   // Share link routes (create, resolve, revoke) — after auth
   const shareLinkStore = createPgShareLinkStore(pool);
   const shareLinkService = createShareLinkService(shareLinkStore);
@@ -190,6 +206,7 @@ export async function startServer(port = 3000) {
   // Graceful shutdown
   const shutdown = async () => {
     log.info('shutting down...');
+    observability.stopHealthMonitor();
     eventBus.stopConsuming();
     eventBus.stopBackgroundJobs();
     await disconnectRedis();

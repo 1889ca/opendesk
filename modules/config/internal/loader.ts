@@ -51,6 +51,11 @@ function readEnv(): unknown {
     logger: {
       level: env.LOG_LEVEL,
     },
+    observability: {
+      enabled: env.OBSERVABILITY_ENABLED,
+      sampleRate: env.OBSERVABILITY_SAMPLE_RATE,
+      healthIntervalMs: env.OBSERVABILITY_HEALTH_INTERVAL_MS,
+    },
   };
 }
 

@@ -54,6 +54,12 @@ export const LoggerConfigSchema = z.object({
   level: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
 });
 
+export const ObservabilityConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  sampleRate: z.coerce.number().min(0).max(1).default(1),
+  healthIntervalMs: z.coerce.number().int().positive().default(60000),
+});
+
 export const AppConfigSchema = z.object({
   server: ServerConfigSchema,
   auth: AuthConfigSchema,
@@ -63,6 +69,7 @@ export const AppConfigSchema = z.object({
   collabora: CollaboraConfigSchema,
   audit: AuditConfigSchema,
   logger: LoggerConfigSchema,
+  observability: ObservabilityConfigSchema,
 });
 
 export type AuthMode = z.infer<typeof AuthModeSchema>;
@@ -73,5 +80,6 @@ export type RedisConfig = z.infer<typeof RedisConfigSchema>;
 export type CollaboraConfig = z.infer<typeof CollaboraConfigSchema>;
 export type AuditConfig = z.infer<typeof AuditConfigSchema>;
 export type LoggerConfig = z.infer<typeof LoggerConfigSchema>;
+export type ObservabilityConfig = z.infer<typeof ObservabilityConfigSchema>;
 export type ServerConfig = z.infer<typeof ServerConfigSchema>;
 export type AppConfig = z.infer<typeof AppConfigSchema>;
