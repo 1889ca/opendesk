@@ -42,6 +42,12 @@
   padding: 0;
 }
 
+.spreadsheet-viewport {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+}
+
 .spreadsheet-grid {
   display: grid;
   min-width: 100%;

@@ -3,6 +3,7 @@ import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
 import { getUserIdentity, getDocumentId } from './shared/identity.ts';
 import { setupTitleSync } from './shared/title-sync.ts';
+import { initCharts } from './charts/chart-init.ts';
 
 const DEFAULT_COLS = 26;
 const DEFAULT_ROWS = 50;
@@ -69,6 +70,8 @@ function init() {
 
   let activeRow = 0;
   let activeCol = 0;
+  let selectionStart: { row: number; col: number } | null = null;
+  let selectionEnd: { row: number; col: number } | null = null;
 
   function renderGrid() {
     ensureGrid();
@@ -105,6 +108,15 @@ function init() {
         cell.dataset.row = String(r);
         cell.dataset.col = String(c);
 
+        cell.addEventListener('mousedown', () => {
+          selectionStart = { row: r, col: c };
+          selectionEnd = { row: r, col: c };
+        });
+        cell.addEventListener('mouseenter', (e) => {
+          if (e.buttons === 1 && selectionStart) {
+            selectionEnd = { row: r, col: c };
+          }
+        });
         cell.addEventListener('focus', () => {
           activeRow = r;
           activeCol = c;
@@ -166,6 +178,18 @@ function init() {
   provider.awareness?.on('change', updateUsers);
   updateUsers();
 
+  // Charts
+  const chartEl = document.getElementById('chart-container');
+  if (chartEl) {
+    const sel = () => !selectionStart || !selectionEnd ? null : {
+      startRow: Math.min(selectionStart.row, selectionEnd.row),
+      startCol: Math.min(selectionStart.col, selectionEnd.col),
+      endRow: Math.max(selectionStart.row, selectionEnd.row),
+      endCol: Math.max(selectionStart.col, selectionEnd.col),
+    };
+    const cm = initCharts(ydoc, ysheet, chartEl, document.getElementById('chart-toolbar-mount'), { getSelection: sel });
+    Object.assign(window, { chartManager: cm });
+  }
   Object.assign(window, { ydoc, provider, ysheet });
 }
 
