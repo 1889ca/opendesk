@@ -4,14 +4,15 @@ import { Router, type Request, type Response } from 'express';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import {
-  listDocuments,
-  createDocument,
-  getDocument,
-  deleteDocument,
-  updateDocumentTitle,
-  getTemplate,
+  listDocuments as defaultListDocuments,
+  createDocument as defaultCreateDocument,
+  getDocument as defaultGetDocument,
+  deleteDocument as defaultDeleteDocument,
+  updateDocumentTitle as defaultUpdateDocumentTitle,
+  getTemplate as defaultGetTemplate,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
+import { loadConfig } from '../../config/index.ts';
 import type { CacheClient } from './redis.ts';
 import { asyncHandler } from './async-handler.ts';
 
@@ -21,6 +22,7 @@ const ListDocumentsQuery = z.object({
 
 const CreateDocumentBody = z.object({
   title: z.string().min(1).max(200).optional(),
+  documentType: z.enum(['text', 'spreadsheet', 'presentation']).optional().default('text'),
 });
 
 const CreateDocumentQuery = z.object({
@@ -31,9 +33,22 @@ const UpdateDocumentBody = z.object({
   title: z.string().min(1).max(200),
 });
 
+
+type DocRecord = { id: string; [key: string]: unknown };
+
+export type DocumentStorageFns = {
+  listDocuments: (folderId: string | null) => Promise<DocRecord[]>;
+  createDocument: (id: string, title: string, documentType: string) => Promise<DocRecord>;
+  getDocument: (id: string) => Promise<DocRecord | null>;
+  deleteDocument: (id: string) => Promise<boolean>;
+  updateDocumentTitle: (id: string, title: string) => Promise<void>;
+  getTemplate: (id: string) => Promise<{ content: Record<string, unknown> } | null>;
+};
+
 export type DocumentRoutesOptions = {
   permissions: PermissionsModule;
   cache?: CacheClient;
+  storage?: DocumentStorageFns;
 };
 
 /**
@@ -42,9 +57,16 @@ export type DocumentRoutesOptions = {
  */
 export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   const router = Router();
-  const { permissions, cache } = opts;
+  const { permissions, cache, storage } = opts;
+  const listDocuments = storage?.listDocuments ?? defaultListDocuments;
+  const createDocument = storage?.createDocument ?? defaultCreateDocument;
+  const getDocument = storage?.getDocument ?? defaultGetDocument;
+  const deleteDocument = storage?.deleteDocument ?? defaultDeleteDocument;
+  const updateDocumentTitle = storage?.updateDocumentTitle ?? defaultUpdateDocumentTitle;
+  const getTemplate = storage?.getTemplate ?? defaultGetTemplate;
 
   // List documents — accepts optional ?folderId= to filter by folder
+  // Filters results by principal's grants (except in dev mode)
   router.get('/', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     const queryResult = ListDocumentsQuery.safeParse(req.query);
     if (!queryResult.success) {
@@ -52,7 +74,18 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
       return;
     }
     const docs = await listDocuments(queryResult.data.folderId ?? null);
-    res.json(docs);
+
+    if (loadConfig().auth.mode === 'dev') {
+      res.json(docs);
+      return;
+    }
+
+    const principal = req.principal!;
+    const grants = await permissions.grantStore.findByPrincipal(principal.id);
+    const allowedIds = new Set(
+      grants.filter((g) => g.resourceType === 'document').map((g) => g.resourceId),
+    );
+    res.json(docs.filter((doc) => allowedIds.has(doc.id)));
   }));
 
   // Create document — requires auth, auto-grants owner role to creator
@@ -69,6 +102,7 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
     }
 
     const title = bodyResult.data.title || 'Untitled';
+    const { documentType } = bodyResult.data;
     const id = randomUUID();
 
     const templateId = queryResult.data.templateId;
@@ -82,7 +116,7 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
       templateContent = template.content;
     }
 
-    const doc = await createDocument(id, title);
+    const doc = await createDocument(id, title, documentType);
 
     const principal = req.principal!;
     await permissions.grantStore.create({

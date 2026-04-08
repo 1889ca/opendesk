@@ -5,6 +5,8 @@ dist/
 !.env.example
 *.log
 .DS_Store
-modules/app/internal/public/editor.bundle.js
-modules/app/internal/public/doc-list.bundle.js
+modules/app/internal/public/*.bundle.js
+modules/app/internal/public/*.bundle.css
+modules/app/internal/public/*.bundle.js.map
+modules/app/internal/public/*.bundle.css.map
 .claude/worktrees/

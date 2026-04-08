@@ -2,11 +2,26 @@
 
 import { Router } from 'express';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
-import { s3, s3Bucket } from './s3-client.ts';
+import { s3, getS3Bucket } from './s3-client.ts';
 import { asyncHandler } from './async-handler.ts';
 import type { Readable } from 'node:stream';
+import type { PermissionsModule } from '../../permissions/index.ts';
+import { createLogger } from '../../logger/index.ts';
 
-export function createFileRoutes(): Router {
+const log = createLogger('api:files');
+
+export type FileRoutesOptions = {
+  permissions: PermissionsModule;
+};
+
+/** Extract the documentId segment from a file key like "uploads/{docId}/{uuid}.ext" */
+function extractDocumentId(key: string): string | null {
+  const parts = key.split('/');
+  return parts.length >= 3 ? parts[1] : null;
+}
+
+export function createFileRoutes(opts: FileRoutesOptions): Router {
+  const { permissions } = opts;
   const router = Router();
 
   router.get(
@@ -24,9 +39,27 @@ export function createFileRoutes(): Router {
         return;
       }
 
+      // Enforce authentication for all file access
+      const documentId = extractDocumentId(key);
+      const principal = req.principal;
+      if (!principal) {
+        res.status(401).json({ error: 'Authentication required' });
+        return;
+      }
+
+      if (documentId && documentId !== 'general') {
+        // Document-specific files: enforce read permission
+        const allowed = await permissions.checkPermission(principal.id, documentId, 'read');
+        if (!allowed) {
+          res.status(403).json({ error: 'You do not have read access to this document' });
+          return;
+        }
+      }
+      // General bucket: any authenticated user may access (images, profile assets)
+
       try {
         const response = await s3.send(
-          new GetObjectCommand({ Bucket: s3Bucket, Key: key }),
+          new GetObjectCommand({ Bucket: getS3Bucket(), Key: key }),
         );
 
         if (response.ContentType) {
@@ -53,7 +86,7 @@ export function createFileRoutes(): Router {
           return;
         }
         body.on('error', (err) => {
-          console.error('[opendesk] stream error:', err.message);
+          log.error('stream error', { error: err.message });
           if (!res.headersSent) {
             res.status(500).json({ error: 'Stream error' });
           }

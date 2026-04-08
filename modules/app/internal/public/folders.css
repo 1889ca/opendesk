@@ -116,6 +116,6 @@
 }
 
 .btn-delete-folder:hover {
-  background: #fee2e2;
+  background: var(--status-disconnected-bg);
   border-color: var(--disconnected);
 }

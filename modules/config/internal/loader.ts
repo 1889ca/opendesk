@@ -11,6 +11,7 @@ function readEnv(): unknown {
     server: {
       port: env.PORT,
       nodeEnv: env.NODE_ENV,
+      corsOrigins: env.CORS_ORIGINS ? env.CORS_ORIGINS.split(',').map((s: string) => s.trim()) : undefined,
     },
     auth: {
       mode: env.AUTH_MODE,
@@ -44,12 +45,15 @@ function readEnv(): unknown {
       timeoutMs: env.COLLABORA_TIMEOUT_MS,
       flushTimeoutMs: env.FLUSH_TIMEOUT_MS,
     },
+    audit: {
+      hmacSecret: env.OPENDESK_AUDIT_HMAC_SECRET,
+    },
   };
 }
 
 /** Strip undefined values so Zod defaults apply correctly. */
 function stripUndefined(obj: unknown): unknown {
-  if (obj === null || typeof obj !== 'object') return obj;
+  if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) return obj;
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
     if (value === undefined) continue;
@@ -80,6 +84,9 @@ function validateProductionRules(config: AppConfig): void {
     throw new Error(
       'S3_ACCESS_KEY and S3_SECRET_KEY must be set in production',
     );
+  }
+  if (config.audit.hmacSecret.includes('dev-audit-secret')) {
+    throw new Error('OPENDESK_AUDIT_HMAC_SECRET must be set in production');
   }
 }
 

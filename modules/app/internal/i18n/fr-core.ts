@@ -54,6 +54,7 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'toolbar.pageBreak': 'Saut de page',
   'toolbar.moreOptions': 'Plus d\u2019options',
   'toolbar.versions': 'Versions',
+  'toolbar.references': 'R\u00e9f\u00e9rences',
   'toolbar.toc': 'TDM',
   'toolbar.theme': 'Th\u00e8me',
   'toolbar.emoji': 'Emoji',

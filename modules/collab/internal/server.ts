@@ -9,6 +9,9 @@ import { CompactionManager } from './compaction-manager.ts';
 import { createOnAuthenticate } from './authenticate.ts';
 import type { CollabConfig } from '../contract.ts';
 import type { CollabDependencies } from './types.ts';
+import { createLogger } from '../../logger/index.ts';
+
+const log = createLogger('collab');
 
 const DEFAULT_COMPACTION_THRESHOLD = 1_048_576; // 1 MiB
 
@@ -50,10 +53,7 @@ export function createCollabServer(
       // Trigger compaction check asynchronously (fire-and-forget).
       // Errors are logged but do not block the save cycle.
       compactionManager.maybeCompact(documentName, state).catch((err) => {
-        console.error(
-          `[collab] compaction failed for ${documentName}:`,
-          err,
-        );
+        log.error('compaction failed', { documentName, error: String(err) });
       });
     },
   });

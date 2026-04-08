@@ -1,0 +1,119 @@
+/* Citation inline marks */
+.citation-mark {
+  background: var(--citation-highlight);
+  border-bottom: 1px dashed var(--citation-border);
+  cursor: pointer;
+  transition: background 0.15s;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.citation-mark:hover {
+  background: var(--citation-highlight-hover);
+}
+
+/* Citation picker dropdown */
+.citation-picker {
+  position: fixed;
+  z-index: 100;
+  width: 360px;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.citation-picker__search {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.625rem;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  width: 100%;
+}
+
+.citation-picker__search:focus {
+  background: var(--surface);
+}
+
+.citation-picker__list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.25rem;
+}
+
+.citation-picker__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  font-family: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text);
+  text-align: left;
+  border-radius: 4px;
+  transition: background 0.1s;
+}
+
+.citation-picker__item:hover,
+.citation-picker__item.is-selected {
+  background: var(--bg);
+}
+
+.citation-picker__title {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.citation-picker__meta {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.citation-picker__empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  padding: 1.5rem 0;
+}
+
+/* Bibliography section (rendered outside editable content) */
+.bibliography {
+  border-top: 2px solid var(--border);
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  page-break-before: always;
+}
+
+.bibliography h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  color: var(--text);
+}
+
+.bibliography-entry {
+  text-indent: -2rem;
+  padding-left: 2rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.bibliography-empty {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+

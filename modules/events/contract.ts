@@ -10,6 +10,9 @@ export const EventType = {
   GrantRevoked: 'GrantRevoked',
   ConversionRequested: 'ConversionRequested',
   ExportReady: 'ExportReady',
+  AuditEntryCreated: 'AuditEntryCreated',
+  WorkflowTriggered: 'WorkflowTriggered',
+  WorkflowCompleted: 'WorkflowCompleted',
 } as const;
 
 export type EventType = (typeof EventType)[keyof typeof EventType];
@@ -21,6 +24,9 @@ export const EventTypeSchema = z.enum([
   'GrantRevoked',
   'ConversionRequested',
   'ExportReady',
+  'AuditEntryCreated',
+  'WorkflowTriggered',
+  'WorkflowCompleted',
 ]);
 
 // --- Actor ---
@@ -81,11 +87,15 @@ export type EventTypeRegistration = z.infer<typeof EventTypeRegistrationSchema>;
 
 // --- EventBus Interface ---
 
-export type PgTransaction = unknown;
+/** A PG client within a BEGIN/COMMIT block — callers pass their transaction client. */
+export type PgTransaction = {
+  query(sql: string, params?: unknown[]): Promise<unknown>;
+};
 
 export interface EventBus {
-  emit(event: DomainEvent, pgTransaction: PgTransaction): Promise<void>;
-  subscribe(consumerGroup: string, eventTypes: EventType[]): Promise<void>;
+  /** Emit an event. Pass a PG transaction client for transactional outbox, or null for standalone emit. */
+  emit(event: DomainEvent, pgTransaction: PgTransaction | null): Promise<void>;
+  subscribe(consumerGroup: string, eventTypes: EventType[], handler: EventHandler): Promise<void>;
   acknowledge(consumerGroup: string, eventId: string): Promise<void>;
   registerEventType(type: EventType, ownerModule: string): Promise<void>;
 }
@@ -93,3 +103,12 @@ export interface EventBus {
 // --- Subscriber Callback ---
 
 export type EventHandler = (event: DomainEvent) => Promise<void>;
+
+// --- EventBus Module (with lifecycle) ---
+
+export interface EventBusModule extends EventBus {
+  startConsuming(): void;
+  stopConsuming(): void;
+  startBackgroundJobs(): void;
+  stopBackgroundJobs(): void;
+}

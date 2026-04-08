@@ -1,0 +1,76 @@
+/* Shared sidebar base — common structure for slide-in panels */
+
+.comment-sidebar,
+.suggestion-sidebar,
+.version-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100vh;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  transform: translateX(100%);
+  transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.comment-sidebar-open,
+.suggestion-sidebar-open,
+.version-sidebar-open {
+  transform: translateX(0);
+}
+
+.comment-sidebar-header,
+.suggestion-sidebar-header,
+.version-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.comment-sidebar-title,
+.suggestion-sidebar-title,
+.version-sidebar-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.comment-sidebar-close,
+.suggestion-sidebar-close,
+.version-sidebar-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.comment-sidebar-close:hover,
+.suggestion-sidebar-close:hover,
+.version-sidebar-close:hover {
+  color: var(--text);
+}
+
+.comment-sidebar-list,
+.suggestion-sidebar-list,
+.version-sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.comment-sidebar-empty,
+.suggestion-sidebar-empty,
+.version-sidebar-empty {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  text-align: center;
+  padding: 2rem 1rem;
+}

@@ -16,17 +16,6 @@ export interface TemplateUpdates {
   content?: Record<string, unknown>;
 }
 
-export const CREATE_TEMPLATES_TABLE = `
-  CREATE TABLE IF NOT EXISTS templates (
-    id UUID PRIMARY KEY,
-    name TEXT NOT NULL,
-    description TEXT NOT NULL DEFAULT '',
-    content JSONB NOT NULL DEFAULT '{}',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-  )
-`;
-
 export async function createTemplate(
   id: string,
   name: string,

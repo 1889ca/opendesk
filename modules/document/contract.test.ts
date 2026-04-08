@@ -8,7 +8,7 @@ import {
   TextDocumentSnapshotSchema,
   DocumentSnapshotSchema,
   RevisionIdSchema,
-} from './contract.ts';
+} from './contract/index.ts';
 import { computeRevisionId } from './internal/revision.ts';
 import { migrateToLatest } from './internal/migrations.ts';
 
@@ -91,8 +91,42 @@ describe('DocumentSnapshotSchema', () => {
   });
 
   it('discriminates on documentType', () => {
-    const bad = { ...makeValidSnapshot(), documentType: 'spreadsheet' };
+    const bad = { ...makeValidSnapshot(), documentType: 'unknown' };
     expect(DocumentSnapshotSchema.safeParse(bad).success).toBe(false);
+  });
+
+  it('accepts valid spreadsheet snapshot', () => {
+    const snapshot = {
+      documentType: 'spreadsheet' as const,
+      schemaVersion: '1.0.0' as const,
+      content: {
+        sheets: [{
+          name: 'Sheet1',
+          columns: [{ width: 100 }],
+          rows: [{ cells: [{ value: 'hello' }] }],
+        }],
+      },
+    };
+    expect(DocumentSnapshotSchema.safeParse(snapshot).success).toBe(true);
+  });
+
+  it('accepts valid presentation snapshot', () => {
+    const snapshot = {
+      documentType: 'presentation' as const,
+      schemaVersion: '1.0.0' as const,
+      content: {
+        slides: [{
+          layout: 'title' as const,
+          elements: [{
+            id: makeBlockId(),
+            type: 'text' as const,
+            x: 0, y: 0, width: 100, height: 50,
+            content: 'Hello',
+          }],
+        }],
+      },
+    };
+    expect(DocumentSnapshotSchema.safeParse(snapshot).success).toBe(true);
   });
 
   it('rejects missing schemaVersion', () => {

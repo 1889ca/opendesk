@@ -1,6 +1,9 @@
 /** Contract: contracts/api/rules.md */
 import { Redis as IORedis } from 'ioredis';
 import { loadConfig } from '../../config/index.ts';
+import { createLogger } from '../../logger/index.ts';
+
+const log = createLogger('redis');
 
 type RedisInstance = IORedis;
 
@@ -54,19 +57,19 @@ export function getRedisClient(config?: Partial<RedisConfig>): RedisInstance {
     connectTimeout: merged.connectTimeout,
     retryStrategy(times: number) {
       if (times > (merged.maxRetriesPerRequest ?? 20)) {
-        console.error(`[redis] giving up after ${times} retries`);
+        log.error('giving up after max retries', { attempts: times });
         return null; // stop retrying
       }
       const delay = Math.min(times * 200, 5000);
-      console.warn(`[redis] reconnecting in ${delay}ms (attempt ${times})`);
+      log.warn('reconnecting', { delayMs: delay, attempt: times });
       return delay;
     },
     lazyConnect: false,
   });
 
-  client.on('connect', () => console.log('[redis] connected'));
-  client.on('error', (err: Error) => console.error('[redis] error:', err.message));
-  client.on('close', () => console.warn('[redis] connection closed'));
+  client.on('connect', () => log.info('connected'));
+  client.on('error', (err: Error) => log.error('connection error', { error: err.message }));
+  client.on('close', () => log.warn('connection closed'));
 
   sharedClient = client;
   return client;

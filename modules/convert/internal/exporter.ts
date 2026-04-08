@@ -16,6 +16,9 @@ import { EventType, type DomainEvent, type EventBus } from '../../events/contrac
 import { convertFile } from './libreoffice.ts';
 import { getDocument } from '../../storage/index.ts';
 import { loadConfig } from '../../config/index.ts';
+import { createLogger } from '../../logger/index.ts';
+
+const log = createLogger('convert');
 
 const FLUSH_TIMEOUT_MS = loadConfig().collabora.flushTimeoutMs;
 
@@ -98,7 +101,7 @@ async function flushAndWait(
     const timeout = setTimeout(() => resolve(true), FLUSH_TIMEOUT_MS);
 
     const group = `convert-flush-${documentId}-${Date.now()}`;
-    eventBus.subscribe(group, [EventType.StateFlushed]).then(() => {
+    eventBus.subscribe(group, [EventType.StateFlushed], async () => {
       clearTimeout(timeout);
       resolve(false);
     }).catch(() => {
@@ -122,7 +125,7 @@ async function emitExportReady(
     occurredAt: result.exportedAt,
   };
   await eventBus.emit(event, null).catch(() => {
-    console.error('[convert] failed to emit ExportReady event');
+    log.error('failed to emit ExportReady event');
   });
 }
 

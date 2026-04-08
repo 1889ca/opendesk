@@ -1,6 +1,6 @@
 /** Contract: contracts/storage/rules.md */
 import { z } from 'zod';
-import type { DocumentSnapshot, RevisionId } from '../document/contract.ts';
+import type { DocumentSnapshot, RevisionId } from '../document/contract/index.ts';
 
 // --- Storage Tier ---
 

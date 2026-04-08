@@ -4,6 +4,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { evaluate, type Action } from '../contract.ts';
 import type { GrantStore } from './grant-store.ts';
 import { loadConfig } from '../../config/index.ts';
+import { ensureDevGrant } from './dev-grant-helper.ts';
 
 export type PermissionMiddlewareOptions = {
   grantStore: GrantStore;
@@ -19,6 +20,9 @@ export type PermissionMiddlewareOptions = {
  *
  * Requires auth middleware to have already populated req.principal.
  * Returns 401 if no principal, 403 if permission denied.
+ *
+ * In dev mode, auto-creates an owner grant for the dev user if none exists,
+ * then runs the normal permission evaluation so permission logic is always tested.
  */
 export function requirePermission(action: Action, opts: PermissionMiddlewareOptions) {
   const resourceType = opts.resourceType ?? 'document';
@@ -37,13 +41,6 @@ export function requirePermission(action: Action, opts: PermissionMiddlewareOpti
       return;
     }
 
-    // In dev mode, skip permission checks (no grants exist for dev users)
-    if (loadConfig().auth.mode === 'dev') {
-      next();
-      return;
-    }
-
-
     const resourceId = getResourceId(req);
     if (!resourceId) {
       res.status(400).json({
@@ -51,6 +48,11 @@ export function requirePermission(action: Action, opts: PermissionMiddlewareOpti
         message: 'Resource identifier is required',
       });
       return;
+    }
+
+    // In dev mode, auto-create an owner grant so permission evaluation still runs
+    if (loadConfig().auth.mode === 'dev') {
+      await ensureDevGrant(opts.grantStore, principal.id, resourceId, resourceType);
     }
 
     const grants = await opts.grantStore.findByPrincipalAndResource(

@@ -9,7 +9,7 @@
  * 4. Build and validate DocumentSnapshot
  */
 
-import { TextSchemaVersion, DocumentSnapshotSchema, type DocumentSnapshot } from '../../document/contract.ts';
+import { TextSchemaVersion, DocumentSnapshotSchema, type DocumentSnapshot } from '../../document/contract/index.ts';
 import { convertToHtml } from './libreoffice.ts';
 import { htmlToProseMirrorJson } from './html-parser.ts';
 import { isValidImportFormat } from './formats.ts';

@@ -5,8 +5,9 @@ import multer from 'multer';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
-import { s3, s3Bucket } from './s3-client.ts';
+import { s3, getS3Bucket } from './s3-client.ts';
 import { asyncHandler } from './async-handler.ts';
+import type { PermissionsModule } from '../../permissions/index.ts';
 
 const UploadBody = z.object({
   documentId: z.string().regex(/^[0-9a-f-]+$/i).optional().default('general'),
@@ -43,7 +44,12 @@ function extFromMime(mime: string): string {
   return map[mime] || 'bin';
 }
 
-export function createUploadRoutes(): Router {
+export type UploadRoutesOptions = {
+  permissions: PermissionsModule;
+};
+
+export function createUploadRoutes(opts: UploadRoutesOptions): Router {
+  const { permissions } = opts;
   const router = Router();
 
   router.post(
@@ -63,13 +69,34 @@ export function createUploadRoutes(): Router {
       }
       const { documentId } = bodyResult.data;
 
+      const principal = req.principal;
+      if (!principal) {
+        res.status(401).json({ error: 'Authentication required' });
+        return;
+      }
+
+      if (documentId === 'general') {
+        // General bucket: authenticated users may upload, but log for audit trail
+        console.info(
+          '[opendesk] general-bucket upload by %s (%s, %d bytes)',
+          principal.id, file.mimetype, file.size,
+        );
+      } else {
+        // Document-specific bucket: enforce write permission
+        const allowed = await permissions.checkPermission(principal.id, documentId, 'write');
+        if (!allowed) {
+          res.status(403).json({ error: 'You do not have write access to this document' });
+          return;
+        }
+      }
+
       const ext = extFromMime(file.mimetype);
       const uuid = randomUUID();
       const key = `uploads/${documentId}/${uuid}.${ext}`;
 
       await s3.send(
         new PutObjectCommand({
-          Bucket: s3Bucket,
+          Bucket: getS3Bucket(),
           Key: key,
           Body: file.buffer,
           ContentType: file.mimetype,

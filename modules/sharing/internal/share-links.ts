@@ -33,6 +33,7 @@ export interface ShareLinkService {
   create(input: CreateShareLinkInput): Promise<ShareLink>;
   resolve(token: string, password?: string): Promise<ShareLinkResult>;
   revoke(token: string): Promise<boolean>;
+  getByToken(token: string): Promise<ShareLink | null>;
 }
 
 export type ShareLinkResult =
@@ -96,6 +97,10 @@ export function createShareLinkService(store: ShareLinkStore): ShareLinkService 
       if (!link) return false;
       await store.update(token, { revoked: true });
       return true;
+    },
+
+    async getByToken(token) {
+      return store.findByToken(token);
     },
   };
 }

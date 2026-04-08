@@ -144,7 +144,7 @@ test.describe('Editor', () => {
     await expect(page.getByRole('button', { name: 'Text' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'DOCX' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'ODT' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Import' })).toBeVisible();
+    await expect(page.getByTitle('Import .docx, .odt, or .pdf')).toBeVisible();
   });
 
   test('share dialog opens and creates link', async ({ page }) => {
@@ -154,6 +154,7 @@ test.describe('Editor', () => {
     await expect(page.locator('#share-role')).toBeVisible();
     await page.getByRole('button', { name: 'Create link' }).click();
     await expect(page.locator('#share-url')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#share-url')).not.toHaveValue('', { timeout: 5000 });
     const url = await page.locator('#share-url').inputValue();
     expect(url).toContain('/share.html?token=');
   });

@@ -1,10 +1,14 @@
 /** Contract: contracts/storage/rules.md */
 import { describe, it, expect, vi } from 'vitest';
+import { searchDocuments, APPLY_SEARCH_SCHEMA } from './pg-search.ts';
+import type { Pool } from 'pg';
 
-// Stub the pool module
-vi.mock('./pool.ts', () => ({
-  pool: {
-    query: vi.fn(async () => ({
+const mockQuery = vi.fn();
+const mockPool = { query: mockQuery } as unknown as Pool;
+
+describe('searchDocuments', () => {
+  it('returns search results with expected fields', async () => {
+    mockQuery.mockResolvedValueOnce({
       rows: [
         {
           id: 'abc-123',
@@ -14,17 +18,9 @@ vi.mock('./pool.ts', () => ({
           updated_at: new Date('2026-01-01'),
         },
       ],
-    })),
-  },
-}));
+    });
 
-// Import after mock
-const { searchDocuments, APPLY_SEARCH_SCHEMA } = await import('./pg-search.ts');
-const { pool } = await import('./pool.ts');
-
-describe('searchDocuments', () => {
-  it('returns search results with expected fields', async () => {
-    const results = await searchDocuments('test');
+    const results = await searchDocuments('test', undefined, mockPool);
     expect(results).toHaveLength(1);
     expect(results[0]).toEqual({
       id: 'abc-123',
@@ -36,16 +32,18 @@ describe('searchDocuments', () => {
   });
 
   it('calls pool.query with plainto_tsquery', async () => {
-    await searchDocuments('hello world');
-    expect(pool.query).toHaveBeenCalledWith(
+    mockQuery.mockResolvedValueOnce({ rows: [] });
+    await searchDocuments('hello world', undefined, mockPool);
+    expect(mockQuery).toHaveBeenCalledWith(
       expect.stringContaining('plainto_tsquery'),
       ['hello world'],
     );
   });
 
   it('limits results to 50', async () => {
-    await searchDocuments('test');
-    expect(pool.query).toHaveBeenCalledWith(
+    mockQuery.mockResolvedValueOnce({ rows: [] });
+    await searchDocuments('test', undefined, mockPool);
+    expect(mockQuery).toHaveBeenCalledWith(
       expect.stringContaining('LIMIT 50'),
       expect.any(Array),
     );

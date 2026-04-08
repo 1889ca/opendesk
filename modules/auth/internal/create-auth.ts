@@ -8,6 +8,9 @@ import { createApiKeyVerifier, type ServiceAccountStore } from './apikey-verifie
 import { createServiceAccountManager, type ServiceAccountStorage } from './service-accounts.ts';
 import { createAuthMiddleware, type AuthMiddlewareOptions } from './middleware.ts';
 import { createSystemPrincipal } from './system.ts';
+import { createLogger } from '../../logger/index.ts';
+
+const log = createLogger('auth');
 
 export type AuthModule = {
   tokenVerifier: TokenVerifier;
@@ -39,7 +42,7 @@ export function createAuth(deps: AuthDependencies): AuthModule {
     if (process.env.NODE_ENV === 'production') {
       throw new Error('AUTH_MODE=dev is not allowed when NODE_ENV=production');
     }
-    console.warn('[auth] Running in DEV mode — no real token verification');
+    log.warn('running in DEV mode — no real token verification');
     tokenVerifier = createDevTokenVerifier();
     apiKeyVerifier = createDevApiKeyVerifier();
   } else {

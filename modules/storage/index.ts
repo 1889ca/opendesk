@@ -26,13 +26,12 @@ export {
   loadYjsState,
 } from './internal/pg.ts';
 
-export type { DocumentRow } from './internal/pg.ts';
+export type { DocumentRow, DocumentType } from './internal/pg.ts';
 
 // Template storage
 export type { TemplateRow, TemplateUpdates } from './internal/templates.ts';
 
 export {
-  CREATE_TEMPLATES_TABLE,
   createTemplate,
   getTemplate,
   listTemplates,
@@ -47,7 +46,6 @@ export type { DefaultTemplate } from './internal/default-templates.ts';
 export type { VersionRow } from './internal/pg-versions.ts';
 
 export {
-  CREATE_VERSIONS_TABLE,
   saveVersion,
   listVersions,
   getVersion,
@@ -62,11 +60,14 @@ export {
   searchDocuments,
 } from './internal/pg-search.ts';
 
+// Schema initialization and pool (for server startup)
+export { initSchema } from './internal/schema.ts';
+export { pool, getPool } from './internal/pool.ts';
+
 // Folder storage
 export type { FolderRow } from './internal/folders.ts';
 
 export {
-  CREATE_FOLDERS_TABLE,
   createFolder,
   listFolders,
   renameFolder,

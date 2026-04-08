@@ -1,0 +1,8 @@
+/** CSS bundle entry for index.html (doc list) */
+@import "../public/theme.css";
+@import "../public/styles.css";
+@import "../public/toolbar.css";
+@import "../public/doc-list.css";
+@import "../public/templates.css";
+@import "../public/folders.css";
+@import "../public/global-search.css";

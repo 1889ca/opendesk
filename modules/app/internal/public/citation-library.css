@@ -1,0 +1,123 @@
+/* Reference library sidebar, library management UI, import/export */
+
+.reference-library {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 340px;
+  height: 100vh;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.06);
+  transform: translateX(100%);
+  transition: transform 0.2s ease;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.reference-library-open {
+  transform: translateX(0);
+}
+
+.reference-library-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.reference-library-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.reference-library-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.reference-library-close:hover {
+  color: var(--text);
+}
+
+.reference-library-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  flex-shrink: 0;
+}
+
+.reference-library-btn {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.reference-library-btn:hover {
+  opacity: 0.85;
+}
+
+.reference-library-btn--secondary {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.reference-library-btn--secondary:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.reference-library-btn--small {
+  font-size: 0.6875rem;
+  padding: 0.2rem 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.reference-library-search {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.reference-library-search:focus {
+  background: var(--surface);
+}
+
+.reference-library-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 0.75rem;
+}
+
+.reference-library-empty {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+

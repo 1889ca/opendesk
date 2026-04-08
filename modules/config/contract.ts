@@ -43,6 +43,11 @@ export const CollaboraConfigSchema = z.object({
 export const ServerConfigSchema = z.object({
   port: z.coerce.number().int().positive().default(3000),
   nodeEnv: z.string().default('development'),
+  corsOrigins: z.array(z.string()).default([]),
+});
+
+export const AuditConfigSchema = z.object({
+  hmacSecret: z.string().min(32).default('dev-audit-secret-must-change-in-prod-32chars'),
 });
 
 export const AppConfigSchema = z.object({
@@ -52,6 +57,7 @@ export const AppConfigSchema = z.object({
   s3: S3ConfigSchema,
   redis: RedisConfigSchema,
   collabora: CollaboraConfigSchema,
+  audit: AuditConfigSchema,
 });
 
 export type AuthMode = z.infer<typeof AuthModeSchema>;
@@ -60,5 +66,6 @@ export type PostgresConfig = z.infer<typeof PostgresConfigSchema>;
 export type S3Config = z.infer<typeof S3ConfigSchema>;
 export type RedisConfig = z.infer<typeof RedisConfigSchema>;
 export type CollaboraConfig = z.infer<typeof CollaboraConfigSchema>;
+export type AuditConfig = z.infer<typeof AuditConfigSchema>;
 export type ServerConfig = z.infer<typeof ServerConfigSchema>;
 export type AppConfig = z.infer<typeof AppConfigSchema>;

@@ -8,7 +8,7 @@ import {
   snapshotToHtml,
   contentToHtml,
 } from './html-renderer.ts';
-import type { ProseMirrorNode } from '../../document/contract.ts';
+import type { ProseMirrorNode } from '../../document/contract/index.ts';
 
 describe('escapeHtml', () => {
   it('escapes special characters', () => {
@@ -64,6 +64,61 @@ describe('renderNode', () => {
       marks: [{ type: 'bold' }, { type: 'italic' }],
     };
     expect(renderNode(node)).toBe('<em><strong>both</strong></em>');
+  });
+
+  it('renders a bullet list', () => {
+    const node: ProseMirrorNode = {
+      type: 'bulletList',
+      content: [
+        { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'A' }] }] },
+        { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'B' }] }] },
+      ],
+    };
+    expect(renderNode(node)).toBe('<ul><li><p>A</p></li>\n<li><p>B</p></li></ul>');
+  });
+
+  it('renders a table with headers', () => {
+    const node: ProseMirrorNode = {
+      type: 'table',
+      content: [
+        {
+          type: 'tableRow',
+          content: [
+            { type: 'tableHeader', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Name' }] }] },
+            { type: 'tableHeader', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Age' }] }] },
+          ],
+        },
+        {
+          type: 'tableRow',
+          content: [
+            { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Alice' }] }] },
+            { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: '30' }] }] },
+          ],
+        },
+      ],
+    };
+    const html = renderNode(node);
+    expect(html).toContain('<table>');
+    expect(html).toContain('<th><p>Name</p></th>');
+    expect(html).toContain('<td><p>Alice</p></td>');
+  });
+
+  it('renders colspan and rowspan attributes', () => {
+    const node: ProseMirrorNode = {
+      type: 'tableCell',
+      attrs: { colspan: 2, rowspan: 3 },
+      content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Wide' }] }],
+    };
+    expect(renderNode(node)).toBe('<td colspan="2" rowspan="3"><p>Wide</p></td>');
+  });
+
+  it('omits colspan/rowspan when 1', () => {
+    const node: ProseMirrorNode = {
+      type: 'tableCell',
+      attrs: { colspan: 1, rowspan: 1 },
+      content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Normal' }] }],
+    };
+    expect(renderNode(node)).toBe('<td><p>Normal</p></td>');
   });
 });
 

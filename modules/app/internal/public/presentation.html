@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenDesk Presentation</title>
+  <link rel="stylesheet" href="presentation.bundle.css">
+</head>
+<body>
+  <header class="toolbar">
+    <div class="toolbar-left">
+      <a href="/" class="back-link">Back to documents</a>
+      <span class="toolbar-separator"></span>
+      <input
+        id="doc-title"
+        class="doc-title-input"
+        type="text"
+        value="Loading..."
+        spellcheck="false"
+      />
+    </div>
+    <div class="toolbar-right">
+      <button id="add-slide-btn" class="btn btn-secondary">Add Slide</button>
+      <span class="toolbar-separator"></span>
+      <span id="status" class="status disconnected">Connecting...</span>
+      <span class="users-label">Editors:</span>
+      <span id="users" class="users">-</span>
+    </div>
+  </header>
+  <main class="presentation-wrapper">
+    <aside id="slide-panel" class="slide-panel">
+      <div class="slide-panel-list" id="slide-list"></div>
+    </aside>
+    <section id="slide-canvas" class="slide-canvas">
+      <div class="slide-viewport" id="slide-viewport"></div>
+    </section>
+  </main>
+
+  <script src="presentation.bundle.js?v=2"></script>
+</body>
+</html>
