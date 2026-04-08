@@ -7,6 +7,8 @@ import { createFormatToolbar, updateToolbarState } from './sheets-format-toolbar
 import { getCellFormat, getFormatMap } from './sheets-format-store.ts';
 import { applyCellFormat, getDisplayValue } from './sheets-format-renderer.ts';
 import { attachFormatShortcuts } from './sheets-format-shortcuts.ts';
+import { SheetStore } from './sheets/sheet-store.ts';
+import { TabBar } from './sheets/tab-bar.ts';
 
 const DEFAULT_COLS = 26;
 const DEFAULT_ROWS = 50;
@@ -28,6 +30,7 @@ function init() {
   const cellRefEl = document.getElementById('cell-ref');
   const formulaInput = document.getElementById('formula-input') as HTMLInputElement | null;
   const formatBarContainer = document.getElementById('format-bar-container');
+  const tabContainer = document.getElementById('sheet-tab-container');
   if (!gridEl) return;
 
   const documentId = getDocumentId();
@@ -54,28 +57,31 @@ function init() {
     },
   });
 
-  const ysheet = ydoc.getArray<Y.Array<string>>('sheet-0');
-
+  const store = new SheetStore(ydoc);
+  let activeSheetId = store.getSheets()[0]?.id || 'sheet-0';
   let activeRow = 0;
   let activeCol = 0;
+
+  function getActiveSheet(): Y.Array<Y.Array<string>> {
+    return store.getSheetData(activeSheetId);
+  }
 
   // --- Format Toolbar ---
   let formatToolbar: HTMLElement | null = null;
   if (formatBarContainer) {
     formatToolbar = createFormatToolbar(formatBarContainer, ydoc, {
       getActiveCell: () => ({ row: activeRow, col: activeCol }),
-      onFormatChanged: () => renderGrid(),
+      onFormatChanged: () => doRender(),
     });
   }
 
-  // --- Keyboard Shortcuts ---
   attachFormatShortcuts(ydoc, {
     getActiveCell: () => ({ row: activeRow, col: activeCol }),
-    onFormatChanged: () => renderGrid(),
+    onFormatChanged: () => doRender(),
   });
 
-  // --- Grid ---
-  function ensureGrid() {
+  // --- Grid Rendering ---
+  function ensureGrid(ysheet: Y.Array<Y.Array<string>>) {
     if (ysheet.length === 0) {
       ydoc.transact(() => {
         for (let r = 0; r < DEFAULT_ROWS; r++) {
@@ -89,8 +95,9 @@ function init() {
     }
   }
 
-  function renderGrid() {
-    ensureGrid();
+  function doRender() {
+    const ysheet = getActiveSheet();
+    ensureGrid(ysheet);
     gridEl.innerHTML = '';
     gridEl.style.gridTemplateColumns = `3rem repeat(${DEFAULT_COLS}, minmax(5rem, 1fr))`;
 
@@ -124,52 +131,106 @@ function init() {
         cell.dataset.col = String(c);
 
         applyCellFormat(cell, fmt);
-        attachCellEvents(cell, r, c, rawValue);
+
+        cell.addEventListener('focus', () => {
+          activeRow = r;
+          activeCol = c;
+          if (cellRefEl) cellRefEl.textContent = colLabel(c) + (r + 1);
+          if (formulaInput) formulaInput.value = rawValue;
+          if (formatToolbar) updateToolbarState(formatToolbar, getCellFormat(ydoc, r, c));
+        });
+
+        cell.addEventListener('blur', () => {
+          const val = cell.textContent || '';
+          const row = ysheet.get(r);
+          if (row && row.get(c) !== val) {
+            ydoc.transact(() => {
+              row.delete(c, 1);
+              row.insert(c, [val]);
+            });
+          }
+        });
+
         gridEl.appendChild(cell);
       }
     }
   }
 
-  function attachCellEvents(cell: HTMLElement, r: number, c: number, rawValue: string): void {
-    cell.addEventListener('focus', () => {
-      activeRow = r;
-      activeCol = c;
-      if (cellRefEl) cellRefEl.textContent = colLabel(c) + (r + 1);
-      if (formulaInput) formulaInput.value = rawValue;
-      if (formatToolbar) updateToolbarState(formatToolbar, getCellFormat(ydoc, r, c));
-    });
+  // --- Sheet Switching ---
+  function switchSheet(sheetId: string) {
+    const oldSheet = getActiveSheet();
+    oldSheet.unobserveDeep(onSheetChange);
 
-    cell.addEventListener('blur', () => {
-      const val = cell.textContent || '';
-      const yrow = ysheet.get(r);
-      if (yrow && yrow.get(c) !== val) {
-        ydoc.transact(() => {
-          yrow.delete(c, 1);
-          yrow.insert(c, [val]);
-        });
-      }
-    });
+    activeSheetId = sheetId;
+    activeRow = 0;
+    activeCol = 0;
+    if (cellRefEl) cellRefEl.textContent = 'A1';
+    if (formulaInput) formulaInput.value = '';
+
+    getActiveSheet().observeDeep(onSheetChange);
+    doRender();
+    tabBar?.setActive(sheetId);
   }
 
-  renderGrid();
+  function onSheetChange() {
+    doRender();
+  }
 
-  // Re-render on remote changes (cell values or formats)
-  ysheet.observeDeep(() => renderGrid());
-  getFormatMap(ydoc).observeDeep(() => renderGrid());
+  // --- Tab Bar ---
+  let tabBar: TabBar | null = null;
+  if (tabContainer) {
+    tabBar = new TabBar(tabContainer, store, {
+      onSwitch: switchSheet,
+      onAdd() {
+        const meta = store.addSheet();
+        tabBar!.render();
+        switchSheet(meta.id);
+      },
+      onRename(sheetId, newName) {
+        store.renameSheet(sheetId, newName);
+        tabBar!.render();
+      },
+      onDelete(sheetId) {
+        const sheets = store.getSheets();
+        if (sheets.length <= 1) return;
+        const deleted = store.deleteSheet(sheetId);
+        if (!deleted) return;
+        tabBar!.render();
+        if (activeSheetId === sheetId) {
+          const remaining = store.getSheets();
+          switchSheet(remaining[0].id);
+        }
+      },
+      onDuplicate(sheetId) {
+        const meta = store.duplicateSheet(sheetId);
+        if (!meta) return;
+        tabBar!.render();
+        switchSheet(meta.id);
+      },
+    }, activeSheetId);
+  }
+
+  store.observe(() => {
+    tabBar?.render();
+  });
+
+  doRender();
+  getActiveSheet().observeDeep(onSheetChange);
+  getFormatMap(ydoc).observeDeep(() => doRender());
 
   // Formula bar
   if (formulaInput) {
     formulaInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         const val = formulaInput.value;
-        const yrow = ysheet.get(activeRow);
+        const yrow = getActiveSheet().get(activeRow);
         if (yrow) {
           ydoc.transact(() => {
             yrow.delete(activeCol, 1);
             yrow.insert(activeCol, [val]);
           });
         }
-        renderGrid();
+        doRender();
       }
     });
   }
@@ -188,7 +249,7 @@ function init() {
   provider.awareness?.on('change', updateUsers);
   updateUsers();
 
-  Object.assign(window, { ydoc, provider, ysheet });
+  Object.assign(window, { ydoc, provider, store });
 }
 
 document.addEventListener('DOMContentLoaded', init);
