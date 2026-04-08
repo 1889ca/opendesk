@@ -74,7 +74,6 @@ export async function startServer(port = 3000) {
   const permissions = createPermissions({ grantStore });
 
   app.use(express.json());
-  app.use(express.text({ type: ['application/x-bibtex', 'application/x-ris'] }));
 
   // Idempotency middleware for mutating endpoints (POST, PUT, DELETE)
   app.use('/api', idempotencyMiddleware({
@@ -99,6 +98,9 @@ export async function startServer(port = 3000) {
 
   // Auth middleware on all /api routes (except public paths)
   app.use('/api', auth.middleware);
+
+  // BibTeX/RIS text body parser — after auth, before reference routes
+  app.use(express.text({ type: ['application/x-bibtex', 'application/x-ris'] }));
 
   // Collabora convert routes (import/export binary formats) — after auth
   app.use(createConvertRoutes({ permissions }));
