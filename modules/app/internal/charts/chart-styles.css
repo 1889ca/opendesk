@@ -1,0 +1,169 @@
+/* Chart overlay styles — Contract: contracts/app/charts.md */
+
+.chart-container {
+  position: relative;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+}
+
+.chart-overlay {
+  position: absolute;
+  background: #fff;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chart-overlay:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+.chart-overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background: var(--bg, #f5f5f5);
+  border-bottom: 1px solid var(--border, #ddd);
+  cursor: grab;
+  user-select: none;
+  min-height: 28px;
+}
+
+.chart-overlay-header:active {
+  cursor: grabbing;
+}
+
+.chart-overlay-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text, #333);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chart-overlay-delete {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--text-muted, #999);
+  cursor: pointer;
+  padding: 0 4px;
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.chart-overlay:hover .chart-overlay-delete {
+  opacity: 1;
+}
+
+.chart-overlay-delete:hover {
+  color: #ea4335;
+  background: rgba(234, 67, 53, 0.1);
+}
+
+.chart-canvas {
+  flex: 1;
+  display: block;
+}
+
+.chart-resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.chart-resize-handle::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #999;
+  border-bottom: 2px solid #999;
+}
+
+.chart-overlay:hover .chart-resize-handle {
+  opacity: 1;
+}
+
+/* Toolbar */
+
+.chart-toolbar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.chart-insert-btn {
+  font-size: 0.8125rem;
+  padding: 0.25rem 0.75rem;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #ddd);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text, #333);
+  transition: background 0.15s;
+}
+
+.chart-insert-btn:hover {
+  background: var(--bg, #f0f0f0);
+}
+
+.chart-type-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  min-width: 160px;
+  overflow: hidden;
+}
+
+.chart-type-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: var(--text, #333);
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.chart-type-option:hover {
+  background: var(--bg, #f0f0f0);
+}
+
+.chart-type-icon {
+  font-size: 1rem;
+  width: 1.5rem;
+  text-align: center;
+}

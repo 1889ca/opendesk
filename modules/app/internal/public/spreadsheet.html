@@ -19,6 +19,7 @@
         spellcheck="false"
       />
     </div>
+    <div class="toolbar-center" id="chart-toolbar-mount"></div>
     <div class="toolbar-right">
       <span id="status" class="status disconnected">Connecting...</span>
       <span class="users-label">Editors:</span>
@@ -31,7 +32,10 @@
     <input id="formula-input" class="formula-bar-input" type="text" placeholder="Enter value or formula" />
   </div>
   <main class="spreadsheet-wrapper">
-    <div id="spreadsheet" class="spreadsheet-grid"></div>
+    <div class="spreadsheet-viewport">
+      <div id="spreadsheet" class="spreadsheet-grid"></div>
+      <div id="chart-container" class="chart-container"></div>
+    </div>
   </main>
   <div id="sheet-tab-container"></div>
 

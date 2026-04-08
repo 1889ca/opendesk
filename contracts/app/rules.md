@@ -128,11 +128,12 @@ modules/app/
 
 - `contracts/app/comments.md` — Comment marks, sidebar, replies, and comment store
 - `contracts/app/suggestions.md` — Track changes / suggestion mode, suggestion marks and sidebar
-- `contracts/app/search.md` — Find-and-replace with regex support, ReDoS protection, ProseMirror decorations
+- `contracts/app/search.md` ��� Find-and-replace with regex support, ReDoS protection, ProseMirror decorations
 - `contracts/app/print.md` — Print stylesheet, PageBreak node, print/PDF buttons
 - `contracts/app/accessibility.md` — ARIA announcer, roving tabindex toolbar, shortcut dialog
 - `contracts/app/mobile.md` — Touch support, responsive toolbar overflow, viewport management
 - `contracts/app/shell.md` — SPA shell, client-side router, dynamic editor loading, shared chrome
+- `contracts/app/charts.md` — Bar, line, and pie charts for spreadsheet editor (Canvas 2D, Yjs-synced)
 
 ## MVP Scope
 
