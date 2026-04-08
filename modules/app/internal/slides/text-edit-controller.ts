@@ -1,8 +1,7 @@
 /** Contract: contracts/app/slides-element-types.md */
 
-import type { MiniEditor } from './tiptap-mini-editor.ts';
+import { type MiniEditor, applyTextStyles } from './tiptap-mini-editor.ts';
 import { createFormatToolbar, type FormatToolbar } from './text-format-toolbar.ts';
-import { applyTextStyles } from './tiptap-mini-editor.ts';
 import type { TextAlign } from './types.ts';
 import type { TextElementDom } from './render-text.ts';
 

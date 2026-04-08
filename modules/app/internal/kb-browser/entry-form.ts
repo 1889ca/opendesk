@@ -1,7 +1,6 @@
 /** Contract: contracts/app/rules.md */
 
-import type { KBEntryRecord } from './kb-api.ts';
-import { createEntryApi, updateEntryApi } from './kb-api.ts';
+import { type KBEntryRecord, createEntryApi, updateEntryApi } from './kb-api.ts';
 import { renderMetaFields, readMetaFields } from './form-meta-fields.ts';
 
 type FormCallback = () => void;
