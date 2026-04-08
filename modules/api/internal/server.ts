@@ -24,8 +24,9 @@ import { createShareLinkService, createPgShareLinkStore, createShareRoutes, crea
 import { pool, initSchema } from '../../storage/index.ts';
 import { ensureS3Bucket } from './s3-client.ts'; import { applySecurityMiddleware } from './security.ts';
 import { createEventBus } from '../../events/index.ts';
-import { createAudit, createAuditRoutes } from '../../audit/index.ts';
+import { createAudit, createAuditRoutes, createSignatureRoutes } from '../../audit/index.ts';
 import { createWorkflow, createWorkflowRoutes } from '../../workflow/index.ts';
+import { createEDiscovery, createEDiscoveryRoutes } from '../../ediscovery/index.ts';
 import { loadConfig } from '../../config/index.ts';
 import { createLogger } from '../../logger/index.ts';
 
@@ -90,6 +91,7 @@ export async function startServer(port = 3000) {
     hmacSecret: config.audit.hmacSecret,
   });
   const workflow = createWorkflow({ pool, eventBus });
+  const ediscovery = createEDiscovery({ pool });
   eventBus.startBackgroundJobs();
 
   // Serve static frontend
@@ -144,6 +146,12 @@ export async function startServer(port = 3000) {
 
   // Audit routes (crypto audit log + chain verification)
   app.use('/api/audit', createAuditRoutes({ permissions, auditModule: audit }));
+
+  // Signed Yjs update routes (Ed25519 key management + signature verification)
+  app.use('/api/audit', createSignatureRoutes({ permissions, pool }));
+
+  // eDiscovery routes (SAR + FOIA exports)
+  app.use('/api/ediscovery', createEDiscoveryRoutes({ permissions, ediscovery }));
 
   // Workflow routes (trigger/action CRUD + execution history)
   app.use('/api/workflows', createWorkflowRoutes({ permissions, workflowModule: workflow }));
