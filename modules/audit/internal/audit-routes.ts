@@ -53,7 +53,7 @@ export function createAuditRoutes(opts: AuditRoutesOptions): Router {
       const documentId = String(req.params.documentId);
 
       // Check permission programmatically since resourceId comes from params
-      const principal = (req as any).principal;
+      const principal = req.principal!;
       const allowed = await permissions.checkPermission(
         principal.id,
         documentId,
@@ -80,7 +80,7 @@ export function createAuditRoutes(opts: AuditRoutesOptions): Router {
       permissions.requireForResource('manage', 'document'),
       asyncHandler(async (req: Request, res: Response) => {
         const documentId = String(req.params.documentId);
-        const principal = (req as any).principal;
+        const principal = req.principal!;
         const allowed = await permissions.checkPermission(principal.id, documentId, 'manage');
         if (!allowed) {
           res.status(403).json({ error: 'Forbidden' });
@@ -98,7 +98,7 @@ export function createAuditRoutes(opts: AuditRoutesOptions): Router {
       permissions.requireForResource('manage', 'document'),
       asyncHandler(async (req: Request, res: Response) => {
         const documentId = String(req.params.documentId);
-        const principal = (req as any).principal;
+        const principal = req.principal!;
         const allowed = await permissions.checkPermission(principal.id, documentId, 'manage');
         if (!allowed) {
           res.status(403).json({ error: 'Forbidden' });

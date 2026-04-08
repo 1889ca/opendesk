@@ -86,7 +86,7 @@ export function idempotencyMiddleware(options: IdempotencyOptions) {
       return;
     }
 
-    const principalId = (req as unknown as { principal?: { id?: string } }).principal?.id || 'anonymous';
+    const principalId = req.principal?.id || 'anonymous';
     const cacheKey = buildCacheKey(method, req.path, principalId, idempotencyKey);
 
     // Check cache for existing response
