@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { TransferBundleSchema, type FederationModule } from '../contract.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
-import { verifySignature, sha256 } from './signing.ts';
+import { verifySignature } from './signing.ts';
 
 const RegisterPeerBody = z.object({
   name: z.string().min(1).max(200),
@@ -152,10 +152,12 @@ export function createFederationRoutes(opts: FederationRoutesOptions): Router {
         timestamp: bundle.timestamp,
       });
 
-      const isValid = peer.publicKey.startsWith('-----')
-        ? verifySignature(payloadToVerify, bundle.signature, peer.publicKey)
-        : bundle.signature === sha256(payloadToVerify); // dev fallback
+      if (!peer.publicKey.startsWith('-----')) {
+        res.status(400).json({ error: 'Peer public key must be PEM format' });
+        return;
+      }
 
+      const isValid = verifySignature(payloadToVerify, bundle.signature, peer.publicKey);
       if (!isValid) {
         res.status(403).json({ error: 'Invalid peer signature' });
         return;

@@ -51,6 +51,7 @@ export {
   convertFile,
   convertToHtml,
   CollaboraError,
+  initCollabora,
 } from './internal/libreoffice.ts';
 
 export type { CollaboraConfig } from './internal/libreoffice.ts';

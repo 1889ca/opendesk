@@ -5,6 +5,7 @@
  * and share dialog logic. Loaded by editor.html before the editor bundle.
  */
 
+import type { Editor } from '@tiptap/core';
 import { getDocumentId } from '../shared/identity.ts';
 import { apiFetch } from '../shared/api-client.ts';
 import { setupShareDialog } from './share-dialog.ts';
@@ -16,8 +17,8 @@ function getTitle(): string {
   return input?.value?.trim() || 'document';
 }
 
-function waitForEditor(cb: (editor: unknown) => void | Promise<void>): void {
-  const win = window as unknown as { editor?: unknown };
+function waitForEditor(cb: (editor: Editor) => void | Promise<void>): void {
+  const win = window as unknown as { editor?: Editor };
   if (win.editor) { cb(win.editor); return; }
   let attempts = 0;
   const interval = setInterval(() => {
@@ -41,7 +42,7 @@ function downloadBlob(content: BlobPart, filename: string, mimeType: string): vo
 
 function setupClientExports(): void {
   document.getElementById('export-html')?.addEventListener('click', () => {
-    waitForEditor(async (editor: any) => {
+    waitForEditor(async (editor) => {
       const html = editor.getHTML();
       const bibHtml = await getBibliographyHtml(editor);
       const title = getTitle();
@@ -52,7 +53,7 @@ function setupClientExports(): void {
   });
 
   document.getElementById('export-text')?.addEventListener('click', () => {
-    waitForEditor((editor: any) => {
+    waitForEditor((editor) => {
       downloadBlob(editor.getText(), `${getTitle()}.txt`, 'text/plain');
     });
   });
@@ -60,7 +61,7 @@ function setupClientExports(): void {
 
 function setupCollaboraExports(docId: string): void {
   function exportViaCollabora(format: string): void {
-    waitForEditor(async (editor: any) => {
+    waitForEditor(async (editor) => {
       const html = editor.getHTML();
       const bibHtml = await getBibliographyHtml(editor);
       const content = bibHtml ? `${html}\n${bibHtml}` : html;
@@ -118,7 +119,7 @@ function setupImport(docId: string): void {
         return res.json();
       })
       .then((data: { snapshot?: { content?: unknown } }) => {
-        waitForEditor((editor: any) => {
+        waitForEditor((editor) => {
           if (data.snapshot?.content) editor.commands.setContent(data.snapshot.content);
         });
       })

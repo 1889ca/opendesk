@@ -8,8 +8,9 @@ import { getRedisClient, setRedisConfig, disconnectRedis } from './redis.ts';
 import { createAuth, createAuthRateLimiter } from '../../auth/index.ts';
 import { createPermissions, createPgGrantStore } from '../../permissions/index.ts';
 import { createShareLinkService, createPgShareLinkStore, createPasswordRateLimiter } from '../../sharing/index.ts';
-import { pool, initSchema } from '../../storage/index.ts';
-import { ensureS3Bucket } from './s3-client.ts'; import { applySecurityMiddleware } from './security.ts';
+import { pool, initPool, initSchema } from '../../storage/index.ts';
+import { initCollabora } from '../../convert/index.ts';
+import { ensureS3Bucket, initS3 } from './s3-client.ts'; import { applySecurityMiddleware } from './security.ts';
 import { createEventBus } from '../../events/index.ts';
 import { createAudit } from '../../audit/index.ts';
 import { createWorkflow } from '../../workflow/index.ts';
@@ -22,6 +23,15 @@ const log = createLogger('api');
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export async function startServer(port = 3000) {
+  // Load config once at composition root — threaded to all modules via DI
+  const config = loadConfig();
+
+  // Inject module configs from composition root (dependency injection)
+  initPool(config.postgres);
+  initS3(config.s3);
+  initCollabora(config.collabora);
+  setRedisConfig(config.redis);
+
   try {
     await initSchema();
     log.info('database schema initialized');
@@ -37,11 +47,8 @@ export async function startServer(port = 3000) {
   }
   const app = express();
 
-  // Load config once at composition root — threaded to all modules via DI
-  const config = loadConfig();
-
-  // Inject redis config before creating client
-  setRedisConfig(config.redis);
+  // Trust first proxy (nginx) so req.ip reflects the real client IP (SEC-03)
+  app.set('trust proxy', 1);
 
   // Redis client needed for rate limiting + idempotency + caching
   const redisClient = getRedisClient();

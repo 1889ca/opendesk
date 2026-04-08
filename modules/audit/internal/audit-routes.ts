@@ -110,17 +110,17 @@ export function createAuditRoutes(opts: AuditRoutesOptions): Router {
       }),
     );
 
-    // POST /proof/verify — verify a proof bundle offline (stateless)
+    // POST /proof/verify — verify a proof bundle against server HMAC
     router.post(
       '/proof/verify',
       permissions.requireAuth,
       asyncHandler(async (req: Request, res: Response) => {
-        const body = req.body as { proof?: AuditProof; hmacSecret?: string };
-        if (!body.proof || !body.hmacSecret) {
-          res.status(400).json({ error: 'proof and hmacSecret are required' });
+        const body = req.body as { proof?: AuditProof };
+        if (!body.proof) {
+          res.status(400).json({ error: 'proof is required' });
           return;
         }
-        const result = verifyAuditProof(body.proof, body.hmacSecret);
+        const result = verifyAuditProof(body.proof, hmacSecret);
         res.json(result);
       }),
     );

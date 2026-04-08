@@ -1,24 +1,30 @@
 /** Contract: contracts/api/rules.md */
 import { S3Client, HeadBucketCommand, CreateBucketCommand } from '@aws-sdk/client-s3';
-import { loadConfig } from '../../config/index.ts';
+import type { S3Config } from '../../config/index.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('s3');
 
 let _s3: S3Client | null = null;
 let _bucket: string | null = null;
+let _s3Config: S3Config | null = null;
 
-// TODO: Thread S3Config from composition root instead of calling loadConfig()
-// internally. Requires refactoring the lazy Proxy pattern to accept injected config.
-function initS3() {
-  const cfg = loadConfig().s3;
-  _bucket = cfg.bucket;
+/** Inject S3Config from the composition root. Must be called before using s3/getS3Bucket. */
+export function initS3(config: S3Config): void {
+  _s3Config = config;
+}
+
+function ensureS3Client() {
+  if (!_s3Config) {
+    throw new Error('initS3() must be called before using the S3 client — pass S3Config from the composition root');
+  }
+  _bucket = _s3Config.bucket;
   _s3 = new S3Client({
-    endpoint: cfg.endpoint,
-    region: cfg.region,
+    endpoint: _s3Config.endpoint,
+    region: _s3Config.region,
     credentials: {
-      accessKeyId: cfg.accessKey,
-      secretAccessKey: cfg.secretKey,
+      accessKeyId: _s3Config.accessKey,
+      secretAccessKey: _s3Config.secretKey,
     },
     forcePathStyle: true,
   });
@@ -27,7 +33,7 @@ function initS3() {
 /** Lazy S3 client — created on first access so imports don't trigger config loading. */
 export const s3: S3Client = new Proxy({} as S3Client, {
   get(_target, prop, receiver) {
-    if (!_s3) initS3();
+    if (!_s3) ensureS3Client();
     const value = Reflect.get(_s3!, prop, receiver);
     return typeof value === 'function' ? value.bind(_s3!) : value;
   },
@@ -35,7 +41,7 @@ export const s3: S3Client = new Proxy({} as S3Client, {
 
 /** Lazy bucket name — resolved on first access. */
 export function getS3Bucket(): string {
-  if (!_bucket) initS3();
+  if (!_bucket) ensureS3Client();
   return _bucket!;
 }
 

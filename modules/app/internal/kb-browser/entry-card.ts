@@ -18,6 +18,12 @@ const TYPE_COLORS: Record<string, string> = {
   glossary: '#dc2626',
 };
 
+/** Escape HTML then restore only <mark> tags used by search highlighting. */
+function sanitizeSnippet(raw: string): string {
+  const escaped = raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return escaped.replace(/&lt;mark&gt;/g, '<mark>').replace(/&lt;\/mark&gt;/g, '</mark>');
+}
+
 /** Format a date string to a relative or short format. */
 function formatDate(dateStr: string): string {
   try {
@@ -95,7 +101,7 @@ export function createEntryCard(
   const snippetEl = document.createElement('div');
   snippetEl.className = 'kb-entry-card__snippet';
   if (entry.snippet) {
-    snippetEl.innerHTML = snippet; // search snippets contain <mark> tags
+    snippetEl.innerHTML = sanitizeSnippet(snippet); // search snippets contain <mark> tags
   } else {
     snippetEl.textContent = snippet;
   }

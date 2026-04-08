@@ -1,17 +1,24 @@
 // TODO: Convert to integration tests with real DB (see contracts/testing/rules.md)
 /** Contract: contracts/federation/rules.md */
 import { describe, it, expect, vi } from 'vitest';
+import { generateKeyPairSync } from 'node:crypto';
 import express from 'express';
 import request from 'supertest';
 import { createFederationRoutes } from './federation-routes.ts';
 import type { FederationModule, FederationPeer, TransferRecord } from '../contract.ts';
-import { sha256 } from './signing.ts';
+import { signPayload } from './signing.ts';
+
+const { publicKey: testPublicKey, privateKey: testPrivateKey } = generateKeyPairSync('rsa', {
+  modulusLength: 2048,
+  publicKeyEncoding: { type: 'spki', format: 'pem' },
+  privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+});
 
 const testPeer: FederationPeer = {
   id: '550e8400-e29b-41d4-a716-446655440010',
   name: 'Partner Org',
   endpointUrl: 'https://partner.example.com',
-  publicKey: 'pk-test',
+  publicKey: testPublicKey,
   trustLevel: 'standard',
   status: 'active',
   lastSeenAt: null,
@@ -113,12 +120,12 @@ describe('federation routes', () => {
       yjsStateBase64: 'dGVzdA==',
       timestamp,
     };
-    const signature = sha256(JSON.stringify({
+    const signature = signPayload(JSON.stringify({
       sendingInstanceId: bundle.sendingInstanceId,
       documentId: bundle.documentId,
       yjsStateBase64: bundle.yjsStateBase64,
       timestamp: bundle.timestamp,
-    }));
+    }), testPrivateKey);
 
     const res = await request(app)
       .post('/api/federation/receive')

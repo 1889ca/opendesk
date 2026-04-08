@@ -1,22 +1,28 @@
 /** Contract: contracts/storage/rules.md */
 import pg from 'pg';
-import { loadConfig } from '../../config/index.ts';
+import type { PostgresConfig } from '../../config/index.ts';
 
 let _pool: pg.Pool | null = null;
+let _pgConfig: PostgresConfig | null = null;
 
-// TODO: Thread PostgresConfig from composition root instead of calling loadConfig()
-// internally. Requires refactoring the lazy Proxy + singleton pattern.
+/** Inject PostgresConfig from the composition root. Must be called before getPool(). */
+export function initPool(config: PostgresConfig): void {
+  _pgConfig = config;
+}
+
 /** Return the singleton pg.Pool, creating it lazily on first call. */
 export function getPool(): pg.Pool {
   if (!_pool) {
-    const pgConfig = loadConfig().postgres;
+    if (!_pgConfig) {
+      throw new Error('initPool() must be called before getPool() — pass PostgresConfig from the composition root');
+    }
     _pool = new pg.Pool({
-      host: pgConfig.host,
-      port: pgConfig.port,
-      database: pgConfig.database,
-      user: pgConfig.user,
-      password: pgConfig.password,
-      max: pgConfig.maxConnections,
+      host: _pgConfig.host,
+      port: _pgConfig.port,
+      database: _pgConfig.database,
+      user: _pgConfig.user,
+      password: _pgConfig.password,
+      max: _pgConfig.maxConnections,
     });
   }
   return _pool;

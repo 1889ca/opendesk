@@ -92,8 +92,8 @@ function stripUndefined(obj: unknown): unknown {
  * Throws on startup if violated.
  */
 function validateProductionRules(config: AppConfig): void {
-  const isProd = config.server.nodeEnv === 'production';
-  if (!isProd) return;
+  const isDev = config.server.nodeEnv === 'development' || config.server.nodeEnv === 'test';
+  if (isDev) return;
 
   if (config.auth.mode === 'dev') {
     throw new Error(

@@ -8,7 +8,10 @@ function addField(parent: HTMLElement, label: string, value: string): void {
   if (!value) return;
   const row = document.createElement('div');
   row.className = 'kb-detail__field';
-  row.innerHTML = `<strong>${label}:</strong> `;
+  const strong = document.createElement('strong');
+  strong.textContent = `${label}:`;
+  row.appendChild(strong);
+  row.appendChild(document.createTextNode(' '));
   const span = document.createElement('span');
   span.textContent = value;
   row.appendChild(span);
@@ -31,7 +34,10 @@ function renderReferenceMetadata(m: Record<string, unknown>, el: HTMLElement): H
   if (m.doi) {
     const doiRow = document.createElement('div');
     doiRow.className = 'kb-detail__field';
-    doiRow.innerHTML = '<strong>DOI:</strong> ';
+    const doiStrong = document.createElement('strong');
+    doiStrong.textContent = 'DOI:';
+    doiRow.appendChild(doiStrong);
+    doiRow.appendChild(document.createTextNode(' '));
     const link = document.createElement('a');
     link.href = `https://doi.org/${m.doi}`;
     link.target = '_blank';

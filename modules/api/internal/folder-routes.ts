@@ -12,7 +12,6 @@ import {
   getFolder,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import type { AuthMode } from '../../config/contract.ts';
 import { asyncHandler } from './async-handler.ts';
 
 const CreateFolderBody = z.object({
@@ -34,14 +33,13 @@ const ListFoldersQuery = z.object({
 
 export type FolderRoutesOptions = {
   permissions: PermissionsModule;
-  authMode?: AuthMode;
 };
 
 export function createFolderRoutes(opts: FolderRoutesOptions): Router {
-  const { permissions, authMode } = opts;
+  const { permissions } = opts;
   const router = Router();
 
-  // List folders (root if no parentId) — filtered by principal's grants
+  // List folders (root if no parentId) — always filtered by principal's grants (see issue #66)
   router.get('/', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     const queryResult = ListFoldersQuery.safeParse(req.query);
     if (!queryResult.success) {
@@ -49,11 +47,6 @@ export function createFolderRoutes(opts: FolderRoutesOptions): Router {
       return;
     }
     const folders = await listFolders(queryResult.data.parentId ?? null);
-
-    if (authMode === 'dev') {
-      res.json(folders);
-      return;
-    }
 
     const principal = req.principal!;
     const grants = await permissions.grantStore.findByPrincipal(principal.id);

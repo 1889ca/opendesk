@@ -36,13 +36,7 @@ export function setRedisConfig(cfg: AppRedisConfig): void {
 
 function getDefaultConfig(): Partial<RedisConfig> {
   if (!_appRedisConfig) {
-    // Fallback defaults matching config schema defaults
-    return {
-      url: 'redis://localhost:6379',
-      keyPrefix: 'opendesk:',
-      maxRetriesPerRequest: 20,
-      connectTimeout: 5000,
-    };
+    throw new Error('Redis config not provided — call setRedisConfig() before connecting');
   }
   return {
     url: _appRedisConfig.url,
@@ -67,7 +61,7 @@ export function getRedisClient(config?: Partial<RedisConfig>): RedisInstance {
   const url = config?.url ?? defaults.url ?? 'redis://localhost:6379';
   const merged = { ...defaults, ...config, url };
 
-  const client = new IORedis(merged.url, {
+  const client = new IORedis(url, {
     keyPrefix: merged.keyPrefix,
     maxRetriesPerRequest: merged.maxRetriesPerRequest,
     connectTimeout: merged.connectTimeout,

@@ -66,7 +66,15 @@ function createNavItem(href: string, i18nKey: TranslationKey, icon: string): HTM
   const link = document.createElement('a');
   link.href = href;
   link.className = 'shell-sidebar-link';
-  link.innerHTML = `<span class="shell-sidebar-icon">${icon}</span> <span class="shell-sidebar-label">${t(i18nKey)}</span>`;
+  const iconSpan = document.createElement('span');
+  iconSpan.className = 'shell-sidebar-icon';
+  iconSpan.textContent = icon;
+  const labelSpan = document.createElement('span');
+  labelSpan.className = 'shell-sidebar-label';
+  labelSpan.textContent = t(i18nKey);
+  link.appendChild(iconSpan);
+  link.appendChild(document.createTextNode(' '));
+  link.appendChild(labelSpan);
   onLocaleChange(() => {
     const label = link.querySelector('.shell-sidebar-label');
     if (label) label.textContent = t(i18nKey);

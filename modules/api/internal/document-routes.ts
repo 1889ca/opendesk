@@ -12,7 +12,6 @@ import {
   getTemplate as defaultGetTemplate,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import type { AuthMode } from '../../config/contract.ts';
 import type { CacheClient } from './redis.ts';
 import { asyncHandler } from './async-handler.ts';
 
@@ -49,7 +48,6 @@ export type DocumentRoutesOptions = {
   permissions: PermissionsModule;
   cache?: CacheClient;
   storage?: DocumentStorageFns;
-  authMode?: AuthMode;
 };
 
 /**
@@ -58,7 +56,7 @@ export type DocumentRoutesOptions = {
  */
 export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   const router = Router();
-  const { permissions, cache, storage, authMode } = opts;
+  const { permissions, cache, storage } = opts;
   const listDocuments = storage?.listDocuments ?? defaultListDocuments;
   const createDocument = storage?.createDocument ?? defaultCreateDocument;
   const getDocument = storage?.getDocument ?? defaultGetDocument;
@@ -67,7 +65,7 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   const getTemplate = storage?.getTemplate ?? defaultGetTemplate;
 
   // List documents — accepts optional ?folderId= to filter by folder
-  // Filters results by principal's grants (except in dev mode)
+  // Always filters results by principal's grants (see issue #66)
   router.get('/', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     const queryResult = ListDocumentsQuery.safeParse(req.query);
     if (!queryResult.success) {
@@ -75,11 +73,6 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
       return;
     }
     const docs = await listDocuments(queryResult.data.folderId ?? null);
-
-    if (authMode === 'dev') {
-      res.json(docs);
-      return;
-    }
 
     const principal = req.principal!;
     const grants = await permissions.grantStore.findByPrincipal(principal.id);

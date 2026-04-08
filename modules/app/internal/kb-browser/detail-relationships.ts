@@ -56,14 +56,18 @@ function renderRelationships(
       const li = document.createElement('li');
       const targetId = rel.sourceId === entryId ? rel.targetId : rel.sourceId;
       const direction = rel.sourceId === entryId ? '\u2192' : '\u2190';
-      li.innerHTML = `<span class="kb-detail__rel-direction">${direction}</span> `;
+      const dirSpan = document.createElement('span');
+      dirSpan.className = 'kb-detail__rel-direction';
+      dirSpan.textContent = direction;
+      li.appendChild(dirSpan);
+      li.appendChild(document.createTextNode(' '));
 
       const link = document.createElement('a');
       link.href = `/kb?detail=${targetId}`;
       link.className = 'kb-detail__rel-link';
       link.textContent = targetId.slice(0, 8) + '\u2026';
       // Resolve the actual title asynchronously
-      fetchEntry(targetId).then((e) => { link.textContent = e.title; }).catch(() => {});
+      fetchEntry(targetId).then((e) => { link.textContent = e.title; }).catch((err) => console.warn('Failed to load entry title:', err));
       li.appendChild(link);
       list.appendChild(li);
     }
