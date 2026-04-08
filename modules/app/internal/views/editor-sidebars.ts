@@ -7,11 +7,11 @@
 
 import type { Editor } from '@tiptap/core';
 import { t } from '../i18n/index.ts';
-import { CommentStore, buildCommentSidebar, toggleSidebar, showCommentInput } from '../comments/index.ts';
-import { buildSuggestionSidebar, toggleSuggestionSidebar } from '../suggestions/index.ts';
-import { buildTocPanel, toggleTocPanel } from '../toc/index.ts';
-import { buildVersionSidebar, toggleVersionSidebar } from '../version-history.ts';
-import { announce } from '../a11y-announcer.ts';
+import { CommentStore, buildCommentSidebar, toggleSidebar, showCommentInput } from '../editor/comments/index.ts';
+import { buildSuggestionSidebar, toggleSuggestionSidebar } from '../editor/suggestions/index.ts';
+import { buildTocPanel, toggleTocPanel } from '../editor/toc/index.ts';
+import { buildVersionSidebar, toggleVersionSidebar } from '../editor/version-history.ts';
+import { announce } from '../shared/a11y-announcer.ts';
 
 interface SidebarsInput {
   editor: Editor;

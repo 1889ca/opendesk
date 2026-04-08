@@ -2,7 +2,7 @@
 
 import { navigate } from './router.ts';
 import { t, onLocaleChange, type TranslationKey } from '../i18n/index.ts';
-import { apiFetch } from '../api-client.ts';
+import { apiFetch } from '../shared/api-client.ts';
 
 interface RecentDoc {
   id: string;

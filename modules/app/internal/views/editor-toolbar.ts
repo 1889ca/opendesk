@@ -6,7 +6,7 @@
  */
 
 import { t, onLocaleChange } from '../i18n/index.ts';
-import { apiFetch } from '../api-client.ts';
+import { apiFetch } from '../shared/api-client.ts';
 import { setupExportHandlers } from './export-handlers.ts';
 
 export interface EditorToolbarResult {
@@ -110,7 +110,7 @@ function setupTitleSave(input: HTMLInputElement, docId: string): void {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title }),
-    }).catch((err) => console.error('Title save failed', err));
+    }).catch((err: unknown) => console.error('Title save failed', err));
   }
 
   input.addEventListener('blur', () => { clearTimeout(timer); save(); });

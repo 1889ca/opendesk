@@ -5,10 +5,10 @@
  * Adapts the existing doc-list module for SPA mount/unmount lifecycle.
  */
 
-import { apiFetch } from '../api-client.ts';
-import { createDocumentFromTemplate } from '../template-picker.ts';
+import { apiFetch } from '../shared/api-client.ts';
+import { createDocumentFromTemplate } from '../doc-list/template-picker.ts';
 import { t } from '../i18n/index.ts';
-import { formatRelativeTime } from '../time-format.ts';
+import { formatRelativeTime } from '../shared/time-format.ts';
 import { navigate } from '../shell/router.ts';
 import {
   getCurrentFolderId,
@@ -17,8 +17,8 @@ import {
   renderFolders,
   loadFolders,
   createNewFolderButton,
-} from '../folder-list.ts';
-import { createGlobalSearch } from '../global-search.ts';
+} from '../doc-list/folder-list.ts';
+import { createGlobalSearch } from '../editor/global-search.ts';
 
 interface DocEntry {
   id: string;
@@ -69,7 +69,7 @@ function renderDocuments(container: HTMLElement, docs: DocEntry[]) {
       if (!confirm(t('docList.deleteConfirm', { name }))) return;
       apiFetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
         .then(() => { if (listEl) loadAll(listEl); })
-        .catch((err) => { console.error('Delete failed', err); });
+        .catch((err: unknown) => { console.error('Delete failed', err); });
     });
 
     row.appendChild(info);
@@ -128,7 +128,7 @@ export async function mount(container: HTMLElement, _params: Record<string, stri
   listEl.className = 'doc-list';
   listEl.id = 'doc-list';
 
-  const searchEl = createGlobalSearch((active) => {
+  const searchEl = createGlobalSearch((active: boolean) => {
     listEl!.style.display = active ? 'none' : '';
     const breadcrumbs = document.getElementById('folder-breadcrumbs');
     if (breadcrumbs) breadcrumbs.style.display = active ? 'none' : '';
@@ -147,7 +147,7 @@ export async function mount(container: HTMLElement, _params: Record<string, stri
       if (docId) {
         navigate('/doc/' + encodeURIComponent(docId));
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Create failed', err);
     }
   });
@@ -159,7 +159,7 @@ export async function mount(container: HTMLElement, _params: Record<string, stri
       if (docId) {
         navigate('/doc/' + encodeURIComponent(docId));
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Create failed', err);
     }
   };

@@ -4,7 +4,7 @@ import { registerRoutes, startRouter, setNavigateCallback, type Route } from './
 import { loadModule, showLoading, clearLoading, type ViewModule } from './lazy-loader.ts';
 import { buildNavSidebar, updateActiveRoute, loadRecentDocs } from './nav-sidebar.ts';
 import { resolveLocale, setLocale, persistLocale, onLocaleChange } from '../i18n/index.ts';
-import { initTheme } from '../theme-toggle.ts';
+import { initTheme } from '../shared/theme-toggle.ts';
 
 let contentEl: HTMLElement | null = null;
 let currentView: ViewModule | null = null;

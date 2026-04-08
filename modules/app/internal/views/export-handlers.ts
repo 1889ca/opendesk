@@ -5,7 +5,7 @@
  * Handles HTML, text, DOCX, ODT exports and file imports.
  */
 
-import { apiFetch } from '../api-client.ts';
+import { apiFetch } from '../shared/api-client.ts';
 
 // Type shim for Editor access through window
 interface EditorShim {
@@ -68,12 +68,12 @@ export function setupExportHandlers(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ format, content: ed.getHTML() }),
     })
-      .then((res) => {
+      .then((res: Response) => {
         if (!res.ok) throw new Error(res.status === 502 ? 'Conversion service unavailable' : 'Export failed');
         return res.blob();
       })
-      .then((blob) => downloadBlob(blob, getTitle() + '.' + format, 'application/octet-stream'))
-      .catch((err) => alert(err.message))
+      .then((blob: Blob) => downloadBlob(blob, getTitle() + '.' + format, 'application/octet-stream'))
+      .catch((err: unknown) => alert(err instanceof Error ? err.message : String(err)))
       .finally(() => { btn.disabled = false; btn.textContent = format.toUpperCase(); });
   };
 
@@ -107,15 +107,15 @@ function setupImportHandler(docId: string, importBtn: HTMLButtonElement): void {
         headers: { 'X-Filename': file.name },
         body: buf,
       }))
-      .then((res) => {
+      .then((res: Response) => {
         if (!res.ok) throw new Error(res.status === 502 ? 'Conversion service unavailable' : 'Import failed');
         return res.json();
       })
-      .then((data) => {
+      .then((data: { snapshot?: { content?: unknown } }) => {
         const ed = getEditor();
         if (ed && data.snapshot?.content) ed.commands.setContent(data.snapshot.content);
       })
-      .catch((err) => alert(err.message))
+      .catch((err: unknown) => alert(err instanceof Error ? err.message : String(err)))
       .finally(() => { importBtn.disabled = false; importBtn.textContent = 'Import'; });
   });
 }
