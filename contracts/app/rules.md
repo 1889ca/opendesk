@@ -132,6 +132,7 @@ modules/app/
 - `contracts/app/print.md` — Print stylesheet, PageBreak node, print/PDF buttons
 - `contracts/app/accessibility.md` — ARIA announcer, roving tabindex toolbar, shortcut dialog
 - `contracts/app/mobile.md` — Touch support, responsive toolbar overflow, viewport management
+- `contracts/app/slides-interaction.md` — Slide element drag, resize, rotate, snap, select, z-order
 
 ## MVP Scope
 
