@@ -31,6 +31,7 @@ import { buildEditorExtensions } from './editor-extensions.ts';
 import { initEntityMentionClicks } from './entity-mentions/index.ts';
 import { getUserIdentity, getDocumentId } from '../shared/identity.ts';
 import { initEditorPage } from './editor-page.ts';
+import { setupPromoteToKB } from './promote-to-kb.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -157,6 +158,8 @@ function init() {
   document.addEventListener('opendesk:toggle-reference-library', () => {
     refLibrary.toggle();
   });
+
+  setupPromoteToKB(editor);
 
   document.addEventListener('opendesk:insert-citation', () => {
     const citeBtn = document.querySelector('[data-action="insert-citation"]') as HTMLElement | null;

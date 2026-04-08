@@ -34,7 +34,6 @@ const ENTITY_FIELDS: MetadataFieldDef[] = [
 const DATASET_FIELDS: MetadataFieldDef[] = [
   { key: 'format', label: 'Format', type: 'text', placeholder: 'CSV, JSON, etc.' },
   { key: 'description', label: 'Description', type: 'textarea' },
-  { key: 'rowCount', label: 'Row Count', type: 'number' },
   { key: 'sourceUrl', label: 'Source URL', type: 'url' },
 ];
 
@@ -56,6 +55,41 @@ const FIELDS_BY_TYPE: Record<string, MetadataFieldDef[]> = {
   dataset: DATASET_FIELDS,
   note: NOTE_FIELDS,
 };
+
+/** Render the dynamic column editor for datasets. */
+function renderColumnEditor(container: HTMLElement, existing?: unknown[]): void {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'kb-meta-columns';
+  const label = document.createElement('label');
+  label.textContent = 'Columns';
+  container.appendChild(label);
+  const cols = Array.isArray(existing) ? existing as { name: string; type: string }[] : [];
+
+  function addRow(col?: { name: string; type: string }): void {
+    const row = document.createElement('div');
+    row.className = 'kb-meta-column-row';
+    const n = Object.assign(document.createElement('input'), {
+      type: 'text', placeholder: 'Column name', className: 'kb-meta-col-name', value: col?.name ?? '',
+    });
+    const t = Object.assign(document.createElement('input'), {
+      type: 'text', placeholder: 'Type (text, number...)', className: 'kb-meta-col-type', value: col?.type ?? '',
+    });
+    const rm = Object.assign(document.createElement('button'), {
+      type: 'button', className: 'btn btn-sm btn-delete', textContent: '\u00D7',
+    });
+    rm.addEventListener('click', () => row.remove());
+    row.append(n, t, rm);
+    wrapper.appendChild(row);
+  }
+
+  for (const c of cols) addRow(c);
+  if (cols.length === 0) addRow();
+  const addBtn = Object.assign(document.createElement('button'), {
+    type: 'button', className: 'btn btn-sm btn-secondary', textContent: '+ Add column',
+  });
+  addBtn.addEventListener('click', () => addRow());
+  container.append(wrapper, addBtn);
+}
 
 /** Render metadata fields for a given entry type into a container. */
 export function renderMetaFields(
@@ -104,6 +138,23 @@ export function renderMetaFields(
       container.appendChild(input);
     }
   }
+
+  // Dataset column editor
+  if (entryType === 'dataset') {
+    renderColumnEditor(container, values?.columns as unknown[]);
+  }
+}
+
+/** Read column definitions from the column editor. */
+function readColumnEditor(container: HTMLElement): { name: string; type: string }[] {
+  const rows = container.querySelectorAll('.kb-meta-column-row');
+  const columns: { name: string; type: string }[] = [];
+  for (const row of rows) {
+    const name = (row.querySelector('.kb-meta-col-name') as HTMLInputElement)?.value.trim();
+    const type = (row.querySelector('.kb-meta-col-type') as HTMLInputElement)?.value.trim();
+    if (name && type) columns.push({ name, type });
+  }
+  return columns;
 }
 
 /** Read metadata values from the rendered fields. */
@@ -124,5 +175,12 @@ export function readMetaFields(container: HTMLElement, entryType: string): Recor
       result[field.key] = val;
     }
   }
+
+  // Include column definitions for datasets
+  if (entryType === 'dataset') {
+    const columns = readColumnEditor(container);
+    if (columns.length > 0) result.columns = columns;
+  }
+
   return result;
 }

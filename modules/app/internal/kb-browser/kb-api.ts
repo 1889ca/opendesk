@@ -107,6 +107,46 @@ export async function deleteEntryApi(id: string): Promise<void> {
   if (!res.ok) throw new Error(`API returned ${res.status}`);
 }
 
+// --- Dataset row operations ---
+
+export interface DatasetRowRecord {
+  id: string;
+  entry_id: string;
+  row_index: number;
+  data: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface DatasetRowsResponse {
+  rows: DatasetRowRecord[];
+  total: number;
+}
+
+/** Fetch rows for a dataset entry. */
+export async function fetchDatasetRows(
+  entryId: string,
+  opts?: { limit?: number; offset?: number },
+): Promise<DatasetRowsResponse> {
+  const url = buildUrl(`${BASE}/${encodeURIComponent(entryId)}/rows`, opts as Record<string, string | number | undefined> ?? {});
+  const res = await apiFetch(url);
+  if (!res.ok) throw new Error(`API returned ${res.status}`);
+  return res.json();
+}
+
+/** Replace all rows in a dataset entry. */
+export async function replaceDatasetRows(
+  entryId: string,
+  rows: { data: Record<string, unknown> }[],
+): Promise<DatasetRowsResponse> {
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(entryId)}/rows`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rows }),
+  });
+  if (!res.ok) throw new Error(`API returned ${res.status}`);
+  return res.json();
+}
+
 /** Get relationships for an entry. */
 export async function fetchRelationships(
   entryId: string,

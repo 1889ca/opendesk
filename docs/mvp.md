@@ -71,7 +71,7 @@ The flagship product line. Rich text editing with TipTap + Yjs, real-time collab
 
 **Formats:** .docx, .odt, .pdf (import/export working via Collabora)
 
-### Knowledge Base (~40% complete)
+### Knowledge Base (~58% complete)
 
 A structured information store where organizational knowledge lives **separate from its presentation**. Documents, Sheets, and Slides *reference* KB entries — they don't own the underlying information. The existing Reference & Citation Management system (formerly Pillar 7, ~90% complete) is KB's first milestone. The generalized entry model with typed records (Reference, Entity, Dataset, Note), relationships (property graph lite), full-text search, and reverse dependency lookups is now implemented (`modules/kb/`).
 
@@ -97,27 +97,27 @@ A structured information store where organizational knowledge lives **separate f
 3. ~~In-editor citation insertion & bibliography~~ (done)
 4. ~~**KB entry model**~~ (done) — Generalized typed KBEntry records (Reference, Entity, Dataset, Note) with tags, workspace scoping, Zod validation, version tracking. Relationships as first-class edges (cites, authored-by, related-to, derived-from, supersedes). Full-text search via PostgreSQL tsvector/GIN. See `modules/kb/` and `contracts/kb/rules.md`.
 5. ~~**Reverse dependency registry**~~ (done) — Lookup all entries pointing at a given entry. Implemented in `modules/kb/internal/reverse-deps.ts`.
-6. **Entity directory** — People, organizations, terms with structured fields. Mention picker in all editors.
-7. **Dataset store** — Tabular data with schema, versioning, and Sheets integration (view dataset as spreadsheet). Source lineage for provenance tracking.
+6. ~~**Entity directory**~~ (done) — People, organizations, terms with structured fields. Entity CRUD with subtype-specific content schemas (person, organization, project, term). Mention picker for all editors. Browser UI with search and filtering. See `modules/kb/internal/pg-entities.ts`.
+7. ~~**Dataset store**~~ (done) — Tabular row data storage in `kb_dataset_rows` table with JSONB rows, column schema definitions in entry metadata, atomic row replacement, paginated reads. API routes at `/api/kb/entries/:id/rows`. Browser UI with table preview and column editor. See `modules/kb/internal/pg-datasets.ts` and `modules/api/internal/kb-dataset-routes.ts`.
 8. **Notes & clippings** — Capture from documents (promote action), freeform entry, tag-based organization.
 9. **KB query contract** — Stable, versioned API with corpus partitioning (`knowledge | operational | reference`), jurisdiction scoping, and snapshot resolution.
-10. **KB browser UI** — Dedicated interface for browsing, filtering, managing entries, and visualizing relationships.
+10. ~~**KB browser UI**~~ (done) — Dedicated interface for browsing, filtering, managing entries, and visualizing relationships. Grid/list view toggle, search with debounce, type/tag filters, sort options, detail panel with type-specific metadata rendering, relationship viewer, create/edit forms. See `modules/app/internal/kb-browser/`.
 11. **Snapshot sets** — Immutable timestamped slices of published entry versions for compound regulatory filings spanning multiple document types.
 12. **Relationship graph** — Queryable connections between KB entries. Graph is an overlay, not the load-bearing structure — cross-document references bind to entry ID, not graph predicates.
 
-### Sheets (~25% complete)
+### Sheets (~40% complete)
 
-Spreadsheet editor. Same architecture: native web format for editing, conversion service for .xlsx/.ods import/export. Currently a functional prototype with 26×50 grid, cell editing, Yjs real-time sync, and a pure-logic formula engine.
+Spreadsheet editor. Same architecture: native web format for editing, conversion service for .xlsx/.ods import/export. Currently a functional prototype with 26×50 grid, cell editing, Yjs real-time sync, a pure-logic formula engine, cell formatting, and multi-sheet tabs.
 
-**What works:** Grid rendering, cell selection with formula bar, content editing via contentEditable, real-time Yjs sync (Y.Array of Y.Arrays), connection status, collaborative presence. Formula engine with 20+ Excel-compatible functions, recursive descent parser, cell dependency graph, and circular reference detection.
+**What works:** Grid rendering, cell selection with formula bar, content editing via contentEditable, real-time Yjs sync (Y.Array of Y.Arrays), connection status, collaborative presence. Formula engine with 20+ Excel-compatible functions. Cell formatting (bold, italic, underline, colors, number formats, alignment). Multi-sheet tabs with add/delete/rename and cross-sheet references. Copy/paste with range selection and clipboard integration.
 
-**What's next:** Cell formatting, multi-sheet tabs, copy/paste, column/row operations.
+**What's next:** Column/row operations, sorting & filtering, charts.
 
 *Milestones:*
 1. ~~**Formula engine**~~ (done) — Recursive descent parser with operator precedence, AST evaluator, 20+ functions (SUM, AVERAGE, COUNT, MIN, MAX, IF, VLOOKUP, CONCATENATE, text functions), cell references (A1, $A$1, ranges), all Excel error types (#VALUE!, #REF!, #DIV/0!, #NAME?, #N/A, #NUM!), circular reference detection via DFS. See `modules/sheets-formula/` and `contracts/sheets-formula/rules.md`.
-2. **Cell formatting** — Bold, italic, colors, number formats, alignment. Schema exists (CellFormat in spreadsheet.ts), UI needs building.
-3. **Multi-sheet tabs** — Tab bar, add/delete/rename sheets, cross-sheet references. Currently hardcoded to sheet-0.
-4. **Copy/paste & keyboard shortcuts** — Clipboard integration, range selection, standard Excel key bindings.
+2. ~~**Cell formatting**~~ (done) — Bold, italic, underline, strikethrough, font size, text/background colors, alignment, number formats (general, number, currency, percentage, date), borders. Yjs-backed format store, format toolbar with sections, keyboard shortcuts (Ctrl+B/I/U). See `modules/app/internal/sheets-format-*.ts`.
+3. ~~**Multi-sheet tabs**~~ (done) — Tab bar with add/delete/rename, context menu, cross-sheet references (Sheet2!A1 syntax), cell evaluator for cross-sheet resolution. See `modules/app/internal/sheets/`.
+4. ~~**Copy/paste & keyboard shortcuts**~~ (done) — Multi-cell range selection (click, shift+click, drag), custom clipboard handlers for copy/cut/paste, TSV for external apps, internal format preserving values and formatting. See `modules/app/internal/sheets/range-selection.ts` and `modules/app/internal/sheets/clipboard.ts`.
 5. **Column/row operations** — Resize, insert, delete, hide, freeze panes. Drag handles for sizing.
 6. **Sorting & filtering** — Column sort (asc/desc), auto-filter dropdowns, filter by value/condition.
 7. **Basic charts** — Bar, line, pie from selected data ranges. Embedded in sheet or as separate view.
@@ -127,18 +127,18 @@ Spreadsheet editor. Same architecture: native web format for editing, conversion
 
 Does not attempt: pivot tables, VBA macros, advanced data analysis, Power Query equivalent. Those are post-1.0.
 
-### Slides (~20% complete)
+### Slides (~35% complete)
 
-Presentation editor. Currently a functional prototype with slide panel, 16:9 viewport, text element editing via Yjs, and a full element interaction system.
+Presentation editor. Functional prototype with slide panel, 16:9 viewport, full element interaction system, multiple element types (text, image, shape, table), and rich text formatting.
 
-**What works:** Slide list with thumbnails, main viewport at 16:9, add slide, text element editing via contentEditable, Yjs sync (Y.Array of Y.Maps), connection status, presence. Element interaction: drag-to-move, 8-handle resize with aspect ratio lock, rotation with 15° snap, snap-to-grid and snap-to-element guides, multi-select with marquee, z-order management, keyboard nudge. All transforms are Yjs-transacted for undo/redo.
+**What works:** Slide list with thumbnails, main viewport at 16:9, add slide, text/image/shape/table elements, contentEditable text editing, Yjs sync (Y.Array of Y.Maps), presence. Element interaction: drag-to-move, 8-handle resize with aspect ratio lock, rotation with 15° snap, snap guides, multi-select with marquee, z-order management, keyboard nudge. Rich text formatting (bold, italic, underline, font size, color, alignment) with formatting toolbar. All transforms Yjs-transacted.
 
-**What's next:** Element types (images, shapes), text formatting, slide layouts/themes.
+**What's next:** Slide layouts/themes, transitions, speaker notes.
 
 *Milestones:*
 1. ~~**Element interaction**~~ (done) — Drag, resize (8 handles + Shift for aspect ratio), rotate (15° snap), snap engine (grid + element edges), selection manager (single/multi/marquee), z-order (bring forward/back/front/bottom), Yjs transactional mutations, DOM overlay rendering. See `modules/app/internal/slides/` and `contracts/app/slides-interaction.md`.
-2. **Element types** — Images (S3 upload), shapes (rectangle, circle, arrow, line), tables. Reuse existing image upload infrastructure from Documents.
-3. **Text formatting** — Rich text within elements (bold, italic, font size, color, alignment). TipTap mini-instance per text element.
+2. ~~**Element types**~~ (done) — Images (S3 upload), shapes (rectangle, circle, arrow, line), tables. Insert toolbar for adding elements. Shape rendering with fill/stroke. See `modules/app/internal/slides/render-shape.ts`.
+3. ~~**Text formatting**~~ (done) — Rich text within text and shape elements (bold, italic, underline, font size, color, alignment). Formatting toolbar with font controls. See `modules/app/internal/slides/text-format-toolbar.ts` and `modules/app/internal/slides/render-text.ts`.
 4. **Slide layouts & themes** — Master slide templates (title, content, two-column, blank). Theme colors and fonts applied globally.
 5. **Transitions** — Basic slide transitions (fade, slide, none). Not element animations.
 6. **Speaker notes** — Per-slide notes panel, visible in edit mode and presenter mode.

@@ -61,6 +61,23 @@ export const CREATE_KB_VERSION_HISTORY_TABLE = `
   )
 `;
 
+export const CREATE_KB_DATASET_ROWS_TABLE = `
+  CREATE TABLE IF NOT EXISTS kb_dataset_rows (
+    id UUID PRIMARY KEY,
+    entry_id UUID NOT NULL REFERENCES kb_entries(id) ON DELETE CASCADE,
+    row_index INTEGER NOT NULL,
+    data JSONB NOT NULL DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )
+`;
+
+export const CREATE_KB_DATASET_ROWS_INDEXES = `
+  CREATE INDEX IF NOT EXISTS idx_kb_dataset_rows_entry
+    ON kb_dataset_rows (entry_id);
+  CREATE INDEX IF NOT EXISTS idx_kb_dataset_rows_order
+    ON kb_dataset_rows (entry_id, row_index);
+`;
+
 export const APPLY_KB_SEARCH_SCHEMA = `
   DO $$ BEGIN
     IF NOT EXISTS (
@@ -85,5 +102,7 @@ export async function initKBSchema(): Promise<void> {
   await pool.query(CREATE_KB_RELATIONSHIPS_TABLE);
   await pool.query(CREATE_KB_RELATIONSHIPS_INDEXES);
   await pool.query(CREATE_KB_VERSION_HISTORY_TABLE);
+  await pool.query(CREATE_KB_DATASET_ROWS_TABLE);
+  await pool.query(CREATE_KB_DATASET_ROWS_INDEXES);
   await pool.query(APPLY_KB_SEARCH_SCHEMA);
 }

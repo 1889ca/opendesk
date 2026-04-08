@@ -3,6 +3,7 @@
 import { type KBEntryRecord, fetchEntry, deleteEntryApi } from './kb-api.ts';
 import { renderMetadata } from './detail-metadata.ts';
 import { loadRelationships } from './detail-relationships.ts';
+import { renderDatasetPreview } from './detail-dataset.ts';
 
 type DetailCallback = () => void;
 
@@ -94,6 +95,14 @@ async function renderDetail(
   // Type-specific metadata
   const metaSection = renderMetadata(entry);
   if (metaSection) body.appendChild(metaSection);
+
+  // Dataset table preview (loaded async)
+  if (entry.entryType === 'dataset') {
+    const previewSection = document.createElement('div');
+    previewSection.className = 'kb-detail__dataset-preview';
+    body.appendChild(previewSection);
+    renderDatasetPreview(previewSection, entry);
+  }
 
   // Actions
   const actions = document.createElement('div');

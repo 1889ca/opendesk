@@ -9,6 +9,8 @@ import { attachFormatShortcuts } from './sheets-format-shortcuts.ts';
 import { renderFormattedGrid } from './sheets-grid-render.ts';
 import { SheetStore } from './sheets/sheet-store.ts';
 import { TabBar } from './sheets/tab-bar.ts';
+import { createRangeSelection, type RangeSelection } from './sheets/range-selection.ts';
+import { createClipboardManager, type ClipboardManager } from './sheets/clipboard.ts';
 
 const DEFAULT_COLS = 26;
 const DEFAULT_ROWS = 50;
@@ -64,13 +66,22 @@ function init() {
     onFormatChanged: () => doRender(),
   });
 
+  // --- Range Selection & Clipboard ---
+  const rangeSelection = createRangeSelection(gridEl);
+  const clipboardMgr = createClipboardManager(gridEl, rangeSelection, store, {
+    ydoc,
+    ysheet: () => getActiveSheet(),
+  });
+
   function doRender() {
+    const currentRange = rangeSelection.getRange();
     renderFormattedGrid({
       gridEl, ydoc, ysheet: getActiveSheet(),
       cols: DEFAULT_COLS, rows: DEFAULT_ROWS,
       cellRefEl, formulaInput, formatToolbar,
       onCellFocus(r, c) { activeRow = r; activeCol = c; },
     });
+    if (currentRange) rangeSelection.setRange(currentRange);
   }
 
   // --- Sheet Switching ---
@@ -79,6 +90,7 @@ function init() {
     activeSheetId = sheetId;
     activeRow = 0;
     activeCol = 0;
+    rangeSelection.clear();
     if (cellRefEl) cellRefEl.textContent = 'A1';
     if (formulaInput) formulaInput.value = '';
     getActiveSheet().observeDeep(onSheetChange);

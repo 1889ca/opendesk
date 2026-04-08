@@ -140,6 +140,19 @@ export const coreTranslations: Partial<TranslationKeys> = {
   // Poign\u00e9e de glissement
   'dragHandle.tooltip': 'Glisser pour r\u00e9ordonner',
 
+  // Promotion vers la base de connaissances
+  'toolbar.saveToKb': 'Sauver dans BC',
+  'promoteKb.title': 'Sauvegarder dans la base de connaissances',
+  'promoteKb.noteTitle': 'Titre',
+  'promoteKb.preview': 'Aper\u00e7u',
+  'promoteKb.tags': '\u00c9tiquettes',
+  'promoteKb.tagsPlaceholder': '\u00c9tiquettes s\u00e9par\u00e9es par des virgules',
+  'promoteKb.save': 'Sauvegarder',
+  'promoteKb.cancel': 'Annuler',
+  'promoteKb.saving': 'Sauvegarde...',
+  'promoteKb.success': 'Sauvegard\u00e9 dans la base de connaissances',
+  'promoteKb.error': '\u00c9chec de la sauvegarde dans la base de connaissances',
+
   // Navigation (coquille SPA)
   'nav.dashboard': 'Documents',
   'nav.knowledgeBase': 'Base de connaissances',

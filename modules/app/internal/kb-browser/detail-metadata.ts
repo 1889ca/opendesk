@@ -59,8 +59,20 @@ function renderDatasetMetadata(m: Record<string, unknown>, el: HTMLElement): HTM
   heading.textContent = 'Dataset Details';
   el.appendChild(heading);
   if (m.format) addField(el, 'Format', String(m.format));
-  if (m.rowCount) addField(el, 'Row Count', String(m.rowCount));
   if (m.description) addField(el, 'Description', String(m.description));
+
+  // Column schema summary
+  if (Array.isArray(m.columns) && m.columns.length > 0) {
+    const cols = m.columns as { name: string; type: string }[];
+    addField(el, 'Columns', cols.map((c) => `${c.name} (${c.type})`).join(', '));
+  }
+
+  // Data preview placeholder — actual table loaded by detail-dataset.ts
+  const previewSlot = document.createElement('div');
+  previewSlot.className = 'kb-dataset-preview-slot';
+  previewSlot.dataset.entryId = '';
+  el.appendChild(previewSlot);
+
   return el;
 }
 

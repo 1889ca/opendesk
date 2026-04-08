@@ -95,6 +95,34 @@ Additionally provides a structured entity directory for people, organizations, p
 12. **Entity workspace scoping** -> Integration test: entities in workspace A not visible from workspace B.
 13. **Name validation** -> Unit test: empty and oversized names rejected.
 
+## Dataset Row Storage
+
+Dataset entries (entryType = 'dataset') can store tabular row data in a separate `kb_dataset_rows` table. Each row is a JSONB record keyed to the dataset entry.
+
+### Inputs
+- `entryId: string` — UUID of the parent dataset entry
+- `DatasetRowInput` — `{ data: Record<string, unknown> }` per row
+- Pagination: `limit` (default 100, max 1000), `offset` (default 0)
+
+### Outputs
+- `DatasetRow` — `{ id, entry_id, row_index, data, created_at }`
+- Row count for pagination
+
+### Operations
+- `insertRows(entryId, rows, startIndex?)` — append rows at a given index
+- `getRows(entryId, { limit, offset })` — paginated read ordered by row_index
+- `getRowCount(entryId)` — total row count
+- `updateRow(rowId, entryId, data)` — update a single row's data
+- `deleteRow(rowId, entryId)` — delete a single row
+- `clearRows(entryId)` — delete all rows
+- `replaceRows(entryId, rows)` — atomic swap of all rows in a transaction
+
+### Invariants
+- Rows are always scoped to a dataset entry (entryType must be 'dataset')
+- Deleting a KB entry cascades to all its dataset rows (FK ON DELETE CASCADE)
+- Row data is JSONB — column conformance is validated at the application layer, not the database layer
+- replaceRows is transactional (BEGIN/COMMIT/ROLLBACK)
+
 ## MVP Scope
 
 Implemented:
@@ -120,5 +148,6 @@ modules/kb/
     reference-adapter.ts -- maps existing Reference types to/from KBEntry
     schema.ts          -- DDL for kb tables
     pg-entities.ts     -- PostgreSQL CRUD for entities
+    pg-datasets.ts     -- PostgreSQL CRUD for dataset row data
     validate-content.ts -- content validation per subtype
 ```

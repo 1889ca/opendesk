@@ -104,5 +104,17 @@ export {
   validateContentSafe,
 } from './internal/validate-content.ts';
 
+// Dataset row operations
+export {
+  insertRows,
+  getRows,
+  getRowCount,
+  updateRow,
+  deleteRow,
+  clearRows,
+  replaceRows,
+} from './internal/pg-datasets.ts';
+
 // Row types
 export type { EntityRow, EntityUpdates } from './internal/pg-entities.ts';
+export type { DatasetRow, DatasetRowInput } from './internal/pg-datasets.ts';

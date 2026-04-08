@@ -1,0 +1,28 @@
+/** Contract: contracts/app/rules.md */
+
+/* Range selection highlight */
+.spreadsheet-grid .cell--selected {
+  background-color: rgba(66, 133, 244, 0.12);
+}
+
+/* Selection edge borders — 2px accent on outer edges */
+.spreadsheet-grid .cell--selection-edge-top {
+  border-top: 2px solid var(--accent);
+}
+
+.spreadsheet-grid .cell--selection-edge-bottom {
+  border-bottom: 2px solid var(--accent);
+}
+
+.spreadsheet-grid .cell--selection-edge-left {
+  border-left: 2px solid var(--accent);
+}
+
+.spreadsheet-grid .cell--selection-edge-right {
+  border-right: 2px solid var(--accent);
+}
+
+/* Override focus outline when part of a multi-cell selection */
+.spreadsheet-grid .cell--selected:focus {
+  outline: none;
+}

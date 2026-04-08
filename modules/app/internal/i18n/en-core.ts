@@ -140,6 +140,19 @@ export const coreTranslations: Partial<TranslationKeys> = {
   // Drag handle
   'dragHandle.tooltip': 'Drag to reorder',
 
+  // Promote to KB
+  'toolbar.saveToKb': 'Save to KB',
+  'promoteKb.title': 'Save to Knowledge Base',
+  'promoteKb.noteTitle': 'Title',
+  'promoteKb.preview': 'Preview',
+  'promoteKb.tags': 'Tags',
+  'promoteKb.tagsPlaceholder': 'Comma-separated tags',
+  'promoteKb.save': 'Save to KB',
+  'promoteKb.cancel': 'Cancel',
+  'promoteKb.saving': 'Saving...',
+  'promoteKb.success': 'Saved to Knowledge Base',
+  'promoteKb.error': 'Failed to save to Knowledge Base',
+
   // Navigation (SPA shell)
   'nav.dashboard': 'Documents',
   'nav.knowledgeBase': 'Knowledge Base',
