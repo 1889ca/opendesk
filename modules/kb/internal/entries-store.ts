@@ -2,8 +2,7 @@
 import { randomUUID } from 'node:crypto';
 import { pool } from '../../storage/internal/pool.ts';
 import type { KBEntry, KBQueryFilter, KBVersionRecord } from './types.ts';
-import { normalizeTags, getMetadataSchema, CreateEntryInputSchema, UpdateEntryInputSchema } from './schemas.ts';
-import type { CreateEntryInput, UpdateEntryInput } from './schemas.ts';
+import { type CreateEntryInput, type UpdateEntryInput, normalizeTags, getMetadataSchema, CreateEntryInputSchema, UpdateEntryInputSchema } from './schemas.ts';
 
 // --- Row mapping ---
 

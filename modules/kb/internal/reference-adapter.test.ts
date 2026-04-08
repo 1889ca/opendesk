@@ -1,7 +1,6 @@
 /** Contract: contracts/kb/rules.md — Reference adapter tests */
 import { describe, it, expect } from 'vitest';
-import { referenceToEntry, entryToReference } from './reference-adapter.ts';
-import type { LegacyReference } from './reference-adapter.ts';
+import { type LegacyReference, referenceToEntry, entryToReference } from './reference-adapter.ts';
 import type { KBEntry } from './types.ts';
 
 const now = new Date('2025-01-15T10:00:00Z');

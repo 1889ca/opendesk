@@ -2,8 +2,7 @@
 import { randomUUID } from 'node:crypto';
 import { pool } from '../../storage/internal/pool.ts';
 import type { KBRelationship } from './types.ts';
-import { CreateRelationshipInputSchema } from './schemas.ts';
-import type { CreateRelationshipInput } from './schemas.ts';
+import { type CreateRelationshipInput, CreateRelationshipInputSchema } from './schemas.ts';
 
 // --- Row mapping ---
 

@@ -1,7 +1,6 @@
 /** Contract: contracts/kb/rules.md */
 import type { KBEntry } from './types.ts';
-import type { ReferenceMetadata } from './schemas.ts';
-import { ReferenceMetadataSchema } from './schemas.ts';
+import { type ReferenceMetadata, ReferenceMetadataSchema } from './schemas.ts';
 
 /**
  * Legacy Reference type as it existed in the references module.
