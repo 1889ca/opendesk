@@ -74,3 +74,7 @@ Implemented:
 - [x] Cursor-based log pagination
 - [x] Chain verification endpoint
 - [x] Permission-gated API routes (owner only)
+- [x] Ed25519-signed Yjs updates (non-repudiable edit attribution)
+- [x] Per-user Ed25519 key generation and storage
+- [x] Yjs update signature verification API
+- [x] Append-only yjs_update_signatures table with PG trigger
