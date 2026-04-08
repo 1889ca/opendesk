@@ -1,0 +1,242 @@
+/* Admin dashboard page styles */
+
+.admin-breadcrumb {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.admin-wrapper {
+  flex: 1;
+  padding: 1.5rem;
+  max-width: 80rem;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.admin-panel {
+  background: var(--surface, var(--bg));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.admin-panel-narrow {
+  grid-column: 1 / -1;
+}
+
+.admin-panel-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-panel-badge {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+}
+
+.admin-loading,
+.admin-empty {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.admin-error {
+  font-size: 0.8125rem;
+  color: var(--disconnected, #ef4444);
+  text-align: center;
+  padding: 1.5rem;
+}
+
+/* Health indicators grid */
+.health-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.health-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: border-color 0.15s;
+}
+
+.health-card:hover {
+  border-color: var(--accent);
+}
+
+.health-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.health-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.health-value {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.health-status {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+  min-width: 4.5rem;
+  text-align: center;
+}
+
+.health-status-ok {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--connected, #22c55e);
+}
+
+.health-status-warning {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--accent, #f59e0b);
+}
+
+.health-status-critical {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--disconnected, #ef4444);
+}
+
+/* Operations table */
+.operations-container {
+  overflow-x: auto;
+}
+
+.ops-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.ops-table th {
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+
+.ops-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.ops-table tbody tr:hover {
+  background: var(--bg);
+}
+
+.ops-num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.ops-endpoint {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.ops-error-cell {
+  color: var(--disconnected, #ef4444);
+  font-weight: 600;
+}
+
+.ops-latency-warning {
+  color: var(--accent, #f59e0b);
+  font-weight: 600;
+}
+
+.ops-latency-critical {
+  color: var(--disconnected, #ef4444);
+  font-weight: 600;
+}
+
+/* System info */
+.system-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 0.5rem;
+}
+
+.sysinfo-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.sysinfo-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.sysinfo-value {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-wrapper {
+    padding: 0.75rem;
+  }
+
+  .system-info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

@@ -85,6 +85,24 @@ const builds = [
     minify: true,
     sourcemap: true,
   },
+  // Admin dashboard JS
+  {
+    entryPoints: ['modules/app/internal/admin-dashboard.ts'],
+    outfile: `${OUTDIR}/admin.bundle.js`,
+    bundle: true,
+    format: 'esm',
+    target: 'es2022',
+    minify: true,
+    sourcemap: true,
+  },
+  // Admin dashboard CSS
+  {
+    entryPoints: ['modules/app/internal/css/admin.css'],
+    outfile: `${OUTDIR}/admin.bundle.css`,
+    bundle: true,
+    minify: true,
+    sourcemap: true,
+  },
   // Share resolve JS
   {
     entryPoints: ['modules/app/internal/share-resolve.ts'],
