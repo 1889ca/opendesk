@@ -1,3 +1,4 @@
 /** CSS bundle entry for spreadsheet.html */
 @import "../public/styles.css";
 @import "../public/spreadsheet.css";
+@import "../public/sheet-tabs.css";
