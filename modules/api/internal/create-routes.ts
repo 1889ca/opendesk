@@ -22,6 +22,7 @@ import { createSearchRoutes } from './search-routes.ts';
 import { createReferenceRoutes } from './reference-routes.ts';
 import { createImportExportRoutes } from './reference-import-routes.ts';
 import { createEntityRoutes } from './entity-routes.ts';
+import { createKBEntryRoutes } from './kb-entry-routes.ts';
 import { createShareRoutes } from '../../sharing/index.ts';
 import { createAuditRoutes } from '../../audit/index.ts';
 import { createWorkflowRoutes } from '../../workflow/index.ts';
@@ -107,6 +108,9 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
   app.use('/api/templates', createTemplateRoutes({ permissions, authMode }));
   app.use('/api/references', createReferenceRoutes({ permissions }));
   app.use('/api/references', createImportExportRoutes({ permissions }));
+
+  // KB entry routes (generalized knowledge base entries + relationships)
+  app.use('/api/kb/entries', createKBEntryRoutes({ permissions }));
 
   // KB entity directory routes
   app.use('/api/kb/entities', createEntityRoutes({ permissions }));
