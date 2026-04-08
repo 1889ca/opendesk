@@ -5,6 +5,7 @@ import {
   formatIndicatorName, formatValue, formatUptime, latencyClass, escapeHtml,
   type HealthIndicator, type OperationSummary, type MetricsSummary, type AuditSummary,
 } from './admin-helpers.ts';
+import { buildObservabilitySection, initObservabilityDashboard } from './admin/observability-dashboard.ts';
 
 // --- Rendering ---
 
@@ -87,68 +88,39 @@ function renderOperations(container: HTMLElement, operations: OperationSummary[]
   container.appendChild(table);
 }
 
-function renderSystemInfo(container: HTMLElement, summary: MetricsSummary): void {
+function renderInfoGrid(container: HTMLElement, items: Array<{ label: string; value: string }>): void {
   container.innerHTML = '';
-
-  const items: Array<{ label: string; value: string }> = [
-    { label: 'Uptime', value: formatUptime(summary.uptime) },
-    { label: 'Last Updated', value: new Date(summary.timestamp).toLocaleTimeString() },
-    { label: 'Health Probes', value: String(summary.health.length) },
-    { label: 'Tracked Endpoints', value: String(summary.operations.length) },
-    {
-      label: 'Total Requests',
-      value: String(summary.operations.reduce((sum, op) => sum + op.count, 0)),
-    },
-    {
-      label: 'Total Errors',
-      value: String(summary.operations.reduce((sum, op) => sum + op.errorCount, 0)),
-    },
-  ];
-
   for (const item of items) {
     const row = document.createElement('div');
     row.className = 'sysinfo-row';
-
     const label = document.createElement('span');
     label.className = 'sysinfo-label';
     label.textContent = item.label;
-
     const value = document.createElement('span');
     value.className = 'sysinfo-value';
     value.textContent = item.value;
-
     row.append(label, value);
     container.appendChild(row);
   }
 }
 
-function renderAuditInfo(container: HTMLElement, audit: AuditSummary): void {
-  container.innerHTML = '';
+function renderSystemInfo(container: HTMLElement, summary: MetricsSummary): void {
+  renderInfoGrid(container, [
+    { label: 'Uptime', value: formatUptime(summary.uptime) },
+    { label: 'Last Updated', value: new Date(summary.timestamp).toLocaleTimeString() },
+    { label: 'Health Probes', value: String(summary.health.length) },
+    { label: 'Tracked Endpoints', value: String(summary.operations.length) },
+    { label: 'Total Requests', value: String(summary.operations.reduce((s, op) => s + op.count, 0)) },
+    { label: 'Total Errors', value: String(summary.operations.reduce((s, op) => s + op.errorCount, 0)) },
+  ]);
+}
 
-  const items: Array<{ label: string; value: string }> = [
+function renderAuditInfo(container: HTMLElement, audit: AuditSummary): void {
+  renderInfoGrid(container, [
     { label: 'Total Entries', value: String(audit.totalEntries) },
     { label: 'Documents Tracked', value: String(audit.documentsTracked) },
-    {
-      label: 'Last Activity',
-      value: audit.lastEntryAt ? new Date(audit.lastEntryAt).toLocaleString() : 'None',
-    },
-  ];
-
-  for (const item of items) {
-    const row = document.createElement('div');
-    row.className = 'sysinfo-row';
-
-    const label = document.createElement('span');
-    label.className = 'sysinfo-label';
-    label.textContent = item.label;
-
-    const value = document.createElement('span');
-    value.className = 'sysinfo-value';
-    value.textContent = item.value;
-
-    row.append(label, value);
-    container.appendChild(row);
-  }
+    { label: 'Last Activity', value: audit.lastEntryAt ? new Date(audit.lastEntryAt).toLocaleString() : 'None' },
+  ]);
 }
 
 // --- Data Loading ---
@@ -197,6 +169,13 @@ function init(): void {
   setInterval(loadDashboard, 30_000);
 
   document.getElementById('refresh-btn')?.addEventListener('click', loadDashboard);
+
+  // Inject observability dashboard section into the admin grid
+  const adminGrid = document.querySelector('.admin-grid');
+  if (adminGrid) {
+    adminGrid.insertAdjacentHTML('beforeend', buildObservabilitySection());
+    initObservabilityDashboard();
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);

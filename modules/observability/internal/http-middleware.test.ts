@@ -10,6 +10,8 @@ function makeMockObs(): ObservabilityModule {
     getHealth: vi.fn(),
     startHealthMonitor: vi.fn(),
     stopHealthMonitor: vi.fn(),
+    getTimeSeries: vi.fn(),
+    searchByCorrelationId: vi.fn(),
   };
 }
 

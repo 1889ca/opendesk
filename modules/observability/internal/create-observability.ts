@@ -1,7 +1,8 @@
 /** Contract: contracts/observability/rules.md */
 import type { Pool } from 'pg';
-import type { MetricEntry, MetricsSummary, HealthIndicator, ObservabilityModule } from '../contract.ts';
+import type { MetricEntry, MetricsSummary, HealthIndicator, TimeSeriesPoint, MetricsFilter, ObservabilityModule } from '../contract.ts';
 import { insertMetric, getOperationSummaries, getLatestHealthIndicators } from './metric-store.ts';
+import { getTimeSeriesData, searchByCorrelationId as searchCorrelation } from './metric-queries.ts';
 import { createHealthMonitor } from './health-monitor.ts';
 import { createLogger } from '../../logger/index.ts';
 
@@ -48,10 +49,20 @@ export function createObservability(deps: ObservabilityDependencies): Observabil
     return getLatestHealthIndicators(pool);
   }
 
+  async function getTimeSeries(rangeMinutes: number, filter?: MetricsFilter): Promise<TimeSeriesPoint[]> {
+    return getTimeSeriesData(pool, rangeMinutes, filter);
+  }
+
+  async function searchByCorrelationId(correlationId: string): Promise<MetricEntry[]> {
+    return searchCorrelation(pool, correlationId);
+  }
+
   return {
     recordMetric,
     getSummary,
     getHealth,
+    getTimeSeries,
+    searchByCorrelationId,
     startHealthMonitor: () => monitor.start(),
     stopHealthMonitor: () => monitor.stop(),
   };
