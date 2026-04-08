@@ -4,12 +4,8 @@ import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from './async-handler.ts';
-import {
-  listEntryVersions,
-  getEntryVersion,
-  resolveReference,
-  parseKbUri,
-} from '../../kb/index.ts';
+import { listVersions as listEntryVersions, getVersion as getEntryVersion } from '../../kb/internal/pg-versions.ts';
+import { resolveReference, parseKbUri } from '../../kb/internal/resolve-ref.ts';
 
 const ResolveBody = z.object({
   uri: z.string().optional(),

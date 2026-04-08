@@ -147,7 +147,7 @@ export function renderMetaFields(
 
 /** Read column definitions from the column editor. */
 function readColumnEditor(container: HTMLElement): { name: string; type: string }[] {
-  const rows = container.querySelectorAll('.kb-meta-column-row');
+  const rows = Array.from(container.querySelectorAll('.kb-meta-column-row'));
   const columns: { name: string; type: string }[] = [];
   for (const row of rows) {
     const name = (row.querySelector('.kb-meta-col-name') as HTMLInputElement)?.value.trim();

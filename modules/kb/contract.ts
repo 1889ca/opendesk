@@ -143,3 +143,32 @@ export const EntityUpdateInputSchema = z.object({
 });
 
 export type EntityUpdateInput = z.infer<typeof EntityUpdateInputSchema>;
+
+// --- KB Entry Lifecycle Status ---
+
+export type KbEntryStatus = 'draft' | 'reviewed' | 'published' | 'deprecated';
+
+export const KbEntryStatusSchema = z.enum(['draft', 'reviewed', 'published', 'deprecated']);
+
+export const STATUS_TRANSITIONS: Record<KbEntryStatus, KbEntryStatus[]> = {
+  draft: ['reviewed'],
+  reviewed: ['published', 'draft'],
+  published: ['deprecated'],
+  deprecated: [],
+};
+
+// --- KB Version Reference Types ---
+
+export interface KbVersionRef {
+  entryId: string;
+  version: number | 'latest';
+}
+
+export interface ResolvedReference {
+  entryId: string;
+  version: number;
+  title: string;
+  body: string;
+  status: KbEntryStatus;
+  resolvedAt: string;
+}

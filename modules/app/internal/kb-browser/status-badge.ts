@@ -30,7 +30,7 @@ export function createTransitionButtons(
   onTransition: (to: KbEntryStatus) => void,
 ): HTMLButtonElement[] {
   const targets = STATUS_TRANSITIONS[status];
-  return targets.map((target) => {
+  return targets.map((target: KbEntryStatus) => {
     const btn = document.createElement('button');
     btn.className = `btn btn-transition kb-transition-${target}`;
     btn.textContent = transitionLabel(status, target);

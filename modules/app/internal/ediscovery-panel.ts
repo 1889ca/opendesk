@@ -1,5 +1,5 @@
 /** Contract: contracts/ediscovery/rules.md */
-import { apiFetch } from './api-client.ts';
+import { apiFetch } from './shared/api-client.ts';
 
 type ExportType = 'sar' | 'foia';
 type ExportFormat = 'json' | 'csv' | 'pdf';

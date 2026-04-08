@@ -13,11 +13,10 @@ import {
   updateEntry,
   deleteEntry,
   transitionStatus,
-  validateTransition,
-  KbEntryCreateInputSchema,
-  KbEntryUpdateInputSchema,
-  KbEntryStatusSchema,
-} from '../../kb/index.ts';
+} from '../../kb/internal/pg-entries.ts';
+import { validateTransition } from '../../kb/internal/lifecycle.ts';
+import { KbEntryStatusSchema } from '../../kb/contract.ts';
+import { CreateEntryInputSchema as KbEntryCreateInputSchema, UpdateEntryInputSchema as KbEntryUpdateInputSchema } from '../../kb/internal/schemas.ts';
 
 const TransitionBody = z.object({
   to: KbEntryStatusSchema,

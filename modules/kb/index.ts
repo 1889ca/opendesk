@@ -64,6 +64,34 @@ export { searchEntries } from './internal/search.ts';
 // Public API — reverse dependencies
 export { getReverseDependencies } from './internal/reverse-deps.ts';
 
+// Public API — lifecycle (pg-entries status + versions)
+export {
+  listPublishedEntries,
+  transitionStatus,
+} from './internal/pg-entries.ts';
+
+// Public API — lifecycle validation
+export { validateTransition } from './internal/lifecycle.ts';
+
+// Public API — version resolution
+export {
+  listVersions as listEntryVersions,
+  getVersion as getEntryVersion,
+} from './internal/pg-versions.ts';
+
+// Public API — reference resolution
+export {
+  resolveReference,
+  parseKbUri,
+  buildKbUri,
+} from './internal/resolve-ref.ts';
+
+// Zod schemas for KB entry CRUD (used by api routes)
+export {
+  CreateEntryInputSchema as KbEntryCreateInputSchema,
+  UpdateEntryInputSchema as KbEntryUpdateInputSchema,
+} from './internal/schemas.ts';
+
 // Schema initialization
 export { initKBSchema } from './internal/schema.ts';
 
@@ -89,6 +117,14 @@ export type {
   OrganizationContent,
   ProjectContent,
   TermContent,
+  KbEntryStatus,
+  KbVersionRef,
+  ResolvedReference,
+} from './contract.ts';
+
+export {
+  KbEntryStatusSchema,
+  STATUS_TRANSITIONS,
 } from './contract.ts';
 
 // Entity CRUD

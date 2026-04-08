@@ -42,6 +42,7 @@ export {
   detectImportFormat,
   isValidImportFormat,
   isValidExportFormat,
+  isPresentationFormat,
   getExportMimeType,
   getExportExtension,
 } from './internal/formats.ts';
@@ -61,8 +62,11 @@ export { htmlToProseMirrorJson } from './internal/html-parser.ts';
 export { snapshotToHtml, contentToHtml } from './internal/html-renderer.ts';
 
 // Import/Export pipelines
-export { importFile, ImportError } from './internal/importer.ts';
+export { importFile, importFile as importSlideFile, ImportError, ImportError as SlideImportError } from './internal/importer.ts';
 export { exportDocument, ExportError } from './internal/exporter.ts';
+
+// Presentation export
+export { exportPresentation } from './internal/presentation-exporter.ts';
 
 // Spreadsheet import/export
 export {

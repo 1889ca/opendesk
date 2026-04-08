@@ -1,13 +1,40 @@
 /** Contract: contracts/kb/rules.md */
 import type { Pool } from 'pg';
 import { pool as defaultPool } from '../../storage/internal/pool.ts';
-import type {
-  KbEntry,
-  KbEntryCreateInput,
-  KbEntryUpdateInput,
-  KbLifecycle,
-} from '../contract.ts';
-import { VALID_LIFECYCLE_TRANSITIONS } from '../contract.ts';
+import type { KbEntryStatus } from '../contract.ts';
+import { STATUS_TRANSITIONS } from '../contract.ts';
+
+type KbLifecycle = KbEntryStatus;
+const VALID_LIFECYCLE_TRANSITIONS = STATUS_TRANSITIONS;
+
+/** Local entry shape for the pg-kb store (lifecycle-aware). */
+interface KbEntry {
+  id: string;
+  workspaceId: string;
+  entryType: string;
+  corpus: string;
+  lifecycle: KbLifecycle;
+  title: string;
+  tags: string[];
+  content: Record<string, unknown>;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface KbEntryCreateInput {
+  entryType: string;
+  corpus: string;
+  title: string;
+  tags: string[];
+  content: Record<string, unknown>;
+}
+
+interface KbEntryUpdateInput {
+  title?: string;
+  tags?: string[];
+  content?: Record<string, unknown>;
+}
 
 /** Create a new KB entry in draft lifecycle state. */
 export async function createEntry(
@@ -18,7 +45,7 @@ export async function createEntry(
   pg: Pool = defaultPool,
 ): Promise<KbEntry> {
   const now = new Date().toISOString();
-  const result = await pg.query<KbEntry>(
+  const result = await pg.query<Record<string, unknown>>(
     `INSERT INTO kb_entries (id, workspace_id, entry_type, corpus, lifecycle, title, tags, content, created_by, created_at, updated_at)
      VALUES ($1, $2, $3, $4, 'draft', $5, $6, $7, $8, $9, $9)
      RETURNING *`,

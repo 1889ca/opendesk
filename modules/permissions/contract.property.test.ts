@@ -45,7 +45,7 @@ const baseQuery = {
 describe('permissions/evaluate property tests', () => {
   it('higher roles always include all permissions of lower roles', () => {
     fc.assert(
-      fc.property(roleArb, actionArb, (role, action) => {
+      fc.property(roleArb, actionArb, (role: Role, action: Action) => {
         const result = evaluate(principal, [makeGrant(role)], {
           ...baseQuery,
           action,
@@ -69,7 +69,7 @@ describe('permissions/evaluate property tests', () => {
 
   it('owner always has full access to every action', () => {
     fc.assert(
-      fc.property(actionArb, (action) => {
+      fc.property(actionArb, (action: Action) => {
         const result = evaluate(principal, [makeGrant('owner')], {
           ...baseQuery,
           action,
@@ -82,7 +82,7 @@ describe('permissions/evaluate property tests', () => {
 
   it('empty grants always results in no access', () => {
     fc.assert(
-      fc.property(actionArb, (action) => {
+      fc.property(actionArb, (action: Action) => {
         const result = evaluate(principal, [], {
           ...baseQuery,
           action,
@@ -96,7 +96,7 @@ describe('permissions/evaluate property tests', () => {
 
   it('evaluate picks the highest role when multiple grants exist', () => {
     fc.assert(
-      fc.property(roleArb, roleArb, actionArb, (role1, role2, action) => {
+      fc.property(roleArb, roleArb, actionArb, (role1: Role, role2: Role, action: Action) => {
         const grants = [
           makeGrant(role1, { id: 'grant-1' }),
           makeGrant(role2, { id: 'grant-2' }),
@@ -121,7 +121,7 @@ describe('permissions/evaluate property tests', () => {
 
   it('grants for wrong principal/resource are ignored', () => {
     fc.assert(
-      fc.property(roleArb, actionArb, (role, action) => {
+      fc.property(roleArb, actionArb, (role: Role, action: Action) => {
         const wrongPrincipalGrant = makeGrant(role, {
           principalId: 'other-user',
         });

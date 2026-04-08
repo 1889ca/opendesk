@@ -10,6 +10,8 @@ interface EntryRow {
   metadata: Record<string, unknown>;
   tags: string[];
   version: number;
+  corpus: string;
+  jurisdiction: string | null;
   created_by: string;
   created_at: Date;
   updated_at: Date;
@@ -24,6 +26,8 @@ function rowToEntry(row: EntryRow): KBEntry {
     metadata: row.metadata,
     tags: row.tags,
     version: row.version,
+    corpus: (row.corpus ?? 'knowledge') as KBEntry['corpus'],
+    jurisdiction: row.jurisdiction,
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

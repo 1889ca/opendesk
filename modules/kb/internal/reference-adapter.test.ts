@@ -85,6 +85,8 @@ describe('entryToReference', () => {
       metadata: { body: 'text', format: 'markdown', pinned: false },
       tags: [],
       version: 1,
+      corpus: 'knowledge',
+      jurisdiction: null,
       createdBy: 'user-1',
       createdAt: now,
       updatedAt: now,

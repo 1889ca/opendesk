@@ -49,6 +49,8 @@ export function referenceToEntry(ref: LegacyReference): KBEntry {
     metadata: ReferenceMetadataSchema.parse(metadata),
     tags: ref.tags,
     version: 1,
+    corpus: 'reference',
+    jurisdiction: null,
     createdBy: ref.createdBy,
     createdAt: ref.createdAt,
     updatedAt: ref.updatedAt,

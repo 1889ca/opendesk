@@ -21,7 +21,7 @@ describe('convert/html-parser property tests', () => {
       fc.property(
         fc.integer({ min: 1, max: 10 }),
         fc.stringMatching(/^[a-zA-Z]{1,30}$/),
-        (depth, text) => {
+        (depth: number, text: string) => {
           let html = text;
           for (let i = 0; i < depth; i++) {
             html = `<p>${html}</p>`;
@@ -36,7 +36,7 @@ describe('convert/html-parser property tests', () => {
 
   it('does not crash on malformed HTML', () => {
     fc.assert(
-      fc.property(fc.string({ maxLength: 1000 }), (input) => {
+      fc.property(fc.string({ maxLength: 1000 }), (input: string) => {
         const doc = htmlToProseMirrorJson(input);
         expect(doc.type).toBe('doc');
         expect(Array.isArray(doc.content)).toBe(true);
@@ -49,7 +49,7 @@ describe('convert/html-parser property tests', () => {
     fc.assert(
       fc.property(
         fc.stringMatching(/^[a-zA-Z]{1,100}$/),
-        (text) => {
+        (text: string) => {
           const html = `<p>${text}</p>`;
           const doc = htmlToProseMirrorJson(html);
           const outputText = collectText(
@@ -63,7 +63,7 @@ describe('convert/html-parser property tests', () => {
 
   it('always returns a doc with at least one content node', () => {
     fc.assert(
-      fc.property(fc.string({ maxLength: 500 }), (input) => {
+      fc.property(fc.string({ maxLength: 500 }), (input: string) => {
         const doc = htmlToProseMirrorJson(input);
         expect(doc.type).toBe('doc');
         expect(doc.content.length).toBeGreaterThanOrEqual(1);
@@ -76,7 +76,7 @@ describe('convert/html-parser property tests', () => {
       fc.property(
         fc.stringMatching(/^[a-zA-Z]{1,50}$/),
         fc.constantFrom('p', 'strong', 'em', 'div', 'span', 'h1'),
-        (text, tag) => {
+        (text: string, tag: string) => {
           const html = `<${tag}>${text}</${tag}>`;
           const stripped = stripTags(html);
           expect(stripped).toBe(text);
