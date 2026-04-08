@@ -63,3 +63,46 @@ export { getReverseDependencies } from './internal/reverse-deps.ts';
 
 // Schema initialization
 export { initKBSchema } from './internal/schema.ts';
+
+// Entity directory schemas and types
+export {
+  KBEntitySchema,
+  KBEntitySummarySchema,
+  EntityCreateInputSchema,
+  EntityUpdateInputSchema,
+  PersonContentSchema,
+  OrganizationContentSchema,
+  ProjectContentSchema,
+  TermContentSchema,
+  ENTITY_SUBTYPES,
+  contentSchemaForSubtype,
+} from './contract.ts';
+
+export type {
+  KBEntitySummary,
+  EntityCreateInput,
+  EntityUpdateInput,
+  PersonContent,
+  OrganizationContent,
+  ProjectContent,
+  TermContent,
+} from './contract.ts';
+
+// Entity CRUD
+export {
+  createEntity,
+  getEntity,
+  listEntities,
+  updateEntity,
+  deleteEntity,
+  searchEntities,
+} from './internal/pg-entities.ts';
+
+// Content validation
+export {
+  validateContent,
+  validateContentSafe,
+} from './internal/validate-content.ts';
+
+// Row types
+export type { EntityRow, EntityUpdates } from './internal/pg-entities.ts';
