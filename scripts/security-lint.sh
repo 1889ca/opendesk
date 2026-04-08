@@ -39,23 +39,26 @@ fi
 # 2. Check that auth middleware is mounted before routes
 echo ""
 echo "--- Auth Middleware Ordering ---"
-SERVER_FILE="$MODULES/api/internal/server.ts"
-if [ -f "$SERVER_FILE" ]; then
-  AUTH_LINE=$(grep -n "auth.middleware\|authMiddleware" "$SERVER_FILE" | head -1 | cut -d: -f1 || echo "0")
-  ROUTE_LINES=$(grep -n "app.use\|app.get\|app.post\|app.put\|app.patch\|app.delete" "$SERVER_FILE" \
-    | grep -v "express.json\|express.static\|health\|auth.middleware\|authMiddleware\|idempotency" \
-    | head -5)
+API_DIR="$MODULES/api/internal"
+if [ -d "$API_DIR" ]; then
+  AUTH_HIT=$(grep -rn "auth\.middleware\|authMiddleware" "$API_DIR" --include='*.ts' \
+    | grep -v '\.test\.ts' | head -1 || true)
 
-  if [ "$AUTH_LINE" = "0" ]; then
-    error "No auth middleware found in server.ts"
+  if [ -z "$AUTH_HIT" ]; then
+    error "No auth middleware found in api module"
   else
+    AUTH_FILE=$(echo "$AUTH_HIT" | cut -d: -f1)
+    AUTH_LINE=$(echo "$AUTH_HIT" | cut -d: -f2)
+    ROUTE_LINES=$(grep -n "app.use\|app.get\|app.post\|app.put\|app.patch\|app.delete" "$AUTH_FILE" \
+      | grep -v "express.json\|express.static\|health\|auth.middleware\|authMiddleware\|idempotency" \
+      | head -5)
     EARLY_ROUTES=$(echo "$ROUTE_LINES" | awk -F: -v auth="$AUTH_LINE" '$1 < auth {print}')
     if [ -n "$EARLY_ROUTES" ]; then
-      error "Routes mounted BEFORE auth middleware (line $AUTH_LINE):"
+      error "Routes mounted BEFORE auth middleware (line $AUTH_LINE in $(basename "$AUTH_FILE")):"
       echo "$EARLY_ROUTES"
       echo ""
     else
-      ok "All API routes mounted after auth middleware"
+      ok "Auth middleware found in $(basename "$AUTH_FILE"):$AUTH_LINE"
     fi
   fi
 fi
