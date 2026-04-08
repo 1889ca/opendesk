@@ -28,6 +28,7 @@ import { openEmojiPicker } from './emoji/index.ts';
 import { openCitationPicker, createBibliography, buildReferenceLibrary } from './citations/index.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
 import { buildEditorExtensions } from './editor-extensions.ts';
+import { initEntityMentionClicks } from './entity-mentions/index.ts';
 import { getUserIdentity, getDocumentId } from '../shared/identity.ts';
 import { initEditorPage } from './editor-page.ts';
 
@@ -101,6 +102,7 @@ function init() {
   setupSuggestionClickHandler(editor);
 
   setupCodeBlockUI(editor);
+  initEntityMentionClicks(editorEl);
   buildFormattingToolbar(editor);
   buildTableToolbar(editor);
   buildSearchPanel(editor);
