@@ -14,9 +14,9 @@ CREATE TABLE IF NOT EXISTS metrics (
   timestamp TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_metrics_timestamp ON metrics (timestamp DESC);
-CREATE INDEX idx_metrics_correlation ON metrics (correlation_id);
-CREATE INDEX idx_metrics_operation ON metrics (operation, timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON metrics (timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_metrics_correlation ON metrics (correlation_id);
+CREATE INDEX IF NOT EXISTS idx_metrics_operation ON metrics (operation, timestamp DESC);
 
 CREATE TABLE IF NOT EXISTS health_indicators (
   id UUID PRIMARY KEY,
@@ -27,5 +27,5 @@ CREATE TABLE IF NOT EXISTS health_indicators (
   timestamp TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_health_timestamp ON health_indicators (timestamp DESC);
-CREATE INDEX idx_health_name ON health_indicators (indicator_name, timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_health_timestamp ON health_indicators (timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_health_name ON health_indicators (indicator_name, timestamp DESC);

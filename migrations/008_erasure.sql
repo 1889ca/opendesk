@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS erasure_attestations (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_erasure_document ON erasure_attestations (document_id);
-CREATE INDEX idx_erasure_timestamp ON erasure_attestations (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_erasure_document ON erasure_attestations (document_id);
+CREATE INDEX IF NOT EXISTS idx_erasure_timestamp ON erasure_attestations (created_at DESC);
 
 CREATE TABLE IF NOT EXISTS retention_policies (
   id UUID PRIMARY KEY,
