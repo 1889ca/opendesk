@@ -1,8 +1,7 @@
 /** Contract: contracts/federation/rules.md */
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
-import type { FederationModule } from '../contract.ts';
-import { TransferBundleSchema } from '../contract.ts';
+import { TransferBundleSchema, type FederationModule } from '../contract.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
 import { verifySignature, sha256 } from './signing.ts';
