@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenDesk - Entity Directory</title>
+  <link rel="stylesheet" href="doc-list.bundle.css">
+  <link rel="stylesheet" href="entity-browser.css">
+  <script>
+    (function() {
+      var stored = localStorage.getItem('opendesk-theme');
+      var theme = stored === 'dark' ? 'dark'
+        : stored === 'light' ? 'light'
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+<body>
+  <header class="toolbar">
+    <div class="toolbar-left">
+      <a href="/" class="back-link">Back to documents</a>
+      <span class="toolbar-separator"></span>
+      <h1 class="logo">Entity Directory</h1>
+    </div>
+    <div class="toolbar-right">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
+      <button id="new-entity-btn" class="btn btn-primary">New Entity</button>
+    </div>
+  </header>
+
+  <main class="entity-browser-wrapper">
+    <div class="entity-browser-controls">
+      <input
+        id="entity-search"
+        type="text"
+        class="entity-search-input"
+        placeholder="Search entities..."
+        aria-label="Search entities"
+      />
+      <div id="entity-filters" class="entity-filters">
+        <button class="entity-filter is-active" data-subtype="">All</button>
+        <button class="entity-filter" data-subtype="person">People</button>
+        <button class="entity-filter" data-subtype="organization">Organizations</button>
+        <button class="entity-filter" data-subtype="project">Projects</button>
+        <button class="entity-filter" data-subtype="term">Terms</button>
+      </div>
+    </div>
+    <div id="entity-list" class="entity-list">
+      <div class="entity-list-loading">Loading entities...</div>
+    </div>
+  </main>
+
+  <!-- Create/Edit entity dialog -->
+  <div id="entity-dialog" class="entity-dialog-overlay" hidden>
+    <div class="entity-dialog">
+      <div class="entity-dialog__header">
+        <h3 id="entity-dialog-title">New Entity</h3>
+        <button id="entity-dialog-close" class="entity-dialog__close" aria-label="Close">&times;</button>
+      </div>
+      <form id="entity-form" class="entity-dialog__form">
+        <label for="entity-name">Name</label>
+        <input id="entity-name" type="text" required maxlength="200" />
+
+        <label for="entity-subtype">Type</label>
+        <select id="entity-subtype" required>
+          <option value="person">Person</option>
+          <option value="organization">Organization</option>
+          <option value="project">Project</option>
+          <option value="term">Term</option>
+        </select>
+
+        <div id="entity-content-fields"></div>
+
+        <label for="entity-tags">Tags (comma-separated)</label>
+        <input id="entity-tags" type="text" placeholder="e.g. staff, engineering" />
+
+        <div class="entity-dialog__actions">
+          <button type="button" id="entity-cancel" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="entity-browser.bundle.js"></script>
+</body>
+</html>
