@@ -21,14 +21,13 @@ import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts'
 import { createSearchRoutes } from './search-routes.ts';
 import { createReferenceRoutes } from './reference-routes.ts';
 import { createImportExportRoutes } from './reference-import-routes.ts';
-import {
-  createShareLinkService,
-  createPgShareLinkStore,
-  createShareRoutes,
-} from '../../sharing/index.ts';
+import { createShareLinkService, createPgShareLinkStore, createShareRoutes } from '../../sharing/index.ts';
 import { pool, initSchema } from '../../storage/index.ts';
-import { ensureS3Bucket } from './s3-client.ts';
-import { applySecurityMiddleware } from './security.ts';
+import { ensureS3Bucket } from './s3-client.ts'; import { applySecurityMiddleware } from './security.ts';
+import { createEventBus } from '../../events/index.ts';
+import { createAudit, createAuditRoutes } from '../../audit/index.ts';
+import { createWorkflow, createWorkflowRoutes } from '../../workflow/index.ts';
+import { loadConfig } from '../../config/index.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG_VERSION = JSON.parse(
@@ -84,6 +83,17 @@ export async function startServer(port = 3000) {
     exemptPaths: ['/share/'],
   }));
 
+  // Wire event bus, audit, and workflow modules
+  const config = loadConfig();
+  const eventBus = createEventBus(pool, redisClient);
+  const audit = createAudit({
+    pool,
+    eventBus,
+    hmacSecret: config.audit.hmacSecret,
+  });
+  const workflow = createWorkflow({ pool, eventBus });
+  eventBus.startBackgroundJobs();
+
   // Serve static frontend
   const publicDir = resolve(__dirname, '../../app/internal/public');
   app.use(express.static(publicDir));
@@ -131,6 +141,12 @@ export async function startServer(port = 3000) {
   // Reference import/export (BibTeX, RIS)
   app.use('/api/references', createImportExportRoutes({ permissions }));
 
+  // Audit routes (crypto audit log + chain verification)
+  app.use('/api/audit', createAuditRoutes({ permissions, auditModule: audit }));
+
+  // Workflow routes (trigger/action CRUD + execution history)
+  app.use('/api/workflows', createWorkflowRoutes({ permissions, workflowModule: workflow }));
+
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
 
@@ -169,9 +185,11 @@ export async function startServer(port = 3000) {
     console.log(`[opendesk] WebSocket collab at ws://localhost:${port}/collab`);
   });
 
-  // Graceful shutdown: disconnect Redis on process exit
+  // Graceful shutdown
   const shutdown = async () => {
     console.log('[opendesk] shutting down...');
+    eventBus.stopConsuming();
+    eventBus.stopBackgroundJobs();
     await disconnectRedis();
     httpServer.close();
   };

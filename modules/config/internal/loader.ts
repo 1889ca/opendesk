@@ -45,6 +45,9 @@ function readEnv(): unknown {
       timeoutMs: env.COLLABORA_TIMEOUT_MS,
       flushTimeoutMs: env.FLUSH_TIMEOUT_MS,
     },
+    audit: {
+      hmacSecret: env.OPENDESK_AUDIT_HMAC_SECRET,
+    },
   };
 }
 
@@ -81,6 +84,9 @@ function validateProductionRules(config: AppConfig): void {
     throw new Error(
       'S3_ACCESS_KEY and S3_SECRET_KEY must be set in production',
     );
+  }
+  if (config.audit.hmacSecret.includes('dev-audit-secret')) {
+    throw new Error('OPENDESK_AUDIT_HMAC_SECRET must be set in production');
   }
 }
 
