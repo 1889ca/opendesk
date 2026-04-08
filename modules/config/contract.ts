@@ -60,6 +60,16 @@ export const ObservabilityConfigSchema = z.object({
   healthIntervalMs: z.coerce.number().int().positive().default(60000),
 });
 
+export const AiConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  ollamaUrl: z.string().default('http://localhost:11434'),
+  embeddingModel: z.string().default('all-minilm'),
+  chatModel: z.string().default('llama3.2'),
+  chunkSize: z.coerce.number().int().positive().default(512),
+  chunkOverlap: z.coerce.number().int().nonnegative().default(64),
+  embeddingDimensions: z.coerce.number().int().positive().default(384),
+});
+
 export const AppConfigSchema = z.object({
   server: ServerConfigSchema,
   auth: AuthConfigSchema,
@@ -70,6 +80,7 @@ export const AppConfigSchema = z.object({
   audit: AuditConfigSchema,
   logger: LoggerConfigSchema,
   observability: ObservabilityConfigSchema,
+  ai: AiConfigSchema,
 });
 
 export type AuthMode = z.infer<typeof AuthModeSchema>;
@@ -81,5 +92,6 @@ export type CollaboraConfig = z.infer<typeof CollaboraConfigSchema>;
 export type AuditConfig = z.infer<typeof AuditConfigSchema>;
 export type LoggerConfig = z.infer<typeof LoggerConfigSchema>;
 export type ObservabilityConfig = z.infer<typeof ObservabilityConfigSchema>;
+export type AiConfig = z.infer<typeof AiConfigSchema>;
 export type ServerConfig = z.infer<typeof ServerConfigSchema>;
 export type AppConfig = z.infer<typeof AppConfigSchema>;

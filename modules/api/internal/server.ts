@@ -27,6 +27,7 @@ import { createEventBus } from '../../events/index.ts';
 import { createAudit, createAuditRoutes } from '../../audit/index.ts';
 import { createWorkflow, createWorkflowRoutes } from '../../workflow/index.ts';
 import { createObservability, createTelemetryMiddleware, createMetricsRoutes } from '../../observability/index.ts';
+import { createAi, createAiRoutes } from '../../ai/index.ts';
 import { loadConfig } from '../../config/index.ts';
 import { createLogger } from '../../logger/index.ts';
 
@@ -171,6 +172,12 @@ export async function startServer(port = 3000) {
 
   // Observability metrics routes
   app.use('/api/admin/metrics', createMetricsRoutes({ observability, permissions }));
+
+  // AI routes (semantic search, RAG assistant, embedding) — gated by config
+  if (config.ai.enabled) {
+    const ai = createAi({ pool, config: config.ai });
+    app.use('/api/ai', createAiRoutes({ ai, permissions }));
+  }
 
   // Share link routes (create, resolve, revoke) — after auth
   const shareLinkStore = createPgShareLinkStore(pool);

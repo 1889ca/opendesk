@@ -56,6 +56,15 @@ function readEnv(): unknown {
       sampleRate: env.OBSERVABILITY_SAMPLE_RATE,
       healthIntervalMs: env.OBSERVABILITY_HEALTH_INTERVAL_MS,
     },
+    ai: {
+      enabled: env.AI_ENABLED,
+      ollamaUrl: env.AI_OLLAMA_URL,
+      embeddingModel: env.AI_EMBEDDING_MODEL,
+      chatModel: env.AI_CHAT_MODEL,
+      chunkSize: env.AI_CHUNK_SIZE,
+      chunkOverlap: env.AI_CHUNK_OVERLAP,
+      embeddingDimensions: env.AI_EMBEDDING_DIMENSIONS,
+    },
   };
 }
 
