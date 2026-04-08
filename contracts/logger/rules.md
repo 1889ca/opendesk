@@ -30,6 +30,7 @@ Structured JSON logging with levels, timestamps, correlation IDs, and child logg
 ## Dependencies
 
 - `config` — reads `logger.level` from centralized config to resolve the minimum log level at startup. Falls back to `info` if config is unavailable during early bootstrap.
+- None (zero external dependencies).
 
 ## Boundary Rules
 
@@ -38,6 +39,7 @@ Structured JSON logging with levels, timestamps, correlation IDs, and child logg
 - MUST: support child loggers with inherited context.
 - MUST: support `LOG_LEVEL` env var for filtering (debug < info < warn < error).
 - MUST NOT: import external npm packages (lightweight, zero third-party deps). Internal module dependency on `config` is permitted for log-level resolution.
+- MUST NOT: import any external packages (lightweight, zero-dep).
 - MUST NOT: throw exceptions from any logging method.
 - MUST NOT: buffer or batch log output (write immediately).
 - MUST NOT: be used in browser-side code (server-only).

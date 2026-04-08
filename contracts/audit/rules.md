@@ -65,7 +65,6 @@ Implemented:
 - [x] Offline proof verification (no DB needed, just proof bundle + HMAC secret)
 - [x] API endpoints: GET /proof/:documentId, GET /proof/:documentId/summary, POST /proof/verify
 - [x] 5 tests covering valid chains, tampered entries, broken links, wrong secrets, empty chains
-
 ## MVP Scope
 
 Implemented:

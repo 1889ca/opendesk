@@ -198,6 +198,8 @@ Not a super-pillar but enables all of them: dashboard, navigation, type switchin
 9. **C2 Milestone 1: Cryptographic Audit Foundation** -- Append-only HMAC-chained audit log. PG trigger enforces immutability. Per-document hash chain with tamper verification. API endpoints for audit log querying and chain integrity verification.
 
 10. **C4 Milestone 1: Trigger/Action API** -- Event-driven workflow definitions on documents. Trigger types (document.updated, document.exported, grant.created, grant.revoked) mapped to actions (webhook, export, notify). Full CRUD API with execution history tracking.
+9. **Pillar 2 Milestone 1: Cryptographic Audit Foundation** -- Append-only HMAC-chained audit log. PG trigger enforces immutability. Per-document hash chain with tamper verification. API endpoints for audit log querying and chain integrity verification.
+10. **Pillar 4 Milestone 1: Trigger/Action API** -- Event-driven workflow definitions on documents. Trigger types (document.updated, document.exported, grant.created, grant.revoked) mapped to actions (webhook, export, notify). Full CRUD API with execution history tracking.
 
 11. **Events Module** -- Full EventBus implementation: PG transactional outbox, Redis Streams consumer groups, outbox poller for reliable delivery, 7-day TTL pruning, schema registry with one-owner-per-type enforcement.
 

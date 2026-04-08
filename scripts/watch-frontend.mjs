@@ -36,21 +36,25 @@ const entries = [
   {
     ...sharedJS,
     entryPoints: ['modules/app-sheets/internal/spreadsheet-editor.ts'],
+    entryPoints: ['modules/app/internal/spreadsheet-editor.ts'],
     outfile: 'modules/app/internal/public/spreadsheet.bundle.js',
   },
   {
     ...sharedCSS,
     entryPoints: ['modules/app-sheets/internal/css/spreadsheet.css'],
+    entryPoints: ['modules/app/internal/css/spreadsheet.css'],
     outfile: 'modules/app/internal/public/spreadsheet.bundle.css',
   },
   {
     ...sharedJS,
     entryPoints: ['modules/app-slides/internal/presentation-editor.ts'],
+    entryPoints: ['modules/app/internal/presentation-editor.ts'],
     outfile: 'modules/app/internal/public/presentation.bundle.js',
   },
   {
     ...sharedCSS,
     entryPoints: ['modules/app-slides/internal/css/presentation.css'],
+    entryPoints: ['modules/app/internal/css/presentation.css'],
     outfile: 'modules/app/internal/public/presentation.bundle.css',
   },
   {
