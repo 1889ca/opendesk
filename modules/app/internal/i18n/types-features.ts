@@ -38,6 +38,15 @@ export interface FeatureTranslationKeys {
   'search.noResults': string;
   'search.searching': string;
   'search.resultCount': string;
+  'search.shortcut': string;
+  'search.tipTitle': string;
+  'search.tipContent': string;
+  'search.recentTitle': string;
+  'search.clearRecent': string;
+  'search.typeDocument': string;
+  'search.typeSheet': string;
+  'search.typeSlides': string;
+  'search.typeKb': string;
   'comments.title': string;
   'comments.sidebarLabel': string;
   'comments.closeSidebar': string;

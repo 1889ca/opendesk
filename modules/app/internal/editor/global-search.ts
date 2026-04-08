@@ -2,21 +2,8 @@
 
 import { apiFetch } from '../shared/api-client.ts';
 import { t } from '../i18n/index.ts';
-import { formatRelativeTime } from '../shared/time-format.ts';
-
-/** Escape HTML to prevent XSS, then restore only <mark> tags from ts_headline. */
-function sanitizeSnippet(raw: string): string {
-  const escaped = raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  return escaped.replace(/&lt;mark&gt;/g, '<mark>').replace(/&lt;\/mark&gt;/g, '</mark>');
-}
-
-interface SearchResultEntry {
-  id: string;
-  title: string;
-  snippet: string;
-  rank: number;
-  updated_at: string;
-}
+import { renderGroupedResults, type GroupedSearchResponse } from './global-search-results.ts';
+import { saveRecentSearch, renderRecentSearches } from './global-search-recent.ts';
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let abortController: AbortController | null = null;
@@ -35,49 +22,6 @@ function cancelRequest() {
   }
 }
 
-/** Render search results into the target element. */
-function renderResults(container: HTMLElement, results: SearchResultEntry[]) {
-  container.innerHTML = '';
-
-  if (!results.length) {
-    const empty = document.createElement('div');
-    empty.className = 'search-results-empty';
-    empty.textContent = t('search.noResults');
-    container.appendChild(empty);
-    return;
-  }
-
-  const countEl = document.createElement('div');
-  countEl.className = 'search-results-count';
-  countEl.textContent = t('search.resultCount', { count: results.length });
-  container.appendChild(countEl);
-
-  for (const result of results) {
-    const card = document.createElement('a');
-    card.className = 'search-result-card';
-    card.href = '/editor.html?doc=' + encodeURIComponent(result.id);
-
-    const title = document.createElement('div');
-    title.className = 'search-result-title';
-    title.textContent = result.title || t('editor.untitled');
-
-    const snippet = document.createElement('div');
-    snippet.className = 'search-result-snippet';
-    snippet.innerHTML = sanitizeSnippet(result.snippet);
-
-    const time = document.createElement('div');
-    time.className = 'search-result-time';
-    time.textContent = t('docList.updated', {
-      time: formatRelativeTime(result.updated_at),
-    });
-
-    card.appendChild(title);
-    card.appendChild(snippet);
-    card.appendChild(time);
-    container.appendChild(card);
-  }
-}
-
 function showLoading(container: HTMLElement) {
   container.innerHTML = '';
   const el = document.createElement('div');
@@ -86,24 +30,24 @@ function showLoading(container: HTMLElement) {
   container.appendChild(el);
 }
 
-/** Perform the search API call and render results. */
+/** Perform the search API call and render grouped results. */
 async function executeSearch(query: string, container: HTMLElement) {
   cancelRequest();
   abortController = new AbortController();
-
   showLoading(container);
 
   try {
     const res = await apiFetch(
-      '/api/documents/search?q=' + encodeURIComponent(query),
+      '/api/search?q=' + encodeURIComponent(query),
       { signal: abortController.signal },
     );
     if (!res.ok) {
       container.innerHTML = '';
       return;
     }
-    const results: SearchResultEntry[] = await res.json();
-    renderResults(container, results);
+    const data: GroupedSearchResponse = await res.json();
+    renderGroupedResults(container, data);
+    saveRecentSearch(query);
   } catch (err) {
     if ((err as Error).name !== 'AbortError') {
       container.innerHTML = '';
@@ -111,9 +55,33 @@ async function executeSearch(query: string, container: HTMLElement) {
   }
 }
 
+/** Show empty state with tips and recent searches. */
+function showIdleState(container: HTMLElement, triggerSearch: (q: string) => void) {
+  container.innerHTML = '';
+  const recentEl = renderRecentSearches((query) => triggerSearch(query));
+  if (recentEl) {
+    container.appendChild(recentEl);
+  } else {
+    const tips = document.createElement('div');
+    tips.className = 'search-empty-tips';
+    const strong = document.createElement('strong');
+    strong.textContent = t('search.tipTitle');
+    const p = document.createElement('p');
+    p.textContent = t('search.tipContent');
+    tips.append(strong, p);
+    container.appendChild(tips);
+  }
+}
+
+/** Detect Mac vs other platforms for shortcut display. */
+function isMac(): boolean {
+  return navigator.platform?.includes('Mac') || navigator.userAgent?.includes('Mac');
+}
+
 /**
- * Create the search input and results container.
- * When searching, `onSearchActive(true)` is called to hide the doc list;
+ * Create the global search input and results container.
+ * Supports Cmd/Ctrl+K keyboard shortcut to focus.
+ * When searching, `onSearchActive(true)` hides the doc list;
  * when cleared, `onSearchActive(false)` restores it.
  */
 export function createGlobalSearch(
@@ -122,17 +90,47 @@ export function createGlobalSearch(
   const wrapper = document.createElement('div');
   wrapper.className = 'global-search';
 
+  const inputWrapper = document.createElement('div');
+  inputWrapper.className = 'global-search-input-wrapper';
+
   const input = document.createElement('input');
   input.type = 'search';
   input.className = 'global-search-input';
   input.placeholder = t('search.placeholder');
   input.setAttribute('aria-label', t('search.global'));
 
+  const shortcutHint = document.createElement('kbd');
+  shortcutHint.className = 'global-search-shortcut';
+  shortcutHint.textContent = isMac() ? '\u2318K' : 'Ctrl+K';
+
+  inputWrapper.append(input, shortcutHint);
+
   const results = document.createElement('div');
   results.className = 'search-results';
 
-  wrapper.appendChild(input);
-  wrapper.appendChild(results);
+  wrapper.append(inputWrapper, results);
+
+  /** Trigger a search from external input (e.g. recent searches click). */
+  function triggerSearch(query: string) {
+    input.value = query;
+    input.focus();
+    clearDebounce();
+    cancelRequest();
+    if (query.length < 2) {
+      results.innerHTML = '';
+      onSearchActive(false);
+      return;
+    }
+    onSearchActive(true);
+    executeSearch(query, results);
+  }
+
+  input.addEventListener('focus', () => {
+    if (input.value.trim().length < 2) {
+      showIdleState(results, triggerSearch);
+      onSearchActive(true);
+    }
+  });
 
   input.addEventListener('input', () => {
     const query = input.value.trim();
@@ -140,8 +138,8 @@ export function createGlobalSearch(
     cancelRequest();
 
     if (query.length < 2) {
-      results.innerHTML = '';
-      onSearchActive(false);
+      showIdleState(results, triggerSearch);
+      onSearchActive(true);
       return;
     }
 
@@ -159,6 +157,15 @@ export function createGlobalSearch(
       cancelRequest();
       onSearchActive(false);
       input.blur();
+    }
+  });
+
+  // Cmd/Ctrl+K global shortcut
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      input.focus();
+      input.select();
     }
   });
 
