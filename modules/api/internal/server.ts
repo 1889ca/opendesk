@@ -28,6 +28,7 @@ import { createAudit, createAuditRoutes } from '../../audit/index.ts';
 import { createWorkflow, createWorkflowRoutes } from '../../workflow/index.ts';
 import { createObservability, createTelemetryMiddleware, createMetricsRoutes } from '../../observability/index.ts';
 import { createAi, createAiRoutes } from '../../ai/index.ts';
+import { createErasure, createErasureRoutes } from '../../erasure/index.ts';
 import { loadConfig } from '../../config/index.ts';
 import { createLogger } from '../../logger/index.ts';
 
@@ -172,6 +173,10 @@ export async function startServer(port = 3000) {
 
   // Observability metrics routes
   app.use('/api/admin/metrics', createMetricsRoutes({ observability, permissions }));
+
+  // Erasure routes (verifiable data erasure, retention policies)
+  const erasure = createErasure({ pool });
+  app.use('/api/erasure', createErasureRoutes({ erasure, permissions }));
 
   // AI routes (semantic search, RAG assistant, embedding) — gated by config
   if (config.ai.enabled) {
