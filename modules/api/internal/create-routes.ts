@@ -21,6 +21,7 @@ import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts'
 import { createSearchRoutes } from './search-routes.ts';
 import { createReferenceRoutes } from './reference-routes.ts';
 import { createImportExportRoutes } from './reference-import-routes.ts';
+import { createEntityRoutes } from './entity-routes.ts';
 import { createShareRoutes } from '../../sharing/index.ts';
 import { createAuditRoutes } from '../../audit/index.ts';
 import { createWorkflowRoutes } from '../../workflow/index.ts';
@@ -106,6 +107,9 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
   app.use('/api/templates', createTemplateRoutes({ permissions, authMode }));
   app.use('/api/references', createReferenceRoutes({ permissions }));
   app.use('/api/references', createImportExportRoutes({ permissions }));
+
+  // KB entity directory routes
+  app.use('/api/kb/entities', createEntityRoutes({ permissions }));
 
   // Audit routes (crypto audit log + chain verification)
   app.use('/api/audit', createAuditRoutes({
