@@ -8,6 +8,8 @@ const log = createLogger('s3');
 let _s3: S3Client | null = null;
 let _bucket: string | null = null;
 
+// TODO: Thread S3Config from composition root instead of calling loadConfig()
+// internally. Requires refactoring the lazy Proxy pattern to accept injected config.
 function initS3() {
   const cfg = loadConfig().s3;
   _bucket = cfg.bucket;

@@ -12,7 +12,7 @@ import {
   getTemplate as defaultGetTemplate,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import { loadConfig } from '../../config/index.ts';
+import type { AuthMode } from '../../config/contract.ts';
 import type { CacheClient } from './redis.ts';
 import { asyncHandler } from './async-handler.ts';
 
@@ -49,6 +49,7 @@ export type DocumentRoutesOptions = {
   permissions: PermissionsModule;
   cache?: CacheClient;
   storage?: DocumentStorageFns;
+  authMode?: AuthMode;
 };
 
 /**
@@ -57,7 +58,7 @@ export type DocumentRoutesOptions = {
  */
 export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   const router = Router();
-  const { permissions, cache, storage } = opts;
+  const { permissions, cache, storage, authMode } = opts;
   const listDocuments = storage?.listDocuments ?? defaultListDocuments;
   const createDocument = storage?.createDocument ?? defaultCreateDocument;
   const getDocument = storage?.getDocument ?? defaultGetDocument;
@@ -75,7 +76,7 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
     }
     const docs = await listDocuments(queryResult.data.folderId ?? null);
 
-    if (loadConfig().auth.mode === 'dev') {
+    if (authMode === 'dev') {
       res.json(docs);
       return;
     }

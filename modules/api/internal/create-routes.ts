@@ -96,13 +96,14 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
   });
 
   // Search must be mounted before document CRUD so /search is matched before /:id
+  const authMode = config.auth.mode;
   app.use('/api/documents', createSearchRoutes({ permissions }));
-  app.use('/api/documents', createDocumentRoutes({ permissions, cache: redisClient }));
+  app.use('/api/documents', createDocumentRoutes({ permissions, cache: redisClient, authMode }));
   app.use('/api/documents/:id/versions', createVersionRoutes({ permissions, hocuspocus }));
   app.use('/api/documents', createMoveDocumentRoute({ permissions }));
-  app.use('/api/folders', createFolderRoutes({ permissions }));
+  app.use('/api/folders', createFolderRoutes({ permissions, authMode }));
   app.use('/api/documents', createExportRoutes({ permissions }));
-  app.use('/api/templates', createTemplateRoutes({ permissions }));
+  app.use('/api/templates', createTemplateRoutes({ permissions, authMode }));
   app.use('/api/references', createReferenceRoutes({ permissions }));
   app.use('/api/references', createImportExportRoutes({ permissions }));
 

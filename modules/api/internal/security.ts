@@ -6,11 +6,13 @@ import rateLimit from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
 import type { Express } from 'express';
 import type { Redis } from 'ioredis';
-import { loadConfig } from '../../config/index.ts';
+import type { ServerConfig } from '../../config/contract.ts';
 
 export interface SecurityMiddlewareOptions {
   /** Redis client for distributed rate limiting across instances. */
   redis?: Redis;
+  /** Server config for CORS origins. */
+  serverConfig: ServerConfig;
 }
 
 /**
@@ -19,9 +21,8 @@ export interface SecurityMiddlewareOptions {
  * - Helmet security headers (CSP, HSTS, X-Frame-Options, etc.)
  * - Global rate limiting per IP (Redis-backed when client provided)
  */
-export function applySecurityMiddleware(app: Express, opts?: SecurityMiddlewareOptions): void {
-  const config = loadConfig();
-  const origins = config.server.corsOrigins;
+export function applySecurityMiddleware(app: Express, opts: SecurityMiddlewareOptions): void {
+  const origins = opts.serverConfig.corsOrigins;
 
   // CORS — restrict to configured origins, or allow same-origin only if none set
   app.use(cors({

@@ -10,7 +10,7 @@ import {
   updateTemplate,
   deleteTemplate,
 } from '../../storage/index.ts';
-import { loadConfig } from '../../config/index.ts';
+import type { AuthMode } from '../../config/contract.ts';
 import { asyncHandler } from './async-handler.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 
@@ -30,6 +30,7 @@ const UpdateTemplateBody = z.object({
 
 export type TemplateRoutesOptions = {
   permissions: PermissionsModule;
+  authMode?: AuthMode;
 };
 
 /**
@@ -37,7 +38,7 @@ export type TemplateRoutesOptions = {
  * Enforces ownership-based resource-level authorization.
  */
 export function createTemplateRoutes(opts: TemplateRoutesOptions): Router {
-  const { permissions } = opts;
+  const { permissions, authMode } = opts;
   const router = Router();
   const requireRead = permissions.requireForResource('read', RESOURCE_TYPE);
   const requireWrite = permissions.requireForResource('write', RESOURCE_TYPE);
@@ -47,7 +48,7 @@ export function createTemplateRoutes(opts: TemplateRoutesOptions): Router {
   router.get('/', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     const templates = await listTemplates();
 
-    if (loadConfig().auth.mode === 'dev') {
+    if (authMode === 'dev') {
       res.json(templates.map((t) => ({ ...t, isOwner: true })));
       return;
     }

@@ -3,6 +3,7 @@
 import { evaluate, type Action } from '../contract.ts';
 import { createInMemoryGrantStore, type GrantStore } from './grant-store.ts';
 import { requirePermission, requireAuth, requireAdmin } from './middleware.ts';
+import type { AuthMode } from '../../config/contract.ts';
 
 export type PermissionsModule = {
   grantStore: GrantStore;
@@ -20,6 +21,8 @@ export type PermissionsModule = {
 
 export type PermissionsDependencies = {
   grantStore?: GrantStore;
+  /** Auth mode — threaded through to permission middleware for dev-mode grant auto-creation. */
+  authMode?: AuthMode;
 };
 
 /**
@@ -28,13 +31,14 @@ export type PermissionsDependencies = {
  */
 export function createPermissions(deps: PermissionsDependencies = {}): PermissionsModule {
   const grantStore = deps.grantStore ?? createInMemoryGrantStore();
+  const authMode = deps.authMode;
 
   return {
     grantStore,
     require: (action: Action) =>
-      requirePermission(action, { grantStore, resourceType: 'document' }),
+      requirePermission(action, { grantStore, resourceType: 'document', authMode }),
     requireForResource: (action: Action, resourceType: string) =>
-      requirePermission(action, { grantStore, resourceType }),
+      requirePermission(action, { grantStore, resourceType, authMode }),
     requireAuth: requireAuth(),
     requireAdmin: requireAdmin(),
     async checkPermission(principalId: string, resourceId: string, action: Action, resourceType = 'document') {

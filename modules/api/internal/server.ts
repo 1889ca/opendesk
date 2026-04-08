@@ -4,7 +4,7 @@ import express, { type Request, type Response, type NextFunction } from 'express
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createCollabServer } from '../../collab/index.ts';
-import { getRedisClient, disconnectRedis } from './redis.ts';
+import { getRedisClient, setRedisConfig, disconnectRedis } from './redis.ts';
 import { createAuth, createAuthRateLimiter } from '../../auth/index.ts';
 import { createPermissions, createPgGrantStore } from '../../permissions/index.ts';
 import { createShareLinkService, createPgShareLinkStore, createPasswordRateLimiter } from '../../sharing/index.ts';
@@ -37,11 +37,17 @@ export async function startServer(port = 3000) {
   }
   const app = express();
 
+  // Load config once at composition root — threaded to all modules via DI
+  const config = loadConfig();
+
+  // Inject redis config before creating client
+  setRedisConfig(config.redis);
+
   // Redis client needed for rate limiting + idempotency + caching
   const redisClient = getRedisClient();
 
   // Security middleware (CORS, helmet, rate limiting) — must be first
-  applySecurityMiddleware(app, { redis: redisClient });
+  applySecurityMiddleware(app, { redis: redisClient, serverConfig: config.server });
 
   // Wire auth module (dev mode uses bypass verifiers)
   // Auth failure rate limiter — 10 failed attempts per 15 min per IP (brute-force protection)
@@ -55,6 +61,7 @@ export async function startServer(port = 3000) {
     },
     publicPaths: ['/health'],
     authRateLimiter,
+    nodeEnv: config.server.nodeEnv,
   });
 
   // Wire collab server with auth dependency
@@ -64,10 +71,9 @@ export async function startServer(port = 3000) {
 
   // Wire permissions module with PG-backed grant store
   const grantStore = createPgGrantStore(pool);
-  const permissions = createPermissions({ grantStore });
+  const permissions = createPermissions({ grantStore, authMode: config.auth.mode });
 
   // Wire event bus, audit, and workflow modules
-  const config = loadConfig();
   const eventBus = createEventBus(pool, redisClient);
   const audit = createAudit({
     pool,

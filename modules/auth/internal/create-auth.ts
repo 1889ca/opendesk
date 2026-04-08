@@ -10,7 +10,6 @@ import { createAuthMiddleware, type AuthMiddlewareOptions } from './middleware.t
 import type { AuthRateLimiter } from './auth-rate-limit.ts';
 import { createSystemPrincipal } from './system.ts';
 import { createLogger } from '../../logger/index.ts';
-import { loadConfig } from '../../config/index.ts';
 
 const log = createLogger('auth');
 
@@ -30,6 +29,8 @@ export type AuthDependencies = {
   publicPaths?: string[];
   /** Rate limiter for failed auth attempts (brute-force protection). */
   authRateLimiter?: AuthRateLimiter;
+  /** Node environment — used to block dev mode in production. Defaults to 'development'. */
+  nodeEnv?: string;
 };
 
 /**
@@ -43,7 +44,7 @@ export function createAuth(deps: AuthDependencies): AuthModule {
   let apiKeyVerifier: ApiKeyVerifier;
 
   if (config.mode === 'dev') {
-    if (loadConfig().server.nodeEnv === 'production') {
+    if ((deps.nodeEnv ?? 'development') === 'production') {
       throw new Error('AUTH_MODE=dev is not allowed when NODE_ENV=production');
     }
     log.warn('running in DEV mode — no real token verification');

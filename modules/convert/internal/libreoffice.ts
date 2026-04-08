@@ -18,6 +18,8 @@ export interface CollaboraConfig {
   timeoutMs: number;
 }
 
+// TODO: Thread CollaboraConfig from composition root once the convert module
+// has a factory function. Currently kept as lazy fallback to avoid breaking callers.
 function getDefaultConfig(): CollaboraConfig {
   const cc = loadConfig().collabora;
   return { baseUrl: cc.baseUrl, timeoutMs: cc.timeoutMs };

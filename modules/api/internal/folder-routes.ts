@@ -12,7 +12,7 @@ import {
   getFolder,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import { loadConfig } from '../../config/index.ts';
+import type { AuthMode } from '../../config/contract.ts';
 import { asyncHandler } from './async-handler.ts';
 
 const CreateFolderBody = z.object({
@@ -34,10 +34,11 @@ const ListFoldersQuery = z.object({
 
 export type FolderRoutesOptions = {
   permissions: PermissionsModule;
+  authMode?: AuthMode;
 };
 
 export function createFolderRoutes(opts: FolderRoutesOptions): Router {
-  const { permissions } = opts;
+  const { permissions, authMode } = opts;
   const router = Router();
 
   // List folders (root if no parentId) — filtered by principal's grants
@@ -49,7 +50,7 @@ export function createFolderRoutes(opts: FolderRoutesOptions): Router {
     }
     const folders = await listFolders(queryResult.data.parentId ?? null);
 
-    if (loadConfig().auth.mode === 'dev') {
+    if (authMode === 'dev') {
       res.json(folders);
       return;
     }

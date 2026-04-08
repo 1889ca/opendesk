@@ -1,6 +1,6 @@
 /** Contract: contracts/api/rules.md */
 import { Redis as IORedis } from 'ioredis';
-import { loadConfig } from '../../config/index.ts';
+import type { RedisConfig as AppRedisConfig } from '../../config/contract.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('redis');
@@ -26,13 +26,29 @@ export interface CacheClient {
   status: string;
 }
 
+/** Injected config from composition root; set via setRedisConfig before first getRedisClient call. */
+let _appRedisConfig: AppRedisConfig | null = null;
+
+/** Inject redis config from the composition root (call before getRedisClient). */
+export function setRedisConfig(cfg: AppRedisConfig): void {
+  _appRedisConfig = cfg;
+}
+
 function getDefaultConfig(): Partial<RedisConfig> {
-  const rc = loadConfig().redis;
+  if (!_appRedisConfig) {
+    // Fallback defaults matching config schema defaults
+    return {
+      url: 'redis://localhost:6379',
+      keyPrefix: 'opendesk:',
+      maxRetriesPerRequest: 20,
+      connectTimeout: 5000,
+    };
+  }
   return {
-    url: rc.url,
-    keyPrefix: rc.keyPrefix,
-    maxRetriesPerRequest: rc.maxRetries,
-    connectTimeout: rc.connectTimeoutMs,
+    url: _appRedisConfig.url,
+    keyPrefix: _appRedisConfig.keyPrefix,
+    maxRetriesPerRequest: _appRedisConfig.maxRetries,
+    connectTimeout: _appRedisConfig.connectTimeoutMs,
   };
 }
 

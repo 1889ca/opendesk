@@ -15,12 +15,12 @@ import type { ExportFormat, ConversionResult } from '../contract.ts';
 import { EventType, type DomainEvent, type EventBus } from '../../events/contract.ts';
 import { convertFile } from './libreoffice.ts';
 import { getDocument } from '../../storage/index.ts';
-import { loadConfig } from '../../config/index.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('convert');
 
-const FLUSH_TIMEOUT_MS = loadConfig().collabora.flushTimeoutMs;
+/** Default flush timeout — used when no explicit value is provided. */
+const DEFAULT_FLUSH_TIMEOUT_MS = 10000;
 
 export class ExportError extends Error {
   constructor(message: string, public readonly code: string) {
@@ -48,12 +48,14 @@ export async function exportDocument(
   format: ExportFormat,
   requestedBy: string,
   html: string,
-  eventBus?: EventBus
+  eventBus?: EventBus,
+  opts?: { flushTimeoutMs?: number }
 ): Promise<ExportResult> {
   let stale = true;
 
+  const flushTimeoutMs = opts?.flushTimeoutMs ?? DEFAULT_FLUSH_TIMEOUT_MS;
   if (eventBus) {
-    stale = await flushAndWait(documentId, format, requestedBy, eventBus);
+    stale = await flushAndWait(documentId, format, requestedBy, eventBus, flushTimeoutMs);
   }
 
   const doc = await getDocument(documentId);
@@ -85,7 +87,8 @@ async function flushAndWait(
   documentId: string,
   _format: ExportFormat,
   requestedBy: string,
-  eventBus: EventBus
+  eventBus: EventBus,
+  flushTimeoutMs: number
 ): Promise<boolean> {
   const conversionEvent: DomainEvent = {
     id: randomUUID(),
@@ -98,7 +101,7 @@ async function flushAndWait(
   await eventBus.emit(conversionEvent, null);
 
   return new Promise<boolean>((resolve) => {
-    const timeout = setTimeout(() => resolve(true), FLUSH_TIMEOUT_MS);
+    const timeout = setTimeout(() => resolve(true), flushTimeoutMs);
 
     const group = `convert-flush-${documentId}-${Date.now()}`;
     eventBus.subscribe(group, [EventType.StateFlushed], async () => {

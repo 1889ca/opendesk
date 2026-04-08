@@ -4,6 +4,8 @@ import { loadConfig } from '../../config/index.ts';
 
 let _pool: pg.Pool | null = null;
 
+// TODO: Thread PostgresConfig from composition root instead of calling loadConfig()
+// internally. Requires refactoring the lazy Proxy + singleton pattern.
 /** Return the singleton pg.Pool, creating it lazily on first call. */
 export function getPool(): pg.Pool {
   if (!_pool) {
