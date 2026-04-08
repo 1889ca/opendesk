@@ -97,6 +97,10 @@ function defineRoutes(): Route[] {
         { ...params, type: 'presentation' },
       ),
     },
+    {
+      pattern: '/kb',
+      handler: () => mountView('kb', () => import('../views/kb-browser-view.ts'), {}),
+    },
   ];
 }
 

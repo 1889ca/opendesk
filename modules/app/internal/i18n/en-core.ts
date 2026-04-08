@@ -142,6 +142,7 @@ export const coreTranslations: Partial<TranslationKeys> = {
 
   // Navigation (SPA shell)
   'nav.dashboard': 'Documents',
+  'nav.knowledgeBase': 'Knowledge Base',
   'nav.newDocument': 'New Document',
   'nav.recent': 'Recent',
 };

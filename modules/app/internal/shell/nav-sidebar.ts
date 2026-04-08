@@ -29,6 +29,9 @@ export function buildNavSidebar(): HTMLElement {
   const dashItem = createNavItem('/', 'nav.dashboard', '\u{1F4C4}');
   navList.appendChild(dashItem);
 
+  const kbItem = createNavItem('/kb', 'nav.knowledgeBase', '\u{1F4DA}');
+  navList.appendChild(kbItem);
+
   const newDocItem = document.createElement('li');
   const newDocBtn = document.createElement('button');
   newDocBtn.className = 'shell-sidebar-btn shell-sidebar-new';

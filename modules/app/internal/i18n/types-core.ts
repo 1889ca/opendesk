@@ -62,6 +62,7 @@ export interface CoreTranslationKeys {
 
   // Navigation (SPA shell)
   'nav.dashboard': string;
+  'nav.knowledgeBase': string;
   'nav.newDocument': string;
   'nav.recent': string;
 }
