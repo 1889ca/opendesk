@@ -12,6 +12,7 @@ import {
   getFolder,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
+import { loadConfig } from '../../config/index.ts';
 import { asyncHandler } from './async-handler.ts';
 
 const CreateFolderBody = z.object({
@@ -39,7 +40,7 @@ export function createFolderRoutes(opts: FolderRoutesOptions): Router {
   const { permissions } = opts;
   const router = Router();
 
-  // List folders (root if no parentId)
+  // List folders (root if no parentId) — filtered by principal's grants
   router.get('/', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     const queryResult = ListFoldersQuery.safeParse(req.query);
     if (!queryResult.success) {
@@ -47,7 +48,18 @@ export function createFolderRoutes(opts: FolderRoutesOptions): Router {
       return;
     }
     const folders = await listFolders(queryResult.data.parentId ?? null);
-    res.json(folders);
+
+    if (loadConfig().auth.mode === 'dev') {
+      res.json(folders);
+      return;
+    }
+
+    const principal = req.principal!;
+    const grants = await permissions.grantStore.findByPrincipal(principal.id);
+    const allowedIds = new Set(
+      grants.filter((g) => g.resourceType === 'folder').map((g) => g.resourceId),
+    );
+    res.json(folders.filter((f) => allowedIds.has(f.id)));
   }));
 
   // Create folder — auto-grants owner role to creator

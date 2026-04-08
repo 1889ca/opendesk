@@ -7,6 +7,7 @@ import { createDevTokenVerifier, createDevApiKeyVerifier } from './dev-verifier.
 import { createApiKeyVerifier, type ServiceAccountStore } from './apikey-verifier.ts';
 import { createServiceAccountManager, type ServiceAccountStorage } from './service-accounts.ts';
 import { createAuthMiddleware, type AuthMiddlewareOptions } from './middleware.ts';
+import type { AuthRateLimiter } from './auth-rate-limit.ts';
 import { createSystemPrincipal } from './system.ts';
 import { createLogger } from '../../logger/index.ts';
 import { loadConfig } from '../../config/index.ts';
@@ -27,6 +28,8 @@ export type AuthDependencies = {
   serviceAccountStorage: ServiceAccountStorage;
   /** Paths that skip authentication */
   publicPaths?: string[];
+  /** Rate limiter for failed auth attempts (brute-force protection). */
+  authRateLimiter?: AuthRateLimiter;
 };
 
 /**
@@ -63,6 +66,7 @@ export function createAuth(deps: AuthDependencies): AuthModule {
     tokenVerifier,
     apiKeyVerifier,
     publicPaths: deps.publicPaths,
+    authRateLimiter: deps.authRateLimiter,
   };
 
   return {

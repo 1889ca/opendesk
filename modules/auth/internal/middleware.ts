@@ -2,6 +2,7 @@
 
 import type { Request, Response, NextFunction } from 'express';
 import type { Principal, TokenVerifier, ApiKeyVerifier } from '../contract.ts';
+import type { AuthRateLimiter } from './auth-rate-limit.ts';
 
 /**
  * Extend Express Request to carry the resolved Principal.
@@ -19,6 +20,8 @@ export type AuthMiddlewareOptions = {
   apiKeyVerifier: ApiKeyVerifier;
   /** Paths that skip authentication (e.g. /api/health) */
   publicPaths?: string[];
+  /** Optional rate limiter for failed auth attempts per IP. */
+  authRateLimiter?: AuthRateLimiter;
 };
 
 /**
@@ -33,11 +36,33 @@ export type AuthMiddlewareOptions = {
  */
 export function createAuthMiddleware(opts: AuthMiddlewareOptions) {
   const publicPaths = opts.publicPaths || [];
+  const rateLimiter = opts.authRateLimiter;
+
+  /** Send a 401, recording the failure if rate limiter is active. */
+  async function reject(req: Request, res: Response, error: unknown): Promise<void> {
+    if (rateLimiter) {
+      const ip = req.ip ?? req.socket.remoteAddress ?? 'unknown';
+      await rateLimiter.recordFailure(ip);
+    }
+    res.status(401).json({ error });
+  }
 
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (publicPaths.some((p) => req.path === p || req.path.startsWith(p + '/'))) {
       next();
       return;
+    }
+
+    // Check auth failure rate limit before processing credentials
+    if (rateLimiter) {
+      const ip = req.ip ?? req.socket.remoteAddress ?? 'unknown';
+      const allowed = await rateLimiter.check(ip);
+      if (!allowed) {
+        res.status(429).json({
+          error: { code: 'AUTH_RATE_LIMITED', message: 'Too many failed authentication attempts. Try again later.' },
+        });
+        return;
+      }
     }
 
     const apiKey = req.headers['x-api-key'];
@@ -48,7 +73,7 @@ export function createAuthMiddleware(opts: AuthMiddlewareOptions) {
         next();
         return;
       }
-      res.status(401).json({ error: result.error });
+      await reject(req, res, result.error);
       return;
     }
 
@@ -61,12 +86,10 @@ export function createAuthMiddleware(opts: AuthMiddlewareOptions) {
         next();
         return;
       }
-      res.status(401).json({ error: result.error });
+      await reject(req, res, result.error);
       return;
     }
 
-    res.status(401).json({
-      error: { code: 'TOKEN_INVALID', message: 'No credentials provided' },
-    });
+    await reject(req, res, { code: 'TOKEN_INVALID', message: 'No credentials provided' });
   };
 }

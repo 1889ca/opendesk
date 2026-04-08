@@ -31,3 +31,4 @@ export { createDevTokenVerifier, createDevApiKeyVerifier } from './internal/dev-
 export { createApiKeyVerifier, type ServiceAccountStore, type ServiceAccountRecord } from './internal/apikey-verifier.ts';
 export { createServiceAccountManager, type ServiceAccountStorage } from './internal/service-accounts.ts';
 export { hashApiKey, generateApiKey } from './internal/hash.ts';
+export { createAuthRateLimiter, createInMemoryAuthRateLimiter, type AuthRateLimiter, type AuthRateLimiterOptions } from './internal/auth-rate-limit.ts';
