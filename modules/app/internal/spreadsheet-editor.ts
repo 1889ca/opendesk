@@ -3,6 +3,10 @@ import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
 import { getUserIdentity, getDocumentId } from './shared/identity.ts';
 import { setupTitleSync } from './shared/title-sync.ts';
+import { createFormatToolbar, updateToolbarState } from './sheets-format-toolbar.ts';
+import { getCellFormat, getFormatMap } from './sheets-format-store.ts';
+import { applyCellFormat, getDisplayValue } from './sheets-format-renderer.ts';
+import { attachFormatShortcuts } from './sheets-format-shortcuts.ts';
 
 const DEFAULT_COLS = 26;
 const DEFAULT_ROWS = 50;
@@ -23,6 +27,7 @@ function init() {
   const usersEl = document.getElementById('users');
   const cellRefEl = document.getElementById('cell-ref');
   const formulaInput = document.getElementById('formula-input') as HTMLInputElement | null;
+  const formatBarContainer = document.getElementById('format-bar-container');
   if (!gridEl) return;
 
   const documentId = getDocumentId();
@@ -49,10 +54,27 @@ function init() {
     },
   });
 
-  // Yjs shared data: Y.Array of Y.Arrays (rows of cells)
   const ysheet = ydoc.getArray<Y.Array<string>>('sheet-0');
 
-  // Initialize grid if empty
+  let activeRow = 0;
+  let activeCol = 0;
+
+  // --- Format Toolbar ---
+  let formatToolbar: HTMLElement | null = null;
+  if (formatBarContainer) {
+    formatToolbar = createFormatToolbar(formatBarContainer, ydoc, {
+      getActiveCell: () => ({ row: activeRow, col: activeCol }),
+      onFormatChanged: () => renderGrid(),
+    });
+  }
+
+  // --- Keyboard Shortcuts ---
+  attachFormatShortcuts(ydoc, {
+    getActiveCell: () => ({ row: activeRow, col: activeCol }),
+    onFormatChanged: () => renderGrid(),
+  });
+
+  // --- Grid ---
   function ensureGrid() {
     if (ysheet.length === 0) {
       ydoc.transact(() => {
@@ -67,20 +89,15 @@ function init() {
     }
   }
 
-  let activeRow = 0;
-  let activeCol = 0;
-
   function renderGrid() {
     ensureGrid();
     gridEl.innerHTML = '';
     gridEl.style.gridTemplateColumns = `3rem repeat(${DEFAULT_COLS}, minmax(5rem, 1fr))`;
 
-    // Corner cell
     const corner = document.createElement('div');
     corner.className = 'cell header';
     gridEl.appendChild(corner);
 
-    // Column headers
     for (let c = 0; c < DEFAULT_COLS; c++) {
       const hdr = document.createElement('div');
       hdr.className = 'cell header';
@@ -88,9 +105,7 @@ function init() {
       gridEl.appendChild(hdr);
     }
 
-    // Rows
     for (let r = 0; r < Math.min(ysheet.length, DEFAULT_ROWS); r++) {
-      // Row header
       const rh = document.createElement('div');
       rh.className = 'cell row-header';
       rh.textContent = String(r + 1);
@@ -98,44 +113,51 @@ function init() {
 
       const yrow = ysheet.get(r);
       for (let c = 0; c < DEFAULT_COLS; c++) {
+        const rawValue = (yrow && c < yrow.length) ? yrow.get(c) : '';
+        const fmt = getCellFormat(ydoc, r, c);
+
         const cell = document.createElement('div');
         cell.className = 'cell';
         cell.contentEditable = 'true';
-        cell.textContent = (yrow && c < yrow.length) ? yrow.get(c) : '';
+        cell.textContent = getDisplayValue(rawValue, fmt);
         cell.dataset.row = String(r);
         cell.dataset.col = String(c);
 
-        cell.addEventListener('focus', () => {
-          activeRow = r;
-          activeCol = c;
-          if (cellRefEl) cellRefEl.textContent = colLabel(c) + (r + 1);
-          if (formulaInput) formulaInput.value = cell.textContent || '';
-        });
-
-        cell.addEventListener('blur', () => {
-          const val = cell.textContent || '';
-          const yrow = ysheet.get(r);
-          if (yrow && yrow.get(c) !== val) {
-            ydoc.transact(() => {
-              yrow.delete(c, 1);
-              yrow.insert(c, [val]);
-            });
-          }
-        });
-
+        applyCellFormat(cell, fmt);
+        attachCellEvents(cell, r, c, rawValue);
         gridEl.appendChild(cell);
       }
     }
   }
 
+  function attachCellEvents(cell: HTMLElement, r: number, c: number, rawValue: string): void {
+    cell.addEventListener('focus', () => {
+      activeRow = r;
+      activeCol = c;
+      if (cellRefEl) cellRefEl.textContent = colLabel(c) + (r + 1);
+      if (formulaInput) formulaInput.value = rawValue;
+      if (formatToolbar) updateToolbarState(formatToolbar, getCellFormat(ydoc, r, c));
+    });
+
+    cell.addEventListener('blur', () => {
+      const val = cell.textContent || '';
+      const yrow = ysheet.get(r);
+      if (yrow && yrow.get(c) !== val) {
+        ydoc.transact(() => {
+          yrow.delete(c, 1);
+          yrow.insert(c, [val]);
+        });
+      }
+    });
+  }
+
   renderGrid();
 
-  // Re-render on remote changes
-  ysheet.observeDeep(() => {
-    renderGrid();
-  });
+  // Re-render on remote changes (cell values or formats)
+  ysheet.observeDeep(() => renderGrid());
+  getFormatMap(ydoc).observeDeep(() => renderGrid());
 
-  // Formula bar input syncs to active cell
+  // Formula bar
   if (formulaInput) {
     formulaInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
