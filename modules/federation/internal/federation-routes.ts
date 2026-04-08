@@ -5,6 +5,7 @@ import type { FederationModule } from '../contract.ts';
 import { TransferBundleSchema } from '../contract.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
+import { verifySignature, sha256 } from './signing.ts';
 
 const RegisterPeerBody = z.object({
   name: z.string().min(1).max(200),
@@ -34,10 +35,10 @@ export function createFederationRoutes(opts: FederationRoutesOptions): Router {
   const { federation, permissions } = opts;
   const router = Router();
 
-  // POST /api/federation/peers — register a new peer
+  // POST /api/federation/peers — register a new peer (admin only)
   router.post(
     '/peers',
-    permissions.requireAuth,
+    permissions.requireAdmin,
     asyncHandler(async (req: Request, res: Response) => {
       const parsed = RegisterPeerBody.safeParse(req.body);
       if (!parsed.success) {
@@ -64,10 +65,10 @@ export function createFederationRoutes(opts: FederationRoutesOptions): Router {
     }),
   );
 
-  // PATCH /api/federation/peers/:id — update peer status
+  // PATCH /api/federation/peers/:id — update peer status (admin only)
   router.patch(
     '/peers/:id',
-    permissions.requireAuth,
+    permissions.requireAdmin,
     asyncHandler(async (req: Request, res: Response) => {
       const parsed = UpdatePeerStatusBody.safeParse(req.body);
       if (!parsed.success) {
@@ -84,10 +85,10 @@ export function createFederationRoutes(opts: FederationRoutesOptions): Router {
     }),
   );
 
-  // POST /api/federation/send — send a document to a peer
+  // POST /api/federation/send — send a document to a peer (admin only)
   router.post(
     '/send',
-    permissions.requireAuth,
+    permissions.requireAdmin,
     asyncHandler(async (req: Request, res: Response) => {
       const parsed = SendDocumentBody.safeParse(req.body);
       if (!parsed.success) {
@@ -116,6 +117,7 @@ export function createFederationRoutes(opts: FederationRoutesOptions): Router {
   );
 
   // POST /api/federation/receive — receive an inbound transfer (called by peers)
+  // Authenticates via peer signature verification (no user auth — peers are the callers)
   router.post(
     '/receive',
     asyncHandler(async (req: Request, res: Response) => {
@@ -125,7 +127,42 @@ export function createFederationRoutes(opts: FederationRoutesOptions): Router {
         return;
       }
 
-      const transfer = await federation.receiveDocument(parsed.data);
+      const bundle = parsed.data;
+
+      // 1. Require a signature in the bundle
+      if (!bundle.signature) {
+        res.status(401).json({ error: 'Missing transfer signature' });
+        return;
+      }
+
+      // 2. Look up the sending peer and verify it is registered + active
+      const peers = await federation.listPeers();
+      const peer = peers.find(
+        (p) => p.status === 'active' && p.name === bundle.sendingInstanceId,
+      );
+      if (!peer) {
+        res.status(403).json({ error: 'Unknown or inactive sending peer' });
+        return;
+      }
+
+      // 3. Verify signature against the peer's public key
+      const payloadToVerify = JSON.stringify({
+        sendingInstanceId: bundle.sendingInstanceId,
+        documentId: bundle.documentId,
+        yjsStateBase64: bundle.yjsStateBase64,
+        timestamp: bundle.timestamp,
+      });
+
+      const isValid = peer.publicKey.startsWith('-----')
+        ? verifySignature(payloadToVerify, bundle.signature, peer.publicKey)
+        : bundle.signature === sha256(payloadToVerify); // dev fallback
+
+      if (!isValid) {
+        res.status(403).json({ error: 'Invalid peer signature' });
+        return;
+      }
+
+      const transfer = await federation.receiveDocument(bundle);
 
       if (transfer.status === 'rejected') {
         res.status(403).json({ error: 'Transfer rejected', reason: transfer.error });

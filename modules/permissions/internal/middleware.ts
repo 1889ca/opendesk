@@ -97,3 +97,31 @@ export function requireAuth() {
     next();
   };
 }
+
+/**
+ * Middleware that requires admin-level access.
+ * Checks that the principal is authenticated and has a wildcard ('*')
+ * or 'admin' scope. Returns 401 if unauthenticated, 403 if not admin.
+ */
+export function requireAdmin() {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.principal) {
+      res.status(401).json({
+        code: 'UNAUTHENTICATED',
+        message: 'Authentication required',
+      });
+      return;
+    }
+
+    const scopes = req.principal.scopes ?? [];
+    if (!scopes.includes('*') && !scopes.includes('admin')) {
+      res.status(403).json({
+        code: 'FORBIDDEN',
+        message: 'Admin access required',
+      });
+      return;
+    }
+
+    next();
+  };
+}

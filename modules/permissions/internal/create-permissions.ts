@@ -2,7 +2,7 @@
 
 import { evaluate, type Action } from '../contract.ts';
 import { createInMemoryGrantStore, type GrantStore } from './grant-store.ts';
-import { requirePermission, requireAuth } from './middleware.ts';
+import { requirePermission, requireAuth, requireAdmin } from './middleware.ts';
 
 export type PermissionsModule = {
   grantStore: GrantStore;
@@ -12,6 +12,8 @@ export type PermissionsModule = {
   requireForResource: (action: Action, resourceType: string) => ReturnType<typeof requirePermission>;
   /** Middleware: require authentication only (no resource-level check). */
   requireAuth: ReturnType<typeof requireAuth>;
+  /** Middleware: require admin-level access (scopes include '*' or 'admin'). */
+  requireAdmin: ReturnType<typeof requireAdmin>;
   /** Programmatic check: does this principal have the given action on a resource? */
   checkPermission: (principalId: string, resourceId: string, action: Action, resourceType?: string) => Promise<boolean>;
 };
@@ -34,6 +36,7 @@ export function createPermissions(deps: PermissionsDependencies = {}): Permissio
     requireForResource: (action: Action, resourceType: string) =>
       requirePermission(action, { grantStore, resourceType }),
     requireAuth: requireAuth(),
+    requireAdmin: requireAdmin(),
     async checkPermission(principalId: string, resourceId: string, action: Action, resourceType = 'document') {
       const grants = await grantStore.findByPrincipalAndResource(
         principalId,

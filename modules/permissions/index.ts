@@ -35,7 +35,7 @@ export {
 export { createPgGrantStore } from './internal/pg-grant-store.ts';
 
 // Middleware
-export { requirePermission, requireAuth } from './internal/middleware.ts';
+export { requirePermission, requireAuth, requireAdmin } from './internal/middleware.ts';
 
 // Factory
 export {
