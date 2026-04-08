@@ -22,6 +22,11 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "opendesk_dev", "ping"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
 
   minio:
     image: minio/minio:latest
@@ -34,6 +39,11 @@ services:
       - "9001:9001"
     volumes:
       - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
 
   convert:
     image: collabora/code:latest
@@ -67,9 +77,9 @@ services:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
       minio:
-        condition: service_started
+        condition: service_healthy
       convert:
         condition: service_started
 
