@@ -1,7 +1,6 @@
 /** Contract: contracts/app/rules.md */
 import type { SuggestionProps, SuggestionKeyDownProps } from '@tiptap/suggestion';
-import type { EntityMentionItem } from './types.ts';
-import { getSubtypeConfig } from './types.ts';
+import { type EntityMentionItem, getSubtypeConfig } from './types.ts';
 
 interface ListState {
   items: EntityMentionItem[];

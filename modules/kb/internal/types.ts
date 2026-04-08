@@ -26,6 +26,8 @@ export const EntitySubtype = {
   Person: 'person',
   Organization: 'organization',
   Place: 'place',
+  Project: 'project',
+  Term: 'term',
 } as const;
 
 export type EntitySubtype = (typeof EntitySubtype)[keyof typeof EntitySubtype];

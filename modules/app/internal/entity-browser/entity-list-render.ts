@@ -1,6 +1,5 @@
 /** Contract: contracts/app/rules.md */
-import type { EntityRecord } from './entity-api.ts';
-import { deleteEntityApi, fetchEntity } from './entity-api.ts';
+import { type EntityRecord, deleteEntityApi, fetchEntity } from './entity-api.ts';
 import { openEditDialog } from './entity-dialog.ts';
 
 const SUBTYPE_LABELS: Record<string, string> = {

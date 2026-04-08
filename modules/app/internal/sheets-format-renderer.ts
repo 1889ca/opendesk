@@ -1,6 +1,5 @@
 /** Contract: contracts/sheets-formatting/rules.md */
-import type { CellFormat } from './sheets-format-types.ts';
-import { formatNumber } from './sheets-format-types.ts';
+import { type CellFormat, formatNumber } from './sheets-format-types.ts';
 
 /**
  * Apply a CellFormat to a cell DOM element via inline styles.
