@@ -1,8 +1,8 @@
-/** Contract: contracts/app/observability-dashboard.md */
+/** Contract: contracts/app-admin/rules.md */
 import {
   formatIndicatorName, formatValue, escapeHtml, latencyClass,
   type HealthIndicator, type OperationSummary,
-} from '../admin-helpers.ts';
+} from './admin-helpers.ts';
 
 const STATUS_COLORS: Record<string, string> = {
   ok: 'var(--connected, #22c55e)',

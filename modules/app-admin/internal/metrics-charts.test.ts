@@ -1,4 +1,4 @@
-/** Contract: contracts/app/observability-dashboard.md */
+/** Contract: contracts/app-admin/rules.md */
 import { describe, it, expect } from 'vitest';
 import type { TimeSeriesPoint } from './metrics-charts.ts';
 

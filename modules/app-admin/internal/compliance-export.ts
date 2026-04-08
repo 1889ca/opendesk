@@ -1,5 +1,5 @@
-/** Contract: contracts/app/observability-dashboard.md */
-import type { MetricsSummary, OperationSummary, HealthIndicator } from '../admin-helpers.ts';
+/** Contract: contracts/app-admin/rules.md */
+import type { MetricsSummary, OperationSummary, HealthIndicator } from './admin-helpers.ts';
 
 export interface ComplianceReport {
   generatedAt: string;

@@ -1,4 +1,4 @@
-/** Contract: contracts/app/observability-dashboard.md */
+/** Contract: contracts/app-admin/rules.md */
 
 export interface TimeSeriesPoint {
   bucket: string;

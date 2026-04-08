@@ -55,12 +55,12 @@ const entries = [
   },
   {
     ...sharedJS,
-    entryPoints: ['modules/app/internal/admin-dashboard.ts'],
+    entryPoints: ['modules/app-admin/internal/admin-dashboard.ts'],
     outfile: 'modules/app/internal/public/admin.bundle.js',
   },
   {
     ...sharedCSS,
-    entryPoints: ['modules/app/internal/css/admin.css'],
+    entryPoints: ['modules/app-admin/internal/css/admin.css'],
     outfile: 'modules/app/internal/public/admin.bundle.css',
   },
   {

@@ -1,6 +1,6 @@
-/** Contract: contracts/app/observability-dashboard.md */
-import { apiFetch } from '../shared/api-client.ts';
-import { escapeHtml } from '../admin-helpers.ts';
+/** Contract: contracts/app-admin/rules.md */
+import { apiFetch } from '@opendesk/app';
+import { escapeHtml } from './admin-helpers.ts';
 
 export interface MetricEntry {
   id: string;

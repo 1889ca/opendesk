@@ -132,7 +132,6 @@ modules/app/
 - `contracts/app/print.md` — Print stylesheet, PageBreak node, print/PDF buttons
 - `contracts/app/accessibility.md` — ARIA announcer, roving tabindex toolbar, shortcut dialog
 - `contracts/app/mobile.md` — Touch support, responsive toolbar overflow, viewport management
-- `contracts/app/observability-dashboard.md` — Admin observability dashboard with charts, health panel, correlation search, compliance export
 - `contracts/app/shell.md` — SPA shell, client-side router, dynamic editor loading, shared chrome
 
 ## MVP Scope

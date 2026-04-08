@@ -1,11 +1,10 @@
-/** Contract: contracts/app/rules.md */
-import { apiFetch } from './shared/api-client.ts';
-import { initTheme } from './shared/theme-toggle.ts';
+/** Contract: contracts/app-admin/rules.md */
+import { apiFetch, initTheme } from '@opendesk/app';
 import {
   formatIndicatorName, formatValue, formatUptime, latencyClass, escapeHtml,
   type HealthIndicator, type OperationSummary, type MetricsSummary, type AuditSummary,
 } from './admin-helpers.ts';
-import { buildObservabilitySection, initObservabilityDashboard } from './admin/observability-dashboard.ts';
+import { buildObservabilitySection, initObservabilityDashboard } from './observability-dashboard.ts';
 
 // --- Rendering ---
 

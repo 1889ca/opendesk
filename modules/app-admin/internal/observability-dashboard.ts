@@ -1,6 +1,6 @@
-/** Contract: contracts/app/observability-dashboard.md */
-import { apiFetch } from '../shared/api-client.ts';
-import type { MetricsSummary } from '../admin-helpers.ts';
+/** Contract: contracts/app-admin/rules.md */
+import { apiFetch } from '@opendesk/app';
+import type { MetricsSummary } from './admin-helpers.ts';
 import { renderHealthPanel, renderOperationsTable } from './health-panel.ts';
 import { renderVolumeChart, renderLatencyChart, type TimeSeriesPoint } from './metrics-charts.ts';
 import { initCorrelationSearch } from './correlation-search.ts';

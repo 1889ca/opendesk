@@ -85,9 +85,9 @@ const builds = [
     minify: true,
     sourcemap: true,
   },
-  // Admin dashboard JS
+  // Admin dashboard JS (app-admin module)
   {
-    entryPoints: ['modules/app/internal/admin-dashboard.ts'],
+    entryPoints: ['modules/app-admin/internal/admin-dashboard.ts'],
     outfile: `${OUTDIR}/admin.bundle.js`,
     bundle: true,
     format: 'esm',
@@ -95,9 +95,9 @@ const builds = [
     minify: true,
     sourcemap: true,
   },
-  // Admin dashboard CSS
+  // Admin dashboard CSS (app-admin module)
   {
-    entryPoints: ['modules/app/internal/css/admin.css'],
+    entryPoints: ['modules/app-admin/internal/css/admin.css'],
     outfile: `${OUTDIR}/admin.bundle.css`,
     bundle: true,
     minify: true,

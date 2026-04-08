@@ -1,7 +1,7 @@
-/** Contract: contracts/app/observability-dashboard.md */
+/** Contract: contracts/app-admin/rules.md */
 import { describe, it, expect } from 'vitest';
 import { buildComplianceReport, reportToCSV, reportToJSON } from './compliance-export.ts';
-import type { MetricsSummary } from '../admin-helpers.ts';
+import type { MetricsSummary } from './admin-helpers.ts';
 
 const SUMMARY: MetricsSummary = {
   timestamp: '2026-04-08T12:00:00Z',

@@ -1,7 +1,7 @@
-/** Contract: contracts/app/observability-dashboard.md */
+/** Contract: contracts/app-admin/rules.md */
 import { describe, it, expect } from 'vitest';
 import { countByStatus } from './health-panel.ts';
-import type { HealthIndicator } from '../admin-helpers.ts';
+import type { HealthIndicator } from './admin-helpers.ts';
 
 const INDICATORS: HealthIndicator[] = [
   { name: 'database.latency_ms', value: 5, unit: 'ms', status: 'ok', timestamp: '2026-04-08T12:00:00Z' },

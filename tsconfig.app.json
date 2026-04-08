@@ -3,5 +3,5 @@
   "compilerOptions": {
     "lib": ["ES2022", "DOM"]
   },
-  "include": ["modules/app/**/*.ts", "modules/app-slides/**/*.ts", "modules/app-sheets/**/*.ts"]
+  "include": ["modules/app/**/*.ts", "modules/app-slides/**/*.ts", "modules/app-sheets/**/*.ts", "modules/app-admin/**/*.ts"]
 }

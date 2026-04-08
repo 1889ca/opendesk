@@ -1,4 +1,4 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-admin/rules.md */
 
 export interface HealthIndicator {
   name: string;
