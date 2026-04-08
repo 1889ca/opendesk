@@ -1,4 +1,4 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-kb/rules.md */
 
 import { type KBEntryRecord, createEntryApi, updateEntryApi } from './kb-api.ts';
 import { renderMetaFields, readMetaFields } from './form-meta-fields.ts';

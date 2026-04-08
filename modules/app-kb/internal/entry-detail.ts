@@ -1,4 +1,4 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-kb/rules.md */
 
 import { type KBEntryRecord, fetchEntry, deleteEntryApi, updateEntryApi } from './kb-api.ts';
 import { renderMetadata } from './detail-metadata.ts';

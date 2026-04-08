@@ -1,4 +1,4 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-kb/rules.md */
 
 /** Field definition for dynamic metadata form rendering. */
 export interface MetadataFieldDef {

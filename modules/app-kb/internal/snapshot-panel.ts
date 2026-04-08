@@ -1,4 +1,4 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-kb/rules.md */
 
 import { createSnapshotApi, fetchSnapshots, fetchSnapshotEntries, type KBSnapshotRecord, type SnapshotEntryRecord } from './kb-snapshot-api.ts';
 

@@ -1,4 +1,4 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-kb/rules.md */
 
 import type { GraphData } from './graph-data.ts';
 import { computeLayout } from './graph-layout.ts';

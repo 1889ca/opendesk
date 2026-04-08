@@ -1,16 +1,16 @@
-/** Contract: contracts/app/shell.md */
+/** Contract: contracts/app-kb/rules.md */
 
 /**
  * KB Browser view: unified interface for browsing, filtering, and managing
  * all Knowledge Base entries (references, entities, datasets, notes).
  */
 
-import { fetchEntries, type KBEntryRecord } from '../kb-browser/kb-api.ts';
-import { buildFilterBar, readFiltersFromURL, type KBFilterState } from '../kb-browser/filter-bar.ts';
-import { renderEntryList, buildViewToggle, buildPagination, type ViewMode } from '../kb-browser/entry-list.ts';
-import { buildDetailPanel, openDetail } from '../kb-browser/entry-detail.ts';
-import { buildEntryForm, openCreateForm, openEditForm } from '../kb-browser/entry-form.ts';
-import { createQuickNote } from '../kb-browser/quick-note.ts';
+import { fetchEntries, type KBEntryRecord } from './kb-api.ts';
+import { buildFilterBar, readFiltersFromURL, type KBFilterState } from './filter-bar.ts';
+import { renderEntryList, buildViewToggle, buildPagination, type ViewMode } from './entry-list.ts';
+import { buildDetailPanel, openDetail } from './entry-detail.ts';
+import { buildEntryForm, openCreateForm, openEditForm } from './entry-form.ts';
+import { createQuickNote } from './quick-note.ts';
 
 let containerEl: HTMLElement | null = null;
 let listEl: HTMLElement | null = null;

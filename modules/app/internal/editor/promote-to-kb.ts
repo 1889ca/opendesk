@@ -2,7 +2,7 @@
 
 import type { Editor } from '@tiptap/core';
 import { DOMSerializer } from '@tiptap/pm/model';
-import { createEntryApi } from '../kb-browser/kb-api.ts';
+import { createEntryApi } from '@opendesk/app-kb';
 import { announce } from '../shared/a11y-announcer.ts';
 import { t } from '../i18n/index.ts';
 

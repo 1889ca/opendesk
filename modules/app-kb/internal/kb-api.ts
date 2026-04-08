@@ -1,6 +1,6 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-kb/rules.md */
 
-import { apiFetch } from '../shared/api-client.ts';
+import { apiFetch } from '@opendesk/app';
 
 /** KB entry as returned from the API. */
 export interface KBEntryRecord {

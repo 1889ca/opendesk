@@ -1,4 +1,4 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-kb/rules.md */
 
 /** Active filter state for the KB browser. */
 export interface KBFilterState {

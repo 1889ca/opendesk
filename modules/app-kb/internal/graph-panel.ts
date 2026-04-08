@@ -1,4 +1,4 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-kb/rules.md */
 
 import { fetchGraphData } from './graph-data.ts';
 import { renderGraph } from './graph-renderer.ts';

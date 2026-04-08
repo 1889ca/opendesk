@@ -1,4 +1,4 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-kb/rules.md */
 
 import { type KBEntryRecord, fetchDatasetRows } from './kb-api.ts';
 

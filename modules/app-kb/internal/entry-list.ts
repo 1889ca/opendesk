@@ -1,4 +1,4 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-kb/rules.md */
 
 import type { KBEntryRecord } from './kb-api.ts';
 import { createEntryCard } from './entry-card.ts';

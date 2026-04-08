@@ -1,6 +1,6 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-kb/rules.md */
 
-import { apiFetch } from '../shared/api-client.ts';
+import { apiFetch } from '@opendesk/app';
 
 const SNAPSHOTS_BASE = '/api/kb/snapshots';
 

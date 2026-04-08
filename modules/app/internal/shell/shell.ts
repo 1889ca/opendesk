@@ -99,7 +99,7 @@ function defineRoutes(): Route[] {
     },
     {
       pattern: '/kb',
-      handler: () => mountView('kb', () => import('../views/kb-browser-view.ts'), {}),
+      handler: () => mountView('kb', () => import('@opendesk/app-kb'), {}),
     },
   ];
 }

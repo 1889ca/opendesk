@@ -1,4 +1,4 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-kb/rules.md */
 
 /**
  * Lightweight markdown-to-HTML renderer for note bodies.
