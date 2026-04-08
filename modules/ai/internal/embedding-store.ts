@@ -76,10 +76,11 @@ export async function searchByVector(
   );
 
   return result.rows.map((r) => ({
-    documentId: r.document_id,
-    title: r.title || 'Untitled',
-    chunkContent: r.content,
+    sourceId: r.document_id,
+    sourceType: 'document' as const,
+    chunkText: r.content,
     similarity: Math.round(r.similarity * 1000) / 1000,
+    metadata: { title: r.title || 'Untitled' },
   }));
 }
 

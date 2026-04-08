@@ -92,6 +92,50 @@ export async function insertHealthIndicators(
   );
 }
 
+/** Get rolling statistics (mean, stddev, count) for a metric over a time window. */
+export async function getRollingStats(
+  pool: Pool,
+  metric: string,
+  windowMinutes: number,
+): Promise<{ mean: number; stddev: number; count: number }> {
+  const result = await pool.query<{ mean: number; stddev: number; count: string }>(
+    `SELECT
+       COALESCE(AVG(value), 0) AS mean,
+       COALESCE(STDDEV(value), 0) AS stddev,
+       COUNT(*)::text AS count
+     FROM metric_samples
+     WHERE metric = $1
+       AND timestamp > now() - ($2 || ' minutes')::interval`,
+    [metric, windowMinutes],
+  );
+  const row = result.rows[0];
+  return {
+    mean: Number(row?.mean ?? 0),
+    stddev: Number(row?.stddev ?? 0),
+    count: Number(row?.count ?? 0),
+  };
+}
+
+/** Get recent metric samples ordered by timestamp descending. */
+export async function getRecentSamples(
+  pool: Pool,
+  metric: string,
+  limit: number,
+): Promise<Array<{ value: number; timestamp: string }>> {
+  const result = await pool.query<{ value: number; timestamp: string }>(
+    `SELECT value, timestamp
+     FROM metric_samples
+     WHERE metric = $1
+     ORDER BY timestamp DESC
+     LIMIT $2`,
+    [metric, limit],
+  );
+  return result.rows.map((r) => ({
+    value: Number(r.value),
+    timestamp: new Date(r.timestamp).toISOString(),
+  }));
+}
+
 /** Get the latest value for each health indicator. */
 export async function getLatestHealthIndicators(
   pool: Pool,

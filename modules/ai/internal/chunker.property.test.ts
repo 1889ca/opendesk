@@ -1,5 +1,6 @@
 /** Contract: contracts/ai/rules.md — Property-based tests */
 import { describe, it, expect } from 'vitest';
+// @ts-ignore — fast-check may not be installed in all environments
 import fc from 'fast-check';
 import { chunkText } from './chunker.ts';
 
@@ -10,7 +11,7 @@ describe('ai/chunker property tests', () => {
         fc.string({ minLength: 1, maxLength: 5000 }),
         fc.integer({ min: 50, max: 1024 }),
         fc.integer({ min: 0, max: 100 }),
-        (text, chunkSize, overlap) => {
+        (text: string, chunkSize: number, overlap: number) => {
           const safeOverlap = Math.min(overlap, chunkSize - 1);
           const chunks = chunkText(text, chunkSize, safeOverlap);
           for (const chunk of chunks) {
@@ -25,7 +26,7 @@ describe('ai/chunker property tests', () => {
     fc.assert(
       fc.property(
         fc.string({ minLength: 1, maxLength: 3000 }),
-        (text) => {
+        (text: string) => {
           if (!text.trim()) return;
           const chunks = chunkText(text, 512, 64);
           // Every non-whitespace character from input should appear in some chunk
@@ -43,7 +44,7 @@ describe('ai/chunker property tests', () => {
     fc.assert(
       fc.property(
         fc.string({ minLength: 1, maxLength: 3000 }),
-        (text) => {
+        (text: string) => {
           const chunks = chunkText(text);
           for (let i = 0; i < chunks.length; i++) {
             expect(chunks[i].index).toBe(i);
@@ -57,7 +58,7 @@ describe('ai/chunker property tests', () => {
     fc.assert(
       fc.property(
         fc.stringMatching(/^[ \t\n\r]*$/),
-        (whitespace) => {
+        (whitespace: string) => {
           const chunks = chunkText(whitespace);
           expect(chunks).toEqual([]);
         },
@@ -69,7 +70,7 @@ describe('ai/chunker property tests', () => {
     fc.assert(
       fc.property(
         fc.stringMatching(/^[a-zA-Z]$/),
-        (ch) => {
+        (ch: string) => {
           const chunks = chunkText(ch);
           expect(chunks.length).toBe(1);
           expect(chunks[0].content).toBe(ch);

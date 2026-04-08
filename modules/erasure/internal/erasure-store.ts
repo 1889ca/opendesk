@@ -11,19 +11,18 @@ export async function insertAttestation(
 ): Promise<void> {
   await pool.query(
     `INSERT INTO erasure_attestations
-       (id, document_id, actor_id, actor_type, reason, pre_state_hash, post_state_hash, state_changed, yjs_size_before, yjs_size_after)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+       (id, doc_id, type, actor_id, legal_basis, details, hash, previous_hash, issued_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
     [
       attestation.id,
-      attestation.documentId,
+      attestation.docId,
+      attestation.type,
       attestation.actorId,
-      attestation.actorType,
-      attestation.reason,
-      attestation.preStateHash,
-      attestation.postStateHash,
-      attestation.stateChanged,
-      attestation.yjsSizeBefore,
-      attestation.yjsSizeAfter,
+      attestation.legalBasis,
+      attestation.details,
+      attestation.hash,
+      attestation.previousHash,
+      attestation.issuedAt,
     ],
   );
 }
@@ -33,12 +32,11 @@ export async function getAttestationsForDocument(
   documentId: string,
 ): Promise<ErasureAttestation[]> {
   const result = await pool.query(
-    `SELECT id, document_id, actor_id, actor_type, reason,
-            pre_state_hash, post_state_hash, state_changed,
-            yjs_size_before, yjs_size_after, created_at
+    `SELECT id, doc_id, type, actor_id, legal_basis, details,
+            hash, previous_hash, issued_at
      FROM erasure_attestations
-     WHERE document_id = $1
-     ORDER BY created_at DESC`,
+     WHERE doc_id = $1
+     ORDER BY issued_at DESC`,
     [documentId],
   );
   return result.rows.map(mapAttestationRow);
@@ -47,18 +45,16 @@ export async function getAttestationsForDocument(
 function mapAttestationRow(row: Record<string, unknown>): ErasureAttestation {
   return {
     id: row.id as string,
-    documentId: row.document_id as string,
+    docId: row.doc_id as string,
+    type: row.type as ErasureAttestation['type'],
     actorId: row.actor_id as string,
-    actorType: row.actor_type as 'human' | 'agent' | 'system',
-    reason: row.reason as string,
-    preStateHash: row.pre_state_hash as string,
-    postStateHash: row.post_state_hash as string,
-    stateChanged: row.state_changed as boolean,
-    yjsSizeBefore: row.yjs_size_before as number,
-    yjsSizeAfter: row.yjs_size_after as number,
-    createdAt: row.created_at instanceof Date
-      ? row.created_at.toISOString()
-      : (row.created_at as string),
+    legalBasis: row.legal_basis as string,
+    details: row.details as string,
+    hash: row.hash as string,
+    previousHash: row.previous_hash as string | null,
+    issuedAt: row.issued_at instanceof Date
+      ? row.issued_at.toISOString()
+      : (row.issued_at as string),
   };
 }
 
@@ -69,15 +65,15 @@ export async function insertPolicy(
   policy: RetentionPolicy,
 ): Promise<void> {
   await pool.query(
-    `INSERT INTO retention_policies (id, name, document_type, max_age_days, auto_purge, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
-    [policy.id, policy.name, policy.documentType, policy.maxAgeDays, policy.autoPurge, policy.createdBy],
+    `INSERT INTO retention_policies (id, name, target, max_age_days, enabled, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [policy.id, policy.name, policy.target, policy.maxAgeDays, policy.enabled, policy.createdAt, policy.updatedAt],
   );
 }
 
 export async function listPolicies(pool: Pool): Promise<RetentionPolicy[]> {
   const result = await pool.query(
-    `SELECT id, name, document_type, max_age_days, auto_purge, created_by, created_at
+    `SELECT id, name, target, max_age_days, enabled, created_at, updated_at
      FROM retention_policies
      ORDER BY created_at DESC`,
   );
@@ -94,9 +90,9 @@ export async function deletePolicy(pool: Pool, policyId: string): Promise<boolea
 
 export async function getAutoPurgePolicies(pool: Pool): Promise<RetentionPolicy[]> {
   const result = await pool.query(
-    `SELECT id, name, document_type, max_age_days, auto_purge, created_by, created_at
+    `SELECT id, name, target, max_age_days, enabled, created_at, updated_at
      FROM retention_policies
-     WHERE auto_purge = true
+     WHERE enabled = true
      ORDER BY max_age_days ASC`,
   );
   return result.rows.map(mapPolicyRow);
@@ -106,13 +102,15 @@ function mapPolicyRow(row: Record<string, unknown>): RetentionPolicy {
   return {
     id: row.id as string,
     name: row.name as string,
-    documentType: row.document_type as string,
+    target: row.target as RetentionPolicy['target'],
     maxAgeDays: row.max_age_days as number,
-    autoPurge: row.auto_purge as boolean,
-    createdBy: row.created_by as string,
+    enabled: row.enabled as boolean,
     createdAt: row.created_at instanceof Date
       ? row.created_at.toISOString()
       : (row.created_at as string),
+    updatedAt: row.updated_at instanceof Date
+      ? row.updated_at.toISOString()
+      : (row.updated_at as string),
   };
 }
 

@@ -41,7 +41,7 @@ function extractProseMirrorText(node: ProseMirrorNode): string {
 }
 
 export const textDocumentExtractor: TextExtractor<TextDocumentSnapshot> = (
-  snapshot,
+  snapshot: TextDocumentSnapshot,
 ) => {
   return snapshot.content.content
     .map(extractProseMirrorText)
@@ -52,7 +52,7 @@ export const textDocumentExtractor: TextExtractor<TextDocumentSnapshot> = (
 // --- Spreadsheet Extractor ---
 
 export const spreadsheetExtractor: TextExtractor<SpreadsheetDocumentSnapshot> = (
-  snapshot,
+  snapshot: SpreadsheetDocumentSnapshot,
 ) => {
   const parts: string[] = [];
 
@@ -60,12 +60,12 @@ export const spreadsheetExtractor: TextExtractor<SpreadsheetDocumentSnapshot> = 
     parts.push(`Sheet: ${sheet.name}`);
 
     // Column names from first row if it looks like a header
-    const colNames = sheet.columns.map((_c, i) => `Column ${i + 1}`);
+    const colNames = sheet.columns.map((_c: unknown, i: number) => `Column ${i + 1}`);
     parts.push(`Columns: ${colNames.join(', ')}`);
 
     for (const row of sheet.rows) {
       const cellTexts = row.cells
-        .map((cell) => {
+        .map((cell: { value?: unknown; formula?: string }) => {
           const parts: string[] = [];
           if (cell.value !== null && cell.value !== undefined) {
             parts.push(String(cell.value));
@@ -89,7 +89,7 @@ export const spreadsheetExtractor: TextExtractor<SpreadsheetDocumentSnapshot> = 
 // --- Presentation Extractor ---
 
 export const presentationExtractor: TextExtractor<PresentationDocumentSnapshot> = (
-  snapshot,
+  snapshot: PresentationDocumentSnapshot,
 ) => {
   const parts: string[] = [];
 

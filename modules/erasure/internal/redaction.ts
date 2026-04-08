@@ -32,7 +32,7 @@ export async function redactContent(
 
   // Walk all shared types
   for (const [, type] of doc.share.entries()) {
-    redactedCount += redactType(doc, type, targetClientId, patternRegex);
+    redactedCount += redactType(doc, type as Y.AbstractType<unknown>, targetClientId, patternRegex);
   }
 
   const newState = Y.encodeStateAsUpdate(doc);

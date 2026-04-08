@@ -6,11 +6,32 @@ export {
   FederationPeerSchema,
   TransferRecordSchema,
   TransferBundleSchema,
+  PeerSchema,
+  FederatedPermissionSchema,
+  FederatedIdentitySchema,
+  KBFederationEntrySchema,
+  KBSubscriptionSchema,
+  SplitBrainEventSchema,
   type FederationConfig,
   type FederationPeer,
   type TransferRecord,
   type TransferBundle,
   type FederationModule,
+  type Peer,
+  type PeerRegistration,
+  type PeerStatus,
+  type FederatedMessage,
+  type FederatedPermission,
+  type FederatedRole,
+  type FederatedIdentity,
+  type SAMLAssertionResult,
+  type KBFederationEntry,
+  type KBSubscription,
+  type KBSyncStatus,
+  type SplitBrainEvent,
+  type SplitBrainType,
+  type SyncChannel,
+  type SyncChannelStatus,
 } from './contract.ts';
 
 // Factory
@@ -20,4 +41,4 @@ export { createFederation, type FederationDependencies } from './internal/create
 export { createFederationRoutes, type FederationRoutesOptions } from './internal/federation-routes.ts';
 
 // Crypto utilities
-export { signPayload, verifySignature, sha256 } from './internal/signing.ts';
+export { signPayload, verifySignature, sha256, generateKeyPair, exportPublicKey, importPublicKey, signMessage, verifyMessage } from './internal/signing.ts';

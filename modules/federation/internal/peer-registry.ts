@@ -1,7 +1,7 @@
 /** Contract: contracts/federation/rules.md */
 import type { Peer, PeerRegistration, PeerStatus } from '../contract.ts';
 import { PeerSchema } from '../contract.ts';
-import { importPublicKey, verifySignature } from './signing.ts';
+import { importPublicKey, verifyMessage } from './signing.ts';
 import type { FederatedMessage } from '../contract.ts';
 
 /** Storage interface for peer persistence. */
@@ -71,7 +71,7 @@ export async function verifyPeerMessage(
   if (!peer || peer.status !== 'active') return false;
 
   const publicKey = importPublicKey(peer.publicKey);
-  return verifySignature(message, publicKey);
+  return verifyMessage(message as unknown as Record<string, unknown> & { signature: string }, publicKey);
 }
 
 export class PeerAlreadyExistsError extends Error {

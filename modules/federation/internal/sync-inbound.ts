@@ -5,7 +5,7 @@ import * as syncProtocol from 'y-protocols/sync';
 import * as encoding from 'lib0/encoding';
 import * as decoding from 'lib0/decoding';
 import type { Peer } from '../contract.ts';
-import { importPublicKey, verifySignature } from './signing.ts';
+import { importPublicKey, verifyMessage } from './signing.ts';
 import type { SyncMetadataStore } from './sync-metadata.ts';
 import { createLogger } from '../../logger/index.ts';
 
@@ -54,7 +54,7 @@ async function handleAuth(
       return false;
     }
     const pubKey = importPublicKey(peer.publicKey);
-    if (!verifySignature(authMsg, pubKey)) {
+    if (!verifyMessage(authMsg, pubKey)) {
       ws.close(4002, 'Invalid signature');
       return false;
     }

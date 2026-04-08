@@ -6,12 +6,18 @@ import type { ObservabilityModule } from '../contract.ts';
 function makeMockObs(): ObservabilityModule {
   return {
     recordMetric: vi.fn(),
+    record: vi.fn(),
     getSummary: vi.fn(),
     getHealth: vi.fn(),
     startHealthMonitor: vi.fn(),
     stopHealthMonitor: vi.fn(),
     getTimeSeries: vi.fn(),
+    queryTimeSeries: vi.fn(),
     searchByCorrelationId: vi.fn(),
+    detectAnomalies: vi.fn(),
+    acknowledgeAlert: vi.fn(),
+    queryForensics: vi.fn(),
+    exportSiem: vi.fn(),
   };
 }
 

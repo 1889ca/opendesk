@@ -19,11 +19,11 @@ function createInMemoryAi(overrides: Partial<AiModule> = {}): AiModule {
   return {
     embedDocument: vi.fn(async () => 5),
     semanticSearch: vi.fn(async () => [
-      { documentId: 'doc-1', title: 'Test Doc', chunkContent: 'relevant text', similarity: 0.92 },
+      { sourceId: 'doc-1', sourceType: 'document' as const, chunkText: 'relevant text', similarity: 0.92 },
     ]),
     ask: vi.fn(async () => ({
       answer: 'The answer is 42.',
-      sources: [{ documentId: 'doc-1', title: 'Test', chunkContent: 'chunk', similarity: 0.9 }],
+      sources: [{ sourceId: 'doc-1', sourceType: 'document' as const, chunkText: 'chunk', similarity: 0.9 }],
     })),
     healthCheck: vi.fn(async () => true),
     startConsumer: vi.fn(),
@@ -64,7 +64,7 @@ describe('AI routes', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
-    expect(res.body[0].documentId).toBe('doc-1');
+    expect(res.body[0].sourceId).toBe('doc-1');
     expect(ai.semanticSearch).toHaveBeenCalledWith(
       'test query',
       expect.arrayContaining(['doc-1', 'doc-2']),

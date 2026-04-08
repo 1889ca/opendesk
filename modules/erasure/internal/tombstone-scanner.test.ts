@@ -57,8 +57,8 @@ describe('tombstone-scanner', () => {
     expect(report.tombstones.length).toBeGreaterThan(0);
     expect(report.extractedAt).toBeTruthy();
 
-    const contents = report.tombstones.map((t) => t.content);
-    expect(contents.some((c) => c.includes('World') || c.includes(' '))).toBe(true);
+    const contents = report.tombstones.map((t: { content: string }) => t.content);
+    expect(contents.some((c: string) => c.includes('World') || c.includes(' '))).toBe(true);
   });
 
   it('returns empty tombstones for a clean document', () => {
@@ -80,7 +80,7 @@ describe('tombstone-scanner', () => {
     const state = createDocWithTombstones();
     const report = extractTombstones('doc-4', state);
 
-    const ids = report.tombstones.map((t) => t.itemId);
+    const ids = report.tombstones.map((t: { itemId: string }) => t.itemId);
     const uniqueIds = new Set(ids);
     expect(ids.length).toBe(uniqueIds.size);
   });

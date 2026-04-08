@@ -103,7 +103,7 @@ export function createAi(deps: AiDependencies): AiModule {
 
     // 2. Build context from top chunks
     const context = sources
-      .map((s, i) => `[Source ${i + 1}: "${s.title}"] ${s.chunkContent}`)
+      .map((s, i) => `[Source ${i + 1}: "${(s.metadata as Record<string, unknown>)?.title ?? s.sourceId}"] ${s.chunkText}`)
       .join('\n\n---\n\n');
 
     // 3. Generate answer via LLM

@@ -1,14 +1,14 @@
 /** Contract: contracts/ai/rules.md */
 import type { TextExtractor } from '../contract.ts';
-import type { KbEntry } from '../../kb/contract.ts';
+import type { KBEntry } from '../../kb/contract.ts';
 import { registerExtractor } from './extractors.ts';
 
 // --- KB Reference Extractor ---
 // Extracts: title + authors + abstract
 
-export const kbReferenceExtractor: TextExtractor<KbEntry> = (entry) => {
+export const kbReferenceExtractor: TextExtractor<KBEntry> = (entry: KBEntry) => {
   const parts: string[] = [entry.title];
-  const content = entry.content as {
+  const content = entry.metadata as {
     authors?: Array<{ given?: string; family?: string; literal?: string }>;
     abstract?: string | null;
     metadata?: Record<string, unknown>;
@@ -33,21 +33,20 @@ export const kbReferenceExtractor: TextExtractor<KbEntry> = (entry) => {
 // --- KB Entity Extractor ---
 // Extracts: name + description + metadata fields
 
-export const kbEntityExtractor: TextExtractor<KbEntry> = (entry) => {
+export const kbEntityExtractor: TextExtractor<KBEntry> = (entry: KBEntry) => {
   const parts: string[] = [entry.title];
-  const content = entry.content as {
-    description: string;
-    metadata?: Record<string, unknown>;
-  };
+  const content = entry.metadata as Record<string, unknown>;
 
-  parts.push(content.description);
-
-  if (content.metadata) {
-    const metaText = Object.entries(content.metadata)
-      .map(([key, val]) => `${key}: ${String(val)}`)
-      .join(', ');
-    if (metaText) parts.push(metaText);
+  if (content.description) {
+    parts.push(String(content.description));
   }
+
+  const skip = new Set(['description', 'name']);
+  const metaText = Object.entries(content)
+    .filter(([key]) => !skip.has(key))
+    .map(([key, val]) => `${key}: ${String(val)}`)
+    .join(', ');
+  if (metaText) parts.push(metaText);
 
   return parts.join('\n');
 };
@@ -55,9 +54,9 @@ export const kbEntityExtractor: TextExtractor<KbEntry> = (entry) => {
 // --- KB Dataset Extractor ---
 // Extracts: column names + summary statistics + description
 
-export const kbDatasetExtractor: TextExtractor<KbEntry> = (entry) => {
+export const kbDatasetExtractor: TextExtractor<KBEntry> = (entry: KBEntry) => {
   const parts: string[] = [entry.title];
-  const content = entry.content as {
+  const content = entry.metadata as {
     description: string;
     columns?: Array<{ name: string; dataType: string; description?: string }>;
     summary?: string | null;
@@ -82,9 +81,9 @@ export const kbDatasetExtractor: TextExtractor<KbEntry> = (entry) => {
 // --- KB Note Extractor ---
 // Extracts: full text content
 
-export const kbNoteExtractor: TextExtractor<KbEntry> = (entry) => {
+export const kbNoteExtractor: TextExtractor<KBEntry> = (entry: KBEntry) => {
   const parts: string[] = [entry.title];
-  const content = entry.content as { content: string };
+  const content = entry.metadata as { content: string };
   parts.push(content.content);
   return parts.join('\n');
 };
@@ -92,8 +91,8 @@ export const kbNoteExtractor: TextExtractor<KbEntry> = (entry) => {
 // --- KB Glossary Extractor ---
 // Extracts: term + definition
 
-export const kbGlossaryExtractor: TextExtractor<KbEntry> = (entry) => {
-  const content = entry.content as { term: string; definition: string };
+export const kbGlossaryExtractor: TextExtractor<KBEntry> = (entry: KBEntry) => {
+  const content = entry.metadata as { term: string; definition: string };
   return `${content.term}: ${content.definition}`;
 };
 

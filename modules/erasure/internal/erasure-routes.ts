@@ -12,9 +12,9 @@ const ErasureRequestBody = z.object({
 
 const CreatePolicyBody = z.object({
   name: z.string().min(1).max(200),
-  documentType: z.string().default('*'),
+  target: z.enum(['kb_draft', 'kb_published', 'document_draft', 'tombstone']),
   maxAgeDays: z.coerce.number().int().positive(),
-  autoPurge: z.boolean().default(false),
+  enabled: z.boolean().default(false),
 });
 
 export interface ErasureRoutesOptions {
@@ -91,10 +91,10 @@ export function createErasureRoutes(opts: ErasureRoutesOptions): Router {
         return;
       }
 
-      const principal = req.principal!;
+      const now = new Date().toISOString();
       const policy = await erasure.createPolicy({
         ...parsed.data,
-        createdBy: principal.id,
+        updatedAt: now,
       });
       res.status(201).json(policy);
     }),

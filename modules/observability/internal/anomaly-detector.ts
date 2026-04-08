@@ -72,8 +72,8 @@ async function detectRateAnomalies(
   const firstHalf = samples.slice(0, midpoint);
   const secondHalf = samples.slice(midpoint);
 
-  const firstAvg = average(firstHalf.map((s) => s.value));
-  const secondAvg = average(secondHalf.map((s) => s.value));
+  const firstAvg = average(firstHalf.map((s: { value: number }) => s.value));
+  const secondAvg = average(secondHalf.map((s: { value: number }) => s.value));
 
   if (firstAvg > 0) {
     const rateOfChange = (secondAvg - firstAvg) / firstAvg;

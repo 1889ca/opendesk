@@ -25,7 +25,7 @@ export function anonymizeDocument(
 
   // Walk all shared types and zero-fill tombstones from the target user
   for (const [, type] of doc.share.entries()) {
-    itemsAnonymized += anonymizeType(type, targetClientId);
+    itemsAnonymized += anonymizeType(type as Y.AbstractType<unknown>, targetClientId);
   }
 
   // Re-encode preserving vector clocks (encodeStateAsUpdate keeps the clock)

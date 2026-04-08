@@ -23,8 +23,9 @@ export function extractTombstones(
   // We must NOT call doc.getText/getArray/etc with names that already
   // exist as different types — Yjs will throw.
   for (const [, type] of doc.share.entries()) {
-    const crdtType = inferCrdtType(type);
-    scanSharedType(type, crdtType, tombstones);
+    const typedType = type as Y.AbstractType<unknown>;
+    const crdtType = inferCrdtType(typedType);
+    scanSharedType(typedType, crdtType, tombstones);
   }
 
   doc.destroy();

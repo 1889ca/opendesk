@@ -19,12 +19,18 @@ function makeMockObs(overrides: Partial<ObservabilityModule> = {}): Observabilit
 
   return {
     recordMetric: vi.fn(),
+    record: vi.fn(),
     getSummary: vi.fn(async () => summary),
     getHealth: vi.fn(async () => summary.health),
     startHealthMonitor: vi.fn(),
     stopHealthMonitor: vi.fn(),
     getTimeSeries: vi.fn(async () => []),
+    queryTimeSeries: vi.fn(async () => []),
     searchByCorrelationId: vi.fn(async () => []),
+    detectAnomalies: vi.fn(async () => []),
+    acknowledgeAlert: vi.fn(),
+    queryForensics: vi.fn(async () => []),
+    exportSiem: vi.fn(async () => ''),
     ...overrides,
   };
 }
