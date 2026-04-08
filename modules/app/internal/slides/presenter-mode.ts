@@ -3,6 +3,7 @@
 import type { SlideElement } from './types.ts';
 import { renderElement } from './element-renderer.ts';
 import { getSlideNotes } from './speaker-notes.ts';
+import { getSlideTransition, animateTransition } from './transitions.ts';
 import type * as Y from 'yjs';
 
 interface PresenterContext {
@@ -63,11 +64,23 @@ export function launchPresenterMode(ctx: PresenterContext, startIndex = 0): void
     }
   }
 
+  let transitioning = false;
+
   function update() {
     renderSlideInto(currentEl, current);
     renderSlideInto(nextEl, current + 1);
     notesEl.textContent = getSlideNotes(ctx.yslides, current);
     counterEl.textContent = `${current + 1} / ${ctx.totalSlides()}`;
+  }
+
+  async function navigateTo(index: number, direction: 'forward' | 'backward') {
+    if (transitioning) return;
+    transitioning = true;
+    current = index;
+    const transition = getSlideTransition(ctx.yslides, current);
+    update();
+    await animateTransition(currentEl, transition, direction);
+    transitioning = false;
   }
 
   update();
@@ -76,16 +89,16 @@ export function launchPresenterMode(ctx: PresenterContext, startIndex = 0): void
   function handleKey(e: KeyboardEvent) {
     if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
       e.preventDefault();
-      if (current < ctx.totalSlides() - 1) { current++; update(); }
+      if (current < ctx.totalSlides() - 1) navigateTo(current + 1, 'forward');
     } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
       e.preventDefault();
-      if (current > 0) { current--; update(); }
+      if (current > 0) navigateTo(current - 1, 'backward');
     } else if (e.key === 'Escape') {
       win.close();
     } else if (e.key === 'Home') {
-      current = 0; update();
+      navigateTo(0, 'backward');
     } else if (e.key === 'End') {
-      current = ctx.totalSlides() - 1; update();
+      navigateTo(ctx.totalSlides() - 1, 'forward');
     }
   }
 

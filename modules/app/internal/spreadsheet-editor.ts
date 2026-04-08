@@ -16,9 +16,34 @@ import { createHeaderContextMenu } from './sheets/header-context-menu.ts';
 import { insertRow, deleteRow, insertColumn, deleteColumn } from './sheets/col-row-ops.ts';
 import { sortByColumn } from './sheets/sort-engine.ts';
 import { createFilterManager } from './sheets/filter-manager.ts';
+import { getRules, addRule, observeRules } from './sheets/cond-format-rules.ts';
+import { applyCondFormatting } from './sheets/cond-format-renderer.ts';
+import { openCondFormatDialog } from './sheets/cond-format-dialog.ts';
+import { setupPresence } from './sheets/presence.ts';
 
 const DEFAULT_COLS = 26;
 const DEFAULT_ROWS = 50;
+
+function setupFormulaBar(
+  input: HTMLInputElement, ydoc: Y.Doc,
+  getSheet: () => Y.Array<Y.Array<string>>, getRow: () => number, getCol: () => number, render: () => void,
+): void {
+  input.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const yrow = getSheet().get(getRow());
+    if (yrow) ydoc.transact(() => { yrow.delete(getCol(), 1); yrow.insert(getCol(), [input.value]); });
+    render();
+  });
+}
+
+function appendCondFormatButton(container: HTMLElement, ydoc: Y.Doc, getCol: () => number): void {
+  const btn = document.createElement('button');
+  btn.className = 'format-btn';
+  btn.textContent = 'Cond Format';
+  btn.title = 'Conditional Formatting';
+  btn.addEventListener('click', () => openCondFormatDialog((rule) => addRule(ydoc, rule), getCol()));
+  container.appendChild(btn);
+}
 
 function init() {
   const gridEl = document.getElementById('spreadsheet')!;
@@ -51,28 +76,16 @@ function init() {
     return store.getSheetData(activeSheetId);
   }
 
-  // --- Format Toolbar ---
+  const fmtCb = { getActiveCell: () => ({ row: activeRow, col: activeCol }), onFormatChanged: () => doRender() };
   let formatToolbar: HTMLElement | null = null;
   if (formatBarContainer) {
-    formatToolbar = createFormatToolbar(formatBarContainer, ydoc, {
-      getActiveCell: () => ({ row: activeRow, col: activeCol }),
-      onFormatChanged: () => doRender(),
-    });
+    formatToolbar = createFormatToolbar(formatBarContainer, ydoc, fmtCb);
+    appendCondFormatButton(formatBarContainer, ydoc, () => activeCol);
   }
+  attachFormatShortcuts(ydoc, fmtCb);
 
-  attachFormatShortcuts(ydoc, {
-    getActiveCell: () => ({ row: activeRow, col: activeCol }),
-    onFormatChanged: () => doRender(),
-  });
-
-  // --- Range Selection & Clipboard ---
   const rangeSelection = createRangeSelection(gridEl);
-  const clipboardMgr = createClipboardManager(gridEl, rangeSelection, store, {
-    ydoc,
-    ysheet: () => getActiveSheet(),
-  });
-
-  // --- Resize Manager ---
+  const clipboardMgr = createClipboardManager(gridEl, rangeSelection, store, { ydoc, ysheet: () => getActiveSheet() });
   const resizeMgr = createColRowResize(gridEl, ydoc);
 
   // --- Sort helper ---
@@ -113,6 +126,10 @@ function init() {
       onCellFocus(r, c) { activeRow = r; activeCol = c; },
     });
     resizeMgr.applyWidths(gridEl, DEFAULT_COLS);
+    applyCondFormatting(gridEl, getRules(ydoc), (r, c) => {
+      const yrow = getActiveSheet().get(r);
+      return (yrow && c < yrow.length) ? yrow.get(c) : '';
+    }, DEFAULT_ROWS, DEFAULT_COLS);
     if (currentRange) rangeSelection.setRange(currentRange);
     filterMgr.afterRender();
   }
@@ -167,32 +184,10 @@ function init() {
   doRender();
   getActiveSheet().observeDeep(onSheetChange);
   getFormatMap(ydoc).observeDeep(() => doRender());
+  observeRules(ydoc, () => doRender());
 
-  // Formula bar
-  if (formulaInput) {
-    formulaInput.addEventListener('keydown', (e) => {
-      if (e.key !== 'Enter') return;
-      const yrow = getActiveSheet().get(activeRow);
-      if (yrow) {
-        ydoc.transact(() => { yrow.delete(activeCol, 1); yrow.insert(activeCol, [formulaInput.value]); });
-      }
-      doRender();
-    });
-  }
-
-  // Presence
-  function updateUsers() {
-    if (!usersEl || !provider.awareness) return;
-    const names: string[] = [];
-    provider.awareness.getStates().forEach((state: { user?: { name?: string } }) => {
-      if (state.user?.name) names.push(state.user.name);
-    });
-    usersEl.textContent = names.join(', ') || '-';
-  }
-  provider.awareness?.setLocalStateField('user', user);
-  provider.awareness?.on('change', updateUsers);
-  updateUsers();
-
+  if (formulaInput) setupFormulaBar(formulaInput, ydoc, getActiveSheet, () => activeRow, () => activeCol, doRender);
+  setupPresence(provider, user, usersEl);
   Object.assign(window, { ydoc, provider, store });
 }
 

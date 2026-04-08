@@ -1,0 +1,129 @@
+/* Conditional formatting styles for spreadsheet */
+
+/* Data bar inside cell */
+.cond-data-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 4px;
+  min-width: 1px;
+  background-color: #5b9bd5;
+  opacity: 0.7;
+  border-radius: 0 2px 2px 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Icon indicator */
+.cond-icon {
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 0.75em;
+  vertical-align: middle;
+  pointer-events: none;
+}
+
+/* Dialog overlay */
+.cond-format-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.cond-format-dialog {
+  background: var(--surface, #fff);
+  color: var(--text, #1a1a1a);
+  border-radius: 8px;
+  padding: 1.25rem;
+  min-width: 320px;
+  max-width: 420px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.cond-format-dialog h3 {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.cond-format-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.cond-format-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cond-format-field label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary, #555);
+}
+
+.cond-format-field select,
+.cond-format-field input[type="text"],
+.cond-format-field input[type="number"] {
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--border, #ccc);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  background: var(--surface, #fff);
+  color: var(--text, #1a1a1a);
+}
+
+.cond-format-field input[type="color"] {
+  width: 48px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border, #ccc);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cond-format-dynamic {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cond-format-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
+.cond-format-add-btn,
+.cond-format-cancel-btn {
+  padding: 0.4rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.cond-format-add-btn {
+  background: var(--primary, #2563eb);
+  color: #fff;
+}
+
+.cond-format-add-btn:hover {
+  background: var(--primary-hover, #1d4ed8);
+}
+
+.cond-format-cancel-btn {
+  background: var(--muted, #e5e7eb);
+  color: var(--text, #1a1a1a);
+}
+
+.cond-format-cancel-btn:hover {
+  background: var(--muted-hover, #d1d5db);
+}

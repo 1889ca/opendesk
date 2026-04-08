@@ -105,13 +105,13 @@ A structured information store where organizational knowledge lives **separate f
 11. **Snapshot sets** — Immutable timestamped slices of published entry versions for compound regulatory filings spanning multiple document types.
 12. **Relationship graph** — Queryable connections between KB entries. Graph is an overlay, not the load-bearing structure — cross-document references bind to entry ID, not graph predicates.
 
-### Sheets (~60% complete)
+### Sheets (~70% complete)
 
-Spreadsheet editor. Functional prototype with grid, formula engine, formatting, multi-sheet tabs, copy/paste, column/row operations, and sorting & filtering.
+Spreadsheet editor. Feature-rich with formula engine, formatting, multi-sheet tabs, copy/paste, column/row operations, sorting & filtering, and conditional formatting.
 
-**What works:** Grid rendering, cell selection with formula bar, real-time Yjs sync, collaborative presence. Formula engine with 20+ functions. Cell formatting. Multi-sheet tabs. Copy/paste with range selection. Column/row resize, insert/delete. Column sorting (asc/desc) with numeric/string detection. Auto-filter dropdowns with value checkboxes, filter state manager, filter bar with funnel icons on column headers.
+**What works:** Grid rendering, cell selection, real-time Yjs sync, presence. Formula engine (20+ functions). Cell formatting. Multi-sheet tabs. Copy/paste with range selection. Column/row operations. Sorting & filtering. Conditional formatting: color scales (min/max color interpolation), data bars (percentage width), highlight rules (greater/less/equal/between/text-contains), icon sets (arrows/circles/flags). Rules stored in Yjs, dialog for creating rules.
 
-**What's next:** Charts, import/export, conditional formatting.
+**What's next:** Charts, import/export, dataset integration.
 
 *Milestones:*
 1. ~~**Formula engine**~~ (done) — Recursive descent parser with operator precedence, AST evaluator, 20+ functions (SUM, AVERAGE, COUNT, MIN, MAX, IF, VLOOKUP, CONCATENATE, text functions), cell references (A1, $A$1, ranges), all Excel error types (#VALUE!, #REF!, #DIV/0!, #NAME?, #N/A, #NUM!), circular reference detection via DFS. See `modules/sheets-formula/` and `contracts/sheets-formula/rules.md`.
@@ -122,29 +122,29 @@ Spreadsheet editor. Functional prototype with grid, formula engine, formatting, 
 6. ~~**Sorting & filtering**~~ (done) — Column sort (asc/desc) via header context menu and filter dropdown, with numeric/string auto-detection. Filter state manager tracks active filters per column (view-only, hides rows without modifying Yjs data). Auto-filter dropdowns with unique value checkboxes, select all/clear. Filter bar with funnel icons on column headers. See `modules/app/internal/sheets/sort-engine.ts`, `filter-state.ts`, `filter-dropdown.ts`, `filter-bar.ts`, `filter-manager.ts`.
 7. **Basic charts** — Bar, line, pie from selected data ranges. Embedded in sheet or as separate view.
 8. **Import/export** — .xlsx, .ods, .csv via Collabora pipeline extension.
-9. **Conditional formatting** — Color scales, data bars, icon sets based on cell values.
+9. ~~**Conditional formatting**~~ (done) — Color scales (min/max color interpolation), data bars (percentage width relative to column max), highlight rules (greater/less/equal/between/text-contains with custom colors), icon sets (arrows/circles/flags dividing range into thirds). Rules stored in Yjs Y.Array, dialog for creating rules with type selector and color pickers, renderer applies styles after each grid render. See `modules/app/internal/sheets/cond-format-*.ts`.
 10. **Dataset integration** — View KB datasets as read-only or editable sheets. Bi-directional sync with KB dataset store.
 
 Does not attempt: pivot tables, VBA macros, advanced data analysis, Power Query equivalent. Those are post-1.0.
 
-### Slides (~60% complete)
+### Slides (~80% complete)
 
-Presentation editor. Full element interaction, multiple element types, rich text formatting, layouts, themes, speaker notes, and presenter mode.
+Presentation editor. Full-featured with element interaction, rich formatting, layouts, themes, speaker notes, presenter mode, transitions, and slide sorter.
 
-**What works:** Slide list with thumbnails, main viewport at 16:9, text/image/shape/table elements, Yjs sync, presence. Full element interaction. Rich text formatting. 6 slide layouts with picker. 6 theme presets with Yjs-synced state. Speaker notes panel (collapsible, per-slide, Yjs-synced with debounced save). Presenter mode: opens in new window with current slide, next slide preview, speaker notes, presentation timer, and keyboard navigation (arrows, space, Escape, Home, End).
+**What works:** All element types with full interaction. Rich text formatting. 6 layouts, 6 themes. Speaker notes with Yjs sync. Presenter mode with timer and keyboard nav. Slide transitions (none, fade, slide-left, slide-right, zoom) with CSS animation in presenter mode and per-slide transition picker. Slide sorter: drag-to-reorder thumbnails, right-click context menu for duplicate/delete.
 
-**What's next:** Transitions, import/export, slide sorter.
+**What's next:** Import/export, KB integration.
 
 *Milestones:*
 1. ~~**Element interaction**~~ (done) — Drag, resize (8 handles + Shift for aspect ratio), rotate (15° snap), snap engine (grid + element edges), selection manager (single/multi/marquee), z-order (bring forward/back/front/bottom), Yjs transactional mutations, DOM overlay rendering. See `modules/app/internal/slides/` and `contracts/app/slides-interaction.md`.
 2. ~~**Element types**~~ (done) — Images (S3 upload), shapes (rectangle, circle, arrow, line), tables. Insert toolbar for adding elements. Shape rendering with fill/stroke. See `modules/app/internal/slides/render-shape.ts`.
 3. ~~**Text formatting**~~ (done) — Rich text within text and shape elements (bold, italic, underline, font size, color, alignment). Formatting toolbar with font controls. See `modules/app/internal/slides/text-format-toolbar.ts` and `modules/app/internal/slides/render-text.ts`.
 4. ~~**Slide layouts & themes**~~ (done) — 6 layout types (blank, title, title+content, two-column, section header, title-only) with placeholder auto-positioning. Layout picker dropdown replaces "Add Slide" button. 6 theme presets (Default, Dark, Corporate, Warm, Minimal, Ocean) with colors, fonts, and background applied via CSS custom properties. Theme picker UI with color swatches. Theme state Yjs-synced for real-time collaboration. See `modules/app/internal/slides/layouts.ts`, `themes.ts`, `layout-picker.ts`, `theme-picker.ts`.
-5. **Transitions** — Basic slide transitions (fade, slide, none). Not element animations.
+5. ~~**Transitions**~~ (done) — 5 transition types (none, fade, slide-left, slide-right, zoom) stored per-slide in Yjs. CSS Web Animations API for smooth playback in presenter mode with forward/backward direction support. Transition picker dropdown in toolbar. See `modules/app/internal/slides/transitions.ts`.
 6. ~~**Speaker notes**~~ (done) — Per-slide notes stored in Yjs ('notes' key on slide Y.Map), collapsible textarea panel below viewport, debounced 300ms save, remote change sync. See `modules/app/internal/slides/speaker-notes.ts`.
 7. ~~**Presenter mode**~~ (done) — Opens in new window with current slide rendering, next slide preview, speaker notes display, presentation timer, slide counter. Keyboard navigation: arrows/space/PageDown for next, PageUp for previous, Home/End for first/last, Escape to close. Self-contained CSS. See `modules/app/internal/slides/presenter-mode.ts`.
 8. **Import/export** — .pptx, .odp, .pdf via Collabora pipeline extension.
-9. **Slide sorter** — Drag-to-reorder in thumbnail panel, duplicate/delete slides.
+9. ~~**Slide sorter**~~ (done) — Drag-to-reorder thumbnails via HTML5 drag-and-drop with visual feedback (dragging opacity, drop target highlight). Right-click context menu on thumbnails for Duplicate and Delete. Deep clone with new UUIDs for duplicated elements. MutationObserver auto-enables drag on new thumbnails. See `modules/app/internal/slides/slide-sorter.ts`.
 10. **KB integration** — Insert citations, entity references, and dataset charts from Knowledge Base.
 
 Does not attempt: element animations, video embedding, 3D transitions, custom slide sizes. Post-1.0.

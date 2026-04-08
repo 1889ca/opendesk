@@ -15,6 +15,7 @@ import { parseSlideElements } from './slides/parse-elements.ts';
 import { initLayoutAndTheme } from './slides/layout-theme-init.ts';
 import { createSpeakerNotes } from './slides/speaker-notes.ts';
 import { launchPresenterMode } from './slides/presenter-mode.ts';
+import { initToolbarExtras } from './slides/toolbar-extras.ts';
 
 function init() {
   const slideListEl = document.getElementById('slide-list')!;
@@ -147,8 +148,6 @@ function init() {
     });
   }
   initInteraction();
-
-  // Insert toolbar
   const insertToolbar = createInsertToolbar((action: InsertAction) => {
     const yEls = getActiveYElements();
     const creators: Record<string, () => void> = {
@@ -161,7 +160,6 @@ function init() {
   });
   if (toolbarRight) toolbarRight.insertBefore(insertToolbar, toolbarRight.firstChild);
   setupSlideDragDrop(viewportEl, documentId, (url) => insertElement(ydoc, getActiveYElements(), createImageElement(url)));
-
   // Layout picker + theme picker
   initLayoutAndTheme({
     ydoc, yslides, viewportEl, toolbarRight, addSlideBtn,
@@ -173,28 +171,30 @@ function init() {
   });
 
   // Present button
-  const presentBtn = document.createElement('button');
-  presentBtn.className = 'slide-present-btn';
-  presentBtn.textContent = 'Present';
-  presentBtn.addEventListener('click', () => {
-    launchPresenterMode({ yslides, getSlideElements, totalSlides: () => yslides.length }, activeSlideIndex);
-  });
+  const presentBtn = Object.assign(document.createElement('button'), { className: 'slide-present-btn', textContent: 'Present' });
+  presentBtn.addEventListener('click', () => launchPresenterMode({ yslides, getSlideElements, totalSlides: () => yslides.length }, activeSlideIndex));
   if (toolbarRight) toolbarRight.appendChild(presentBtn);
 
-  yslides.observeDeep(() => { renderSlideList(); renderActiveSlide(); notesPanel.update(activeSlideIndex); });
+  // Transition picker + slide sorter (drag-reorder, duplicate, delete)
+  const extras = initToolbarExtras({
+    ydoc, yslides, toolbarRight, slideListEl,
+    getActiveIndex: () => activeSlideIndex,
+    setActiveIndex(i) { activeSlideIndex = i; },
+    onChanged() { renderSlideList(); renderActiveSlide(); notesPanel.update(activeSlideIndex); },
+  });
+
+  yslides.observeDeep(() => { renderSlideList(); renderActiveSlide(); notesPanel.update(activeSlideIndex); extras.updateTransitionPicker(); });
 
   // Presence
   provider.awareness?.setLocalStateField('user', user);
-  const updateUsers = () => {
+  const showUsers = () => {
     if (!usersEl || !provider.awareness) return;
-    const names: string[] = [];
-    provider.awareness.getStates().forEach((s: { user?: { name?: string } }) => { if (s.user?.name) names.push(s.user.name); });
-    usersEl.textContent = names.join(', ') || '-';
+    const n: string[] = [];
+    provider.awareness.getStates().forEach((s: { user?: { name?: string } }) => { if (s.user?.name) n.push(s.user.name); });
+    usersEl.textContent = n.join(', ') || '-';
   };
-  provider.awareness?.on('change', updateUsers);
-  updateUsers();
-
-  Object.assign(window, { ydoc, provider, yslides });
+  provider.awareness?.on('change', showUsers);
+  showUsers();
 }
 
 document.addEventListener('DOMContentLoaded', init);
