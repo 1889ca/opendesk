@@ -3,20 +3,10 @@ import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
 import { getUserIdentity, getDocumentId } from './shared/identity.ts';
 import { setupTitleSync } from './shared/title-sync.ts';
-
-function generateId(): string {
-  return crypto.randomUUID();
-}
-
-type SlideElement = {
-  id: string;
-  type: 'text' | 'shape';
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  content: string;
-};
+import { buildImportExportButtons } from './slides/import-export.ts';
+import { buildKbToolbar } from './slides/kb-toolbar.ts';
+import { checkKbSourceUpdates } from './slides/kb-elements.ts';
+import { renderSlideList, renderActiveSlide } from './slides/slide-renderer.ts';
 
 function init() {
   const slideListEl = document.getElementById('slide-list')!;
@@ -50,9 +40,7 @@ function init() {
     },
   });
 
-  // Yjs shared data: Y.Array of Y.Maps (slides)
   const yslides = ydoc.getArray<Y.Map<unknown>>('slides');
-
   let activeSlideIndex = 0;
 
   function ensureSlides() {
@@ -61,9 +49,8 @@ function init() {
         const slide = new Y.Map<unknown>();
         slide.set('layout', 'blank');
         const elements = new Y.Array<Y.Map<unknown>>();
-        // Add a default title element
         const titleEl = new Y.Map<unknown>();
-        titleEl.set('id', generateId());
+        titleEl.set('id', crypto.randomUUID());
         titleEl.set('type', 'text');
         titleEl.set('x', 10);
         titleEl.set('y', 10);
@@ -77,83 +64,37 @@ function init() {
     }
   }
 
-  function getSlideElements(slideIndex: number): SlideElement[] {
-    const slide = yslides.get(slideIndex);
-    if (!slide) return [];
-    const elements = slide.get('elements') as Y.Array<Y.Map<unknown>> | undefined;
-    if (!elements) return [];
-    const result: SlideElement[] = [];
-    for (let i = 0; i < elements.length; i++) {
-      const el = elements.get(i);
-      result.push({
-        id: el.get('id') as string,
-        type: (el.get('type') as 'text' | 'shape') || 'text',
-        x: (el.get('x') as number) || 0,
-        y: (el.get('y') as number) || 0,
-        width: (el.get('width') as number) || 50,
-        height: (el.get('height') as number) || 20,
-        content: (el.get('content') as string) || '',
-      });
-    }
-    return result;
-  }
-
-  function renderSlideList() {
+  function refresh() {
     ensureSlides();
-    slideListEl.innerHTML = '';
-    for (let i = 0; i < yslides.length; i++) {
-      const thumb = document.createElement('div');
-      thumb.className = 'slide-thumb' + (i === activeSlideIndex ? ' active' : '');
-
-      const num = document.createElement('span');
-      num.className = 'slide-thumb-number';
-      num.textContent = String(i + 1);
-      thumb.appendChild(num);
-
-      thumb.addEventListener('click', () => {
-        activeSlideIndex = i;
-        renderSlideList();
-        renderActiveSlide();
-      });
-      slideListEl.appendChild(thumb);
-    }
+    renderSlideList(slideListEl, yslides, activeSlideIndex, (i) => {
+      activeSlideIndex = i;
+      refresh();
+    });
+    renderActiveSlide(viewportEl, yslides, activeSlideIndex);
   }
 
-  function renderActiveSlide() {
-    viewportEl.innerHTML = '';
-    const elements = getSlideElements(activeSlideIndex);
-    for (const el of elements) {
-      const div = document.createElement('div');
-      div.className = 'slide-element';
-      div.dataset.type = el.type;
-      div.dataset.elementId = el.id;
-      div.style.left = el.x + '%';
-      div.style.top = el.y + '%';
-      div.style.width = el.width + '%';
-      div.style.height = el.height + '%';
-      div.contentEditable = 'true';
-      div.textContent = el.content;
+  refresh();
 
-      div.addEventListener('blur', () => {
-        const slide = yslides.get(activeSlideIndex);
-        if (!slide) return;
-        const elements = slide.get('elements') as Y.Array<Y.Map<unknown>> | undefined;
-        if (!elements) return;
-        for (let i = 0; i < elements.length; i++) {
-          const yel = elements.get(i);
-          if (yel.get('id') === el.id) {
-            yel.set('content', div.textContent || '');
-            break;
-          }
-        }
-      });
+  // Import/Export and KB toolbar buttons
+  const toolbarRight = document.querySelector('.toolbar-right');
+  if (toolbarRight) {
+    const ioButtons = buildImportExportButtons(ydoc, yslides, () => {
+      activeSlideIndex = 0;
+      refresh();
+    });
+    toolbarRight.insertBefore(ioButtons, toolbarRight.firstChild);
 
-      viewportEl.appendChild(div);
-    }
+    const kbToolbar = buildKbToolbar({
+      ydoc,
+      yslides,
+      getActiveSlideIndex: () => activeSlideIndex,
+      onInsert: () => {
+        renderActiveSlide(viewportEl, yslides, activeSlideIndex);
+        checkKbSourceUpdates(viewportEl);
+      },
+    });
+    toolbarRight.insertBefore(kbToolbar, ioButtons.nextSibling);
   }
-
-  renderSlideList();
-  renderActiveSlide();
 
   // Add slide button
   if (addSlideBtn) {
@@ -165,16 +106,12 @@ function init() {
         yslides.insert(yslides.length, [slide]);
       });
       activeSlideIndex = yslides.length - 1;
-      renderSlideList();
-      renderActiveSlide();
+      refresh();
     });
   }
 
   // Re-render on remote changes
-  yslides.observeDeep(() => {
-    renderSlideList();
-    renderActiveSlide();
-  });
+  yslides.observeDeep(() => refresh());
 
   // Presence
   function updateUsers() {
