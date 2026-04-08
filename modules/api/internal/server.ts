@@ -173,7 +173,7 @@ export async function startServer(port = 3000) {
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
 
   // Observability metrics routes
-  app.use('/api/admin/metrics', createMetricsRoutes({ observability, permissions }));
+  app.use('/api/admin/metrics', createMetricsRoutes({ observability, permissions, pool }));
 
   // Erasure routes (verifiable data erasure, retention policies)
   const erasure = createErasure({ pool });
@@ -190,8 +190,10 @@ export async function startServer(port = 3000) {
   }
 
   // AI routes (semantic search, RAG assistant, embedding) — gated by config
+  let ai: ReturnType<typeof createAi> | null = null;
   if (config.ai.enabled) {
-    const ai = createAi({ pool, config: config.ai });
+    ai = createAi({ pool, config: config.ai, eventBus });
+    ai.startConsumer();
     app.use('/api/ai', createAiRoutes({ ai, permissions }));
   }
 
@@ -234,6 +236,7 @@ export async function startServer(port = 3000) {
   // Graceful shutdown
   const shutdown = async () => {
     log.info('shutting down...');
+    if (ai) ai.stopConsumer();
     observability.stopHealthMonitor();
     eventBus.stopConsuming();
     eventBus.stopBackgroundJobs();

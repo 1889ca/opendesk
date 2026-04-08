@@ -28,6 +28,12 @@ interface MetricsSummary {
   operations: OperationSummary[];
 }
 
+interface AuditSummary {
+  totalEntries: number;
+  documentsTracked: number;
+  lastEntryAt: string | null;
+}
+
 // --- Rendering ---
 
 const STATUS_COLORS: Record<string, string> = {
@@ -144,6 +150,35 @@ function renderSystemInfo(container: HTMLElement, summary: MetricsSummary): void
   }
 }
 
+function renderAuditInfo(container: HTMLElement, audit: AuditSummary): void {
+  container.innerHTML = '';
+
+  const items: Array<{ label: string; value: string }> = [
+    { label: 'Total Entries', value: String(audit.totalEntries) },
+    { label: 'Documents Tracked', value: String(audit.documentsTracked) },
+    {
+      label: 'Last Activity',
+      value: audit.lastEntryAt ? new Date(audit.lastEntryAt).toLocaleString() : 'None',
+    },
+  ];
+
+  for (const item of items) {
+    const row = document.createElement('div');
+    row.className = 'sysinfo-row';
+
+    const label = document.createElement('span');
+    label.className = 'sysinfo-label';
+    label.textContent = item.label;
+
+    const value = document.createElement('span');
+    value.className = 'sysinfo-value';
+    value.textContent = item.value;
+
+    row.append(label, value);
+    container.appendChild(row);
+  }
+}
+
 // --- Helpers ---
 
 function formatIndicatorName(name: string): string {
@@ -182,20 +217,33 @@ async function loadDashboard(): Promise<void> {
   const healthEl = document.getElementById('health-indicators')!;
   const opsEl = document.getElementById('operations-table')!;
   const sysEl = document.getElementById('system-info')!;
+  const auditEl = document.getElementById('audit-info')!;
 
   try {
-    const res = await apiFetch('/api/admin/metrics');
-    if (!res.ok) throw new Error(`API ${res.status}`);
-    const summary: MetricsSummary = await res.json();
+    const [metricsRes, auditRes] = await Promise.all([
+      apiFetch('/api/admin/metrics'),
+      apiFetch('/api/admin/metrics/audit'),
+    ]);
+
+    if (!metricsRes.ok) throw new Error(`Metrics API ${metricsRes.status}`);
+    const summary: MetricsSummary = await metricsRes.json();
 
     renderHealthIndicators(healthEl, summary.health);
     renderOperations(opsEl, summary.operations);
     renderSystemInfo(sysEl, summary);
+
+    if (auditRes.ok) {
+      const audit: AuditSummary = await auditRes.json();
+      renderAuditInfo(auditEl, audit);
+    } else {
+      auditEl.innerHTML = '<div class="admin-error">Failed to load audit data</div>';
+    }
   } catch (err) {
     console.error('Failed to load metrics', err);
     healthEl.innerHTML = '<div class="admin-error">Failed to load health data</div>';
     opsEl.innerHTML = '<div class="admin-error">Failed to load metrics</div>';
     sysEl.innerHTML = '<div class="admin-error">Failed to load system info</div>';
+    auditEl.innerHTML = '<div class="admin-error">Failed to load audit data</div>';
   }
 }
 

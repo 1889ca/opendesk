@@ -1,10 +1,12 @@
 /** Contract: contracts/ai/rules.md */
 import type { Pool } from 'pg';
+import type { EventBusModule } from '../../events/contract.ts';
 import type { AiModule, AiConfig, SemanticSearchResult, AssistantResponse } from '../contract.ts';
 import { createOllamaClient, type OllamaClient } from './ollama-client.ts';
 import { extractDocumentText } from './document-extractor.ts';
 import { chunkText } from './chunker.ts';
 import { upsertEmbeddings, searchByVector } from './embedding-store.ts';
+import { createEmbeddingConsumer, type EmbeddingConsumer } from './embedding-consumer.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('ai');
@@ -12,6 +14,7 @@ const log = createLogger('ai');
 export interface AiDependencies {
   pool: Pool;
   config: AiConfig;
+  eventBus?: EventBusModule;
 }
 
 const RAG_SYSTEM_PROMPT = `You are a helpful document assistant for OpenDesk, a sovereign office suite. Answer the user's question based ONLY on the provided document excerpts. If the excerpts don't contain enough information, say so. Always cite which document your answer comes from. Be concise and direct.`;
@@ -21,7 +24,7 @@ const RAG_SYSTEM_PROMPT = `You are a helpful document assistant for OpenDesk, a 
  * All inference stays within the configured Ollama endpoint.
  */
 export function createAi(deps: AiDependencies): AiModule {
-  const { pool, config } = deps;
+  const { pool, config, eventBus } = deps;
 
   const ollama: OllamaClient = createOllamaClient({
     baseUrl: config.ollamaUrl,
@@ -122,5 +125,27 @@ export function createAi(deps: AiDependencies): AiModule {
     return ollama.ping();
   }
 
-  return { embedDocument, semanticSearch, ask, healthCheck };
+  // Build embedding consumer if eventBus is available
+  let consumer: EmbeddingConsumer | null = null;
+  if (eventBus) {
+    consumer = createEmbeddingConsumer(eventBus, embedDocument);
+  }
+
+  function startConsumer(): void {
+    if (!consumer) {
+      log.warn('no eventBus provided — embedding consumer not available');
+      return;
+    }
+    consumer.start().catch((err) => {
+      log.error('failed to start embedding consumer', { error: String(err) });
+    });
+  }
+
+  function stopConsumer(): void {
+    if (consumer) {
+      consumer.stop();
+    }
+  }
+
+  return { embedDocument, semanticSearch, ask, healthCheck, startConsumer, stopConsumer };
 }

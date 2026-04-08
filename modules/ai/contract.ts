@@ -58,4 +58,8 @@ export interface AiModule {
   ask(question: string, allowedDocumentIds: string[]): Promise<AssistantResponse>;
   /** Check if the Ollama backend is reachable. */
   healthCheck(): Promise<boolean>;
+  /** Start the EventBus consumer for auto-embedding on StateFlushed events. */
+  startConsumer(): void;
+  /** Stop the EventBus consumer. */
+  stopConsumer(): void;
 }

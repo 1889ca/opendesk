@@ -19,6 +19,9 @@ export { createAi, type AiDependencies } from './internal/create-ai.ts';
 // Routes
 export { createAiRoutes, type AiRoutesOptions } from './internal/ai-routes.ts';
 
+// EventBus consumer
+export { createEmbeddingConsumer, type EmbeddingConsumer } from './internal/embedding-consumer.ts';
+
 // Utilities
 export { chunkText } from './internal/chunker.ts';
 export { extractDocumentText } from './internal/document-extractor.ts';

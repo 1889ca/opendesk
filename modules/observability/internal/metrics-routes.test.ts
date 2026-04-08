@@ -42,7 +42,7 @@ describe('metrics routes', () => {
   it('GET / returns metrics summary', async () => {
     const obs = makeMockObs();
     const app = express();
-    app.use('/api/admin/metrics', createMetricsRoutes({ observability: obs, permissions: makeMockPermissions() }));
+    app.use('/api/admin/metrics', createMetricsRoutes({ observability: obs, permissions: makeMockPermissions(), pool: {} as never }));
 
     const res = await request(app).get('/api/admin/metrics');
 
@@ -56,7 +56,7 @@ describe('metrics routes', () => {
   it('GET /health returns health indicators', async () => {
     const obs = makeMockObs();
     const app = express();
-    app.use('/api/admin/metrics', createMetricsRoutes({ observability: obs, permissions: makeMockPermissions() }));
+    app.use('/api/admin/metrics', createMetricsRoutes({ observability: obs, permissions: makeMockPermissions(), pool: {} as never }));
 
     const res = await request(app).get('/api/admin/metrics/health');
 

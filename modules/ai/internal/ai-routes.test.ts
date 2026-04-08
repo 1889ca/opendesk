@@ -16,6 +16,8 @@ function makeMockAi(overrides: Partial<AiModule> = {}): AiModule {
       sources: [{ documentId: 'doc-1', title: 'Test', chunkContent: 'chunk', similarity: 0.9 }],
     })),
     healthCheck: vi.fn(async () => true),
+    startConsumer: vi.fn(),
+    stopConsumer: vi.fn(),
     ...overrides,
   };
 }
