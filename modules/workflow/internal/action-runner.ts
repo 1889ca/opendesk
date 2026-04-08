@@ -2,6 +2,7 @@
 import type { DomainEvent } from '../../events/contract.ts';
 import type { ActionType, WebhookConfig, ExportConfig, NotifyConfig } from '../contract.ts';
 import { createLogger } from '../../logger/index.ts';
+import { httpFetch } from '../../http/index.ts';
 
 const log = createLogger('workflow:action');
 
@@ -16,14 +17,14 @@ function buildEventPayload(event: DomainEvent): Record<string, unknown> {
 }
 
 async function runWebhook(config: WebhookConfig, event: DomainEvent): Promise<void> {
-  const response = await fetch(config.url, {
+  const response = await httpFetch(config.url, {
     method: 'POST',
     body: JSON.stringify(buildEventPayload(event)),
     headers: {
       'Content-Type': 'application/json',
       ...config.headers,
     },
-    signal: AbortSignal.timeout(10_000),
+    timeoutMs: 10_000,
   });
 
   if (!response.ok) {

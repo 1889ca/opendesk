@@ -11,6 +11,7 @@ import { signPayload, verifySignature, sha256 } from './signing.ts';
 import { loadYjsState, saveYjsState, getDocument } from '../../storage/index.ts';
 import { exportAuditProofSummary } from '../../audit/index.ts';
 import { createLogger } from '../../logger/index.ts';
+import { httpFetch } from '../../http/index.ts';
 
 const log = createLogger('federation:transfer');
 
@@ -62,9 +63,10 @@ export async function sendDocument(
     timestamp: bundle.timestamp,
   });
 
-  bundle.signature = config.privateKey
-    ? signPayload(payloadToSign, config.privateKey)
-    : sha256(payloadToSign); // fallback for dev (no real keys)
+  if (!config.privateKey) {
+    throw new Error('Federation private key is required for signing transfers');
+  }
+  bundle.signature = signPayload(payloadToSign, config.privateKey);
 
   // Record the transfer
   const transfer: TransferRecord = {
@@ -83,10 +85,11 @@ export async function sendDocument(
 
   // Send to peer
   try {
-    const res = await fetch(`${peer.endpointUrl}/api/federation/receive`, {
+    const res = await httpFetch(`${peer.endpointUrl}/api/federation/receive`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(bundle),
+      timeoutMs: 30_000,
     });
 
     if (!res.ok) {
@@ -133,9 +136,10 @@ export async function receiveDocument(
     timestamp: bundle.timestamp,
   });
 
-  const isValid = peer.publicKey.startsWith('-----')
-    ? verifySignature(payloadToVerify, bundle.signature, peer.publicKey)
-    : bundle.signature === sha256(payloadToVerify); // dev fallback
+  if (!peer.publicKey.startsWith('-----')) {
+    throw new Error('Peer public key must be PEM format');
+  }
+  const isValid = verifySignature(payloadToVerify, bundle.signature, peer.publicKey);
 
   const transfer: TransferRecord = {
     id: randomUUID(),

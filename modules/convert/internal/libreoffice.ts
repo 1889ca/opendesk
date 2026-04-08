@@ -11,18 +11,25 @@
 
 import type { ExportFormat } from '../contract.ts';
 import { getCollaboraFilter } from './formats.ts';
-import { loadConfig } from '../../config/index.ts';
+import { httpFetch, HttpFetchError } from '../../http/index.ts';
 
 export interface CollaboraConfig {
   baseUrl: string;
   timeoutMs: number;
 }
 
-// TODO: Thread CollaboraConfig from composition root once the convert module
-// has a factory function. Currently kept as lazy fallback to avoid breaking callers.
+let _collaboraConfig: CollaboraConfig | null = null;
+
+/** Inject CollaboraConfig from the composition root. Must be called before convertFile/convertToHtml. */
+export function initCollabora(config: CollaboraConfig): void {
+  _collaboraConfig = config;
+}
+
 function getDefaultConfig(): CollaboraConfig {
-  const cc = loadConfig().collabora;
-  return { baseUrl: cc.baseUrl, timeoutMs: cc.timeoutMs };
+  if (!_collaboraConfig) {
+    throw new Error('initCollabora() must be called before using convert functions — pass CollaboraConfig from the composition root');
+  }
+  return _collaboraConfig;
 }
 
 export class CollaboraError extends Error {
@@ -53,14 +60,11 @@ export async function convertFile(
   const blob = new Blob([new Uint8Array(fileBuffer)]);
   formData.append('data', blob, filename);
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), config.timeoutMs);
-
   try {
-    const response = await fetch(url, {
+    const response = await httpFetch(url, {
       method: 'POST',
       body: formData,
-      signal: controller.signal,
+      timeoutMs: config.timeoutMs,
     });
 
     if (!response.ok) {
@@ -74,21 +78,19 @@ export async function convertFile(
     return Buffer.from(arrayBuffer);
   } catch (err: unknown) {
     if (err instanceof CollaboraError) throw err;
-    const msg = err instanceof Error ? err.message : String(err);
-    if (msg.includes('abort')) {
+    if (err instanceof HttpFetchError && err.code === 'TIMEOUT') {
       throw new CollaboraError(
         `Collabora conversion timed out after ${config.timeoutMs}ms`,
         undefined,
         err
       );
     }
+    const msg = err instanceof Error ? err.message : String(err);
     throw new CollaboraError(
       `Collabora conversion error: ${msg}`,
       undefined,
       err
     );
-  } finally {
-    clearTimeout(timer);
   }
 }
 
@@ -107,14 +109,11 @@ export async function convertToHtml(
   const blob = new Blob([new Uint8Array(fileBuffer)]);
   formData.append('data', blob, filename);
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), config.timeoutMs);
-
   try {
-    const response = await fetch(url, {
+    const response = await httpFetch(url, {
       method: 'POST',
       body: formData,
-      signal: controller.signal,
+      timeoutMs: config.timeoutMs,
     });
 
     if (!response.ok) {
@@ -127,13 +126,18 @@ export async function convertToHtml(
     return await response.text();
   } catch (err: unknown) {
     if (err instanceof CollaboraError) throw err;
+    if (err instanceof HttpFetchError && err.code === 'TIMEOUT') {
+      throw new CollaboraError(
+        `Collabora HTML conversion timed out after ${config.timeoutMs}ms`,
+        undefined,
+        err
+      );
+    }
     const msg = err instanceof Error ? err.message : String(err);
     throw new CollaboraError(
       `Collabora HTML conversion error: ${msg}`,
       undefined,
       err
     );
-  } finally {
-    clearTimeout(timer);
   }
 }

@@ -1,5 +1,6 @@
 /** Contract: contracts/ai/rules.md */
 import { createLogger } from '../../logger/index.ts';
+import { httpFetch } from '../../http/index.ts';
 
 const log = createLogger('ai:ollama');
 
@@ -26,7 +27,7 @@ export function createOllamaClient(config: OllamaConfig): OllamaClient {
   const { baseUrl, embeddingModel, chatModel } = config;
 
   async function embed(text: string): Promise<number[]> {
-    const res = await fetch(`${baseUrl}/api/embed`, {
+    const res = await httpFetch(`${baseUrl}/api/embed`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: embeddingModel, input: text }),
@@ -42,7 +43,7 @@ export function createOllamaClient(config: OllamaConfig): OllamaClient {
   }
 
   async function chat(system: string, user: string): Promise<string> {
-    const res = await fetch(`${baseUrl}/api/chat`, {
+    const res = await httpFetch(`${baseUrl}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -66,7 +67,7 @@ export function createOllamaClient(config: OllamaConfig): OllamaClient {
 
   async function ping(): Promise<boolean> {
     try {
-      const res = await fetch(`${baseUrl}/api/tags`, { method: 'GET' });
+      const res = await httpFetch(`${baseUrl}/api/tags`, { method: 'GET', timeoutMs: 5_000 });
       return res.ok;
     } catch {
       return false;

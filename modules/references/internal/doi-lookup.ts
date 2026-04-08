@@ -29,6 +29,8 @@ export type LookupResponse =
   | { ok: true; data: LookupResult }
   | { ok: false; error: LookupError };
 
+import { httpFetch, HttpFetchError } from '../../http/index.ts';
+
 const CROSSREF_BASE = 'https://api.crossref.org/works';
 const OPENLIBRARY_BASE = 'https://openlibrary.org/isbn';
 const FETCH_TIMEOUT_MS = 10_000;
@@ -130,22 +132,9 @@ export function transformOpenLibraryResponse(book: OpenLibraryBook, isbn: string
   };
 }
 
-// --- Fetch helpers ---
-
-async function fetchWithTimeout(url: string, timeoutMs = FETCH_TIMEOUT_MS): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, {
-      signal: controller.signal,
-      headers: { 'User-Agent': 'OpenDesk/1.0 (mailto:admin@opendesk.local)' },
-    });
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 // --- Public API ---
+
+const FETCH_HEADERS = { 'User-Agent': 'OpenDesk/1.0 (mailto:admin@opendesk.local)' };
 
 export async function lookupDOI(doi: string): Promise<LookupResponse> {
   const trimmed = doi.trim();
@@ -154,7 +143,10 @@ export async function lookupDOI(doi: string): Promise<LookupResponse> {
   }
 
   try {
-    const res = await fetchWithTimeout(`${CROSSREF_BASE}/${encodeURIComponent(trimmed)}`);
+    const res = await httpFetch(`${CROSSREF_BASE}/${encodeURIComponent(trimmed)}`, {
+      timeoutMs: FETCH_TIMEOUT_MS,
+      headers: FETCH_HEADERS,
+    });
     if (res.status === 404) {
       return { ok: false, error: { code: 'NOT_FOUND', message: `DOI not found: ${trimmed}` } };
     }
@@ -164,7 +156,7 @@ export async function lookupDOI(doi: string): Promise<LookupResponse> {
     const json = await res.json() as { message: CrossRefWork };
     return { ok: true, data: transformCrossRefResponse(json.message) };
   } catch (err) {
-    if (err instanceof DOMException && err.name === 'AbortError') {
+    if (err instanceof HttpFetchError && err.code === 'TIMEOUT') {
       return { ok: false, error: { code: 'TIMEOUT', message: 'CrossRef request timed out' } };
     }
     const msg = err instanceof Error ? err.message : String(err);
@@ -179,7 +171,10 @@ export async function lookupISBN(isbn: string): Promise<LookupResponse> {
   }
 
   try {
-    const res = await fetchWithTimeout(`${OPENLIBRARY_BASE}/${encodeURIComponent(trimmed)}.json`);
+    const res = await httpFetch(`${OPENLIBRARY_BASE}/${encodeURIComponent(trimmed)}.json`, {
+      timeoutMs: FETCH_TIMEOUT_MS,
+      headers: FETCH_HEADERS,
+    });
     if (res.status === 404) {
       return { ok: false, error: { code: 'NOT_FOUND', message: `ISBN not found: ${trimmed}` } };
     }
@@ -189,7 +184,7 @@ export async function lookupISBN(isbn: string): Promise<LookupResponse> {
     const json = await res.json() as OpenLibraryBook;
     return { ok: true, data: transformOpenLibraryResponse(json, trimmed) };
   } catch (err) {
-    if (err instanceof DOMException && err.name === 'AbortError') {
+    if (err instanceof HttpFetchError && err.code === 'TIMEOUT') {
       return { ok: false, error: { code: 'TIMEOUT', message: 'OpenLibrary request timed out' } };
     }
     const msg = err instanceof Error ? err.message : String(err);
