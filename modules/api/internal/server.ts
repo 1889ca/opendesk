@@ -7,6 +7,7 @@ import { createCollabServer } from '../../collab/index.ts';
 import { getRedisClient, disconnectRedis } from './redis.ts';
 import { idempotencyMiddleware } from './idempotency.ts';
 import { createConvertRoutes } from './convert-routes.ts';
+import { createPresentationConvertRoutes } from './presentation-convert-routes.ts';
 import { createAuth } from '../../auth/index.ts';
 import { createPermissions, createPgGrantStore } from '../../permissions/index.ts';
 import { createDocumentRoutes } from './document-routes.ts';
@@ -104,6 +105,9 @@ export async function startServer(port = 3000) {
 
   // Collabora convert routes (import/export binary formats) — after auth
   app.use(createConvertRoutes({ permissions }));
+
+  // Presentation convert routes (import/export .pptx, .odp, .pdf) — after auth
+  app.use(createPresentationConvertRoutes({ permissions }));
 
   // Health check (public, skipped by auth middleware)
   app.get('/api/health', async (_req, res) => {

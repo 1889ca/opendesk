@@ -3,11 +3,11 @@ import { z } from 'zod';
 
 // --- Format Enums ---
 
-export const ImportFormatSchema = z.enum(['docx', 'odt', 'pdf']);
+export const ImportFormatSchema = z.enum(['docx', 'odt', 'pdf', 'pptx', 'odp']);
 
 export type ImportFormat = z.infer<typeof ImportFormatSchema>;
 
-export const ExportFormatSchema = z.enum(['docx', 'odt', 'pdf']);
+export const ExportFormatSchema = z.enum(['docx', 'odt', 'pdf', 'pptx', 'odp']);
 
 export type ExportFormat = z.infer<typeof ExportFormatSchema>;
 
