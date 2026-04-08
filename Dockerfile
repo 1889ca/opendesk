@@ -23,4 +23,7 @@ RUN chown -R app:app /app
 
 USER app
 EXPOSE 3000
+# tsx is used at runtime because the codebase uses .ts extension imports
+# (allowImportingTsExtensions), and tsc does not rewrite import specifiers.
+# tsx is a production dependency so the overhead is minimal (startup-only).
 CMD ["node", "--import=tsx", "server.ts"]
