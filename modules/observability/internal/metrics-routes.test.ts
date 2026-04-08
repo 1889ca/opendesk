@@ -23,6 +23,8 @@ function makeMockObs(overrides: Partial<ObservabilityModule> = {}): Observabilit
     getHealth: vi.fn(async () => summary.health),
     startHealthMonitor: vi.fn(),
     stopHealthMonitor: vi.fn(),
+    getTimeSeries: vi.fn(async () => []),
+    searchByCorrelationId: vi.fn(async () => []),
     ...overrides,
   };
 }
