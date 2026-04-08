@@ -30,3 +30,6 @@
 @import "../public/share.css";
 @import "../public/workflows.css";
 @import "./promote-to-kb.css";
+@import "../public/settings-dropdown.css";
+@import "../public/notifications.css";
+@import "../public/workspace-sidebar.css";

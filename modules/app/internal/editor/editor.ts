@@ -24,6 +24,8 @@ import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts'
 import { buildWorkflowPanel, toggleWorkflowPanel } from './workflow-panel.ts';
 import { buildStatusBar } from './status-bar.ts';
 import { buildThemeToggle } from '../shared/theme-toggle.ts';
+import { buildNotificationBell } from '../shared/notification-bell.ts';
+import { trackRecentDoc } from '../shared/workspace-sidebar.ts';
 import { openEmojiPicker } from './emoji/index.ts';
 import { openCitationPicker, createBibliography, buildReferenceLibrary } from './citations/index.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
@@ -109,6 +111,10 @@ function init() {
   buildSearchPanel(editor);
   buildLanguageSwitcher();
   buildThemeToggle();
+  buildNotificationBell();
+
+  // Track this document as recently opened
+  trackRecentDoc({ id: documentId, title: 'Document' });
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
 

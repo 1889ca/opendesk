@@ -143,4 +143,33 @@ export const featureTranslations: Partial<TranslationKeys> = {
   'emoji.travel': 'Voyages et lieux',
   'emoji.objects': 'Objets',
   'emoji.symbols': 'Symboles',
+
+  // Param\u00e8tres du th\u00e8me
+  'theme.mode': 'Apparence',
+  'theme.accentColor': 'Couleur d\u2019accent',
+  'theme.custom': 'Personnalis\u00e9',
+
+  // Barre lat\u00e9rale
+  'sidebar.workspace': 'Espace de travail',
+  'sidebar.recent': 'R\u00e9cents',
+  'sidebar.starred': 'Favoris',
+  'sidebar.folders': 'Dossiers',
+  'sidebar.collapse': 'R\u00e9duire la barre lat\u00e9rale',
+  'sidebar.expand': '\u00c9tendre la barre lat\u00e9rale',
+  'sidebar.noRecent': 'Aucun document r\u00e9cent',
+  'sidebar.noStarred': 'Aucun document favori',
+  'sidebar.quickSearch': 'Rechercher...',
+  'sidebar.unstar': 'Retirer des favoris',
+  'sidebar.star': 'Ajouter aux favoris',
+
+  // Notifications
+  'notifications.title': 'Notifications',
+  'notifications.empty': 'Aucune notification',
+  'notifications.markAllRead': 'Tout marquer comme lu',
+  'notifications.markRead': 'Marquer comme lu',
+  'notifications.dismiss': 'Ignorer',
+  'notifications.commentAdded': 'Nouveau commentaire sur \u00ab {title} \u00bb',
+  'notifications.documentShared': 'Document partag\u00e9 avec vous',
+  'notifications.workflowTriggered': 'Flux de travail d\u00e9clench\u00e9',
+  'notifications.kbUpdated': 'Article de la base de connaissances mis \u00e0 jour',
 };

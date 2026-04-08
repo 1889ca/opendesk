@@ -143,4 +143,33 @@ export const featureTranslations: Partial<TranslationKeys> = {
   'emoji.travel': 'Travel & Places',
   'emoji.objects': 'Objects',
   'emoji.symbols': 'Symbols',
+
+  // Theme settings
+  'theme.mode': 'Appearance',
+  'theme.accentColor': 'Accent color',
+  'theme.custom': 'Custom',
+
+  // Workspace sidebar
+  'sidebar.workspace': 'Workspace',
+  'sidebar.recent': 'Recent',
+  'sidebar.starred': 'Starred',
+  'sidebar.folders': 'Folders',
+  'sidebar.collapse': 'Collapse sidebar',
+  'sidebar.expand': 'Expand sidebar',
+  'sidebar.noRecent': 'No recent documents',
+  'sidebar.noStarred': 'No starred documents',
+  'sidebar.quickSearch': 'Search...',
+  'sidebar.unstar': 'Unstar',
+  'sidebar.star': 'Star',
+
+  // Notifications
+  'notifications.title': 'Notifications',
+  'notifications.empty': 'No notifications',
+  'notifications.markAllRead': 'Mark all as read',
+  'notifications.markRead': 'Mark as read',
+  'notifications.dismiss': 'Dismiss',
+  'notifications.commentAdded': 'New comment on "{title}"',
+  'notifications.documentShared': 'Document shared with you',
+  'notifications.workflowTriggered': 'Workflow triggered',
+  'notifications.kbUpdated': 'Knowledge base entry updated',
 };

@@ -126,6 +126,9 @@ export interface FeatureTranslationKeys {
   'theme.light': string;
   'theme.dark': string;
   'theme.system': string;
+  'theme.mode': string;
+  'theme.accentColor': string;
+  'theme.custom': string;
   'mentions.placeholder': string;
   'mentions.noResults': string;
   'codeBlock.language': string;
@@ -143,4 +146,24 @@ export interface FeatureTranslationKeys {
   'emoji.objects': string;
   'emoji.symbols': string;
   'dragHandle.tooltip': string;
+  'sidebar.workspace': string;
+  'sidebar.recent': string;
+  'sidebar.starred': string;
+  'sidebar.folders': string;
+  'sidebar.collapse': string;
+  'sidebar.expand': string;
+  'sidebar.noRecent': string;
+  'sidebar.noStarred': string;
+  'sidebar.quickSearch': string;
+  'sidebar.unstar': string;
+  'sidebar.star': string;
+  'notifications.title': string;
+  'notifications.empty': string;
+  'notifications.markAllRead': string;
+  'notifications.markRead': string;
+  'notifications.dismiss': string;
+  'notifications.commentAdded': string;
+  'notifications.documentShared': string;
+  'notifications.workflowTriggered': string;
+  'notifications.kbUpdated': string;
 }
