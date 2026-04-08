@@ -25,9 +25,9 @@ The flat pillar model has three issues:
 | Super-Pillar | Description | Status |
 |---|---|---|
 | **Documents** | Word processor (TipTap + Yjs) | ~95% of MVP |
-| **Sheets** | Spreadsheet editor | ~15% (prototype) |
-| **Slides** | Presentation editor | ~10% (prototype) |
-| **Knowledge Base** | Structured information store | ~25% (references done) |
+| **Sheets** | Spreadsheet editor | ~25% (formula engine landed) |
+| **Slides** | Presentation editor | ~20% (element interaction landed) |
+| **Knowledge Base** | Structured information store | ~40% (typed entries, relationships, search landed) |
 
 **Cross-Cutting Pillars** are platform capabilities that apply to ALL super-pillars:
 
@@ -44,7 +44,7 @@ The flat pillar model has three issues:
 
 ### The Shared Shell
 
-A fifth concern that isn't a super-pillar but enables all of them: the **App Shell** — dashboard, navigation, type switching, theming, workspace management. Currently implemented as separate HTML pages with full page reloads. Eventually needs to become a unified shell with dynamic editor loading.
+A fifth concern that isn't a super-pillar but enables all of them: the **App Shell** — dashboard, navigation, type switching, theming, workspace management. Now implemented as a unified SPA with client-side routing, dynamic editor loading via ESM code splitting, and shared chrome (nav sidebar, top bar). Remaining work: offline mode via service workers, shared state persistence across views.
 
 ### Overlap Analysis
 
@@ -58,7 +58,7 @@ These concerns are shared across super-pillars and must be designed once, not pe
 | **Audit trail** | Event-driven, type-agnostic | Already works for new types if they emit events |
 | **Auth/permissions** | Document-scoped grants | Needs extension to KB entries and libraries |
 | **Search** | Full-text on documents | Needs cross-type search (docs + sheets + slides + KB) |
-| **App shell** | Separate HTML pages | Needs unified navigation, recently-opened across types |
+| **App shell** | SPA with client-side routing | Needs offline mode, shared state persistence |
 
 ## Knowledge Base: Concept
 
@@ -139,9 +139,9 @@ A centralized knowledge store that lives on your infrastructure, queried by your
 Super-Pillars (Product Lines)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Documents ████████████████████░  ~95%  (continuous improvement)
-KB        █████░░░░░░░░░░░░░░░  ~25%  (references done, build out)
-Sheets    ███░░░░░░░░░░░░░░░░░  ~15%  (needs formula engine)
-Slides    ██░░░░░░░░░░░░░░░░░░  ~10%  (needs element interaction)
+KB        ████████░░░░░░░░░░░░  ~40%  (typed entries, relationships, search)
+Sheets    █████░░░░░░░░░░░░░░░  ~25%  (formula engine landed)
+Slides    ████░░░░░░░░░░░░░░░░  ~20%  (element interaction landed)
 
 Cross-Cutting Pillars (apply to all super-pillars)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -149,22 +149,22 @@ C2 Audit        █████████████████░░░  ~8
 C1 Local AI     ██████████████░░░░░░  ~70%
 C5 Federation   ███████████░░░░░░░░░  ~55%
 C4 Workflows    ██████████░░░░░░░░░░  ~50%
-C6 Observability████████░░░░░░░░░░░░  ~45%
+C6 Observability█████████████░░░░░░░  ~65%
 C3 Erasure      ████████░░░░░░░░░░░░  ~40%
 
 App Shell (shared infrastructure)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Dashboard, navigation, type switching, theming
-Currently: separate HTML pages with page reloads
-Target: unified shell with dynamic editor loading
+SPA shell with client-side routing and dynamic editor loading (landed)
+Remaining: offline mode (service workers), shared state persistence
 ```
 
 ### Priority Order
 
 1. **Documents** — continue hardening, it's the flagship
 2. **Knowledge Base** — high leverage, references already done, enables AI corpus
-3. **Sheets** — formula engine is the critical unlock
-4. **Slides** — smallest user demand, can lag
+3. **Sheets** — formula engine landed; next: formatting, multi-sheet, copy/paste
+4. **Slides** — element interaction landed; next: element types, formatting, layouts
 
 ### Dependencies
 
@@ -217,6 +217,6 @@ Federated instances may hold contradictory facts that are both correct in differ
 1. Pillar 7 (References) ceases to exist as a standalone pillar; it becomes KB Milestone 1
 2. All cross-cutting pillars get renumbered C1–C6
 3. docs/mvp.md is restructured to reflect this hierarchy
-4. New contracts needed: `contracts/kb/rules.md`, `contracts/app-shell/rules.md`
+4. New contracts created: `contracts/kb/rules.md`, `contracts/sheets-formula/rules.md`, `contracts/app/shell.md`, `contracts/app/slides-interaction.md`, `contracts/app/observability-dashboard.md`
 5. AI document extractor needs KB-aware extraction (embed KB entries, not just doc text)
 6. Convert module roadmap explicitly includes xlsx/ods/csv and pptx/odp

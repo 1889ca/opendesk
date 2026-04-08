@@ -71,9 +71,9 @@ The flagship product line. Rich text editing with TipTap + Yjs, real-time collab
 
 **Formats:** .docx, .odt, .pdf (import/export working via Collabora)
 
-### Knowledge Base (~25% complete)
+### Knowledge Base (~40% complete)
 
-A structured information store where organizational knowledge lives **separate from its presentation**. Documents, Sheets, and Slides *reference* KB entries — they don't own the underlying information. The existing Reference & Citation Management system (formerly Pillar 7, ~90% complete) is KB's first milestone.
+A structured information store where organizational knowledge lives **separate from its presentation**. Documents, Sheets, and Slides *reference* KB entries — they don't own the underlying information. The existing Reference & Citation Management system (formerly Pillar 7, ~90% complete) is KB's first milestone. The generalized entry model with typed records (Reference, Entity, Dataset, Note), relationships (property graph lite), full-text search, and reverse dependency lookups is now implemented (`modules/kb/`).
 
 **What it encompasses:**
 1. **References** (done) — citations, bibliography entries, DOI/ISBN records, BibTeX/RIS import
@@ -95,8 +95,8 @@ A structured information store where organizational knowledge lives **separate f
 1. ~~Reference data model & storage~~ (done)
 2. ~~Import/export BibTeX, RIS, DOI lookup~~ (done)
 3. ~~In-editor citation insertion & bibliography~~ (done)
-4. **KB entry model** — Generalize references into typed KBEntry records with tags, workspace scoping, and entry lifecycle (`Draft → Reviewed → Published → Deprecated`). Version pinning support (`@v7` vs `@latest` reference modes).
-5. **Reverse dependency registry** — Track which documents/sheets/slides reference each KB entry. Required for erasure cascades, staleness notifications, and breaking-change warnings.
+4. ~~**KB entry model**~~ (done) — Generalized typed KBEntry records (Reference, Entity, Dataset, Note) with tags, workspace scoping, Zod validation, version tracking. Relationships as first-class edges (cites, authored-by, related-to, derived-from, supersedes). Full-text search via PostgreSQL tsvector/GIN. See `modules/kb/` and `contracts/kb/rules.md`.
+5. ~~**Reverse dependency registry**~~ (done) — Lookup all entries pointing at a given entry. Implemented in `modules/kb/internal/reverse-deps.ts`.
 6. **Entity directory** — People, organizations, terms with structured fields. Mention picker in all editors.
 7. **Dataset store** — Tabular data with schema, versioning, and Sheets integration (view dataset as spreadsheet). Source lineage for provenance tracking.
 8. **Notes & clippings** — Capture from documents (promote action), freeform entry, tag-based organization.
@@ -105,16 +105,16 @@ A structured information store where organizational knowledge lives **separate f
 11. **Snapshot sets** — Immutable timestamped slices of published entry versions for compound regulatory filings spanning multiple document types.
 12. **Relationship graph** — Queryable connections between KB entries. Graph is an overlay, not the load-bearing structure — cross-document references bind to entry ID, not graph predicates.
 
-### Sheets (~15% complete)
+### Sheets (~25% complete)
 
-Spreadsheet editor. Same architecture: native web format for editing, conversion service for .xlsx/.ods import/export. Currently a functional prototype with 26×50 grid, cell editing, and Yjs real-time sync.
+Spreadsheet editor. Same architecture: native web format for editing, conversion service for .xlsx/.ods import/export. Currently a functional prototype with 26×50 grid, cell editing, Yjs real-time sync, and a pure-logic formula engine.
 
-**What works:** Grid rendering, cell selection with formula bar, content editing via contentEditable, real-time Yjs sync (Y.Array of Y.Arrays), connection status, collaborative presence.
+**What works:** Grid rendering, cell selection with formula bar, content editing via contentEditable, real-time Yjs sync (Y.Array of Y.Arrays), connection status, collaborative presence. Formula engine with 20+ Excel-compatible functions, recursive descent parser, cell dependency graph, and circular reference detection.
 
-**What's missing:** Everything that makes a spreadsheet a spreadsheet.
+**What's next:** Cell formatting, multi-sheet tabs, copy/paste, column/row operations.
 
 *Milestones:*
-1. **Formula engine** — Expression parser and evaluator for common Excel-compatible formulas (~50 functions: SUM, AVERAGE, IF, VLOOKUP, etc.). Cell dependency graph for recalculation. This is the critical unlock — without formulas, it's just a grid.
+1. ~~**Formula engine**~~ (done) — Recursive descent parser with operator precedence, AST evaluator, 20+ functions (SUM, AVERAGE, COUNT, MIN, MAX, IF, VLOOKUP, CONCATENATE, text functions), cell references (A1, $A$1, ranges), all Excel error types (#VALUE!, #REF!, #DIV/0!, #NAME?, #N/A, #NUM!), circular reference detection via DFS. See `modules/sheets-formula/` and `contracts/sheets-formula/rules.md`.
 2. **Cell formatting** — Bold, italic, colors, number formats, alignment. Schema exists (CellFormat in spreadsheet.ts), UI needs building.
 3. **Multi-sheet tabs** — Tab bar, add/delete/rename sheets, cross-sheet references. Currently hardcoded to sheet-0.
 4. **Copy/paste & keyboard shortcuts** — Clipboard integration, range selection, standard Excel key bindings.
@@ -127,16 +127,16 @@ Spreadsheet editor. Same architecture: native web format for editing, conversion
 
 Does not attempt: pivot tables, VBA macros, advanced data analysis, Power Query equivalent. Those are post-1.0.
 
-### Slides (~10% complete)
+### Slides (~20% complete)
 
-Presentation editor. Currently a functional prototype with slide panel, 16:9 viewport, and basic text element editing via Yjs.
+Presentation editor. Currently a functional prototype with slide panel, 16:9 viewport, text element editing via Yjs, and a full element interaction system.
 
-**What works:** Slide list with thumbnails, main viewport at 16:9, add slide, text element editing via contentEditable, Yjs sync (Y.Array of Y.Maps), connection status, presence.
+**What works:** Slide list with thumbnails, main viewport at 16:9, add slide, text element editing via contentEditable, Yjs sync (Y.Array of Y.Maps), connection status, presence. Element interaction: drag-to-move, 8-handle resize with aspect ratio lock, rotation with 15° snap, snap-to-grid and snap-to-element guides, multi-select with marquee, z-order management, keyboard nudge. All transforms are Yjs-transacted for undo/redo.
 
-**What's missing:** Everything that makes presentations usable.
+**What's next:** Element types (images, shapes), text formatting, slide layouts/themes.
 
 *Milestones:*
-1. **Element interaction** — Select, move, resize elements via drag handles. Snap-to-grid, alignment guides. This is the critical unlock — without dragging, you can't compose slides.
+1. ~~**Element interaction**~~ (done) — Drag, resize (8 handles + Shift for aspect ratio), rotate (15° snap), snap engine (grid + element edges), selection manager (single/multi/marquee), z-order (bring forward/back/front/bottom), Yjs transactional mutations, DOM overlay rendering. See `modules/app/internal/slides/` and `contracts/app/slides-interaction.md`.
 2. **Element types** — Images (S3 upload), shapes (rectangle, circle, arrow, line), tables. Reuse existing image upload infrastructure from Documents.
 3. **Text formatting** — Rich text within elements (bold, italic, font size, color, alignment). TipTap mini-instance per text element.
 4. **Slide layouts & themes** — Master slide templates (title, content, two-column, blank). Theme colors and fonts applied globally.
@@ -153,12 +153,12 @@ Does not attempt: element animations, video embedding, 3D transitions, custom sl
 
 Not a super-pillar but enables all of them: dashboard, navigation, type switching, theming, workspace management.
 
-**Current state:** Separate HTML pages per editor (`/editor.html`, `/spreadsheet.html`, `/presentation.html`) with full page reloads. Dashboard at `/` with document list, folder navigation, and "New Document/Spreadsheet/Presentation" buttons.
+**Current state:** Unified SPA with client-side pushState routing, dynamic editor loading via ESM code splitting, shared chrome (nav sidebar, top bar). Routes: `/` (dashboard), `/doc/:id` (editor), `/sheet/:id` (spreadsheet), `/slides/:id` (presentation). Old HTML pages preserved for backward compatibility. Editor chunk lazy-loaded on demand. Full cleanup on view transitions (editor destroy, WebSocket disconnect, listener removal).
 
-**Target state:** Unified shell with dynamic editor loading. No page reload when switching between recently-opened documents of different types. Shared sidebar with workspace tree, recent documents, KB quick-access. Consistent toolbar chrome across editors.
+**Remaining:** Offline mode (service workers), shared state persistence, cross-type search.
 
 *Milestones:*
-1. **Unified routing** — Single-page app shell that lazy-loads the correct editor based on document type. No full page reloads.
+1. ~~**Unified routing**~~ (done) — pushState router with param extraction, link interception, popstate handling. Lazy loader with module caching. Shared shell with nav sidebar and view mount/unmount lifecycle. See `modules/app/internal/shell/` and `contracts/app/shell.md`.
 2. **Workspace sidebar** — Tree view of folders, recent documents across all types, starred items, KB quick search.
 3. **Cross-type search** — Global search that finds documents, sheets, slides, and KB entries.
 4. **Theming** — Light/dark mode, customizable accent colors, workspace-level branding.
@@ -253,11 +253,11 @@ Real-time Yjs collaboration between isolated OpenDesk instances. Targets governm
 
 *Milestones:* ~~Peer registration~~ -> ~~Document transfer with Ed25519 signing~~ -> OIDC/SAML identity federation -> Server-to-server sync protocol -> Federated permission mapping -> KB library federation -> Split-brain resolution.
 
-### C6: Sovereign Observability & Compliance Control Plane — ~45% complete
+### C6: Sovereign Observability & Compliance Control Plane — ~65% complete
 
 Unified real-time dashboard for the entire stack's compliance posture. Transforms passive audit trails into active, queryable instrumentation. The connective tissue that consumes output from all other pillars and all super-pillars.
 
-*Milestones:* ~~Metrics collection~~ -> ~~Health monitoring~~ -> ~~HTTP middleware~~ -> Unified telemetry across all content types -> Live compliance dashboard UI -> Anomaly detection -> Drill-down forensics -> SIEM export.
+*Milestones:* ~~Metrics collection~~ -> ~~Health monitoring~~ -> ~~HTTP middleware~~ -> ~~Time-series API with adaptive bucketing~~ -> ~~Live compliance dashboard UI~~ (Canvas 2D charts, health panel, correlation search, compliance CSV/JSON export — see `modules/app/internal/admin/` and `contracts/app/observability-dashboard.md`) -> Unified telemetry across all content types -> Anomaly detection -> Drill-down forensics -> SIEM export.
 
 ### Sequencing
 
@@ -265,15 +265,15 @@ Unified real-time dashboard for the entire stack's compliance posture. Transform
 Super-Pillars (Product Lines)              Cross-Cutting Pillars
 ━━━━━━━━━━━━━━━━━━━━━━━━━━                ━━━━━━━━━━━━━━━━━━━━━
 Documents ████████████████████░             C4 (Workflows) ──┬── C2 (Audit)
-KB        █████░░░░░░░░░░░░░░░                              │
-Sheets    ███░░░░░░░░░░░░░░░░░             C6 (Observe) ────┤── C1 (AI)
-Slides    ██░░░░░░░░░░░░░░░░░░                              │
+KB        ████████░░░░░░░░░░░░                              │
+Sheets    █████░░░░░░░░░░░░░░░             C6 (Observe) ────┤── C1 (AI)
+Slides    ████░░░░░░░░░░░░░░░░                              │
                                             C3 (Erasure) ───┘
                                                      │
                                             C5 (Federation) ── depends on all
 ```
 
-**Priority order for super-pillars:** Documents (flagship) > KB (high leverage, references done) > Sheets (formula engine is critical unlock) > Slides (smallest demand).
+**Priority order for super-pillars:** Documents (flagship) > KB (high leverage, entry model landed) > Sheets (formula engine landed, next: formatting) > Slides (element interaction landed, next: element types).
 
 **Cross-cutting validation:** Each cross-cutting pillar must be validated against all super-pillars, not just Documents. As Sheets and Slides mature, audit/erasure/AI capabilities must cover their content types.
 
