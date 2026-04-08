@@ -1,9 +1,10 @@
 /** Contract: contracts/app/rules.md */
 
-import { type KBEntryRecord, fetchEntry, deleteEntryApi } from './kb-api.ts';
+import { type KBEntryRecord, fetchEntry, deleteEntryApi, updateEntryApi } from './kb-api.ts';
 import { renderMetadata } from './detail-metadata.ts';
 import { loadRelationships } from './detail-relationships.ts';
 import { renderDatasetPreview } from './detail-dataset.ts';
+import { createGraphButton } from './graph-panel.ts';
 
 type DetailCallback = () => void;
 
@@ -126,6 +127,28 @@ async function renderDetail(
       .catch(console.error);
   });
 
+  // Pin/unpin button for notes
+  if (entry.entryType === 'note') {
+    const isPinned = entry.metadata?.pinned === true;
+    const pinBtn = document.createElement('button');
+    pinBtn.className = `btn btn-sm ${isPinned ? 'btn-pin--active' : 'btn-pin'}`;
+    pinBtn.textContent = isPinned ? 'Unpin' : 'Pin';
+    pinBtn.addEventListener('click', async () => {
+      const newPinned = !isPinned;
+      try {
+        await updateEntryApi(entry.id, {
+          metadata: { ...entry.metadata, pinned: newPinned },
+        });
+        onRefresh();
+        const fresh = await fetchEntry(entry.id);
+        renderDetail(body, fresh, onEdit, onRefresh, panel);
+      } catch (err) {
+        console.error('Pin toggle failed', err);
+      }
+    });
+    actions.appendChild(pinBtn);
+  }
+
   actions.appendChild(editBtn);
   actions.appendChild(deleteBtn);
   body.appendChild(actions);
@@ -137,4 +160,11 @@ async function renderDetail(
   body.appendChild(relSection);
 
   loadRelationships(entry.id, relSection);
+
+  // Graph visualization button
+  const graphBtn = createGraphButton(entry.id, async (id) => {
+    const target = await fetchEntry(id);
+    renderDetail(body, target, onEdit, onRefresh, panel);
+  });
+  relSection.appendChild(graphBtn);
 }

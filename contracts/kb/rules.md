@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Typed knowledge base providing multi-type entries (Reference, Entity, Dataset, Note) with first-class relationships (property graph lite), full-text search, reverse dependency lookups, and version pinning — all workspace-scoped via PostgreSQL.
+Typed knowledge base providing multi-type entries (Reference, Entity, Dataset, Note) with first-class relationships (property graph lite), full-text search, reverse dependency lookups, version pinning, corpus partitioning (knowledge/operational/reference), jurisdiction scoping, and snapshot sets — all workspace-scoped via PostgreSQL.
 
 Additionally provides a structured entity directory for people, organizations, projects, and terms with typed schemas, CRUD operations, and search. Entities are referenceable from the document editor via mention nodes.
 
@@ -11,7 +11,7 @@ Additionally provides a structured entity directory for people, organizations, p
 - `workspaceId: string` — UUID scoping all queries and mutations
 - `KBEntryInput` — entry creation/update payload with entryType, title, metadata, tags
 - `KBRelationshipInput` — relationship creation payload with sourceId, targetId, relationType
-- `KBQueryFilter` — optional filters: entryType, tags, search query, pagination
+- `KBQueryFilter` — optional filters: entryType, tags, search query, corpus, jurisdiction, pagination
 - `entityCreate`: `EntityCreateInput` -- Name, subtype, and structured content fields for creating a new entity.
 - `entityUpdate`: `EntityUpdateInput` -- Partial update to an existing entity's fields.
 - `entityId`: `string (UUID)` -- Identifier for a specific entity.

@@ -93,6 +93,11 @@ export function normalizeTags(tags: string[]): string[] {
   return result;
 }
 
+// --- Corpus & Jurisdiction ---
+
+export const CorpusPartitionSchema = z.enum(['knowledge', 'operational', 'reference']);
+export type CorpusPartition = z.infer<typeof CorpusPartitionSchema>;
+
 // --- Shared field schemas ---
 
 const uuidSchema = z.string().uuid();
@@ -106,6 +111,8 @@ export const CreateEntryInputSchema = z.object({
   title: z.string().min(1).max(500),
   metadata: z.record(z.unknown()).default({}),
   tags: tagsSchema,
+  corpus: CorpusPartitionSchema.default('knowledge'),
+  jurisdiction: z.string().max(20).nullable().default(null),
   createdBy: z.string().min(1),
 });
 
@@ -115,6 +122,8 @@ export const UpdateEntryInputSchema = z.object({
   title: z.string().min(1).max(500).optional(),
   metadata: z.record(z.unknown()).optional(),
   tags: tagsSchema.optional(),
+  corpus: CorpusPartitionSchema.optional(),
+  jurisdiction: z.string().max(20).nullable().optional(),
   updatedBy: z.string().min(1),
 });
 
@@ -138,6 +147,8 @@ export const KBQueryFilterSchema = z.object({
   entryType: EntryTypeSchema.optional(),
   tags: z.array(z.string()).optional(),
   search: z.string().optional(),
+  corpus: CorpusPartitionSchema.optional(),
+  jurisdiction: z.string().max(20).optional(),
   limit: z.number().int().positive().max(200).default(50),
   offset: z.number().int().nonnegative().default(0),
 });

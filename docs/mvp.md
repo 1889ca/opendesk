@@ -71,7 +71,7 @@ The flagship product line. Rich text editing with TipTap + Yjs, real-time collab
 
 **Formats:** .docx, .odt, .pdf (import/export working via Collabora)
 
-### Knowledge Base (~58% complete)
+### Knowledge Base (~92% complete)
 
 A structured information store where organizational knowledge lives **separate from its presentation**. Documents, Sheets, and Slides *reference* KB entries — they don't own the underlying information. The existing Reference & Citation Management system (formerly Pillar 7, ~90% complete) is KB's first milestone. The generalized entry model with typed records (Reference, Entity, Dataset, Note), relationships (property graph lite), full-text search, and reverse dependency lookups is now implemented (`modules/kb/`).
 
@@ -99,11 +99,11 @@ A structured information store where organizational knowledge lives **separate f
 5. ~~**Reverse dependency registry**~~ (done) — Lookup all entries pointing at a given entry. Implemented in `modules/kb/internal/reverse-deps.ts`.
 6. ~~**Entity directory**~~ (done) — People, organizations, terms with structured fields. Entity CRUD with subtype-specific content schemas (person, organization, project, term). Mention picker for all editors. Browser UI with search and filtering. See `modules/kb/internal/pg-entities.ts`.
 7. ~~**Dataset store**~~ (done) — Tabular row data storage in `kb_dataset_rows` table with JSONB rows, column schema definitions in entry metadata, atomic row replacement, paginated reads. API routes at `/api/kb/entries/:id/rows`. Browser UI with table preview and column editor. See `modules/kb/internal/pg-datasets.ts` and `modules/api/internal/kb-dataset-routes.ts`.
-8. **Notes & clippings** — Capture from documents (promote action), freeform entry, tag-based organization.
-9. **KB query contract** — Stable, versioned API with corpus partitioning (`knowledge | operational | reference`), jurisdiction scoping, and snapshot resolution.
+8. ~~**Notes & clippings**~~ (done) — Promote-from-document action in editor toolbar. Quick note creator (inline form, visible when Notes filter active). Markdown preview in detail panel via simple-markdown renderer. Pinned notes section at top of list. Pin/unpin toggle in detail actions. See `modules/app/internal/kb-browser/quick-note.ts`, `simple-markdown.ts`, `pinned-section.ts`.
+9. ~~**KB query contract**~~ (done) — Corpus partitioning (`knowledge | operational | reference`) and jurisdiction scoping fields on all KB entries. Query API filters by corpus and jurisdiction. Search respects both dimensions. Entries default to `knowledge` corpus. Jurisdiction is nullable (null = universal). Schema migration is idempotent. See `modules/kb/internal/entries-store.ts`, `search.ts`, `schema.ts`.
 10. ~~**KB browser UI**~~ (done) — Dedicated interface for browsing, filtering, managing entries, and visualizing relationships. Grid/list view toggle, search with debounce, type/tag filters, sort options, detail panel with type-specific metadata rendering, relationship viewer, create/edit forms. See `modules/app/internal/kb-browser/`.
-11. **Snapshot sets** — Immutable timestamped slices of published entry versions for compound regulatory filings spanning multiple document types.
-12. **Relationship graph** — Queryable connections between KB entries. Graph is an overlay, not the load-bearing structure — cross-document references bind to entry ID, not graph predicates.
+11. ~~**Snapshot sets**~~ (done) — `kb_snapshots` table with id, workspace_id, purpose, captured_by, captured_at, entry_versions (JSONB). Create snapshot captures all current entry versions atomically. Resolve snapshot fetches version history records. API at `/api/kb/snapshots`. Browser UI with create button, snapshot list, and entry resolution view. See `modules/kb/internal/pg-snapshots.ts`, `modules/api/internal/kb-snapshot-routes.ts`.
+12. ~~**Relationship graph**~~ (done) — Interactive SVG-based force-directed graph visualization. Pure DOM/SVG rendering (no external libs). Nodes colored by entry type, edges labeled by relation type. Click node to open detail. Depth selector (1/2/3 hops). Graph panel opens from "View Graph" button in detail. See `modules/app/internal/kb-browser/graph-*.ts`.
 
 ### Sheets (~70% complete)
 

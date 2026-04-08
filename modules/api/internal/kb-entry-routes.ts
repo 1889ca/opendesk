@@ -23,10 +23,14 @@ import {
 
 const WORKSPACE_ID = '00000000-0000-0000-0000-000000000000';
 
+const CorpusSchema = z.enum(['knowledge', 'operational', 'reference']);
+
 const ListQuerySchema = z.object({
   entryType: EntryTypeSchema.optional(),
   tags: z.string().optional(),
   search: z.string().max(200).optional(),
+  corpus: CorpusSchema.optional(),
+  jurisdiction: z.string().max(20).optional(),
   sort: z.enum(['date-desc', 'date-asc', 'title-asc', 'title-desc']).default('date-desc'),
   limit: z.coerce.number().int().min(1).max(200).default(50),
   offset: z.coerce.number().int().min(0).default(0),
@@ -51,14 +55,14 @@ export function createKBEntryRoutes(opts: KBEntryRoutesOptions): Router {
         res.status(400).json({ error: 'Validation failed', issues: qr.error.issues });
         return;
       }
-      const { entryType, tags, search, limit, offset } = qr.data;
+      const { entryType, tags, search, corpus, jurisdiction, limit, offset } = qr.data;
       if (search) {
-        const results = await searchEntries(WORKSPACE_ID, search, { entryType, limit, offset });
+        const results = await searchEntries(WORKSPACE_ID, search, { entryType, corpus, jurisdiction, limit, offset });
         res.json(results.map((r) => ({ ...r.entry, snippet: r.snippet, rank: r.rank })));
         return;
       }
       const parsedTags = tags ? tags.split(',').map((t) => t.trim()).filter(Boolean) : undefined;
-      const entries = await listEntries(WORKSPACE_ID, { entryType, tags: parsedTags, limit, offset });
+      const entries = await listEntries(WORKSPACE_ID, { entryType, tags: parsedTags, corpus, jurisdiction, limit, offset });
       res.json(entries);
     }),
   );

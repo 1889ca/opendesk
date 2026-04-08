@@ -1,6 +1,7 @@
 /** Contract: contracts/app/rules.md */
 
 import type { KBEntryRecord } from './kb-api.ts';
+import { renderSimpleMarkdown } from './simple-markdown.ts';
 
 /** Add a labeled field row to a parent element. */
 function addField(parent: HTMLElement, label: string, value: string): void {
@@ -83,7 +84,12 @@ function renderNoteMetadata(m: Record<string, unknown>, el: HTMLElement): HTMLEl
   if (m.body) {
     const bodyEl = document.createElement('div');
     bodyEl.className = 'kb-detail__note-body';
-    bodyEl.textContent = String(m.body);
+    if (m.format === 'markdown') {
+      bodyEl.classList.add('kb-md-content');
+      bodyEl.innerHTML = renderSimpleMarkdown(String(m.body));
+    } else {
+      bodyEl.textContent = String(m.body);
+    }
     el.appendChild(bodyEl);
   }
   if (m.format) addField(el, 'Format', String(m.format));

@@ -2,6 +2,7 @@
 
 import type { KBEntryRecord } from './kb-api.ts';
 import { createEntryCard } from './entry-card.ts';
+import { partitionPinned, createPinnedHeader, createUnpinnedHeader } from './pinned-section.ts';
 
 export type ViewMode = 'grid' | 'list';
 
@@ -11,9 +12,10 @@ export function renderEntryList(
   entries: KBEntryRecord[],
   viewMode: ViewMode,
   onSelect: (entry: KBEntryRecord) => void,
+  entryType = '',
 ): void {
   container.innerHTML = '';
-  container.className = viewMode === 'grid' ? 'kb-entry-grid' : 'kb-entry-list';
+  container.className = 'kb-entry-container';
 
   if (entries.length === 0) {
     const empty = document.createElement('div');
@@ -23,9 +25,23 @@ export function renderEntryList(
     return;
   }
 
-  for (const entry of entries) {
-    container.appendChild(createEntryCard(entry, onSelect));
+  const { pinned, unpinned } = partitionPinned(entries, entryType);
+  const gridClass = viewMode === 'grid' ? 'kb-entry-grid' : 'kb-entry-list';
+
+  if (pinned.length > 0) {
+    container.appendChild(createPinnedHeader());
+    const pinnedGrid = document.createElement('div');
+    pinnedGrid.className = gridClass;
+    for (const entry of pinned) pinnedGrid.appendChild(createEntryCard(entry, onSelect));
+    container.appendChild(pinnedGrid);
+
+    container.appendChild(createUnpinnedHeader());
   }
+
+  const mainGrid = document.createElement('div');
+  mainGrid.className = gridClass;
+  for (const entry of unpinned) mainGrid.appendChild(createEntryCard(entry, onSelect));
+  container.appendChild(mainGrid);
 }
 
 /** Build the view mode toggle (grid/list). */

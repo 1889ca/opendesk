@@ -10,12 +10,14 @@ import { buildFilterBar, readFiltersFromURL, type KBFilterState } from '../kb-br
 import { renderEntryList, buildViewToggle, buildPagination, type ViewMode } from '../kb-browser/entry-list.ts';
 import { buildDetailPanel, openDetail } from '../kb-browser/entry-detail.ts';
 import { buildEntryForm, openCreateForm, openEditForm } from '../kb-browser/entry-form.ts';
+import { createQuickNote } from '../kb-browser/quick-note.ts';
 
 let containerEl: HTMLElement | null = null;
 let listEl: HTMLElement | null = null;
 let paginationEl: HTMLElement | null = null;
 let detailPanel: HTMLElement | null = null;
 let formOverlay: HTMLElement | null = null;
+let quickNoteEl: HTMLElement | null = null;
 let viewMode: ViewMode = 'grid';
 let currentOffset = 0;
 const PAGE_SIZE = 24;
@@ -41,7 +43,7 @@ async function loadEntries(): Promise<void> {
       offset: currentOffset,
     });
 
-    renderEntryList(listEl, entries, viewMode, onEntrySelect);
+    renderEntryList(listEl, entries, viewMode, onEntrySelect, currentFilters.entryType);
 
     // Update pagination
     paginationEl.innerHTML = '';
@@ -59,9 +61,14 @@ function onEntrySelect(entry: KBEntryRecord): void {
   if (detailPanel) openDetail(detailPanel, entry);
 }
 
+function updateQuickNoteVisibility(): void {
+  if (quickNoteEl) quickNoteEl.hidden = currentFilters.entryType !== 'note';
+}
+
 function onFilterChange(state: KBFilterState): void {
   currentFilters = state;
   currentOffset = 0;
+  updateQuickNoteVisibility();
   loadEntries();
 }
 
@@ -107,6 +114,10 @@ export async function mount(container: HTMLElement, _params: Record<string, stri
   // Filter bar
   const filterBar = buildFilterBar(onFilterChange);
 
+  // Quick note creator (visible when notes filter active)
+  quickNoteEl = createQuickNote(() => loadEntries());
+  quickNoteEl.hidden = currentFilters.entryType !== 'note';
+
   // Main content area with detail panel
   const contentArea = document.createElement('div');
   contentArea.className = 'kb-browser__content';
@@ -136,6 +147,7 @@ export async function mount(container: HTMLElement, _params: Record<string, stri
 
   wrapper.appendChild(header);
   wrapper.appendChild(filterBar);
+  wrapper.appendChild(quickNoteEl);
   wrapper.appendChild(contentArea);
   wrapper.appendChild(formOverlay);
   container.appendChild(wrapper);
@@ -149,4 +161,5 @@ export function unmount(): void {
   paginationEl = null;
   detailPanel = null;
   formOverlay = null;
+  quickNoteEl = null;
 }

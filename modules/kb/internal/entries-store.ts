@@ -14,6 +14,8 @@ interface EntryRow {
   metadata: Record<string, unknown>;
   tags: string[];
   version: number;
+  corpus: string;
+  jurisdiction: string | null;
   created_by: string;
   created_at: Date;
   updated_at: Date;
@@ -28,6 +30,8 @@ function rowToEntry(row: EntryRow): KBEntry {
     metadata: row.metadata,
     tags: row.tags,
     version: row.version,
+    corpus: (row.corpus ?? 'knowledge') as KBEntry['corpus'],
+    jurisdiction: row.jurisdiction,
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -44,10 +48,10 @@ export async function createEntry(input: CreateEntryInput): Promise<KBEntry> {
   const id = randomUUID();
 
   const result = await pool.query<EntryRow>(
-    `INSERT INTO kb_entries (id, workspace_id, entry_type, title, metadata, tags, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO kb_entries (id, workspace_id, entry_type, title, metadata, tags, corpus, jurisdiction, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING *`,
-    [id, validated.workspaceId, validated.entryType, validated.title, JSON.stringify(parsedMeta), tags, validated.createdBy],
+    [id, validated.workspaceId, validated.entryType, validated.title, JSON.stringify(parsedMeta), tags, validated.corpus ?? 'knowledge', validated.jurisdiction ?? null, validated.createdBy],
   );
 
   const entry = rowToEntry(result.rows[0]);
@@ -84,16 +88,20 @@ export async function updateEntry(
        title = COALESCE($3, title),
        metadata = COALESCE($4, metadata),
        tags = COALESCE($5, tags),
+       corpus = COALESCE($6, corpus),
+       jurisdiction = CASE WHEN $7::boolean THEN $8 ELSE jurisdiction END,
        version = version + 1,
        updated_at = NOW()
      WHERE id = $1 AND workspace_id = $2
      RETURNING *`,
     [
-      id,
-      workspaceId,
+      id, workspaceId,
       validated.title ?? null,
       validated.metadata ? JSON.stringify(validated.metadata) : null,
       tags ?? null,
+      validated.corpus ?? null,
+      validated.jurisdiction !== undefined,
+      validated.jurisdiction ?? null,
     ],
   );
 
@@ -125,6 +133,18 @@ export async function listEntries(workspaceId: string, filter: KBQueryFilter = {
   if (filter.tags && filter.tags.length > 0) {
     conditions.push(`tags @> $${paramIdx}`);
     params.push(filter.tags);
+    paramIdx++;
+  }
+
+  if (filter.corpus) {
+    conditions.push(`corpus = $${paramIdx}`);
+    params.push(filter.corpus);
+    paramIdx++;
+  }
+
+  if (filter.jurisdiction) {
+    conditions.push(`jurisdiction = $${paramIdx}`);
+    params.push(filter.jurisdiction);
     paramIdx++;
   }
 

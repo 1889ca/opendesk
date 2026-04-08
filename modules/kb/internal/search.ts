@@ -10,6 +10,8 @@ interface SearchRow {
   metadata: Record<string, unknown>;
   tags: string[];
   version: number;
+  corpus: string;
+  jurisdiction: string | null;
   created_by: string;
   created_at: Date;
   updated_at: Date;
@@ -27,6 +29,8 @@ function rowToSearchResult(row: SearchRow): KBSearchResult {
       metadata: row.metadata,
       tags: row.tags,
       version: row.version,
+      corpus: (row.corpus ?? 'knowledge') as KBEntry['corpus'],
+      jurisdiction: row.jurisdiction,
       createdBy: row.created_by,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -43,7 +47,7 @@ function rowToSearchResult(row: SearchRow): KBSearchResult {
 export async function searchEntries(
   workspaceId: string,
   query: string,
-  options: { entryType?: string; limit?: number; offset?: number } = {},
+  options: { entryType?: string; corpus?: string; jurisdiction?: string; limit?: number; offset?: number } = {},
 ): Promise<KBSearchResult[]> {
   if (!query.trim()) return [];
 
@@ -57,6 +61,18 @@ export async function searchEntries(
   if (options.entryType) {
     conditions.push(`entry_type = $${paramIdx}`);
     params.push(options.entryType);
+    paramIdx++;
+  }
+
+  if (options.corpus) {
+    conditions.push(`corpus = $${paramIdx}`);
+    params.push(options.corpus);
+    paramIdx++;
+  }
+
+  if (options.jurisdiction) {
+    conditions.push(`jurisdiction = $${paramIdx}`);
+    params.push(options.jurisdiction);
     paramIdx++;
   }
 

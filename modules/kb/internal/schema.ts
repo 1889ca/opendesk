@@ -78,6 +78,38 @@ export const CREATE_KB_DATASET_ROWS_INDEXES = `
     ON kb_dataset_rows (entry_id, row_index);
 `;
 
+export const CREATE_KB_SNAPSHOTS_TABLE = `
+  CREATE TABLE IF NOT EXISTS kb_snapshots (
+    id UUID PRIMARY KEY,
+    workspace_id UUID NOT NULL,
+    purpose TEXT NOT NULL,
+    captured_by TEXT NOT NULL,
+    captured_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    entry_versions JSONB NOT NULL
+  )
+`;
+
+export const CREATE_KB_SNAPSHOTS_INDEXES = `
+  CREATE INDEX IF NOT EXISTS idx_kb_snapshots_workspace
+    ON kb_snapshots (workspace_id);
+  CREATE INDEX IF NOT EXISTS idx_kb_snapshots_captured_at
+    ON kb_snapshots (workspace_id, captured_at DESC);
+`;
+
+export const APPLY_KB_QUERY_CONTRACT_COLUMNS = `
+  DO $$ BEGIN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = 'kb_entries' AND column_name = 'corpus'
+    ) THEN
+      ALTER TABLE kb_entries ADD COLUMN corpus TEXT NOT NULL DEFAULT 'knowledge';
+      ALTER TABLE kb_entries ADD COLUMN jurisdiction TEXT;
+      CREATE INDEX idx_kb_entries_corpus ON kb_entries (workspace_id, corpus);
+      CREATE INDEX idx_kb_entries_jurisdiction ON kb_entries (workspace_id, jurisdiction) WHERE jurisdiction IS NOT NULL;
+    END IF;
+  END $$;
+`;
+
 export const APPLY_KB_SEARCH_SCHEMA = `
   DO $$ BEGIN
     IF NOT EXISTS (
@@ -104,5 +136,8 @@ export async function initKBSchema(): Promise<void> {
   await pool.query(CREATE_KB_VERSION_HISTORY_TABLE);
   await pool.query(CREATE_KB_DATASET_ROWS_TABLE);
   await pool.query(CREATE_KB_DATASET_ROWS_INDEXES);
+  await pool.query(CREATE_KB_SNAPSHOTS_TABLE);
+  await pool.query(CREATE_KB_SNAPSHOTS_INDEXES);
+  await pool.query(APPLY_KB_QUERY_CONTRACT_COLUMNS);
   await pool.query(APPLY_KB_SEARCH_SCHEMA);
 }

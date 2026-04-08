@@ -24,6 +24,7 @@ import { createImportExportRoutes } from './reference-import-routes.ts';
 import { createEntityRoutes } from './entity-routes.ts';
 import { createKBEntryRoutes } from './kb-entry-routes.ts';
 import { createKBDatasetRoutes } from './kb-dataset-routes.ts';
+import { createKBSnapshotRoutes } from './kb-snapshot-routes.ts';
 import { createShareRoutes } from '../../sharing/index.ts';
 import { createAuditRoutes } from '../../audit/index.ts';
 import { createWorkflowRoutes } from '../../workflow/index.ts';
@@ -115,6 +116,9 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
 
   // KB dataset row routes (nested under entries)
   app.use('/api/kb/entries/:entryId/rows', createKBDatasetRoutes({ permissions }));
+
+  // KB snapshot routes (immutable entry-version captures)
+  app.use('/api/kb/snapshots', createKBSnapshotRoutes({ permissions }));
 
   // KB entity directory routes
   app.use('/api/kb/entities', createEntityRoutes({ permissions }));

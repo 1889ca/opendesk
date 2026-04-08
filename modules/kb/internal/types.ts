@@ -32,6 +32,9 @@ export const EntitySubtype = {
 
 export type EntitySubtype = (typeof EntitySubtype)[keyof typeof EntitySubtype];
 
+/** Corpus partition — controls RAG visibility. */
+export type CorpusPartition = 'knowledge' | 'operational' | 'reference';
+
 /** Full KB entry as stored in the database. */
 export interface KBEntry {
   id: string;
@@ -41,6 +44,8 @@ export interface KBEntry {
   metadata: Record<string, unknown>;
   tags: string[];
   version: number;
+  corpus: CorpusPartition;
+  jurisdiction: string | null;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
@@ -62,6 +67,8 @@ export interface KBQueryFilter {
   entryType?: EntryType;
   tags?: string[];
   search?: string;
+  corpus?: CorpusPartition;
+  jurisdiction?: string;
   limit?: number;
   offset?: number;
 }

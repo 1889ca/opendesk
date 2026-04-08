@@ -21,6 +21,9 @@ export {
   entryToReference,
 } from './contract.ts';
 
+export { CorpusPartitionSchema } from './internal/schemas.ts';
+export type { CorpusPartition } from './internal/types.ts';
+
 export type {
   KBEntry,
   KBRelationship,
@@ -118,3 +121,14 @@ export {
 // Row types
 export type { EntityRow, EntityUpdates } from './internal/pg-entities.ts';
 export type { DatasetRow, DatasetRowInput } from './internal/pg-datasets.ts';
+
+// Snapshot operations
+export {
+  createSnapshot,
+  getSnapshot,
+  listSnapshots,
+  getSnapshotEntries,
+} from './internal/pg-snapshots.ts';
+
+// Snapshot types
+export type { KBSnapshot, EntryVersionMap, SnapshotEntry } from './internal/snapshot-types.ts';
