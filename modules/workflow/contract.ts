@@ -1,6 +1,19 @@
 /** Contract: contracts/workflow/rules.md */
 import { z } from 'zod';
 
+// Re-export config schemas
+export {
+  WebhookConfigSchema, type WebhookConfig,
+  ExportConfigSchema, type ExportConfig,
+  NotifyConfigSchema, type NotifyConfig,
+  SetMetadataConfigSchema, type SetMetadataConfig,
+  MoveToFolderConfigSchema, type MoveToFolderConfig,
+  ChangeStatusConfigSchema, type ChangeStatusConfig,
+  SendEmailConfigSchema, type SendEmailConfig,
+  ConditionOperatorSchema, type ConditionOperator,
+  ConditionConfigSchema, type ConditionConfig,
+} from './internal/config-schemas.ts';
+
 // --- Trigger & Action Enums ---
 
 export const TriggerTypeSchema = z.enum([
@@ -13,13 +26,8 @@ export const TriggerTypeSchema = z.enum([
 export type TriggerType = z.infer<typeof TriggerTypeSchema>;
 
 export const ActionTypeSchema = z.enum([
-  'webhook',
-  'export',
-  'notify',
-  'set_metadata',
-  'move_to_folder',
-  'change_status',
-  'send_email',
+  'webhook', 'export', 'notify',
+  'set_metadata', 'move_to_folder', 'change_status', 'send_email',
 ]);
 
 export type ActionType = z.infer<typeof ActionTypeSchema>;
@@ -27,88 +35,10 @@ export type ActionType = z.infer<typeof ActionTypeSchema>;
 // --- Node Types ---
 
 export const NodeTypeSchema = z.enum([
-  'trigger',
-  'condition',
-  'action',
-  'parallel_split',
+  'trigger', 'condition', 'action', 'parallel_split',
 ]);
 
 export type NodeType = z.infer<typeof NodeTypeSchema>;
-
-// --- Condition Operator ---
-
-export const ConditionOperatorSchema = z.enum([
-  'equals',
-  'not_equals',
-  'contains',
-  'not_contains',
-  'starts_with',
-  'ends_with',
-  'greater_than',
-  'less_than',
-  'includes',
-  'not_includes',
-]);
-
-export type ConditionOperator = z.infer<typeof ConditionOperatorSchema>;
-
-// --- Action Config Schemas ---
-
-export const WebhookConfigSchema = z.object({
-  url: z.string().url(),
-  headers: z.record(z.string()).optional(),
-});
-
-export type WebhookConfig = z.infer<typeof WebhookConfigSchema>;
-
-export const ExportConfigSchema = z.object({
-  format: z.enum(['docx', 'odt', 'pdf']),
-});
-
-export type ExportConfig = z.infer<typeof ExportConfigSchema>;
-
-export const NotifyConfigSchema = z.object({
-  message: z.string().min(1),
-});
-
-export type NotifyConfig = z.infer<typeof NotifyConfigSchema>;
-
-export const SetMetadataConfigSchema = z.object({
-  key: z.string().min(1),
-  value: z.string(),
-});
-
-export type SetMetadataConfig = z.infer<typeof SetMetadataConfigSchema>;
-
-export const MoveToFolderConfigSchema = z.object({
-  folderId: z.string().min(1),
-});
-
-export type MoveToFolderConfig = z.infer<typeof MoveToFolderConfigSchema>;
-
-export const ChangeStatusConfigSchema = z.object({
-  status: z.string().min(1),
-});
-
-export type ChangeStatusConfig = z.infer<typeof ChangeStatusConfigSchema>;
-
-export const SendEmailConfigSchema = z.object({
-  to: z.string().email(),
-  subject: z.string().min(1),
-  body: z.string().min(1),
-});
-
-export type SendEmailConfig = z.infer<typeof SendEmailConfigSchema>;
-
-// --- Condition Config ---
-
-export const ConditionConfigSchema = z.object({
-  field: z.string().min(1),
-  operator: ConditionOperatorSchema,
-  value: z.string(),
-});
-
-export type ConditionConfig = z.infer<typeof ConditionConfigSchema>;
 
 // --- Graph Node & Edge ---
 
@@ -131,8 +61,6 @@ export const WorkflowEdgeSchema = z.object({
 });
 
 export type WorkflowEdge = z.infer<typeof WorkflowEdgeSchema>;
-
-// --- Graph Definition ---
 
 export const WorkflowGraphSchema = z.object({
   nodes: z.array(WorkflowNodeSchema),
@@ -161,7 +89,7 @@ export const WorkflowDefinitionSchema = z.object({
 
 export type WorkflowDefinition = z.infer<typeof WorkflowDefinitionSchema>;
 
-// --- Create / Update Schemas ---
+// --- Create / Update ---
 
 export const CreateWorkflowSchema = z.object({
   name: z.string().min(1).max(200),
@@ -187,12 +115,7 @@ export type UpdateWorkflow = z.infer<typeof UpdateWorkflowSchema>;
 
 // --- Execution ---
 
-export const ExecutionStatusSchema = z.enum([
-  'pending',
-  'running',
-  'completed',
-  'failed',
-]);
+export const ExecutionStatusSchema = z.enum(['pending', 'running', 'completed', 'failed']);
 
 export type ExecutionStatus = z.infer<typeof ExecutionStatusSchema>;
 
