@@ -1,10 +1,9 @@
 /** Contract: contracts/auth/rules.md */
 
 import { describe, it, expect, vi } from 'vitest';
-import { createInMemoryAuthRateLimiter } from './auth-rate-limit.ts';
+import { createInMemoryAuthRateLimiter, type AuthRateLimiter } from './auth-rate-limit.ts';
 import { createAuthMiddleware } from './middleware.ts';
 import type { TokenVerifier, ApiKeyVerifier } from '../contract.ts';
-import type { AuthRateLimiter } from './auth-rate-limit.ts';
 import type { Request, Response, NextFunction } from 'express';
 
 describe('InMemoryAuthRateLimiter', () => {

@@ -1,6 +1,5 @@
 /** Contract: contracts/api/rules.md */
-import type { Express } from 'express';
-import express from 'express';
+import express, { type Express } from 'express';
 import type { AuthModule } from '../../auth/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import type { Hocuspocus } from '@hocuspocus/server';
@@ -25,13 +24,12 @@ import { createImportExportRoutes } from './reference-import-routes.ts';
 import { createShareRoutes } from '../../sharing/index.ts';
 import { createAuditRoutes } from '../../audit/index.ts';
 import { createWorkflowRoutes } from '../../workflow/index.ts';
-import { createMetricsRoutes } from '../../observability/index.ts';
+import { createMetricsRoutes, createTelemetryMiddleware } from '../../observability/index.ts';
 import { createAiRoutes, createAi } from '../../ai/index.ts';
 import { createErasure, createErasureRoutes } from '../../erasure/index.ts';
 import { createFederation, createFederationRoutes } from '../../federation/index.ts';
 import { idempotencyMiddleware } from './idempotency.ts';
 import { pool } from '../../storage/index.ts';
-import { createTelemetryMiddleware } from '../../observability/index.ts';
 import type { AppConfig } from '../../config/contract.ts';
 import type { EventBusModule } from '../../events/contract.ts';
 

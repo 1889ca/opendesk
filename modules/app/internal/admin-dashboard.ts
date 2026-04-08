@@ -1,38 +1,10 @@
 /** Contract: contracts/app/rules.md */
 import { apiFetch } from './shared/api-client.ts';
 import { initTheme } from './shared/theme-toggle.ts';
-
-// --- Types ---
-
-interface HealthIndicator {
-  name: string;
-  value: number;
-  unit?: string;
-  status: 'ok' | 'warning' | 'critical';
-  timestamp: string;
-}
-
-interface OperationSummary {
-  operation: string;
-  count: number;
-  avgDurationMs: number;
-  p95DurationMs: number;
-  p99DurationMs: number;
-  errorCount: number;
-}
-
-interface MetricsSummary {
-  timestamp: string;
-  uptime: number;
-  health: HealthIndicator[];
-  operations: OperationSummary[];
-}
-
-interface AuditSummary {
-  totalEntries: number;
-  documentsTracked: number;
-  lastEntryAt: string | null;
-}
+import {
+  formatIndicatorName, formatValue, formatUptime, latencyClass, escapeHtml,
+  type HealthIndicator, type OperationSummary, type MetricsSummary, type AuditSummary,
+} from './admin-helpers.ts';
 
 // --- Rendering ---
 
@@ -177,38 +149,6 @@ function renderAuditInfo(container: HTMLElement, audit: AuditSummary): void {
     row.append(label, value);
     container.appendChild(row);
   }
-}
-
-// --- Helpers ---
-
-function formatIndicatorName(name: string): string {
-  return name
-    .replace(/[._]/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function formatValue(v: number): string {
-  if (v >= 1000) return `${(v / 1000).toFixed(1)}k`;
-  if (Number.isInteger(v)) return String(v);
-  return v.toFixed(1);
-}
-
-function formatUptime(seconds: number): string {
-  if (seconds < 60) return `${Math.round(seconds)}s`;
-  if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
-  const h = Math.floor(seconds / 3600);
-  const m = Math.round((seconds % 3600) / 60);
-  return `${h}h ${m}m`;
-}
-
-function latencyClass(ms: number): string {
-  if (ms > 500) return 'ops-latency-critical';
-  if (ms > 200) return 'ops-latency-warning';
-  return '';
-}
-
-function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // --- Data Loading ---
