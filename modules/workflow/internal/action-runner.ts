@@ -1,6 +1,15 @@
 /** Contract: contracts/workflow/rules.md */
 import type { DomainEvent } from '../../events/contract.ts';
-import type { ActionType, WebhookConfig, ExportConfig, NotifyConfig } from '../contract.ts';
+import type {
+  ActionType,
+  WebhookConfig,
+  ExportConfig,
+  NotifyConfig,
+  SetMetadataConfig,
+  MoveToFolderConfig,
+  ChangeStatusConfig,
+  SendEmailConfig,
+} from '../contract.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('workflow:action');
@@ -41,6 +50,34 @@ function runNotify(config: NotifyConfig, event: DomainEvent): void {
   log.info('notify action triggered', { message: config.message, eventId: event.id });
 }
 
+function runSetMetadata(config: SetMetadataConfig, event: DomainEvent): void {
+  log.info('set_metadata action triggered', {
+    key: config.key, value: config.value,
+    eventId: event.id, aggregateId: event.aggregateId,
+  });
+}
+
+function runMoveToFolder(config: MoveToFolderConfig, event: DomainEvent): void {
+  log.info('move_to_folder action triggered', {
+    folderId: config.folderId,
+    eventId: event.id, aggregateId: event.aggregateId,
+  });
+}
+
+function runChangeStatus(config: ChangeStatusConfig, event: DomainEvent): void {
+  log.info('change_status action triggered', {
+    status: config.status,
+    eventId: event.id, aggregateId: event.aggregateId,
+  });
+}
+
+function runSendEmail(config: SendEmailConfig, event: DomainEvent): void {
+  log.info('send_email action triggered', {
+    to: config.to, subject: config.subject,
+    eventId: event.id, aggregateId: event.aggregateId,
+  });
+}
+
 export async function runAction(
   actionType: ActionType,
   actionConfig: Record<string, unknown>,
@@ -55,6 +92,18 @@ export async function runAction(
       break;
     case 'notify':
       runNotify(actionConfig as unknown as NotifyConfig, event);
+      break;
+    case 'set_metadata':
+      runSetMetadata(actionConfig as unknown as SetMetadataConfig, event);
+      break;
+    case 'move_to_folder':
+      runMoveToFolder(actionConfig as unknown as MoveToFolderConfig, event);
+      break;
+    case 'change_status':
+      runChangeStatus(actionConfig as unknown as ChangeStatusConfig, event);
+      break;
+    case 'send_email':
+      runSendEmail(actionConfig as unknown as SendEmailConfig, event);
       break;
     default:
       throw new Error(`Unknown action type: ${actionType}`);

@@ -5,6 +5,7 @@ import type { TriggerType } from '../contract.ts';
 import { findByTrigger } from './workflow-store.ts';
 import { createExecution, updateExecution } from './execution-store.ts';
 import { runAction } from './action-runner.ts';
+import { executeGraph } from './graph-executor.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('workflow:consumer');
@@ -37,7 +38,11 @@ export function createWorkflowConsumer(
     for (const def of definitions) {
       const execution = await createExecution(pool, def.id, event.id, 'running');
       try {
-        await runAction(def.actionType, def.actionConfig, event);
+        if (def.graph && def.graph.nodes.length > 0) {
+          await executeGraph(pool, execution.id, def.graph, event);
+        } else {
+          await runAction(def.actionType, def.actionConfig, event);
+        }
         await updateExecution(pool, execution.id, { status: 'completed' });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
