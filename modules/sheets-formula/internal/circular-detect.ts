@@ -2,8 +2,7 @@
 
 import { parse } from './parser.ts';
 import { expandRange } from './evaluator.ts';
-import type { ASTNode } from './types.ts';
-import { isFormulaError } from './types.ts';
+import { type ASTNode, isFormulaError } from './types.ts';
 
 /**
  * Extract all cell addresses that a formula depends on.

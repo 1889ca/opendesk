@@ -1,7 +1,6 @@
 /** Contract: contracts/sheets-formula/rules.md */
 
-import type { ASTNode, CellGrid, CellAddress, FormulaResult, RangeRef } from './types.ts';
-import { FormulaErrorType, makeError, isFormulaError } from './types.ts';
+import { type ASTNode, type CellGrid, type CellAddress, type FormulaResult, type RangeRef, FormulaErrorType, makeError, isFormulaError } from './types.ts';
 import { toNumber } from './functions.ts';
 import { colToIndex, indexToCol } from './evaluator.ts';
 

@@ -1,7 +1,6 @@
 /** Contract: contracts/sheets-formula/rules.md */
 
-import type { ASTNode, CellGrid, CellAddress, FormulaResult, CellRef, RangeRef } from './types.ts';
-import { FormulaErrorType, makeError, isFormulaError } from './types.ts';
+import { type ASTNode, type CellGrid, type CellAddress, type FormulaResult, type CellRef, type RangeRef, FormulaErrorType, makeError, isFormulaError } from './types.ts';
 import { getFunction, toNumber, toString } from './functions.ts';
 import { evaluateVLOOKUP } from './evaluator-vlookup.ts';
 import './functions-text.ts'; // side-effect: registers text functions

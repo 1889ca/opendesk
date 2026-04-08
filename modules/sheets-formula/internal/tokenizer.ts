@@ -1,9 +1,6 @@
 /** Contract: contracts/sheets-formula/rules.md */
 
-import type { Token, TokenType } from './types.ts';
-import { FormulaErrorType, makeError } from './types.ts';
-import type { FormulaError } from './types.ts';
-import type { CellRef } from './types.ts';
+import { type Token, type TokenType, type FormulaError, type CellRef, FormulaErrorType, makeError } from './types.ts';
 
 const CELL_REF_PATTERN = /^\$?[A-Za-z]{1,3}\$?[0-9]+/;
 const NUMBER_PATTERN = /^[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?/;

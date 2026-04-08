@@ -1,7 +1,6 @@
 /** Contract: contracts/sheets-formula/rules.md */
 
-import { FormulaErrorType, makeError, isFormulaError } from './types.ts';
-import type { FormulaResult } from './types.ts';
+import { type FormulaResult, FormulaErrorType, makeError, isFormulaError } from './types.ts';
 import { toString, toNumber, registerFunction } from './functions.ts';
 
 function fnLEN(args: FormulaResult[]): FormulaResult {

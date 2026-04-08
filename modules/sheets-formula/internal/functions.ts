@@ -1,7 +1,6 @@
 /** Contract: contracts/sheets-formula/rules.md */
 
-import { FormulaErrorType, makeError, isFormulaError } from './types.ts';
-import type { FormulaError, FormulaResult, CellValue } from './types.ts';
+import { type FormulaError, type FormulaResult, type CellValue, FormulaErrorType, makeError, isFormulaError } from './types.ts';
 
 export type FormulaFunction = (args: FormulaResult[]) => FormulaResult;
 

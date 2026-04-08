@@ -1,8 +1,6 @@
 /** Contract: contracts/sheets-formula/rules.md */
 
-import type { Token, TokenType, ASTNode } from './types.ts';
-import { FormulaErrorType, makeError } from './types.ts';
-import type { FormulaError } from './types.ts';
+import { type Token, type TokenType, type ASTNode, type FormulaError, FormulaErrorType, makeError } from './types.ts';
 import { tokenize, parseCellRef } from './tokenizer.ts';
 
 // Re-export tokenize for tests and consumers

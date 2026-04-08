@@ -1,8 +1,7 @@
 /** Contract: contracts/sheets-formula/rules.md */
 import { describe, it, expect } from 'vitest';
 import { tokenize, parse } from './parser.ts';
-import { isFormulaError } from './types.ts';
-import type { ASTNode, CellRef, RangeRef, FunctionCall, BinaryOp, Token } from './types.ts';
+import { type ASTNode, type CellRef, type RangeRef, type FunctionCall, type BinaryOp, type Token, isFormulaError } from './types.ts';
 
 describe('tokenizer', () => {
   it('tokenizes a simple addition', () => {

@@ -42,8 +42,7 @@ export { registerFunction, getFunction, toNumber, toString } from './internal/fu
 // --- Convenience: parse + evaluate in one call ---
 import { parse } from './internal/parser.ts';
 import { evaluate } from './internal/evaluator.ts';
-import { isFormulaError } from './internal/types.ts';
-import type { CellGrid, CellAddress, FormulaResult } from './internal/types.ts';
+import { type CellGrid, type CellAddress, type FormulaResult, isFormulaError } from './internal/types.ts';
 
 export function evaluateFormula(
   formula: string,

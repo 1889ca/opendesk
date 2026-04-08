@@ -1,7 +1,6 @@
 /** Contract: contracts/sheets-formula/rules.md */
 import { describe, it, expect } from 'vitest';
-import { evaluateFormula, FormulaErrorType } from '../index.ts';
-import type { CellGrid, FormulaError } from '../index.ts';
+import { type CellGrid, type FormulaError, evaluateFormula, FormulaErrorType } from '../index.ts';
 
 function grid(data: Record<string, number | string | boolean | null>): CellGrid {
   return new Map(Object.entries(data));
