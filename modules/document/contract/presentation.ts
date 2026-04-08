@@ -21,15 +21,35 @@ const elementIdSchema = z.string().regex(uuidv4Regex, 'Must be a valid UUIDv4');
 export const SlideLayoutSchema = z.enum(['blank', 'title', 'content', 'two-column']);
 export type SlideLayout = z.infer<typeof SlideLayoutSchema>;
 
+export const TableDataSchema = z.object({
+  rows: z.number().int().positive(),
+  cols: z.number().int().positive(),
+  cells: z.array(z.array(z.string())),
+}).refine(
+  (d) => d.cells.length === d.rows && d.cells.every((r) => r.length === d.cols),
+  { message: 'cells dimensions must match rows x cols' },
+);
+
+export type TableData = z.infer<typeof TableDataSchema>;
+
 export const SlideElementSchema = z.object({
   id: elementIdSchema,
-  type: z.enum(['text', 'image', 'shape']),
+  type: z.enum(['text', 'image', 'shape', 'table']),
   x: z.number(),
   y: z.number(),
   width: z.number().positive(),
   height: z.number().positive(),
   content: z.string(),
   attrs: z.record(z.unknown()).optional(),
+  // Image fields
+  src: z.string().optional(),
+  // Shape fields
+  shapeType: z.enum(['rectangle', 'rounded-rect', 'ellipse', 'triangle', 'arrow', 'line']).optional(),
+  fill: z.string().optional(),
+  stroke: z.string().optional(),
+  strokeWidth: z.number().optional(),
+  // Table fields
+  tableData: TableDataSchema.optional(),
 });
 
 export type SlideElement = z.infer<typeof SlideElementSchema>;

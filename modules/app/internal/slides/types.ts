@@ -1,14 +1,31 @@
 /** Contract: contracts/app/slides-interaction.md */
 
+export type ShapeType = 'rectangle' | 'rounded-rect' | 'ellipse' | 'triangle' | 'arrow' | 'line';
+
+export type TableData = {
+  rows: number;
+  cols: number;
+  cells: string[][];
+};
+
 export type SlideElement = {
   id: string;
-  type: 'text' | 'shape' | 'image';
+  type: 'text' | 'shape' | 'image' | 'table';
   x: number;
   y: number;
   width: number;
   height: number;
   rotation: number;
   content: string;
+  // Image elements
+  src?: string;
+  // Shape elements
+  shapeType?: ShapeType;
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
+  // Table elements
+  tableData?: TableData;
 };
 
 export type Transform = {
