@@ -3,20 +3,12 @@ import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
 import { getUserIdentity, getDocumentId } from './shared/identity.ts';
 import { setupTitleSync } from './shared/title-sync.ts';
+import { createInteractionController, type InteractionController } from './slides/element-interaction.ts';
+import type { SlideElement } from './slides/types.ts';
 
 function generateId(): string {
   return crypto.randomUUID();
 }
-
-type SlideElement = {
-  id: string;
-  type: 'text' | 'shape';
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  content: string;
-};
 
 function init() {
   const slideListEl = document.getElementById('slide-list')!;
@@ -36,18 +28,8 @@ function init() {
     url: wsUrl,
     name: documentId,
     document: ydoc,
-    onConnect() {
-      if (statusEl) {
-        statusEl.textContent = 'Connected';
-        statusEl.className = 'status connected';
-      }
-    },
-    onDisconnect() {
-      if (statusEl) {
-        statusEl.textContent = 'Disconnected';
-        statusEl.className = 'status disconnected';
-      }
-    },
+    onConnect() { if (statusEl) { statusEl.textContent = 'Connected'; statusEl.className = 'status connected'; } },
+    onDisconnect() { if (statusEl) { statusEl.textContent = 'Disconnected'; statusEl.className = 'status disconnected'; } },
   });
 
   // Yjs shared data: Y.Array of Y.Maps (slides)
@@ -56,25 +38,21 @@ function init() {
   let activeSlideIndex = 0;
 
   function ensureSlides() {
-    if (yslides.length === 0) {
-      ydoc.transact(() => {
-        const slide = new Y.Map<unknown>();
-        slide.set('layout', 'blank');
-        const elements = new Y.Array<Y.Map<unknown>>();
-        // Add a default title element
-        const titleEl = new Y.Map<unknown>();
-        titleEl.set('id', generateId());
-        titleEl.set('type', 'text');
-        titleEl.set('x', 10);
-        titleEl.set('y', 10);
-        titleEl.set('width', 80);
-        titleEl.set('height', 20);
-        titleEl.set('content', 'Click to add title');
-        elements.insert(0, [titleEl]);
-        slide.set('elements', elements);
-        yslides.insert(0, [slide]);
-      });
-    }
+    if (yslides.length > 0) return;
+    ydoc.transact(() => {
+      const slide = new Y.Map<unknown>();
+      slide.set('layout', 'blank');
+      const elements = new Y.Array<Y.Map<unknown>>();
+      const titleEl = new Y.Map<unknown>();
+      const defaults: Record<string, unknown> = {
+        id: generateId(), type: 'text', x: 10, y: 10, width: 80, height: 20,
+        content: 'Click to add title',
+      };
+      for (const [k, v] of Object.entries(defaults)) titleEl.set(k, v);
+      elements.insert(0, [titleEl]);
+      slide.set('elements', elements);
+      yslides.insert(0, [slide]);
+    });
   }
 
   function getSlideElements(slideIndex: number): SlideElement[] {
@@ -87,11 +65,12 @@ function init() {
       const el = elements.get(i);
       result.push({
         id: el.get('id') as string,
-        type: (el.get('type') as 'text' | 'shape') || 'text',
+        type: (el.get('type') as 'text' | 'shape' | 'image') || 'text',
         x: (el.get('x') as number) || 0,
         y: (el.get('y') as number) || 0,
         width: (el.get('width') as number) || 50,
         height: (el.get('height') as number) || 20,
+        rotation: (el.get('rotation') as number) || 0,
         content: (el.get('content') as string) || '',
       });
     }
@@ -104,12 +83,10 @@ function init() {
     for (let i = 0; i < yslides.length; i++) {
       const thumb = document.createElement('div');
       thumb.className = 'slide-thumb' + (i === activeSlideIndex ? ' active' : '');
-
       const num = document.createElement('span');
       num.className = 'slide-thumb-number';
       num.textContent = String(i + 1);
       thumb.appendChild(num);
-
       thumb.addEventListener('click', () => {
         activeSlideIndex = i;
         renderSlideList();
@@ -131,6 +108,9 @@ function init() {
       div.style.top = el.y + '%';
       div.style.width = el.width + '%';
       div.style.height = el.height + '%';
+      if (el.rotation) {
+        div.style.transform = `rotate(${el.rotation}deg)`;
+      }
       div.contentEditable = 'true';
       div.textContent = el.content;
 
@@ -154,6 +134,25 @@ function init() {
 
   renderSlideList();
   renderActiveSlide();
+
+  // Initialize slide element interaction (drag, resize, rotate, select)
+  let interactionCtrl: InteractionController | null = null;
+
+  function initInteraction() {
+    if (interactionCtrl) interactionCtrl.destroy();
+    interactionCtrl = createInteractionController({
+      ydoc,
+      viewport: viewportEl,
+      getActiveSlideElements() {
+        const slide = yslides.get(activeSlideIndex);
+        const yElements = (slide?.get('elements') as Y.Array<Y.Map<unknown>>) ||
+          new Y.Array<Y.Map<unknown>>();
+        return { yElements, elements: getSlideElements(activeSlideIndex) };
+      },
+    });
+  }
+
+  initInteraction();
 
   // Add slide button
   if (addSlideBtn) {

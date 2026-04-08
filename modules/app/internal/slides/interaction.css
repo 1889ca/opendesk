@@ -1,0 +1,124 @@
+/* Slide element interaction overlays: handles, guides, marquee */
+
+.slide-interaction-handles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.slide-selection-box {
+  position: absolute;
+  border: 2px solid var(--accent, #2563eb);
+  pointer-events: none;
+  transform-origin: center center;
+}
+
+/* Resize handles — corner */
+.slide-resize-handle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--surface, #fff);
+  border: 2px solid var(--accent, #2563eb);
+  border-radius: 1px;
+  pointer-events: auto;
+  z-index: 101;
+}
+
+.slide-resize-handle--top-left {
+  top: -4px;
+  left: -4px;
+}
+
+.slide-resize-handle--top-right {
+  top: -4px;
+  right: -4px;
+}
+
+.slide-resize-handle--bottom-left {
+  bottom: -4px;
+  left: -4px;
+}
+
+.slide-resize-handle--bottom-right {
+  bottom: -4px;
+  right: -4px;
+}
+
+/* Resize handles — edge */
+.slide-resize-handle--top {
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.slide-resize-handle--right {
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.slide-resize-handle--bottom {
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.slide-resize-handle--left {
+  left: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Rotation handle */
+.slide-rotate-handle {
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  background: var(--accent, #2563eb);
+  border: 2px solid var(--surface, #fff);
+  border-radius: 50%;
+  pointer-events: auto;
+  cursor: grab;
+  z-index: 101;
+}
+
+.slide-rotate-handle::before {
+  content: '';
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 16px;
+  background: var(--accent, #2563eb);
+}
+
+/* Snap guides */
+.slide-snap-guides {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99;
+}
+
+.slide-snap-guide {
+  position: absolute;
+  background: #f43f5e;
+}
+
+.slide-snap-guide--vertical {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+.slide-snap-guide--horizontal {
+  left: 0;
+  right: 0;
+  height: 1px;
+}
