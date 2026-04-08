@@ -12,6 +12,7 @@ import { applyFieldUpdate } from './slides/yjs-mutations.ts';
 import { createTextElement, createImageElement, createShapeElement, createTableElement } from './slides/element-factory.ts';
 import { openSlideImagePicker, setupSlideDragDrop } from './slides/slide-image-upload.ts';
 import { parseSlideElements } from './slides/parse-elements.ts';
+import { initLayoutAndTheme } from './slides/layout-theme-init.ts';
 
 function init() {
   const slideListEl = document.getElementById('slide-list')!;
@@ -161,16 +162,14 @@ function init() {
     insertElement(ydoc, getActiveYElements(), createImageElement(url));
   });
 
-  addSlideBtn?.addEventListener('click', () => {
-    ydoc.transact(() => {
-      const slide = new Y.Map<unknown>();
-      slide.set('layout', 'blank');
-      slide.set('elements', new Y.Array<Y.Map<unknown>>());
-      yslides.insert(yslides.length, [slide]);
-    });
-    activeSlideIndex = yslides.length - 1;
-    renderSlideList();
-    renderActiveSlide();
+  // Layout picker + theme picker
+  initLayoutAndTheme({
+    ydoc, yslides, viewportEl, toolbarRight, addSlideBtn,
+    onSlideAdded(index) {
+      activeSlideIndex = index;
+      renderSlideList();
+      renderActiveSlide();
+    },
   });
 
   yslides.observeDeep(() => { renderSlideList(); renderActiveSlide(); });

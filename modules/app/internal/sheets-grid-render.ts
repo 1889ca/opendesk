@@ -54,6 +54,7 @@ export function renderFormattedGrid(ctx: GridRenderContext): void {
     const hdr = document.createElement('div');
     hdr.className = 'cell header';
     hdr.textContent = colLabel(c);
+    hdr.dataset.colHeader = String(c);
     gridEl.appendChild(hdr);
   }
 
@@ -61,6 +62,7 @@ export function renderFormattedGrid(ctx: GridRenderContext): void {
     const rh = document.createElement('div');
     rh.className = 'cell row-header';
     rh.textContent = String(r + 1);
+    rh.dataset.rowHeader = String(r);
     gridEl.appendChild(rh);
 
     const yrow = ysheet.get(r);

@@ -11,6 +11,9 @@ import { SheetStore } from './sheets/sheet-store.ts';
 import { TabBar } from './sheets/tab-bar.ts';
 import { createRangeSelection, type RangeSelection } from './sheets/range-selection.ts';
 import { createClipboardManager, type ClipboardManager } from './sheets/clipboard.ts';
+import { createColRowResize, type ColRowResize } from './sheets/col-row-resize.ts';
+import { createHeaderContextMenu, type HeaderContextMenu } from './sheets/header-context-menu.ts';
+import { insertRow, deleteRow, insertColumn, deleteColumn } from './sheets/col-row-ops.ts';
 
 const DEFAULT_COLS = 26;
 const DEFAULT_ROWS = 50;
@@ -73,6 +76,19 @@ function init() {
     ysheet: () => getActiveSheet(),
   });
 
+  // --- Resize Manager ---
+  const resizeMgr = createColRowResize(gridEl, ydoc);
+
+  // --- Context Menu ---
+  const ctxMenu = createHeaderContextMenu(gridEl, {
+    insertRowAbove(row) { insertRow(ydoc, activeSheetId, row); },
+    insertRowBelow(row) { insertRow(ydoc, activeSheetId, row); },
+    deleteRow(row) { deleteRow(ydoc, activeSheetId, row); },
+    insertColumnLeft(col) { insertColumn(ydoc, activeSheetId, col); },
+    insertColumnRight(col) { insertColumn(ydoc, activeSheetId, col); },
+    deleteColumn(col) { deleteColumn(ydoc, activeSheetId, col); },
+  });
+
   function doRender() {
     const currentRange = rangeSelection.getRange();
     renderFormattedGrid({
@@ -81,6 +97,7 @@ function init() {
       cellRefEl, formulaInput, formatToolbar,
       onCellFocus(r, c) { activeRow = r; activeCol = c; },
     });
+    resizeMgr.applyWidths(gridEl, DEFAULT_COLS);
     if (currentRange) rangeSelection.setRange(currentRange);
   }
 
