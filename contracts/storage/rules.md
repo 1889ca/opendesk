@@ -47,7 +47,7 @@ Abstract document persistence behind a unified `DocumentRepository` interface, t
 - MUST NOT: understand document semantics (this module stores opaque blobs and typed snapshots, nothing more)
 - MUST NOT: emit events or trigger side effects beyond persistence (that is the caller's responsibility)
 - MUST NOT: perform schema migrations (the `document` module owns schema evolution)
-- MUST NOT: expose adapter internals (PG connection pools, S3 clients) outside this module
+- MUST NOT: expose adapter internals (PG connection pools, S3 clients) outside this module — **currently violated**: `pool` and `getPool` are exported from `modules/storage/index.ts` as a shared resource consumed by other modules (events outbox, schema init, etc.). TODO: refactor so dependent modules receive a pool instance via dependency injection rather than importing it directly. See Post-MVP deferred items.
 
 ## Verification
 
@@ -75,3 +75,4 @@ Post-MVP (deferred):
 - [ ] `staleSeconds` indicator on cold-tier reads — no cold tier exists yet
 - [ ] Atomic snapshot + state vector co-persistence in a single PG transaction — snapshots and state vectors are saved but not yet in the same transaction
 - [ ] State vector pruning for clients offline > 30 days
+- [ ] Remove direct `pool`/`getPool` exports — refactor to dependency injection so consuming modules receive a pool instance at construction rather than importing adapter internals

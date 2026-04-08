@@ -83,6 +83,6 @@ Implemented:
 - [x] Grant CRUD operations via storage
 - [x] `reason` string in every `PermissionResult`
 
-Post-MVP (deferred):
-- [ ] `GrantCreated` event emission — requires events module implementation
-- [ ] `GrantRevoked` event emission — requires events module implementation
+Post-MVP (deferred — ready to implement):
+- [ ] `GrantCreated` event emission — events module is now fully implemented; needs wiring via `createEventBus().emit()`
+- [ ] `GrantRevoked` event emission — events module is now fully implemented; needs wiring via `createEventBus().emit()`
