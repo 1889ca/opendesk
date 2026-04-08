@@ -1,7 +1,7 @@
 /** Contract: contracts/app/rules.md */
 import type { EditorView } from '@tiptap/pm/view';
-import { searchEmojis } from './emoji-data.ts';
-import { addRecentEmoji } from './emoji-recent.ts';
+import { searchEmojis } from '../editor/emoji/emoji-data.ts';
+import { addRecentEmoji } from '../editor/emoji/emoji-recent.ts';
 
 const MAX_SUGGESTIONS = 8;
 

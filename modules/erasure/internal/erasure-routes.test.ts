@@ -45,7 +45,11 @@ function makeMockErasure(overrides: Partial<ErasureModule> = {}): ErasureModule 
 function makeMockPermissions() {
   return {
     requireAuth: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
-      (_req as { principal?: unknown }).principal = { id: 'user-1' };
+      (_req as { principal?: unknown }).principal = { id: 'user-1', scopes: ['*'] };
+      next();
+    },
+    requireAdmin: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
+      (_req as { principal?: unknown }).principal = { id: 'user-1', scopes: ['*'] };
       next();
     },
     require: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),

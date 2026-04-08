@@ -4,6 +4,7 @@ import express from 'express';
 import request from 'supertest';
 import { createFederationRoutes } from './federation-routes.ts';
 import type { FederationModule, FederationPeer, TransferRecord } from '../contract.ts';
+import { sha256 } from './signing.ts';
 
 const MOCK_PEER: FederationPeer = {
   id: '550e8400-e29b-41d4-a716-446655440010',
@@ -45,7 +46,11 @@ function makeMockFederation(overrides: Partial<FederationModule> = {}): Federati
 function makeMockPermissions() {
   return {
     requireAuth: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
-      (_req as { principal?: unknown }).principal = { id: 'user-1' };
+      (_req as { principal?: unknown }).principal = { id: 'user-1', scopes: ['*'] };
+      next();
+    },
+    requireAdmin: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
+      (_req as { principal?: unknown }).principal = { id: 'user-1', scopes: ['*'] };
       next();
     },
     checkPermission: vi.fn(async () => true),
@@ -99,16 +104,24 @@ describe('federation routes', () => {
     app.use(express.json());
     app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: makeMockPermissions() }));
 
+    const timestamp = new Date().toISOString();
+    const bundle = {
+      sendingInstanceId: 'Partner Org',
+      documentId: '550e8400-e29b-41d4-a716-446655440000',
+      documentTitle: 'Test',
+      yjsStateBase64: 'dGVzdA==',
+      timestamp,
+    };
+    const signature = sha256(JSON.stringify({
+      sendingInstanceId: bundle.sendingInstanceId,
+      documentId: bundle.documentId,
+      yjsStateBase64: bundle.yjsStateBase64,
+      timestamp: bundle.timestamp,
+    }));
+
     const res = await request(app)
       .post('/api/federation/receive')
-      .send({
-        sendingInstanceId: 'inst-1',
-        documentId: '550e8400-e29b-41d4-a716-446655440000',
-        documentTitle: 'Test',
-        yjsStateBase64: 'dGVzdA==',
-        signature: 'sig',
-        timestamp: new Date().toISOString(),
-      });
+      .send({ ...bundle, signature });
 
     expect(res.status).toBe(200);
     expect(res.body.direction).toBe('inbound');

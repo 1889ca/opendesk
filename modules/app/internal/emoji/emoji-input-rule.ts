@@ -2,8 +2,8 @@
 import { Extension } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
-import { findEmojiByName } from './emoji-data.ts';
-import { addRecentEmoji } from './emoji-recent.ts';
+import { findEmojiByName } from '../editor/emoji/emoji-data.ts';
+import { addRecentEmoji } from '../editor/emoji/emoji-recent.ts';
 import {
   type AutocompleteState,
   initialState,
