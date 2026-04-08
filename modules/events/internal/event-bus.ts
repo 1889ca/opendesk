@@ -9,31 +9,25 @@ import {
   type EventBusModule,
 } from '../contract.ts';
 import { insertOutboxEntry, markPublished } from './outbox-store.ts';
-import { registerType, getOwner } from './schema-registry.ts';
+import { registerType } from './schema-registry.ts';
 import {
   publishToStream,
   createConsumerGroup,
-  readFromGroup,
   acknowledgeEvent,
   streamKeyForType,
 } from './redis-streams.ts';
 import { startOutboxPoller, type OutboxPollerHandle } from './outbox-poller.ts';
 import { startPruner, type PrunerHandle } from './pruner.ts';
+import { createCircuitBreaker, type CircuitBreaker } from './circuit-breaker.ts';
+import { runConsumerLoop, type ConsumerRegistration } from './consumer-loop.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('events');
 
-interface ConsumerRegistration {
-  groupName: string;
-  consumerName: string;
-  eventTypes: EventType[];
-  handler: EventHandler;
-}
-
 /** Create the EventBus module with full lifecycle management. */
 export function createEventBus(pool: Pool, redis: Redis): EventBusModule {
   const consumers: ConsumerRegistration[] = [];
-  const activeLoops = new Map<string, { running: boolean }>();
+  const activeLoops = new Map<string, { running: boolean; breaker: CircuitBreaker }>();
   let pollerHandle: OutboxPollerHandle | null = null;
   let prunerHandle: PrunerHandle | null = null;
 
@@ -102,37 +96,11 @@ export function createEventBus(pool: Pool, redis: Redis): EventBusModule {
       const loopKey = consumer.groupName;
       if (activeLoops.has(loopKey)) continue;
 
-      const state = { running: true };
+      const breaker = createCircuitBreaker(consumer.groupName);
+      const state = { running: true, breaker };
       activeLoops.set(loopKey, state);
 
-      (async () => {
-        while (state.running) {
-          for (const type of consumer.eventTypes) {
-            if (!state.running) break;
-            try {
-              const key = streamKeyForType(type);
-              const messages = await readFromGroup(
-                redis, key, consumer.groupName,
-                consumer.consumerName, 10, 2000,
-              );
-              for (const { messageId, event } of messages) {
-                try {
-                  await consumer.handler(event);
-                  await acknowledgeEvent(redis, key, consumer.groupName, messageId);
-                } catch (err) {
-                  log.error('handler failed', {
-                    consumerGroup: consumer.groupName, eventId: event.id, error: String(err),
-                  });
-                }
-              }
-            } catch (err) {
-              log.error('read failed', { consumerGroup: consumer.groupName, error: String(err) });
-              // Back off on error
-              await new Promise((r) => setTimeout(r, 3000));
-            }
-          }
-        }
-      })();
+      runConsumerLoop(redis, consumer, state);
     }
   }
 

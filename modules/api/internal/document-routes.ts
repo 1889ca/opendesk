@@ -4,12 +4,12 @@ import { Router, type Request, type Response } from 'express';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import {
-  listDocuments,
-  createDocument,
-  getDocument,
-  deleteDocument,
-  updateDocumentTitle,
-  getTemplate,
+  listDocuments as defaultListDocuments,
+  createDocument as defaultCreateDocument,
+  getDocument as defaultGetDocument,
+  deleteDocument as defaultDeleteDocument,
+  updateDocumentTitle as defaultUpdateDocumentTitle,
+  getTemplate as defaultGetTemplate,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { loadConfig } from '../../config/index.ts';
@@ -34,9 +34,21 @@ const UpdateDocumentBody = z.object({
 });
 
 
+type DocRecord = { id: string; [key: string]: unknown };
+
+export type DocumentStorageFns = {
+  listDocuments: (folderId: string | null) => Promise<DocRecord[]>;
+  createDocument: (id: string, title: string, documentType: string) => Promise<DocRecord>;
+  getDocument: (id: string) => Promise<DocRecord | null>;
+  deleteDocument: (id: string) => Promise<boolean>;
+  updateDocumentTitle: (id: string, title: string) => Promise<void>;
+  getTemplate: (id: string) => Promise<{ content: Record<string, unknown> } | null>;
+};
+
 export type DocumentRoutesOptions = {
   permissions: PermissionsModule;
   cache?: CacheClient;
+  storage?: DocumentStorageFns;
 };
 
 /**
@@ -45,7 +57,13 @@ export type DocumentRoutesOptions = {
  */
 export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   const router = Router();
-  const { permissions, cache } = opts;
+  const { permissions, cache, storage } = opts;
+  const listDocuments = storage?.listDocuments ?? defaultListDocuments;
+  const createDocument = storage?.createDocument ?? defaultCreateDocument;
+  const getDocument = storage?.getDocument ?? defaultGetDocument;
+  const deleteDocument = storage?.deleteDocument ?? defaultDeleteDocument;
+  const updateDocumentTitle = storage?.updateDocumentTitle ?? defaultUpdateDocumentTitle;
+  const getTemplate = storage?.getTemplate ?? defaultGetTemplate;
 
   // List documents — accepts optional ?folderId= to filter by folder
   // Filters results by principal's grants (except in dev mode)

@@ -2,7 +2,7 @@
 
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
-import { searchDocuments } from '../../storage/index.ts';
+import { searchDocuments as defaultSearchDocuments, type SearchResult } from '../../storage/index.ts';
 import { loadConfig } from '../../config/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from './async-handler.ts';
@@ -11,8 +11,11 @@ const SearchQuery = z.object({
   q: z.string().min(2).max(200),
 });
 
+export type SearchFn = (query: string, allowedIds?: string[]) => Promise<SearchResult[]>;
+
 export type SearchRoutesOptions = {
   permissions: PermissionsModule;
+  searchDocuments?: SearchFn;
 };
 
 /**
@@ -22,6 +25,7 @@ export type SearchRoutesOptions = {
 export function createSearchRoutes(opts: SearchRoutesOptions): Router {
   const router = Router();
   const { permissions } = opts;
+  const searchDocuments = opts.searchDocuments ?? defaultSearchDocuments;
 
   router.get(
     '/search',

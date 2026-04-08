@@ -53,7 +53,7 @@ function readEnv(): unknown {
 
 /** Strip undefined values so Zod defaults apply correctly. */
 function stripUndefined(obj: unknown): unknown {
-  if (obj === null || typeof obj !== 'object') return obj;
+  if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) return obj;
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
     if (value === undefined) continue;

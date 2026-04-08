@@ -1,50 +1,40 @@
 /** Contract: contracts/api/rules.md */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { purgeUserData } from './admin-routes.ts';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { purgeUserData, type StorageFns } from './admin-routes.ts';
 import { createPermissions } from '../../permissions/index.ts';
 import { createInMemoryGrantStore } from '../../permissions/internal/grant-store.ts';
 import { InMemoryCache } from './test-helpers.ts';
 
-// Stub the storage module
-vi.mock('../../storage/index.ts', () => {
+/** In-memory document store implementing the storage functions purgeUserData needs. */
+function createInMemoryStorage(): StorageFns & { docs: Map<string, { id: string; title: string }> } {
   const docs = new Map<string, { id: string; title: string }>();
   return {
-    listDocuments: vi.fn(async () => [...docs.values()]),
-    createDocument: vi.fn(async (id: string, title: string) => {
-      const doc = { id, title };
-      docs.set(id, doc);
-      return doc;
-    }),
-    getDocument: vi.fn(async (id: string) => docs.get(id) ?? null),
-    deleteDocument: vi.fn(async (id: string) => {
+    docs,
+    deleteDocument: async (id: string) => {
       const existed = docs.has(id);
       docs.delete(id);
       return existed;
-    }),
-    updateDocumentTitle: vi.fn(async () => {}),
-    _docs: docs,
+    },
   };
-});
-
-const storageMock = await import('../../storage/index.ts');
-const docs = (storageMock as unknown as { _docs: Map<string, unknown> })._docs;
+}
 
 describe('purgeUserData', () => {
   let grantStore: ReturnType<typeof createInMemoryGrantStore>;
   let permissions: ReturnType<typeof createPermissions>;
   let cache: InMemoryCache;
+  let storage: ReturnType<typeof createInMemoryStorage>;
 
   beforeEach(() => {
-    docs.clear();
     grantStore = createInMemoryGrantStore();
     permissions = createPermissions({ grantStore });
     cache = new InMemoryCache();
+    storage = createInMemoryStorage();
   });
 
   it('deletes all documents owned by the user', async () => {
     // Create documents
-    docs.set('doc-a', { id: 'doc-a', title: 'Doc A' });
-    docs.set('doc-b', { id: 'doc-b', title: 'Doc B' });
+    storage.docs.set('doc-a', { id: 'doc-a', title: 'Doc A' });
+    storage.docs.set('doc-b', { id: 'doc-b', title: 'Doc B' });
 
     // Grant ownership
     await grantStore.create({
@@ -71,6 +61,7 @@ describe('purgeUserData', () => {
       undefined,
       permissions,
       cache,
+      storage,
     );
 
     expect(receipt.userId).toBe('user-1');
@@ -90,7 +81,7 @@ describe('purgeUserData', () => {
   });
 
   it('transfers ownership when action is "transfer"', async () => {
-    docs.set('doc-c', { id: 'doc-c', title: 'Doc C' });
+    storage.docs.set('doc-c', { id: 'doc-c', title: 'Doc C' });
 
     await grantStore.create({
       principalId: 'user-2',
@@ -115,6 +106,7 @@ describe('purgeUserData', () => {
       'user-3',
       permissions,
       cache,
+      storage,
     );
 
     expect(receipt.action).toBe('transfer');
@@ -147,6 +139,7 @@ describe('purgeUserData', () => {
       undefined,
       permissions,
       cache,
+      storage,
     );
 
     expect(receipt.deleted).toHaveLength(0);

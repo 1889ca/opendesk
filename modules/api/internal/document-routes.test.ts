@@ -1,51 +1,50 @@
 /** Contract: contracts/api/rules.md */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createDocumentRoutes } from './document-routes.ts';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { createDocumentRoutes, type DocumentStorageFns } from './document-routes.ts';
 import { createPermissions } from '../../permissions/index.ts';
 import { createInMemoryGrantStore } from '../../permissions/internal/grant-store.ts';
 import { InMemoryCache } from './test-helpers.ts';
 
-// Stub the storage module to avoid real PG connections
-vi.mock('../../storage/index.ts', () => {
+/** In-memory document store implementing the storage functions document routes need. */
+function createInMemoryDocStorage(): DocumentStorageFns & {
+  docs: Map<string, { id: string; title: string }>;
+} {
   const docs = new Map<string, { id: string; title: string }>();
   return {
-    listDocuments: vi.fn(async () => [...docs.values()]),
-    createDocument: vi.fn(async (id: string, title: string) => {
+    docs,
+    listDocuments: async () => [...docs.values()],
+    createDocument: async (id: string, title: string) => {
       const doc = { id, title, created_at: new Date(), updated_at: new Date() };
       docs.set(id, doc);
       return doc;
-    }),
-    getDocument: vi.fn(async (id: string) => docs.get(id) ?? null),
-    deleteDocument: vi.fn(async (id: string) => {
+    },
+    getDocument: async (id: string) => docs.get(id) ?? null,
+    deleteDocument: async (id: string) => {
       const existed = docs.has(id);
       docs.delete(id);
       return existed;
-    }),
-    updateDocumentTitle: vi.fn(async () => {}),
-    // Expose for test setup
-    _docs: docs,
+    },
+    updateDocumentTitle: async () => {},
+    getTemplate: async () => null,
   };
-});
-
-// Import after mock setup
-const storageMock = await import('../../storage/index.ts');
-const docs = (storageMock as unknown as { _docs: Map<string, unknown> })._docs;
+}
 
 describe('enhanced document deletion', () => {
   let grantStore: ReturnType<typeof createInMemoryGrantStore>;
   let permissions: ReturnType<typeof createPermissions>;
   let cache: InMemoryCache;
+  let storage: ReturnType<typeof createInMemoryDocStorage>;
 
   beforeEach(() => {
-    docs.clear();
     grantStore = createInMemoryGrantStore();
     permissions = createPermissions({ grantStore });
     cache = new InMemoryCache();
+    storage = createInMemoryDocStorage();
   });
 
   it('returns a deletion receipt with timestamp and scope', async () => {
     // Set up a document
-    docs.set('doc-1', { id: 'doc-1', title: 'Test' });
+    storage.docs.set('doc-1', { id: 'doc-1', title: 'Test' });
 
     // Create grants for this document
     await grantStore.create({
@@ -59,16 +58,16 @@ describe('enhanced document deletion', () => {
     // Set cache entry
     await cache.set(`doc:doc-1`, '{}', 'EX', 3600);
 
-    // Verify the router creates successfully with cache option
-    const router = createDocumentRoutes({ permissions, cache });
+    // Verify the router creates successfully with cache and storage options
+    const router = createDocumentRoutes({ permissions, cache, storage });
     expect(router).toBeDefined();
     expect(router.stack.length).toBeGreaterThan(0);
   });
 
   it('cleans up grants when document is deleted', async () => {
-    docs.set('doc-2', { id: 'doc-2', title: 'Test 2' });
+    storage.docs.set('doc-2', { id: 'doc-2', title: 'Test 2' });
 
-    const grant = await grantStore.create({
+    await grantStore.create({
       principalId: 'user-1',
       resourceId: 'doc-2',
       resourceType: 'document',

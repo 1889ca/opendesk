@@ -1,15 +1,9 @@
 /** Contract: contracts/events/rules.md */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { registerType, getOwner } from './schema-registry.ts';
 
-// Mock the pool
 const mockQuery = vi.fn();
 const mockPool = { query: mockQuery } as unknown as import('pg').Pool;
-
-vi.mock('../../storage/index.ts', () => ({
-  pool: { query: mockQuery },
-}));
-
-import { registerType, getOwner } from './schema-registry.ts';
 
 describe('schema-registry', () => {
   beforeEach(() => {

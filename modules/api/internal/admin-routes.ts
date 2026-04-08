@@ -2,16 +2,20 @@
 
 import { Router, type Request, type Response } from 'express';
 import {
-  listDocuments,
-  deleteDocument,
+  deleteDocument as defaultDeleteDocument,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import type { CacheClient } from './redis.ts';
 import { asyncHandler } from './async-handler.ts';
 
+export type StorageFns = {
+  deleteDocument: (id: string) => Promise<boolean>;
+};
+
 export type AdminRoutesOptions = {
   permissions: PermissionsModule;
   cache?: CacheClient;
+  storage?: StorageFns;
 };
 
 /** Deletion receipt for a single resource. */
@@ -35,7 +39,8 @@ export interface PurgeReceipt {
  */
 export function createAdminRoutes(opts: AdminRoutesOptions): Router {
   const router = Router();
-  const { permissions, cache } = opts;
+  const { permissions, cache, storage } = opts;
+  const { deleteDocument } = storage ?? { deleteDocument: defaultDeleteDocument };
 
   // DELETE /api/admin/users/:id/data — purge all user data
   router.delete(
@@ -71,6 +76,7 @@ export function createAdminRoutes(opts: AdminRoutesOptions): Router {
         transferTo,
         permissions,
         cache,
+        { deleteDocument },
       );
 
       res.json(receipt);
@@ -92,7 +98,9 @@ export async function purgeUserData(
   transferTo: string | undefined,
   permissions: PermissionsModule,
   cache?: CacheClient,
+  storage?: StorageFns,
 ): Promise<PurgeReceipt> {
+  const { deleteDocument } = storage ?? { deleteDocument: defaultDeleteDocument };
   const deleted: DeletionEntry[] = [];
   const transferred: DeletionEntry[] = [];
 

@@ -1,5 +1,6 @@
 /** Contract: contracts/storage/rules.md */
-import { pool } from './pool.ts';
+import type { Pool } from 'pg';
+import { pool as defaultPool } from './pool.ts';
 
 export interface SearchResult {
   id: string;
@@ -37,6 +38,7 @@ export const APPLY_SEARCH_SCHEMA = `
 export async function searchDocuments(
   query: string,
   allowedDocumentIds?: string[],
+  pool: Pool = defaultPool,
 ): Promise<SearchResult[]> {
   if (allowedDocumentIds && allowedDocumentIds.length === 0) {
     return [];
