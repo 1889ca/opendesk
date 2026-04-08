@@ -1,3 +1,4 @@
+// TODO: Convert to integration tests with real DB (see contracts/testing/rules.md)
 /** Contract: contracts/ai/rules.md */
 import { describe, it, expect, vi } from 'vitest';
 import express from 'express';
@@ -5,7 +6,7 @@ import request from 'supertest';
 import { createAiRoutes } from './ai-routes.ts';
 import type { AiModule } from '../contract.ts';
 
-function makeMockAi(overrides: Partial<AiModule> = {}): AiModule {
+function createStubAi(overrides: Partial<AiModule> = {}): AiModule {
   return {
     embedDocument: vi.fn(async () => 5),
     semanticSearch: vi.fn(async () => [
@@ -22,7 +23,7 @@ function makeMockAi(overrides: Partial<AiModule> = {}): AiModule {
   };
 }
 
-function makeMockPermissions() {
+function createStubPermissions() {
   return {
     requireAuth: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
       (_req as { principal?: unknown }).principal = { id: 'user-1' };
@@ -42,9 +43,9 @@ function makeMockPermissions() {
 
 describe('AI routes', () => {
   it('GET /search returns semantic results', async () => {
-    const ai = makeMockAi();
+    const ai = createStubAi();
     const app = express();
-    app.use('/api/ai', createAiRoutes({ ai, permissions: makeMockPermissions() }));
+    app.use('/api/ai', createAiRoutes({ ai, permissions: createStubPermissions() }));
 
     const res = await request(app).get('/api/ai/search?q=test+query');
 
@@ -60,19 +61,19 @@ describe('AI routes', () => {
   });
 
   it('GET /search validates query length', async () => {
-    const ai = makeMockAi();
+    const ai = createStubAi();
     const app = express();
-    app.use('/api/ai', createAiRoutes({ ai, permissions: makeMockPermissions() }));
+    app.use('/api/ai', createAiRoutes({ ai, permissions: createStubPermissions() }));
 
     const res = await request(app).get('/api/ai/search?q=a');
     expect(res.status).toBe(400);
   });
 
   it('POST /ask returns assistant response', async () => {
-    const ai = makeMockAi();
+    const ai = createStubAi();
     const app = express();
     app.use(express.json());
-    app.use('/api/ai', createAiRoutes({ ai, permissions: makeMockPermissions() }));
+    app.use('/api/ai', createAiRoutes({ ai, permissions: createStubPermissions() }));
 
     const res = await request(app)
       .post('/api/ai/ask')
@@ -84,10 +85,10 @@ describe('AI routes', () => {
   });
 
   it('POST /embed triggers embedding', async () => {
-    const ai = makeMockAi();
+    const ai = createStubAi();
     const app = express();
     app.use(express.json());
-    app.use('/api/ai', createAiRoutes({ ai, permissions: makeMockPermissions() }));
+    app.use('/api/ai', createAiRoutes({ ai, permissions: createStubPermissions() }));
 
     const res = await request(app)
       .post('/api/ai/embed')
@@ -98,9 +99,9 @@ describe('AI routes', () => {
   });
 
   it('GET /health returns Ollama status', async () => {
-    const ai = makeMockAi();
+    const ai = createStubAi();
     const app = express();
-    app.use('/api/ai', createAiRoutes({ ai, permissions: makeMockPermissions() }));
+    app.use('/api/ai', createAiRoutes({ ai, permissions: createStubPermissions() }));
 
     const res = await request(app).get('/api/ai/health');
 
@@ -109,9 +110,9 @@ describe('AI routes', () => {
   });
 
   it('GET /health reports unavailable when Ollama is down', async () => {
-    const ai = makeMockAi({ healthCheck: vi.fn(async () => false) });
+    const ai = createStubAi({ healthCheck: vi.fn(async () => false) });
     const app = express();
-    app.use('/api/ai', createAiRoutes({ ai, permissions: makeMockPermissions() }));
+    app.use('/api/ai', createAiRoutes({ ai, permissions: createStubPermissions() }));
 
     const res = await request(app).get('/api/ai/health');
 

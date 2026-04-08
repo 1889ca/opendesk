@@ -1,3 +1,4 @@
+// TODO: Convert to integration tests with real DB (see contracts/testing/rules.md)
 /** Contract: contracts/federation/rules.md */
 import { describe, it, expect, vi } from 'vitest';
 import express from 'express';
@@ -6,7 +7,7 @@ import { createFederationRoutes } from './federation-routes.ts';
 import type { FederationModule, FederationPeer, TransferRecord } from '../contract.ts';
 import { sha256 } from './signing.ts';
 
-const MOCK_PEER: FederationPeer = {
+const testPeer: FederationPeer = {
   id: '550e8400-e29b-41d4-a716-446655440010',
   name: 'Partner Org',
   endpointUrl: 'https://partner.example.com',
@@ -18,9 +19,9 @@ const MOCK_PEER: FederationPeer = {
   createdAt: '2026-04-08T00:00:00Z',
 };
 
-const MOCK_TRANSFER: TransferRecord = {
+const testTransfer: TransferRecord = {
   id: '550e8400-e29b-41d4-a716-446655440011',
-  peerId: MOCK_PEER.id,
+  peerId: testPeer.id,
   direction: 'outbound',
   documentId: '550e8400-e29b-41d4-a716-446655440000',
   documentTitle: 'Shared Doc',
@@ -31,19 +32,19 @@ const MOCK_TRANSFER: TransferRecord = {
   createdAt: '2026-04-08T00:00:00Z',
 };
 
-function makeMockFederation(overrides: Partial<FederationModule> = {}): FederationModule {
+function createStubFederation(overrides: Partial<FederationModule> = {}): FederationModule {
   return {
-    registerPeer: vi.fn(async () => MOCK_PEER),
-    listPeers: vi.fn(async () => [MOCK_PEER]),
+    registerPeer: vi.fn(async () => testPeer),
+    listPeers: vi.fn(async () => [testPeer]),
     updatePeerStatus: vi.fn(async () => true),
-    sendDocument: vi.fn(async () => MOCK_TRANSFER),
-    receiveDocument: vi.fn(async () => ({ ...MOCK_TRANSFER, direction: 'inbound' as const })),
-    listTransfers: vi.fn(async () => [MOCK_TRANSFER]),
+    sendDocument: vi.fn(async () => testTransfer),
+    receiveDocument: vi.fn(async () => ({ ...testTransfer, direction: 'inbound' as const })),
+    listTransfers: vi.fn(async () => [testTransfer]),
     ...overrides,
   };
 }
 
-function makeMockPermissions() {
+function createStubPermissions() {
   return {
     requireAuth: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
       (_req as { principal?: unknown }).principal = { id: 'user-1', scopes: ['*'] };
@@ -60,10 +61,10 @@ function makeMockPermissions() {
 
 describe('federation routes', () => {
   it('POST /peers registers a peer', async () => {
-    const fed = makeMockFederation();
+    const fed = createStubFederation();
     const app = express();
     app.use(express.json());
-    app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: makeMockPermissions() }));
+    app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: createStubPermissions() }));
 
     const res = await request(app)
       .post('/api/federation/peers')
@@ -74,9 +75,9 @@ describe('federation routes', () => {
   });
 
   it('GET /peers lists peers', async () => {
-    const fed = makeMockFederation();
+    const fed = createStubFederation();
     const app = express();
-    app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: makeMockPermissions() }));
+    app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: createStubPermissions() }));
 
     const res = await request(app).get('/api/federation/peers');
     expect(res.status).toBe(200);
@@ -84,14 +85,14 @@ describe('federation routes', () => {
   });
 
   it('POST /send sends a document', async () => {
-    const fed = makeMockFederation();
+    const fed = createStubFederation();
     const app = express();
     app.use(express.json());
-    app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: makeMockPermissions() }));
+    app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: createStubPermissions() }));
 
     const res = await request(app)
       .post('/api/federation/send')
-      .send({ documentId: '550e8400-e29b-41d4-a716-446655440000', peerId: MOCK_PEER.id });
+      .send({ documentId: '550e8400-e29b-41d4-a716-446655440000', peerId: testPeer.id });
 
     expect(res.status).toBe(200);
     expect(res.body.direction).toBe('outbound');
@@ -99,10 +100,10 @@ describe('federation routes', () => {
   });
 
   it('POST /receive accepts a valid transfer', async () => {
-    const fed = makeMockFederation();
+    const fed = createStubFederation();
     const app = express();
     app.use(express.json());
-    app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: makeMockPermissions() }));
+    app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: createStubPermissions() }));
 
     const timestamp = new Date().toISOString();
     const bundle = {
@@ -128,9 +129,9 @@ describe('federation routes', () => {
   });
 
   it('GET /transfers lists transfer history', async () => {
-    const fed = makeMockFederation();
+    const fed = createStubFederation();
     const app = express();
-    app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: makeMockPermissions() }));
+    app.use('/api/federation', createFederationRoutes({ federation: fed, permissions: createStubPermissions() }));
 
     const res = await request(app).get('/api/federation/transfers');
     expect(res.status).toBe(200);

@@ -1,9 +1,10 @@
+// TODO: Convert to integration tests with real DB (see contracts/testing/rules.md)
 /** Contract: contracts/ai/rules.md */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createEmbeddingConsumer } from './embedding-consumer.ts';
 import { EventType, type EventBusModule, type DomainEvent, type EventHandler } from '../../events/contract.ts';
 
-function makeFakeEventBus() {
+function createStubEventBus() {
   const handlers: { group: string; types: string[]; handler: EventHandler }[] = [];
   return {
     handlers,
@@ -23,7 +24,7 @@ function makeFakeEventBus() {
   };
 }
 
-function makeDomainEvent(overrides: Partial<DomainEvent> = {}): DomainEvent {
+function createTestEvent(overrides: Partial<DomainEvent> = {}): DomainEvent {
   return {
     id: 'evt-001',
     type: EventType.StateFlushed,
@@ -36,11 +37,11 @@ function makeDomainEvent(overrides: Partial<DomainEvent> = {}): DomainEvent {
 }
 
 describe('createEmbeddingConsumer', () => {
-  let eventBus: ReturnType<typeof makeFakeEventBus>;
+  let eventBus: ReturnType<typeof createStubEventBus>;
   let embedDocument: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    eventBus = makeFakeEventBus();
+    eventBus = createStubEventBus();
     embedDocument = vi.fn().mockResolvedValue(5);
   });
 
@@ -60,7 +61,7 @@ describe('createEmbeddingConsumer', () => {
     const consumer = createEmbeddingConsumer(eventBus, embedDocument);
     await consumer.start();
 
-    const event = makeDomainEvent({ aggregateId: 'doc-abc' });
+    const event = createTestEvent({ aggregateId: 'doc-abc' });
     await eventBus.handlers[0].handler(event);
 
     expect(embedDocument).toHaveBeenCalledOnce();
@@ -73,7 +74,7 @@ describe('createEmbeddingConsumer', () => {
     const consumer = createEmbeddingConsumer(eventBus, embedDocument);
     await consumer.start();
 
-    const event = makeDomainEvent();
+    const event = createTestEvent();
     // Should not throw
     await expect(eventBus.handlers[0].handler(event)).resolves.toBeUndefined();
   });
