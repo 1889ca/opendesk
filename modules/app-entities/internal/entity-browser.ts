@@ -1,5 +1,5 @@
-/** Contract: contracts/app/rules.md */
-import { initTheme } from '../shared/theme-toggle.ts';
+/** Contract: contracts/app-entities/rules.md */
+import { initTheme } from '@opendesk/app';
 import { fetchEntities } from './entity-api.ts';
 import { renderEntityList } from './entity-list-render.ts';
 import { initEntityDialog, openCreateDialog } from './entity-dialog.ts';

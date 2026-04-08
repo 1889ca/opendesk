@@ -1,5 +1,5 @@
-/** Contract: contracts/app/rules.md */
-import { apiFetch } from '../shared/api-client.ts';
+/** Contract: contracts/app-entities/rules.md */
+import { apiFetch } from '@opendesk/app';
 
 export interface EntityRecord {
   id: string;

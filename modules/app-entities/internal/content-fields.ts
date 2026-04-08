@@ -1,4 +1,4 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-entities/rules.md */
 
 /** Field definition for dynamic form rendering. */
 interface FieldDef {

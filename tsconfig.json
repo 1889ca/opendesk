@@ -29,6 +29,7 @@
       "@opendesk/app-sheets": ["./modules/app-sheets/index.ts"],
       "@opendesk/app-admin": ["./modules/app-admin/index.ts"],
       "@opendesk/app-kb": ["./modules/app-kb/index.ts"],
+      "@opendesk/app-entities": ["./modules/app-entities/index.ts"],
       "@opendesk/kb": ["./modules/kb/index.ts"],
       "@opendesk/sheets-formula": ["./modules/sheets-formula/index.ts"]
     }

@@ -1,4 +1,4 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-entities/rules.md */
 import { type EntityRecord, deleteEntityApi, fetchEntity } from './entity-api.ts';
 import { openEditDialog } from './entity-dialog.ts';
 

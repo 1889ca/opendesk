@@ -1,4 +1,4 @@
-/** Contract: contracts/app/rules.md */
+/** Contract: contracts/app-entities/rules.md */
 import { renderContentFields, readContentFields } from './content-fields.ts';
 import { createEntityApi, updateEntityApi, type EntityRecord } from './entity-api.ts';
 
