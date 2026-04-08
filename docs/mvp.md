@@ -57,30 +57,112 @@ Focus on the document editor first. Not spreadsheets, not presentations. Just do
 
 ---
 
-## MVP Scope -- Phase 2: Spreadsheets
+## Super-Pillars (Product Lines)
 
-Add a spreadsheet editor to the suite. The same architecture applies: native web format for editing, conversion service for .xlsx/.ods import/export.
+OpenDesk is organized into four **super-pillars** — independent product lines that share infrastructure but have their own editors, data models, and competitive landscapes. Six **cross-cutting pillars** provide platform capabilities (sovereignty, compliance, AI) that apply to all super-pillars.
 
-- Formula engine (common Excel-compatible formulas, not the full 500+ library)
-- Cell formatting, basic charts
-- Real-time collaboration (same Yjs infrastructure as documents)
-- Import/export .xlsx, .ods, .csv
+See `decisions/2026-04-08-super-pillar-restructuring.md` for the full rationale.
 
-Phase 2 does not attempt pivot tables, VBA macros, or advanced data analysis features. Those are post-1.0 territory.
+### Documents (~95% complete)
 
----
+The flagship product line. Rich text editing with TipTap + Yjs, real-time collaboration, comments/suggestions, tables, images, templates, find/replace, print/PDF, accessibility, i18n.
 
-## MVP Scope -- Phase 3: Presentations
+**Remaining work:** Offline mode (service workers), performance for 100+ page documents, spreadsheet/presentation embedding, plugin system.
 
-Slide editor. Simpler than documents or spreadsheets in many ways, harder in others (layout engine, animations).
+**Formats:** .docx, .odt, .pdf (import/export working via Collabora)
 
-- Slide creation and editing with text, images, shapes
-- Basic transitions (not animations -- transitions between slides only)
-- Presenter mode with speaker notes
-- Real-time collaboration
-- Import/export .pptx, .odp, .pdf
+### Knowledge Base (~25% complete)
 
-Phase 3 is the smallest of the three in scope. Most organizations can live without a presentation editor longer than they can live without documents or spreadsheets.
+A structured information store where organizational knowledge lives **separate from its presentation**. Documents, Sheets, and Slides *reference* KB entries — they don't own the underlying information. The existing Reference & Citation Management system (formerly Pillar 7, ~90% complete) is KB's first milestone.
+
+**What it encompasses:**
+1. **References** (done) — citations, bibliography entries, DOI/ISBN records, BibTeX/RIS import
+2. **Entities** — people, organizations, projects, terms. A directory/glossary referenceable from any document type
+3. **Datasets** — tabular data independent of any spreadsheet. Sheets *view* datasets; datasets persist if the sheet is deleted
+4. **Notes & Clippings** — research fragments, excerpts, annotations. Raw material that feeds polished documents
+5. **Relationships** — lightweight property graph connecting entries (person → org, dataset → source, reference → topic)
+
+**Data model:** Typed records (`reference | entity | dataset | note | glossary`) with optional relationships, stored in PostgreSQL. Not a full graph database — relationship queries via SQL joins.
+
+**Relationship to other super-pillars:** Primarily uni-directional pull with opt-in promotion:
+- **Pull**: Docs/Sheets/Slides insert KB references via pickers (like the existing citation picker)
+- **Promote**: Users explicitly promote content into the KB ("Save to Knowledge Base as Note")
+- **Live references**: KB changes show a "source updated" indicator in consuming documents. User decides whether to accept. No silent mutation.
+
+**Sovereignty angle:** The KB concentrates institutional knowledge in one auditable, erasable, federatable store on your infrastructure. It's the natural RAG corpus for local AI (C1), the primary audit target (C2), and the thing GDPR erasure requests hit (C3).
+
+*Milestones:*
+1. ~~Reference data model & storage~~ (done)
+2. ~~Import/export BibTeX, RIS, DOI lookup~~ (done)
+3. ~~In-editor citation insertion & bibliography~~ (done)
+4. **KB entry model** — Generalize references into typed KBEntry records with tags, workspace scoping, and entry lifecycle (`Draft → Reviewed → Published → Deprecated`). Version pinning support (`@v7` vs `@latest` reference modes).
+5. **Reverse dependency registry** — Track which documents/sheets/slides reference each KB entry. Required for erasure cascades, staleness notifications, and breaking-change warnings.
+6. **Entity directory** — People, organizations, terms with structured fields. Mention picker in all editors.
+7. **Dataset store** — Tabular data with schema, versioning, and Sheets integration (view dataset as spreadsheet). Source lineage for provenance tracking.
+8. **Notes & clippings** — Capture from documents (promote action), freeform entry, tag-based organization.
+9. **KB query contract** — Stable, versioned API with corpus partitioning (`knowledge | operational | reference`), jurisdiction scoping, and snapshot resolution.
+10. **KB browser UI** — Dedicated interface for browsing, filtering, managing entries, and visualizing relationships.
+11. **Snapshot sets** — Immutable timestamped slices of published entry versions for compound regulatory filings spanning multiple document types.
+12. **Relationship graph** — Queryable connections between KB entries. Graph is an overlay, not the load-bearing structure — cross-document references bind to entry ID, not graph predicates.
+
+### Sheets (~15% complete)
+
+Spreadsheet editor. Same architecture: native web format for editing, conversion service for .xlsx/.ods import/export. Currently a functional prototype with 26×50 grid, cell editing, and Yjs real-time sync.
+
+**What works:** Grid rendering, cell selection with formula bar, content editing via contentEditable, real-time Yjs sync (Y.Array of Y.Arrays), connection status, collaborative presence.
+
+**What's missing:** Everything that makes a spreadsheet a spreadsheet.
+
+*Milestones:*
+1. **Formula engine** — Expression parser and evaluator for common Excel-compatible formulas (~50 functions: SUM, AVERAGE, IF, VLOOKUP, etc.). Cell dependency graph for recalculation. This is the critical unlock — without formulas, it's just a grid.
+2. **Cell formatting** — Bold, italic, colors, number formats, alignment. Schema exists (CellFormat in spreadsheet.ts), UI needs building.
+3. **Multi-sheet tabs** — Tab bar, add/delete/rename sheets, cross-sheet references. Currently hardcoded to sheet-0.
+4. **Copy/paste & keyboard shortcuts** — Clipboard integration, range selection, standard Excel key bindings.
+5. **Column/row operations** — Resize, insert, delete, hide, freeze panes. Drag handles for sizing.
+6. **Sorting & filtering** — Column sort (asc/desc), auto-filter dropdowns, filter by value/condition.
+7. **Basic charts** — Bar, line, pie from selected data ranges. Embedded in sheet or as separate view.
+8. **Import/export** — .xlsx, .ods, .csv via Collabora pipeline extension.
+9. **Conditional formatting** — Color scales, data bars, icon sets based on cell values.
+10. **Dataset integration** — View KB datasets as read-only or editable sheets. Bi-directional sync with KB dataset store.
+
+Does not attempt: pivot tables, VBA macros, advanced data analysis, Power Query equivalent. Those are post-1.0.
+
+### Slides (~10% complete)
+
+Presentation editor. Currently a functional prototype with slide panel, 16:9 viewport, and basic text element editing via Yjs.
+
+**What works:** Slide list with thumbnails, main viewport at 16:9, add slide, text element editing via contentEditable, Yjs sync (Y.Array of Y.Maps), connection status, presence.
+
+**What's missing:** Everything that makes presentations usable.
+
+*Milestones:*
+1. **Element interaction** — Select, move, resize elements via drag handles. Snap-to-grid, alignment guides. This is the critical unlock — without dragging, you can't compose slides.
+2. **Element types** — Images (S3 upload), shapes (rectangle, circle, arrow, line), tables. Reuse existing image upload infrastructure from Documents.
+3. **Text formatting** — Rich text within elements (bold, italic, font size, color, alignment). TipTap mini-instance per text element.
+4. **Slide layouts & themes** — Master slide templates (title, content, two-column, blank). Theme colors and fonts applied globally.
+5. **Transitions** — Basic slide transitions (fade, slide, none). Not element animations.
+6. **Speaker notes** — Per-slide notes panel, visible in edit mode and presenter mode.
+7. **Presenter mode** — Full-screen presentation with current slide, next slide preview, speaker notes, timer. Separate window/tab.
+8. **Import/export** — .pptx, .odp, .pdf via Collabora pipeline extension.
+9. **Slide sorter** — Drag-to-reorder in thumbnail panel, duplicate/delete slides.
+10. **KB integration** — Insert citations, entity references, and dataset charts from Knowledge Base.
+
+Does not attempt: element animations, video embedding, 3D transitions, custom slide sizes. Post-1.0.
+
+### App Shell (shared infrastructure)
+
+Not a super-pillar but enables all of them: dashboard, navigation, type switching, theming, workspace management.
+
+**Current state:** Separate HTML pages per editor (`/editor.html`, `/spreadsheet.html`, `/presentation.html`) with full page reloads. Dashboard at `/` with document list, folder navigation, and "New Document/Spreadsheet/Presentation" buttons.
+
+**Target state:** Unified shell with dynamic editor loading. No page reload when switching between recently-opened documents of different types. Shared sidebar with workspace tree, recent documents, KB quick-access. Consistent toolbar chrome across editors.
+
+*Milestones:*
+1. **Unified routing** — Single-page app shell that lazy-loads the correct editor based on document type. No full page reloads.
+2. **Workspace sidebar** — Tree view of folders, recent documents across all types, starred items, KB quick search.
+3. **Cross-type search** — Global search that finds documents, sheets, slides, and KB entries.
+4. **Theming** — Light/dark mode, customizable accent colors, workspace-level branding.
+5. **Notifications** — In-app notifications for comments, shares, workflow triggers, KB updates.
 
 ---
 
@@ -113,9 +195,9 @@ Phase 3 is the smallest of the three in scope. Most organizations can live witho
 
 8. **Auth + Sharing Integration** -- OIDC token verification (jose library), auth middleware on all /api routes, share link creation with 256-bit tokens, grant persistence on link redemption, share dialog UI with role selector and link generation.
 
-9. **Pillar 2 Milestone 1: Cryptographic Audit Foundation** -- Append-only HMAC-chained audit log. PG trigger enforces immutability. Per-document hash chain with tamper verification. API endpoints for audit log querying and chain integrity verification.
+9. **C2 Milestone 1: Cryptographic Audit Foundation** -- Append-only HMAC-chained audit log. PG trigger enforces immutability. Per-document hash chain with tamper verification. API endpoints for audit log querying and chain integrity verification.
 
-10. **Pillar 4 Milestone 1: Trigger/Action API** -- Event-driven workflow definitions on documents. Trigger types (document.updated, document.exported, grant.created, grant.revoked) mapped to actions (webhook, export, notify). Full CRUD API with execution history tracking.
+10. **C4 Milestone 1: Trigger/Action API** -- Event-driven workflow definitions on documents. Trigger types (document.updated, document.exported, grant.created, grant.revoked) mapped to actions (webhook, export, notify). Full CRUD API with execution history tracking.
 
 11. **Events Module** -- Full EventBus implementation: PG transactional outbox, Redis Streams consumer groups, outbox poller for reliable delivery, 7-day TTL pruning, schema registry with one-owner-per-type enforcement.
 
@@ -127,87 +209,73 @@ Phase 3 is the smallest of the three in scope. Most organizations can live witho
 
 ---
 
-## Strategic Pillars (Post-MVP)
+## Cross-Cutting Pillars (Platform Capabilities)
 
-Beyond the MVP, OpenDesk's roadmap is organized into strategic pillars that exploit sovereign/AGPL architecture as a competitive moat. These were defined via hivemind deliberation (see `decisions/2026-04-06-strategic-roadmap-segments-deliberation.md` and `decisions/2026-04-06-pillar-sequencing-deliberation.md`).
+These pillars provide sovereignty, compliance, and intelligence capabilities that apply to **all** super-pillars. They were originally defined as Pillars 1-6 (see `decisions/2026-04-06-strategic-roadmap-segments-deliberation.md`), renumbered as C1-C6 in the super-pillar restructuring (see `decisions/2026-04-08-super-pillar-restructuring.md`). Former Pillar 7 (References) has been absorbed into the Knowledge Base super-pillar.
 
-**Pillar 0: Editor Foundation** runs continuously alongside all other pillars (~30-40% of effort). The remaining pillars are sequenced by dependency:
-
-### Pillar 1: Air-Gapped Local AI (BYOM)
+### C1: Air-Gapped Local AI (BYOM) — ~70% complete
 
 Sovereign AI for organizations that cannot send data to cloud LLMs. BYOM abstraction over Ollama, pgvector in existing PostgreSQL, local RAG pipeline. Serves defense, healthcare, and legal sectors.
 
-*Milestones:* BYOM abstraction layer -> CRDT-to-vector pipeline -> Local semantic search -> Context-aware document assistant -> Curated sovereign model zoo.
+**Applies to all super-pillars:** Document summarization, spreadsheet formula suggestions, slide content generation, KB-powered RAG (the KB is the natural primary corpus).
 
-### Pillar 2: Cryptographic Audit & e-Discovery
+*Milestones:* ~~BYOM abstraction layer~~ -> ~~CRDT-to-vector pipeline~~ -> ~~Local semantic search~~ -> ~~Context-aware document assistant~~ -> KB-aware extraction (embed KB entries, not just doc text) -> Cross-type extractors (cells, slides) -> Curated sovereign model zoo.
 
-Tamper-evident, append-only cryptographic ledger of all document mutations and access events. Merkle-tree backed. Targets pharma (FDA CFR 21 Part 11), finance (FINRA), forensics.
+### C2: Cryptographic Audit & e-Discovery — ~85% complete
 
-*Milestones:* Signed Yjs updates -> Append-only event store -> Point-in-time verifiability -> Automated SAR/FOIA engine.
+Tamper-evident, append-only cryptographic ledger of all mutations and access events. Merkle-tree backed. Targets pharma (FDA CFR 21 Part 11), finance (FINRA), forensics.
 
-### Pillar 3: Verifiable Data Erasure & CRDT Pruning
+**Applies to all super-pillars:** Already event-driven and type-agnostic. Any super-pillar that emits events gets audit coverage automatically.
+
+*Milestones:* ~~Append-only HMAC-chained event store~~ -> ~~Point-in-time verifiability~~ -> ~~Tamper verification API~~ -> Signed Yjs updates -> Automated SAR/FOIA engine -> eDiscovery export formats.
+
+### C3: Verifiable Data Erasure & CRDT Pruning — ~40% complete
 
 Solving the CRDT/GDPR collision -- Yjs tombstones retain deleted content, conflicting with Right to Be Forgotten. Uses structural tombstone anonymization (zero-fill payload while preserving CRDT pointers).
 
-*Milestones:* Tombstone extraction tooling -> Structural anonymization -> Targeted redaction API -> Policy-driven automated pruning.
+**Applies to all super-pillars:** Each content type has different CRDT structures (XmlFragment, Y.Array, Y.Map) requiring type-specific erasure strategies. KB entries add a new dimension: erasing a KB entry must cascade notifications to all referencing documents.
 
-### Pillar 4: Sovereign Data Workflows & Process Automation
+*Milestones:* ~~Erasure attestations~~ -> ~~Retention policies~~ -> Tombstone extraction tooling -> Structural anonymization -> Targeted redaction API -> Policy-driven automated pruning -> KB cascade erasure.
 
-Visual workflow builder for document pipelines -- approval chains, redaction, translation, archival. All local execution via Wasm sandboxing (Extism/Wasmtime). No data leakage to external services.
+### C4: Sovereign Data Workflows & Process Automation — ~50% complete
 
-*Milestones:* Trigger/action API -> Visual workflow editor -> Local service integrations -> Auditable execution logs.
+Visual workflow builder for content pipelines -- approval chains, redaction, translation, archival. All local execution via Wasm sandboxing (Extism/Wasmtime). No data leakage to external services.
 
-### Pillar 5: Cross-Sovereign Federation
+**Applies to all super-pillars:** Workflows trigger on any content type. Document approval chains, spreadsheet data validation pipelines, presentation review workflows, KB entry curation flows.
+
+*Milestones:* ~~Trigger/action API~~ -> ~~Execution history~~ -> Visual workflow editor -> Conditional logic & branching -> Local service integrations (Wasm) -> Auditable execution logs.
+
+### C5: Cross-Sovereign Federation — ~55% complete
 
 Real-time Yjs collaboration between isolated OpenDesk instances. Targets government-contractor collaboration, hospital networks, B2B consortiums. Uses CRDT sub-document partitioning for scoped federation.
 
-*Milestones:* OIDC/SAML identity federation -> Server-to-server sync protocol -> Federated permission mapping -> Split-brain resolution.
+**Applies to all super-pillars:** Federate documents, spreadsheets, slides, and KB entries. Shared glossaries and reference libraries across instances are a key use case.
 
-### Pillar 6: Sovereign Observability & Compliance Control Plane
+*Milestones:* ~~Peer registration~~ -> ~~Document transfer with Ed25519 signing~~ -> OIDC/SAML identity federation -> Server-to-server sync protocol -> Federated permission mapping -> KB library federation -> Split-brain resolution.
 
-Unified real-time dashboard for the entire stack's compliance posture. Transforms passive audit trails into active, queryable instrumentation. The connective tissue that consumes output from all other pillars.
+### C6: Sovereign Observability & Compliance Control Plane — ~45% complete
 
-*Milestones:* Unified telemetry pipeline -> Live compliance dashboard -> Anomaly detection -> Drill-down forensics.
+Unified real-time dashboard for the entire stack's compliance posture. Transforms passive audit trails into active, queryable instrumentation. The connective tissue that consumes output from all other pillars and all super-pillars.
 
-### Pillar 7: Reference & Citation Management
+*Milestones:* ~~Metrics collection~~ -> ~~Health monitoring~~ -> ~~HTTP middleware~~ -> Unified telemetry across all content types -> Live compliance dashboard UI -> Anomaly detection -> Drill-down forensics -> SIEM export.
 
-Built-in reference library and citation system -- the Endnote/Zotero equivalent that no web-based editor provides natively. Google Docs forces users into third-party add-ons; Word's built-in system is limited. Academic, legal, medical, and policy users need citation management deeply integrated into the editing experience, not bolted on.
-
-This is uniquely strategic for a sovereign suite: your reference library lives on your infrastructure, not in a third-party cloud. For legal and compliance workflows, citation provenance is auditable. Combined with the AI pillar (Pillar 1), references can be suggested from local document corpora without leaking research to external services.
-
-*Milestones:*
-1. **Reference data model & storage** -- Per-workspace reference library stored in PostgreSQL. Support for standard metadata fields (author, title, date, journal, DOI, URL, etc.).
-2. **Import/export** -- BibTeX, RIS, Endnote XML import and export. DOI/ISBN lookup via CrossRef and OpenAlex APIs.
-3. **In-editor citation insertion** -- TipTap extension for inserting citations as inline marks. Footnote and endnote rendering modes. Citation picker UI with search.
-4. **Citation style formatting** -- Auto-format citations and bibliographies in standard styles (APA, MLA, Chicago, Bluebook, Vancouver). CSL (Citation Style Language) support for extensibility.
-5. **Auto-bibliography generation** -- Render a bibliography section from all cited references in the document. Update automatically as citations are added or removed.
-6. **Collaborative reference libraries** -- Shared reference collections at the workspace level. Multiple users can contribute to and cite from the same library.
-
-*Depends on:* Pillar 0 (editor must be solid). No hard dependency on other pillars, but benefits from Pillar 1 (AI-suggested citations from local corpus) and Pillar 2 (auditable citation provenance).
-
-### Pillar Sequencing
+### Sequencing
 
 ```
-Phase 0 (Complete)     Pillar 0 (Continuous)
-  Role unification       Editor quality
-  Module boundaries      Comments, tables, images
-  Contracts 100%         Templates, search, print, a11y
-        |
-        v
-  Pillar 4 (Workflows) ----+---- Pillar 2 (Crypto Audit)
-                            |
-        +-------------------+-------------------+
-        v                                       v
-  Pillar 6 (Observability)              Pillar 1 (Local AI)
-        |                                       |
-        v                                       v
-  Pillar 3 (Erasure) --- depends on Pillar 2 ---+
-        |
-        v
-  Pillar 5 (Federation) --- depends on nearly everything
-
-  Pillar 7 (References) --- independent, can start any time post-MVP
+Super-Pillars (Product Lines)              Cross-Cutting Pillars
+━━━━━━━━━━━━━━━━━━━━━━━━━━                ━━━━━━━━━━━━━━━━━━━━━
+Documents ████████████████████░             C4 (Workflows) ──┬── C2 (Audit)
+KB        █████░░░░░░░░░░░░░░░                              │
+Sheets    ███░░░░░░░░░░░░░░░░░             C6 (Observe) ────┤── C1 (AI)
+Slides    ██░░░░░░░░░░░░░░░░░░                              │
+                                            C3 (Erasure) ───┘
+                                                     │
+                                            C5 (Federation) ── depends on all
 ```
+
+**Priority order for super-pillars:** Documents (flagship) > KB (high leverage, references done) > Sheets (formula engine is critical unlock) > Slides (smallest demand).
+
+**Cross-cutting validation:** Each cross-cutting pillar must be validated against all super-pillars, not just Documents. As Sheets and Slides mature, audit/erasure/AI capabilities must cover their content types.
 
 Full dependency analysis: `decisions/2026-04-06-pillar-sequencing-deliberation.md`
 
