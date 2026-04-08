@@ -1,7 +1,6 @@
 /** Contract: contracts/app/slides-interaction.md */
 
-import type { Point, BoundingBox, HandlePosition, ResizeState } from './types.ts';
-import { MIN_ELEMENT_WIDTH, MIN_ELEMENT_HEIGHT } from './types.ts';
+import { type Point, type BoundingBox, type HandlePosition, type ResizeState, MIN_ELEMENT_WIDTH, MIN_ELEMENT_HEIGHT } from './types.ts';
 
 export type ResizeResult = {
   bounds: BoundingBox;

@@ -1,8 +1,7 @@
 /** Contract: contracts/app/slides-interaction.md */
 
-import type { Point, SlideElement, DragState, BoundingBox } from './types.ts';
+import { type Point, type SlideElement, type DragState, type BoundingBox, type SnapGuide } from './types.ts';
 import { calculateSnap } from './snap-engine.ts';
-import type { SnapGuide } from './types.ts';
 
 export type DragResult = {
   updates: Map<string, Point>;

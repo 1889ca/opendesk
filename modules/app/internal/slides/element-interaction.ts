@@ -1,8 +1,7 @@
 /** Contract: contracts/app/slides-interaction.md */
 
 import * as Y from 'yjs';
-import type { SlideElement, Point, InteractionMode, HandlePosition, DragState, ResizeState, RotateState } from './types.ts';
-import { NUDGE_SMALL, NUDGE_LARGE } from './types.ts';
+import { type SlideElement, type Point, type InteractionMode, type HandlePosition, type DragState, type ResizeState, type RotateState, NUDGE_SMALL, NUDGE_LARGE } from './types.ts';
 import { startDrag, updateDrag, nudgeElements } from './drag-handler.ts';
 import { startResize, updateResize } from './resize-handler.ts';
 import { startRotate, updateRotate, snapRotation, getElementCenter } from './rotate-handler.ts';

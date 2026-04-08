@@ -1,7 +1,6 @@
 /** Contract: contracts/app/slides-interaction.md */
 
-import type { BoundingBox, SnapGuide, SnapResult, SlideElement } from './types.ts';
-import { GRID_SIZE, SNAP_THRESHOLD } from './types.ts';
+import { type BoundingBox, type SnapGuide, type SnapResult, type SlideElement, GRID_SIZE, SNAP_THRESHOLD } from './types.ts';
 
 /** Get the three key positions (start, center, end) for an axis */
 function getEdges(box: BoundingBox): { hEdges: number[]; vEdges: number[] } {
