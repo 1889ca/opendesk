@@ -7,6 +7,7 @@ export interface ContextMenuCallbacks {
   insertColumnLeft(col: number): void;
   insertColumnRight(col: number): void;
   deleteColumn(col: number): void;
+  sortColumn?(col: number, direction: 'asc' | 'desc'): void;
 }
 
 export interface HeaderContextMenu {
@@ -75,11 +76,19 @@ export function createHeaderContextMenu(
       e.preventDefault();
       dismiss();
       const col = Number(colIdx);
-      activeMenu = buildMenu([
+      const items: MenuItem[] = [];
+      if (callbacks.sortColumn) {
+        items.push(
+          { label: 'Sort A \u2192 Z', action: dismissAndAct(() => callbacks.sortColumn!(col, 'asc')) },
+          { label: 'Sort Z \u2192 A', action: dismissAndAct(() => callbacks.sortColumn!(col, 'desc')) },
+        );
+      }
+      items.push(
         { label: 'Insert column left', action: dismissAndAct(() => callbacks.insertColumnLeft(col)) },
         { label: 'Insert column right', action: dismissAndAct(() => callbacks.insertColumnRight(col + 1)) },
         { label: 'Delete column', action: dismissAndAct(() => callbacks.deleteColumn(col)) },
-      ]);
+      );
+      activeMenu = buildMenu(items);
       positionMenu(activeMenu, e.clientX, e.clientY);
       return;
     }

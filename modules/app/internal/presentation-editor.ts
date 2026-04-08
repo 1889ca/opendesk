@@ -13,6 +13,8 @@ import { createTextElement, createImageElement, createShapeElement, createTableE
 import { openSlideImagePicker, setupSlideDragDrop } from './slides/slide-image-upload.ts';
 import { parseSlideElements } from './slides/parse-elements.ts';
 import { initLayoutAndTheme } from './slides/layout-theme-init.ts';
+import { createSpeakerNotes } from './slides/speaker-notes.ts';
+import { launchPresenterMode } from './slides/presenter-mode.ts';
 
 function init() {
   const slideListEl = document.getElementById('slide-list')!;
@@ -107,6 +109,7 @@ function init() {
         activeSlideIndex = i;
         renderSlideList();
         renderActiveSlide();
+        notesPanel.update(i);
       });
       slideListEl.appendChild(thumb);
     }
@@ -121,8 +124,14 @@ function init() {
     }
   }
 
+  // Speaker notes panel — below viewport
+  const canvasEl = document.getElementById('slide-canvas');
+  const notesPanel = createSpeakerNotes({ ydoc, yslides });
+  canvasEl?.appendChild(notesPanel.element);
+
   renderSlideList();
   renderActiveSlide();
+  notesPanel.update(activeSlideIndex);
 
   // Interaction controller
   let interactionCtrl: InteractionController | null = null;
@@ -140,27 +149,18 @@ function init() {
   initInteraction();
 
   // Insert toolbar
-  function handleInsertAction(action: InsertAction) {
-    const yElements = getActiveYElements();
-    if (action.type === 'text') {
-      insertElement(ydoc, yElements, createTextElement());
-    } else if (action.type === 'image') {
-      openSlideImagePicker(documentId, (url) => {
-        insertElement(ydoc, yElements, createImageElement(url));
-      });
-    } else if (action.type === 'shape') {
-      insertElement(ydoc, yElements, createShapeElement(action.shapeType));
-    } else if (action.type === 'table') {
-      insertElement(ydoc, yElements, createTableElement(action.rows, action.cols));
-    }
-  }
-
-  const insertToolbar = createInsertToolbar(handleInsertAction);
-  if (toolbarRight) toolbarRight.insertBefore(insertToolbar, toolbarRight.firstChild);
-
-  setupSlideDragDrop(viewportEl, documentId, (url) => {
-    insertElement(ydoc, getActiveYElements(), createImageElement(url));
+  const insertToolbar = createInsertToolbar((action: InsertAction) => {
+    const yEls = getActiveYElements();
+    const creators: Record<string, () => void> = {
+      text: () => insertElement(ydoc, yEls, createTextElement()),
+      image: () => openSlideImagePicker(documentId, (url) => insertElement(ydoc, yEls, createImageElement(url))),
+      shape: () => insertElement(ydoc, yEls, createShapeElement((action as { shapeType: string }).shapeType as Parameters<typeof createShapeElement>[0])),
+      table: () => insertElement(ydoc, yEls, createTableElement((action as { rows: number }).rows, (action as { cols: number }).cols)),
+    };
+    creators[action.type]?.();
   });
+  if (toolbarRight) toolbarRight.insertBefore(insertToolbar, toolbarRight.firstChild);
+  setupSlideDragDrop(viewportEl, documentId, (url) => insertElement(ydoc, getActiveYElements(), createImageElement(url)));
 
   // Layout picker + theme picker
   initLayoutAndTheme({
@@ -172,19 +172,25 @@ function init() {
     },
   });
 
-  yslides.observeDeep(() => { renderSlideList(); renderActiveSlide(); });
+  // Present button
+  const presentBtn = document.createElement('button');
+  presentBtn.className = 'slide-present-btn';
+  presentBtn.textContent = 'Present';
+  presentBtn.addEventListener('click', () => {
+    launchPresenterMode({ yslides, getSlideElements, totalSlides: () => yslides.length }, activeSlideIndex);
+  });
+  if (toolbarRight) toolbarRight.appendChild(presentBtn);
+
+  yslides.observeDeep(() => { renderSlideList(); renderActiveSlide(); notesPanel.update(activeSlideIndex); });
 
   // Presence
-  function updateUsers() {
-    if (!usersEl || !provider.awareness) return;
-    const states = provider.awareness.getStates();
-    const names: string[] = [];
-    states.forEach((state: { user?: { name?: string } }) => {
-      if (state.user?.name) names.push(state.user.name);
-    });
-    usersEl.textContent = names.join(', ') || '-';
-  }
   provider.awareness?.setLocalStateField('user', user);
+  const updateUsers = () => {
+    if (!usersEl || !provider.awareness) return;
+    const names: string[] = [];
+    provider.awareness.getStates().forEach((s: { user?: { name?: string } }) => { if (s.user?.name) names.push(s.user.name); });
+    usersEl.textContent = names.join(', ') || '-';
+  };
   provider.awareness?.on('change', updateUsers);
   updateUsers();
 

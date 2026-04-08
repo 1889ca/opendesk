@@ -105,13 +105,13 @@ A structured information store where organizational knowledge lives **separate f
 11. **Snapshot sets** — Immutable timestamped slices of published entry versions for compound regulatory filings spanning multiple document types.
 12. **Relationship graph** — Queryable connections between KB entries. Graph is an overlay, not the load-bearing structure — cross-document references bind to entry ID, not graph predicates.
 
-### Sheets (~50% complete)
+### Sheets (~60% complete)
 
-Spreadsheet editor. Same architecture: native web format for editing, conversion service for .xlsx/.ods import/export. Functional prototype with grid, formula engine, formatting, multi-sheet tabs, copy/paste, and column/row operations.
+Spreadsheet editor. Functional prototype with grid, formula engine, formatting, multi-sheet tabs, copy/paste, column/row operations, and sorting & filtering.
 
-**What works:** Grid rendering, cell selection with formula bar, real-time Yjs sync, collaborative presence. Formula engine with 20+ functions. Cell formatting. Multi-sheet tabs. Copy/paste with range selection. Column/row resize (drag handles, Yjs-synced widths), insert/delete rows and columns with format key shifting, right-click context menu on headers.
+**What works:** Grid rendering, cell selection with formula bar, real-time Yjs sync, collaborative presence. Formula engine with 20+ functions. Cell formatting. Multi-sheet tabs. Copy/paste with range selection. Column/row resize, insert/delete. Column sorting (asc/desc) with numeric/string detection. Auto-filter dropdowns with value checkboxes, filter state manager, filter bar with funnel icons on column headers.
 
-**What's next:** Sorting & filtering, charts, import/export.
+**What's next:** Charts, import/export, conditional formatting.
 
 *Milestones:*
 1. ~~**Formula engine**~~ (done) — Recursive descent parser with operator precedence, AST evaluator, 20+ functions (SUM, AVERAGE, COUNT, MIN, MAX, IF, VLOOKUP, CONCATENATE, text functions), cell references (A1, $A$1, ranges), all Excel error types (#VALUE!, #REF!, #DIV/0!, #NAME?, #N/A, #NUM!), circular reference detection via DFS. See `modules/sheets-formula/` and `contracts/sheets-formula/rules.md`.
@@ -119,7 +119,7 @@ Spreadsheet editor. Same architecture: native web format for editing, conversion
 3. ~~**Multi-sheet tabs**~~ (done) — Tab bar with add/delete/rename, context menu, cross-sheet references (Sheet2!A1 syntax), cell evaluator for cross-sheet resolution. See `modules/app/internal/sheets/`.
 4. ~~**Copy/paste & keyboard shortcuts**~~ (done) — Multi-cell range selection (click, shift+click, drag), custom clipboard handlers for copy/cut/paste, TSV for external apps, internal format preserving values and formatting. See `modules/app/internal/sheets/range-selection.ts` and `modules/app/internal/sheets/clipboard.ts`.
 5. ~~**Column/row operations**~~ (done) — Column resize via drag handles on header edges (Yjs-synced widths), row height resize, insert/delete rows and columns with automatic format key shifting, right-click context menu on headers. See `modules/app/internal/sheets/col-row-resize.ts`, `col-row-ops.ts`, `header-context-menu.ts`.
-6. **Sorting & filtering** — Column sort (asc/desc), auto-filter dropdowns, filter by value/condition.
+6. ~~**Sorting & filtering**~~ (done) — Column sort (asc/desc) via header context menu and filter dropdown, with numeric/string auto-detection. Filter state manager tracks active filters per column (view-only, hides rows without modifying Yjs data). Auto-filter dropdowns with unique value checkboxes, select all/clear. Filter bar with funnel icons on column headers. See `modules/app/internal/sheets/sort-engine.ts`, `filter-state.ts`, `filter-dropdown.ts`, `filter-bar.ts`, `filter-manager.ts`.
 7. **Basic charts** — Bar, line, pie from selected data ranges. Embedded in sheet or as separate view.
 8. **Import/export** — .xlsx, .ods, .csv via Collabora pipeline extension.
 9. **Conditional formatting** — Color scales, data bars, icon sets based on cell values.
@@ -127,13 +127,13 @@ Spreadsheet editor. Same architecture: native web format for editing, conversion
 
 Does not attempt: pivot tables, VBA macros, advanced data analysis, Power Query equivalent. Those are post-1.0.
 
-### Slides (~45% complete)
+### Slides (~60% complete)
 
-Presentation editor. Full element interaction, multiple element types, rich text formatting, slide layouts with master templates, and presentation themes.
+Presentation editor. Full element interaction, multiple element types, rich text formatting, layouts, themes, speaker notes, and presenter mode.
 
-**What works:** Slide list with thumbnails, main viewport at 16:9, text/image/shape/table elements, Yjs sync, presence. Full element interaction (drag, resize, rotate, snap, multi-select, z-order). Rich text formatting with toolbar. Slide layouts: blank, title, title+content, two-column, section header, title-only — with layout picker dropdown and placeholder auto-creation. Presentation themes: 6 presets (Default, Dark, Corporate, Warm, Minimal, Ocean) with CSS custom properties, Yjs-synced theme state, and theme picker UI.
+**What works:** Slide list with thumbnails, main viewport at 16:9, text/image/shape/table elements, Yjs sync, presence. Full element interaction. Rich text formatting. 6 slide layouts with picker. 6 theme presets with Yjs-synced state. Speaker notes panel (collapsible, per-slide, Yjs-synced with debounced save). Presenter mode: opens in new window with current slide, next slide preview, speaker notes, presentation timer, and keyboard navigation (arrows, space, Escape, Home, End).
 
-**What's next:** Transitions, speaker notes, presenter mode.
+**What's next:** Transitions, import/export, slide sorter.
 
 *Milestones:*
 1. ~~**Element interaction**~~ (done) — Drag, resize (8 handles + Shift for aspect ratio), rotate (15° snap), snap engine (grid + element edges), selection manager (single/multi/marquee), z-order (bring forward/back/front/bottom), Yjs transactional mutations, DOM overlay rendering. See `modules/app/internal/slides/` and `contracts/app/slides-interaction.md`.
@@ -141,8 +141,8 @@ Presentation editor. Full element interaction, multiple element types, rich text
 3. ~~**Text formatting**~~ (done) — Rich text within text and shape elements (bold, italic, underline, font size, color, alignment). Formatting toolbar with font controls. See `modules/app/internal/slides/text-format-toolbar.ts` and `modules/app/internal/slides/render-text.ts`.
 4. ~~**Slide layouts & themes**~~ (done) — 6 layout types (blank, title, title+content, two-column, section header, title-only) with placeholder auto-positioning. Layout picker dropdown replaces "Add Slide" button. 6 theme presets (Default, Dark, Corporate, Warm, Minimal, Ocean) with colors, fonts, and background applied via CSS custom properties. Theme picker UI with color swatches. Theme state Yjs-synced for real-time collaboration. See `modules/app/internal/slides/layouts.ts`, `themes.ts`, `layout-picker.ts`, `theme-picker.ts`.
 5. **Transitions** — Basic slide transitions (fade, slide, none). Not element animations.
-6. **Speaker notes** — Per-slide notes panel, visible in edit mode and presenter mode.
-7. **Presenter mode** — Full-screen presentation with current slide, next slide preview, speaker notes, timer. Separate window/tab.
+6. ~~**Speaker notes**~~ (done) — Per-slide notes stored in Yjs ('notes' key on slide Y.Map), collapsible textarea panel below viewport, debounced 300ms save, remote change sync. See `modules/app/internal/slides/speaker-notes.ts`.
+7. ~~**Presenter mode**~~ (done) — Opens in new window with current slide rendering, next slide preview, speaker notes display, presentation timer, slide counter. Keyboard navigation: arrows/space/PageDown for next, PageUp for previous, Home/End for first/last, Escape to close. Self-contained CSS. See `modules/app/internal/slides/presenter-mode.ts`.
 8. **Import/export** — .pptx, .odp, .pdf via Collabora pipeline extension.
 9. **Slide sorter** — Drag-to-reorder in thumbnail panel, duplicate/delete slides.
 10. **KB integration** — Insert citations, entity references, and dataset charts from Knowledge Base.

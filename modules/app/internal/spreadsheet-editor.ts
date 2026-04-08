@@ -9,11 +9,13 @@ import { attachFormatShortcuts } from './sheets-format-shortcuts.ts';
 import { renderFormattedGrid } from './sheets-grid-render.ts';
 import { SheetStore } from './sheets/sheet-store.ts';
 import { TabBar } from './sheets/tab-bar.ts';
-import { createRangeSelection, type RangeSelection } from './sheets/range-selection.ts';
-import { createClipboardManager, type ClipboardManager } from './sheets/clipboard.ts';
-import { createColRowResize, type ColRowResize } from './sheets/col-row-resize.ts';
-import { createHeaderContextMenu, type HeaderContextMenu } from './sheets/header-context-menu.ts';
+import { createRangeSelection } from './sheets/range-selection.ts';
+import { createClipboardManager } from './sheets/clipboard.ts';
+import { createColRowResize } from './sheets/col-row-resize.ts';
+import { createHeaderContextMenu } from './sheets/header-context-menu.ts';
 import { insertRow, deleteRow, insertColumn, deleteColumn } from './sheets/col-row-ops.ts';
+import { sortByColumn } from './sheets/sort-engine.ts';
+import { createFilterManager } from './sheets/filter-manager.ts';
 
 const DEFAULT_COLS = 26;
 const DEFAULT_ROWS = 50;
@@ -33,17 +35,11 @@ function init() {
   const user = getUserIdentity();
   const ydoc = new Y.Doc();
 
-  const wsUrl = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/collab`;
+  const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
   const provider = new HocuspocusProvider({
-    url: wsUrl,
-    name: documentId,
-    document: ydoc,
-    onConnect() {
-      if (statusEl) { statusEl.textContent = 'Connected'; statusEl.className = 'status connected'; }
-    },
-    onDisconnect() {
-      if (statusEl) { statusEl.textContent = 'Disconnected'; statusEl.className = 'status disconnected'; }
-    },
+    url: `${wsProto}//${location.host}/collab`, name: documentId, document: ydoc,
+    onConnect() { if (statusEl) { statusEl.textContent = 'Connected'; statusEl.className = 'status connected'; } },
+    onDisconnect() { if (statusEl) { statusEl.textContent = 'Disconnected'; statusEl.className = 'status disconnected'; } },
   });
 
   const store = new SheetStore(ydoc);
@@ -79,6 +75,12 @@ function init() {
   // --- Resize Manager ---
   const resizeMgr = createColRowResize(gridEl, ydoc);
 
+  // --- Sort helper ---
+  function doSort(col: number, direction: 'asc' | 'desc'): void {
+    sortByColumn(ydoc, getActiveSheet(), col, direction);
+    doRender();
+  }
+
   // --- Context Menu ---
   const ctxMenu = createHeaderContextMenu(gridEl, {
     insertRowAbove(row) { insertRow(ydoc, activeSheetId, row); },
@@ -87,6 +89,19 @@ function init() {
     insertColumnLeft(col) { insertColumn(ydoc, activeSheetId, col); },
     insertColumnRight(col) { insertColumn(ydoc, activeSheetId, col); },
     deleteColumn(col) { deleteColumn(ydoc, activeSheetId, col); },
+    sortColumn(col, direction) { doSort(col, direction); },
+  });
+
+  // --- Filter System ---
+  const filterMgr = createFilterManager({
+    gridEl,
+    getActiveSheetId: () => activeSheetId,
+    getActiveSheetLength: () => getActiveSheet().length,
+    getCellValue: (sheetId, row, col) => store.getCellValue(sheetId, row, col),
+    doSort,
+    onFilterChange: () => doRender(),
+    rows: DEFAULT_ROWS,
+    cols: DEFAULT_COLS,
   });
 
   function doRender() {
@@ -99,6 +114,7 @@ function init() {
     });
     resizeMgr.applyWidths(gridEl, DEFAULT_COLS);
     if (currentRange) rangeSelection.setRange(currentRange);
+    filterMgr.afterRender();
   }
 
   // --- Sheet Switching ---
@@ -108,6 +124,7 @@ function init() {
     activeRow = 0;
     activeCol = 0;
     rangeSelection.clear();
+    filterMgr.filterState.clearAll();
     if (cellRefEl) cellRefEl.textContent = 'A1';
     if (formulaInput) formulaInput.value = '';
     getActiveSheet().observeDeep(onSheetChange);
