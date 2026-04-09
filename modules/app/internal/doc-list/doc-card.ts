@@ -3,14 +3,19 @@
 /**
  * Grid card rendering for the document list (issue #208).
  * Cards display icon, title, last-modified timestamp, and type colour accent.
+ * Context menu (issue #228) and hover preview (issue #231) are wired here.
  */
 
 import { apiFetch } from '../shared/api-client.ts';
 import { t } from '../i18n/index.ts';
 import { formatRelativeTime } from '../shared/time-format.ts';
 import { showDeleteConfirmDialog } from './delete-confirm-dialog.ts';
+import { showNameDialog } from './name-dialog.ts';
 import { getStarred, toggleStar } from './starred-store.ts';
+import { showToast } from '../shared/toast.ts';
 import { TYPE_META, type DocEntry } from './doc-row.ts';
+import { attachContextMenu } from './doc-context-menu.ts';
+import { attachHoverPreview } from './doc-hover-preview.ts';
 
 export interface RenderDocumentsGridOptions {
   listEl: HTMLElement;
@@ -75,9 +80,6 @@ function buildDocCard(
   card.dataset.type = docType;
   if (selectedIds.has(doc.id)) card.classList.add('doc-card--selected');
 
-  // Colour accent strip (top border handled via CSS data-type)
-
-  // Header row: icon + title
   const header = document.createElement('div');
   header.className = 'doc-card-header';
 
@@ -92,7 +94,6 @@ function buildDocCard(
 
   header.append(icon, title);
 
-  // Footer: timestamp
   const footer = document.createElement('div');
   footer.className = 'doc-card-footer';
   const time = document.createElement('span');
@@ -101,7 +102,6 @@ function buildDocCard(
   time.title = new Date(doc.updated_at).toLocaleString();
   footer.appendChild(time);
 
-  // Main clickable link overlay
   const link = document.createElement('a');
   link.className = 'doc-card-link';
   link.href = meta.editor + '?doc=' + encodeURIComponent(doc.id);
@@ -115,7 +115,6 @@ function buildDocCard(
     }
   });
 
-  // Hover overlay with action buttons
   const overlay = document.createElement('div');
   overlay.className = 'doc-card-overlay';
 
@@ -129,15 +128,7 @@ function buildDocCard(
   deleteBtn.className = 'btn btn-delete';
   deleteBtn.textContent = t('docList.delete');
   deleteBtn.setAttribute('aria-label', t('docList.deleteAriaLabel', { name: docName }));
-  deleteBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    showDeleteConfirmDialog(docName).then((confirmed) => {
-      if (!confirmed) return;
-      apiFetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
-        .then(() => onDelete())
-        .catch((err) => { console.error('Delete failed', err); });
-    });
-  });
+  deleteBtn.addEventListener('click', (e) => { e.preventDefault(); cardConfirmDelete(doc.id, docName, onDelete); });
 
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
@@ -153,5 +144,45 @@ function buildDocCard(
 
   overlay.append(checkbox, starBtn, deleteBtn);
   card.append(link, header, footer, overlay);
+
+  attachContextMenu(card, doc, {
+    onOpen: () => { window.location.href = meta.editor + '?doc=' + encodeURIComponent(doc.id); },
+    onStar: () => { toggleStar(doc.id); onStarToggle(); },
+    onRename: () => cardRename(doc, onDelete),
+    onDuplicate: () => cardDuplicate(doc.id, onDelete),
+    onDelete: () => cardConfirmDelete(doc.id, docName, onDelete),
+  });
+
+  attachHoverPreview(card, doc.id);
+
   return card;
+}
+
+async function cardConfirmDelete(id: string, name: string, onDelete: () => void): Promise<void> {
+  if (!await showDeleteConfirmDialog(name)) return;
+  try {
+    await apiFetch('/api/documents/' + encodeURIComponent(id), { method: 'DELETE' });
+    showToast('Document deleted', 'success');
+    onDelete();
+  } catch (err) { console.error('Delete failed', err); }
+}
+
+async function cardRename(doc: DocEntry, onRefresh: () => void): Promise<void> {
+  const newTitle = await showNameDialog('docList.titlePrompt', doc.title || '');
+  if (!newTitle) return;
+  try {
+    await apiFetch('/api/documents/' + encodeURIComponent(doc.id), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newTitle }),
+    });
+    onRefresh();
+  } catch (err) { console.error('Rename failed', err); }
+}
+
+async function cardDuplicate(id: string, onRefresh: () => void): Promise<void> {
+  try {
+    const res = await apiFetch('/api/documents/' + encodeURIComponent(id) + '/duplicate', { method: 'POST' });
+    if (res.ok) { onRefresh(); } else { console.warn('Duplicate not available (status', res.status, ')'); }
+  } catch (err) { console.warn('Duplicate not available', err); }
 }

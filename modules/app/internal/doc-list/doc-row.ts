@@ -3,18 +3,20 @@
 /**
  * Document row rendering for the doc list.
  * Supports multi-select checkboxes (issue #173), friendly empty state (issue #182),
- * and starred/favourites section (issue #184).
+ * starred/favourites section (issue #184), context menu (issue #228),
+ * and hover preview (issue #231).
  */
 
 import { apiFetch } from '../shared/api-client.ts';
 import { t } from '../i18n/index.ts';
 import { formatRelativeTime } from '../shared/time-format.ts';
-import { getCurrentFolderId } from './folder-list.ts';
 import { showDeleteConfirmDialog } from './delete-confirm-dialog.ts';
+import { showNameDialog } from './name-dialog.ts';
 import { getStarred, toggleStar } from './starred-store.ts';
 import { showToast } from '../shared/toast.ts';
-import { attachContextMenu, buildContextCallbacks } from './doc-context-menu.ts';
+import { attachContextMenu } from './doc-context-menu.ts';
 import { attachHoverPreview } from './doc-hover-preview.ts';
+import { renderEmptyState } from './doc-empty-state.ts';
 
 export interface DocEntry {
   id: string;
@@ -33,13 +35,6 @@ export const TYPE_META: Record<string, { icon: string; label: string; editor: st
   spreadsheet:  { icon: SHEET_ICON,  label: 'Spreadsheet',  editor: '/spreadsheet.html' },
   presentation: { icon: SLIDES_ICON, label: 'Presentation', editor: '/presentation.html' },
 };
-
-const EMPTY_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false" class="empty-state-icon">'
-  + '<rect x="10" y="8" width="38" height="48" rx="4" ry="4" fill="none" stroke="currentColor" stroke-width="3"/>'
-  + '<line x1="18" y1="22" x2="40" y2="22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>'
-  + '<line x1="18" y1="30" x2="40" y2="30" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>'
-  + '<line x1="18" y1="38" x2="32" y2="38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>'
-  + '</svg>';
 
 export interface RenderDocumentsOptions {
   listEl: HTMLElement;
@@ -154,45 +149,52 @@ function buildDocRow(
   deleteBtn.className = 'btn btn-delete';
   deleteBtn.textContent = t('docList.delete');
   deleteBtn.setAttribute('aria-label', t('docList.deleteAriaLabel', { name: docName }));
-  deleteBtn.addEventListener('click', () => {
-    showDeleteConfirmDialog(docName).then((confirmed) => {
-      if (!confirmed) return;
-      apiFetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
-        .then(() => { showToast('Document deleted', 'success'); onDelete(); })
-        .catch((err) => { console.error('Delete failed', err); });
-    });
-  });
+  deleteBtn.addEventListener('click', () => confirmAndDelete(doc.id, docName, onDelete));
 
   wrapper.append(checkLabel, row, starBtn, deleteBtn);
+
+  attachContextMenu(wrapper, doc, {
+    onOpen: () => { window.location.href = meta.editor + '?doc=' + encodeURIComponent(doc.id); },
+    onStar: () => { toggleStar(doc.id); onStarToggle(); },
+    onRename: () => renameDoc(doc, onDelete),
+    onDuplicate: () => duplicateDoc(doc.id, onDelete),
+    onDelete: () => confirmAndDelete(doc.id, docName, onDelete),
+  });
+
+  attachHoverPreview(wrapper, doc.id);
+
   return wrapper;
 }
 
-function renderEmptyState(listEl: HTMLElement, onNewDocument?: () => void): void {
-  const emptyEl = document.createElement('div');
-  emptyEl.className = 'doc-list-empty';
+async function confirmAndDelete(id: string, name: string, onDelete: () => void): Promise<void> {
+  if (!await showDeleteConfirmDialog(name)) return;
+  try {
+    await apiFetch('/api/documents/' + encodeURIComponent(id), { method: 'DELETE' });
+    showToast('Document deleted', 'success');
+    onDelete();
+  } catch (err) { console.error('Delete failed', err); }
+}
 
-  const iconWrap = document.createElement('div');
-  iconWrap.className = 'empty-state-icon-wrap';
-  iconWrap.innerHTML = EMPTY_ICON_SVG;
-
-  const key = getCurrentFolderId() ? 'folders.empty' : 'docList.noDocuments';
-  const titleP = document.createElement('p');
-  titleP.className = 'empty-title';
-  titleP.textContent = t(key);
-
-  const subtitleP = document.createElement('p');
-  subtitleP.className = 'empty-subtitle';
-  subtitleP.textContent = t('docList.noDocumentsSubtitle');
-
-  emptyEl.append(iconWrap, titleP, subtitleP);
-
-  if (onNewDocument && !getCurrentFolderId()) {
-    const newBtn = document.createElement('button');
-    newBtn.className = 'btn btn-primary empty-state-new-btn';
-    newBtn.textContent = t('docList.newDocument');
-    newBtn.addEventListener('click', () => onNewDocument());
-    emptyEl.appendChild(newBtn);
+async function renameDoc(doc: DocEntry, onRefresh: () => void): Promise<void> {
+  const newTitle = await showNameDialog('docList.titlePrompt', doc.title || '');
+  if (!newTitle) return;
+  try {
+    await apiFetch('/api/documents/' + encodeURIComponent(doc.id), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newTitle }),
+    });
+    onRefresh();
+  } catch (err) {
+    console.error('Rename failed', err);
   }
+}
 
-  listEl.appendChild(emptyEl);
+async function duplicateDoc(id: string, onRefresh: () => void): Promise<void> {
+  try {
+    const res = await apiFetch('/api/documents/' + encodeURIComponent(id) + '/duplicate', { method: 'POST' });
+    if (res.ok) { onRefresh(); } else { console.warn('Duplicate not available (status', res.status, ')'); }
+  } catch (err) {
+    console.warn('Duplicate not available', err);
+  }
 }
