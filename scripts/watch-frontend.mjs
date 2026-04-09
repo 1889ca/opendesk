@@ -1,103 +1,31 @@
 /** Contract: scripts — esbuild watch mode for frontend bundles */
+
+/**
+ * Dev watch mode counterpart to build-frontend.js. Bundle list lives
+ * in frontend-bundles.mjs and is shared between the two so the
+ * dev/prod paths can never drift again (the bug fixed by issue #137
+ * was caused by exactly that drift).
+ */
+
 import * as esbuild from 'esbuild';
+import { bundles, toEsbuildOptions } from './frontend-bundles.mjs';
 
-const sharedJS = {
-  bundle: true,
-  format: 'esm',
-  target: 'es2022',
-};
-
-const sharedCSS = {
-  bundle: true,
-};
-
-const entries = [
-  {
-    ...sharedJS,
-    entryPoints: ['modules/app/internal/editor/editor.ts'],
-    outfile: 'modules/app/internal/public/editor.bundle.js',
-    alias: { '@tiptap/y-tiptap': 'y-prosemirror' },
-  },
-  {
-    ...sharedCSS,
-    entryPoints: ['modules/app/internal/css/editor.css'],
-    outfile: 'modules/app/internal/public/editor.bundle.css',
-  },
-  {
-    ...sharedJS,
-    entryPoints: ['modules/app/internal/doc-list/doc-list.ts'],
-    outfile: 'modules/app/internal/public/doc-list.bundle.js',
-  },
-  {
-    ...sharedCSS,
-    entryPoints: ['modules/app/internal/css/doc-list.css'],
-    outfile: 'modules/app/internal/public/doc-list.bundle.css',
-  },
-  {
-    ...sharedJS,
-    entryPoints: ['modules/app-sheets/internal/spreadsheet-editor.ts'],
-    entryPoints: ['modules/app/internal/spreadsheet-editor.ts'],
-    outfile: 'modules/app/internal/public/spreadsheet.bundle.js',
-  },
-  {
-    ...sharedCSS,
-    entryPoints: ['modules/app-sheets/internal/css/spreadsheet.css'],
-    entryPoints: ['modules/app/internal/css/spreadsheet.css'],
-    outfile: 'modules/app/internal/public/spreadsheet.bundle.css',
-  },
-  {
-    ...sharedJS,
-    entryPoints: ['modules/app-slides/internal/presentation-editor.ts'],
-    entryPoints: ['modules/app/internal/presentation-editor.ts'],
-    outfile: 'modules/app/internal/public/presentation.bundle.js',
-  },
-  {
-    ...sharedCSS,
-    entryPoints: ['modules/app-slides/internal/css/presentation.css'],
-    entryPoints: ['modules/app/internal/css/presentation.css'],
-    outfile: 'modules/app/internal/public/presentation.bundle.css',
-  },
-  {
-    ...sharedJS,
-    entryPoints: ['modules/app-admin/internal/admin-dashboard.ts'],
-    outfile: 'modules/app/internal/public/admin.bundle.js',
-  },
-  {
-    ...sharedCSS,
-    entryPoints: ['modules/app-admin/internal/css/admin.css'],
-    outfile: 'modules/app/internal/public/admin.bundle.css',
-  },
-  {
-    ...sharedJS,
-    entryPoints: ['modules/app/internal/share-resolve.ts'],
-    outfile: 'modules/app/internal/public/share-resolve.bundle.js',
-  },
-  {
-    ...sharedJS,
-    entryPoints: ['modules/app/internal/admin-models/admin-models.ts'],
-    outfile: 'modules/app/internal/public/admin-models.bundle.js',
-  },
-  {
-    ...sharedCSS,
-    entryPoints: ['modules/app/internal/css/admin-models.css'],
-    outfile: 'modules/app/internal/public/admin-models.bundle.css',
-  },
-];
+const watchOptions = bundles.map((entry) =>
+  toEsbuildOptions(entry, { minify: false, sourcemap: false }),
+);
 
 const contexts = await Promise.all(
-  entries.map((entry) => esbuild.context(entry)),
+  watchOptions.map((opts) => esbuild.context(opts)),
 );
 
 await Promise.all(contexts.map((ctx) => ctx.watch()));
 
-console.log('[watch-frontend] watching all frontend entry points...');
+console.log(`[watch-frontend] watching ${contexts.length} entry points...`);
 
-process.on('SIGINT', async () => {
+async function shutdown() {
   await Promise.all(contexts.map((ctx) => ctx.dispose()));
   process.exit(0);
-});
+}
 
-process.on('SIGTERM', async () => {
-  await Promise.all(contexts.map((ctx) => ctx.dispose()));
-  process.exit(0);
-});
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
