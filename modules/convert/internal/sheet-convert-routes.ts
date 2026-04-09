@@ -1,50 +1,50 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/convert/rules.md */
 
 /**
- * API routes for presentation import/export via Collabora.
- * Mounted at /api/presentations/:id/convert-*.
+ * REST surface for spreadsheet import/export.
+ * - Import: POST /api/sheets/:id/import — accepts .xlsx, .ods, .csv
+ * - Export: POST /api/sheets/:id/export — exports to .xlsx, .ods, .csv
  */
 
 import { Router, raw, type Request, type Response } from 'express';
 import {
-  importSlideFile,
-  exportPresentation,
-  detectImportFormat,
-  isPresentationFormat,
-  isValidExportFormat,
-  getExportMimeType,
-  getExportExtension,
+  importSpreadsheet,
+  exportSpreadsheet,
+  detectSpreadsheetFormat,
+  isValidSpreadsheetExportFormat,
+  getSpreadsheetExportMime,
+  getSpreadsheetExportExt,
+  SpreadsheetImportError,
+  SpreadsheetExportError,
   CollaboraError,
-  SlideImportError,
-} from '../../convert/index.ts';
-import type { PresentationContent } from '../../document/contract/index.ts';
+} from '../index.ts';
 import { getDocument } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import { asyncHandler } from './async-handler.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
 import { createLogger } from '../../logger/index.ts';
 
-const log = createLogger('api:presentation-convert');
-const MAX_UPLOAD_SIZE = 100 * 1024 * 1024; // 100 MB for presentations
+const log = createLogger('api:sheet-convert');
+const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50 MB
 
-export type PresentationConvertRoutesOptions = {
+export type SheetConvertRoutesOptions = {
   permissions: PermissionsModule;
 };
 
-export function createPresentationConvertRoutes(
-  opts: PresentationConvertRoutesOptions,
+export function createSheetConvertRoutes(
+  opts: SheetConvertRoutesOptions,
 ): Router {
   const router = Router();
   const { permissions } = opts;
 
   router.post(
-    '/api/presentations/:id/convert-import',
+    '/api/sheets/:id/import',
     permissions.require('write'),
     raw({ type: '*/*', limit: MAX_UPLOAD_SIZE }),
     asyncHandler(handleImport),
   );
 
   router.post(
-    '/api/presentations/:id/convert-export',
+    '/api/sheets/:id/export',
     permissions.require('read'),
     asyncHandler(handleExport),
   );
@@ -56,7 +56,7 @@ async function handleImport(req: Request, res: Response): Promise<void> {
   const documentId = String(req.params.id);
   const doc = await getDocument(documentId);
   if (!doc) {
-    res.status(404).json({ error: 'Presentation not found' });
+    res.status(404).json({ error: 'Document not found' });
     return;
   }
 
@@ -70,24 +70,28 @@ async function handleImport(req: Request, res: Response): Promise<void> {
   }
 
   const rawFilename = req.headers['x-filename'];
-  const filename = (Array.isArray(rawFilename) ? rawFilename[0] : rawFilename) || 'upload.pptx';
+  const filename = (Array.isArray(rawFilename)
+    ? rawFilename[0]
+    : rawFilename) || 'upload.csv';
   const rawMime = req.headers['content-type'];
   const mimeType = Array.isArray(rawMime) ? rawMime[0] : rawMime;
-  const format = detectImportFormat(mimeType, filename);
+  const format = detectSpreadsheetFormat(mimeType, filename);
 
-  if (!format || !isPresentationFormat(format)) {
+  if (!format) {
     res.status(400).json({
-      error: 'Unsupported file format. Accepted: .pptx, .odp',
+      error: 'Unsupported file format. Accepted: .xlsx, .ods, .csv',
     });
     return;
   }
 
   try {
-    const result = await importSlideFile(fileBuffer, format, documentId, filename);
+    const result = await importSpreadsheet(fileBuffer, format, filename);
     res.json({
       ok: true,
-      documentId: result.documentId,
-      snapshot: result.snapshot,
+      documentId,
+      grid: result.grid,
+      rowCount: result.rowCount,
+      colCount: result.colCount,
     });
   } catch (err) {
     handleConvertError(res, err);
@@ -96,44 +100,45 @@ async function handleImport(req: Request, res: Response): Promise<void> {
 
 async function handleExport(req: Request, res: Response): Promise<void> {
   const documentId = String(req.params.id);
-  const { format, content } = (req.body || {}) as {
+  const { format, grid, title } = (req.body || {}) as {
     format?: string;
-    content?: PresentationContent;
+    grid?: string[][];
+    title?: string;
   };
 
-  const validFormats = ['pdf', 'pptx', 'odp'];
-  if (!format || !validFormats.includes(format) || !isValidExportFormat(format)) {
+  if (!format || !isValidSpreadsheetExportFormat(format)) {
     res.status(400).json({
-      error: 'format must be "pdf", "pptx", or "odp"',
+      error: 'format must be "xlsx", "ods", or "csv"',
     });
     return;
   }
 
-  if (!content || !content.slides) {
-    res.status(400).json({ error: 'content with slides array is required' });
+  if (!grid || !Array.isArray(grid)) {
+    res.status(400).json({ error: 'grid (2D array) is required' });
     return;
   }
 
   const doc = await getDocument(documentId);
   if (!doc) {
-    res.status(404).json({ error: 'Presentation not found' });
+    res.status(404).json({ error: 'Document not found' });
     return;
   }
 
   try {
-    const result = await exportPresentation(documentId, format, content);
-    const title = doc.title || 'presentation';
-    const ext = getExportExtension(format);
-    const mime = getExportMimeType(format);
-    const fname = `${title}.${ext}`;
+    const result = await exportSpreadsheet(
+      grid,
+      format,
+      title || doc.title || 'spreadsheet',
+    );
+    const ext = getSpreadsheetExportExt(format);
+    const mime = getSpreadsheetExportMime(format);
+    const fname = `${title || doc.title || 'spreadsheet'}.${ext}`;
 
     res.setHeader('Content-Type', mime);
     res.setHeader(
       'Content-Disposition',
       `attachment; filename="${encodeURIComponent(fname)}"`,
     );
-    res.setHeader('X-Export-Stale', String(result.stale));
-    res.setHeader('X-Export-At', result.exportedAt);
     res.send(result.fileBuffer);
   } catch (err) {
     handleConvertError(res, err);
@@ -148,10 +153,14 @@ function handleConvertError(res: Response, err: unknown): void {
     });
     return;
   }
-  if (err instanceof SlideImportError) {
+  if (err instanceof SpreadsheetImportError) {
     res.status(400).json({ error: err.message, code: err.code });
     return;
   }
-  log.error('unexpected error', { error: String(err) });
+  if (err instanceof SpreadsheetExportError) {
+    res.status(400).json({ error: err.message, code: err.code });
+    return;
+  }
+  log.error('unexpected sheet convert error', { error: String(err) });
   res.status(500).json({ error: 'Internal conversion error' });
 }

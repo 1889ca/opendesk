@@ -6,6 +6,8 @@ import { createDocumentRoutes } from './internal/document-routes.ts';
 import { createVersionRoutes } from './internal/version-routes.ts';
 import { createFolderRoutes, createMoveDocumentRoute } from './internal/folder-routes.ts';
 import { createExportRoutes } from './internal/export-routes.ts';
+import { createStarredRoutes } from './internal/starred-routes.ts';
+import { createGlobalSearchRoutes } from './internal/global-search-routes.ts';
 
 /**
  * Document module manifest.
@@ -62,6 +64,24 @@ export const manifest: OpenDeskManifest = {
       mount: '/api/documents',
       order: 60,
       factory: (ctx) => createExportRoutes({ permissions: ctx.permissions }),
+    },
+    {
+      mount: '/api/starred',
+      order: 70,
+      factory: (ctx) =>
+        createStarredRoutes({
+          permissions: ctx.permissions,
+          pool: ctx.pool,
+        }),
+    },
+    {
+      // Cross-type global search (documents, spreadsheets, presentations).
+      // The router declares its handler at '/' so the mount path IS the
+      // public URL — frontend calls /api/search?q=...
+      mount: '/api/search',
+      order: 80,
+      factory: (ctx) =>
+        createGlobalSearchRoutes({ permissions: ctx.permissions }),
     },
   ],
 };

@@ -1,11 +1,11 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/document/rules.md */
 
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { globalSearch as defaultGlobalSearch, type GlobalSearchResult } from '../../storage/index.ts';
 import { loadConfig } from '../../config/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import { asyncHandler } from './async-handler.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
 
 const GlobalSearchQuery = z.object({
   q: z.string().min(2).max(200),
