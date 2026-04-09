@@ -11,7 +11,7 @@ import {
   renderFolders,
   loadFolders,
 } from './folder-list.ts';
-import { renderDocuments } from './doc-list-render.ts';
+import { renderDocuments, renderDocumentsGrid } from './doc-list-render.ts';
 import {
   cacheDocListResponse,
   renderCachedDocuments,
@@ -102,14 +102,24 @@ export async function loadDocuments(
     const pagination = json.pagination ?? null;
 
     cacheDocListResponse(docs);
-    renderDocuments({
-      listEl,
-      docs,
-      onDelete: reload,
-      onNewDocument,
-      selectedIds: ls.selectedIds,
-      onSelectionChange: (ids) => { ls.selectedIds = ids; ls.bulkBar?.update(ids); },
-    });
+    if (ls.state.viewMode === 'grid') {
+      renderDocumentsGrid({
+        listEl,
+        docs,
+        onDelete: reload,
+        selectedIds: ls.selectedIds,
+        onSelectionChange: (ids) => { ls.selectedIds = ids; ls.bulkBar?.update(ids); },
+      });
+    } else {
+      renderDocuments({
+        listEl,
+        docs,
+        onDelete: reload,
+        onNewDocument,
+        selectedIds: ls.selectedIds,
+        onSelectionChange: (ids) => { ls.selectedIds = ids; ls.bulkBar?.update(ids); },
+      });
+    }
 
     if (pagination) {
       updateState({ totalPages: pagination.totalPages, page: pagination.page, totalCount: pagination.total });

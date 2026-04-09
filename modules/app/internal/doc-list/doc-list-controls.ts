@@ -9,6 +9,17 @@ import { t, type TranslationKey } from '../i18n/index.ts';
 
 export type SortOption = 'updated_at-desc' | 'created_at-desc' | 'title-asc' | 'title-desc';
 export type TypeFilter = 'all' | 'text' | 'spreadsheet' | 'presentation';
+export type ViewMode = 'list' | 'grid';
+
+const VIEW_MODE_KEY = 'opendesk-doc-view';
+
+export function loadViewMode(): ViewMode {
+  return (localStorage.getItem(VIEW_MODE_KEY) as ViewMode) ?? 'list';
+}
+
+function saveViewMode(mode: ViewMode): void {
+  localStorage.setItem(VIEW_MODE_KEY, mode);
+}
 
 export interface DocListState {
   sort: SortOption;
@@ -16,6 +27,7 @@ export interface DocListState {
   page: number;
   totalPages: number;
   totalCount?: number;
+  viewMode: ViewMode;
 }
 
 const PAGE_SIZE = 20;
@@ -107,7 +119,30 @@ export function createControlsBar(
   });
 
   sortLabel.appendChild(sortSelect);
+  // View toggle (list / grid)
+  const viewToggle = document.createElement('div');
+  viewToggle.className = 'doc-list-view-toggle';
+  viewToggle.setAttribute('role', 'group');
+  viewToggle.setAttribute('aria-label', 'View mode');
+
+  for (const mode of ['list', 'grid'] as const) {
+    const btn = document.createElement('button');
+    btn.className = 'doc-list-view-btn' + (state.viewMode === mode ? ' active' : '');
+    btn.dataset.view = mode;
+    btn.setAttribute('aria-pressed', String(state.viewMode === mode));
+    btn.setAttribute('aria-label', mode === 'list' ? 'List view' : 'Grid view');
+    btn.innerHTML = mode === 'list'
+      ? '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="1" y="2" width="14" height="2.5" rx="1"/><rect x="1" y="6.75" width="14" height="2.5" rx="1"/><rect x="1" y="11.5" width="14" height="2.5" rx="1"/></svg>'
+      : '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>';
+    btn.addEventListener('click', () => {
+      saveViewMode(mode);
+      onChange({ viewMode: mode });
+    });
+    viewToggle.appendChild(btn);
+  }
+
   bar.appendChild(filterGroup);
+  bar.appendChild(viewToggle);
   bar.appendChild(sortLabel);
 
   return bar;
