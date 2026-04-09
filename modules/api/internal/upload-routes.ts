@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3, getS3Bucket } from './s3-client.ts';
 import { asyncHandler } from './async-handler.ts';
+import { matchesImageMagic } from './image-magic.ts';
 import { createLogger } from '../../logger/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 
@@ -72,6 +73,20 @@ export function createUploadRoutes(opts: UploadRoutesOptions): Router {
       const file = req.file;
       if (!file) {
         res.status(400).json({ error: 'No file provided' });
+        return;
+      }
+
+      // Issue #132: the multipart Content-Type is attacker-controlled.
+      // Verify the file's actual magic bytes match the claimed MIME
+      // before persisting it. multer's fileFilter already restricted
+      // the claimed MIME to ALLOWED_TYPES; this layer checks the
+      // bytes inside the buffer agree.
+      if (!matchesImageMagic(file.buffer, file.mimetype)) {
+        log.warn('upload rejected — content does not match claimed MIME', {
+          claimed: file.mimetype,
+          size: file.size,
+        });
+        res.status(400).json({ error: 'File content does not match claimed type' });
         return;
       }
 
