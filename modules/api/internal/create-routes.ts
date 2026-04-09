@@ -20,12 +20,6 @@ import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts'
 import { createSearchRoutes } from './search-routes.ts';
 import { createReferenceRoutes } from './reference-routes.ts';
 import { createImportExportRoutes } from './reference-import-routes.ts';
-import { createEntityRoutes } from './entity-routes.ts';
-import { createKBEntryRoutes } from './kb-entry-routes.ts';
-import { createKBDatasetRoutes } from './kb-dataset-routes.ts';
-import { createKBSnapshotRoutes } from './kb-snapshot-routes.ts';
-import { createKbRoutes } from './kb-routes.ts';
-import { createKbVersionRoutes } from './kb-version-routes.ts';
 import { createShareRoutes } from '../../sharing/index.ts';
 import { createMetricsRoutes, createTelemetryMiddleware } from '../../observability/index.ts';
 import {
@@ -135,22 +129,6 @@ export async function mountRoutes(deps: RouteDependencies): Promise<{ shutdown: 
   app.use('/api/templates', createTemplateRoutes({ permissions, authMode }));
   app.use('/api/references', createReferenceRoutes({ permissions }));
   app.use('/api/references', createImportExportRoutes({ permissions }));
-
-  // KB browser routes (CRUD + lifecycle — used by kb.html)
-  app.use('/api/kb', createKbRoutes({ permissions }));
-  app.use('/api/kb', createKbVersionRoutes({ permissions }));
-
-  // KB entry routes (generalized knowledge base entries + relationships)
-  app.use('/api/kb/entries', createKBEntryRoutes({ permissions }));
-
-  // KB dataset row routes (nested under entries)
-  app.use('/api/kb/entries/:entryId/rows', createKBDatasetRoutes({ permissions }));
-
-  // KB snapshot routes (immutable entry-version captures)
-  app.use('/api/kb/snapshots', createKBSnapshotRoutes({ permissions }));
-
-  // KB entity directory routes
-  app.use('/api/kb/entities', createEntityRoutes({ permissions }));
 
   // Manifest-driven routes: every module that has been migrated to
   // modules/<name>/manifest.ts is mounted here in one shot. The

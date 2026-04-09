@@ -1,10 +1,10 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/kb/rules.md */
 
 import { Router, type Request, type Response } from 'express';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import { asyncHandler } from './async-handler.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
 import {
   createEntry,
   getEntry,
@@ -13,10 +13,10 @@ import {
   updateEntry,
   deleteEntry,
   transitionStatus,
-} from '../../kb/internal/pg-entries.ts';
-import { validateTransition } from '../../kb/internal/lifecycle.ts';
-import { KbEntryStatusSchema } from '../../kb/contract.ts';
-import { CreateEntryInputSchema as KbEntryCreateInputSchema, UpdateEntryInputSchema as KbEntryUpdateInputSchema } from '../../kb/internal/schemas.ts';
+} from './pg-entries.ts';
+import { validateTransition } from './lifecycle.ts';
+import { KbEntryStatusSchema } from '../contract.ts';
+import { CreateEntryInputSchema as KbEntryCreateInputSchema, UpdateEntryInputSchema as KbEntryUpdateInputSchema } from './schemas.ts';
 
 const TransitionBody = z.object({
   to: KbEntryStatusSchema,

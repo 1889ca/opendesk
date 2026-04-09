@@ -1,9 +1,9 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/kb/rules.md */
 
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import { asyncHandler } from './async-handler.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
 import {
   getEntry,
   insertRows,
@@ -12,7 +12,7 @@ import {
   updateRow,
   deleteRow,
   replaceRows,
-} from '../../kb/index.ts';
+} from '../index.ts';
 
 const WORKSPACE_ID = '00000000-0000-0000-0000-000000000000';
 

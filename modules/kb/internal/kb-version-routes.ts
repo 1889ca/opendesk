@@ -1,11 +1,11 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/kb/rules.md */
 
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import { asyncHandler } from './async-handler.ts';
-import { listVersions as listEntryVersions, getVersion as getEntryVersion } from '../../kb/internal/pg-versions.ts';
-import { resolveReference, parseKbUri } from '../../kb/internal/resolve-ref.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
+import { listVersions as listEntryVersions, getVersion as getEntryVersion } from './pg-versions.ts';
+import { resolveReference, parseKbUri } from './resolve-ref.ts';
 
 const ResolveBody = z.object({
   uri: z.string().optional(),

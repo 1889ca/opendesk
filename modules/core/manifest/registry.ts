@@ -6,6 +6,7 @@ import { manifest as auditManifest } from '../../audit/manifest.ts';
 import { manifest as convertManifest } from '../../convert/manifest.ts';
 import { manifest as erasureManifest } from '../../erasure/manifest.ts';
 import { manifest as federationManifest } from '../../federation/manifest.ts';
+import { manifest as kbManifest } from '../../kb/manifest.ts';
 import { manifest as notificationsManifest } from '../../notifications/manifest.ts';
 import { manifest as workflowManifest } from '../../workflow/manifest.ts';
 
@@ -29,6 +30,7 @@ export const manifests: OpenDeskManifest[] = [
   convertManifest,
   erasureManifest,
   federationManifest,
+  kbManifest,
   notificationsManifest,
   workflowManifest,
 ];
