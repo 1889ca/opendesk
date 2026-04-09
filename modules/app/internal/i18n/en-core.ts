@@ -176,6 +176,8 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'dragHandle.tooltip': 'Drag to reorder',
 
   // Promote to KB
+  'toolbar.fontSize': 'Size',
+  'a11y.fontSizeLabel': 'Font size',
   'toolbar.saveToKb': 'Save to KB',
   'promoteKb.title': 'Save to Knowledge Base',
   'promoteKb.noteTitle': 'Title',

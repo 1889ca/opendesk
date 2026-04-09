@@ -10,6 +10,7 @@ import { announce } from '../shared/a11y-announcer.ts';
 import { enableToolbarNavigation, updateRovingTabindex } from './toolbar-nav.ts';
 import { openShortcutDialog } from '../shared/shortcut-dialog.ts';
 import { getIcon } from './toolbar-icons.ts';
+import { FONT_SIZES } from './font-size.ts';
 
 interface ToolbarButton {
   key: TranslationKey | null;
@@ -163,6 +164,34 @@ function addShortcutButton(toolbar: HTMLElement): void {
   toolbar.appendChild(btn);
 }
 
+function buildFontSizeSelect(editor: Editor): HTMLElement {
+  const select = document.createElement('select');
+  select.className = 'toolbar-select';
+  select.setAttribute('aria-label', t('a11y.fontSizeLabel'));
+  select.setAttribute('title', t('toolbar.fontSize'));
+
+  for (const size of FONT_SIZES) {
+    const option = document.createElement('option');
+    option.value = size;
+    option.textContent = size;
+    select.appendChild(option);
+  }
+
+  select.addEventListener('change', () => {
+    editor.chain().focus().setFontSize(select.value).run();
+  });
+
+  const updateValue = () => {
+    const attrs = editor.getAttributes('fontSize');
+    select.value = (attrs.fontSize as string | undefined) ?? '';
+  };
+
+  editor.on('selectionUpdate', updateValue);
+  editor.on('transaction', updateValue);
+
+  return select;
+}
+
 /** Build the main formatting toolbar with all editor actions. */
 export function buildFormattingToolbar(editor: Editor): void {
   const toolbar = document.getElementById('formatting-toolbar');
@@ -173,6 +202,11 @@ export function buildFormattingToolbar(editor: Editor): void {
   const render = () => {
     toolbar.innerHTML = '';
     renderToolbarButtons(toolbar, buildToolbarButtons(editor), editor);
+    // Insert font-size select after the undo/redo separator (position 3)
+    const fontSizeSelect = buildFontSizeSelect(editor);
+    const children = Array.from(toolbar.children);
+    const insertBefore = children[3] ?? null;
+    toolbar.insertBefore(fontSizeSelect, insertBefore);
     addShortcutButton(toolbar);
     updateRovingTabindex(toolbar);
   };

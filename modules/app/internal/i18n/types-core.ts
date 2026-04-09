@@ -85,6 +85,8 @@ export interface CoreTranslationKeys {
   'time.monthsAgo': string;
 
   // Promote to KB
+  'toolbar.fontSize': string;
+  'a11y.fontSizeLabel': string;
   'toolbar.saveToKb': string;
   'promoteKb.title': string;
   'promoteKb.noteTitle': string;

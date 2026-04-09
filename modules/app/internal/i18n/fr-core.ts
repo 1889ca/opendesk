@@ -176,6 +176,8 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'dragHandle.tooltip': 'Glisser pour r\u00e9ordonner',
 
   // Promotion vers la base de connaissances
+  'toolbar.fontSize': 'Taille',
+  'a11y.fontSizeLabel': 'Taille de police',
   'toolbar.saveToKb': 'Sauver dans BC',
   'promoteKb.title': 'Sauvegarder dans la base de connaissances',
   'promoteKb.noteTitle': 'Titre',

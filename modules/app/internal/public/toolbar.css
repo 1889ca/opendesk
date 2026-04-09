@@ -154,6 +154,35 @@
   border-width: 0;
 }
 
+.toolbar-select {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.2rem 0.25rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  outline: none;
+  height: 1.75rem;
+  max-width: 4rem;
+  transition: border-color 0.1s, color 0.1s;
+  -webkit-appearance: none;
+  appearance: none;
+  text-align: center;
+}
+
+.toolbar-select:hover {
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.toolbar-select:focus {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
 /* Export Buttons */
 .export-group {
   display: flex;
