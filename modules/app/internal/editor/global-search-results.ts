@@ -96,7 +96,9 @@ export function renderGroupedResults(
 
   const countEl = document.createElement('div');
   countEl.className = 'search-results-count';
-  countEl.textContent = t('search.resultCount', { count: data.total });
+  countEl.textContent = data.total === 1
+    ? t('search.resultCountOne')
+    : t('search.resultCount', { count: data.total });
   container.appendChild(countEl);
 
   const typeOrder = ['document', 'spreadsheet', 'presentation', 'kb'];

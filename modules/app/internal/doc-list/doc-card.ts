@@ -42,7 +42,7 @@ export function renderDocumentsGrid(options: RenderDocumentsGridOptions): void {
     section.className = 'doc-list-section';
     const heading = document.createElement('h2');
     heading.className = 'doc-list-section-heading';
-    heading.textContent = 'Starred';
+    heading.textContent = t('docList.starred');
     section.appendChild(heading);
     const grid = document.createElement('div');
     grid.className = 'doc-grid';
@@ -124,12 +124,6 @@ function buildDocCard(
   starBtn.setAttribute('aria-label', isStarred ? 'Unstar document' : 'Star document');
   starBtn.addEventListener('click', (e) => { e.preventDefault(); toggleStar(doc.id); onStarToggle(); });
 
-  const deleteBtn = document.createElement('button');
-  deleteBtn.className = 'btn btn-delete';
-  deleteBtn.textContent = t('docList.delete');
-  deleteBtn.setAttribute('aria-label', t('docList.deleteAriaLabel', { name: docName }));
-  deleteBtn.addEventListener('click', (e) => { e.preventDefault(); cardConfirmDelete(doc.id, docName, onDelete); });
-
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   checkbox.className = 'doc-card-checkbox';
@@ -142,7 +136,7 @@ function buildDocCard(
     onSelectionChange(next);
   });
 
-  overlay.append(checkbox, starBtn, deleteBtn);
+  overlay.append(checkbox, starBtn);
   card.append(link, header, footer, overlay);
 
   attachContextMenu(card, doc, {

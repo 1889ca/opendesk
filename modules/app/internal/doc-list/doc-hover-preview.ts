@@ -42,24 +42,16 @@ function showPreview(text: string, x: number, y: number): void {
  */
 export function attachHoverPreview(wrapper: HTMLElement, docId: string): void {
   let timer: ReturnType<typeof setTimeout> | null = null;
-  let lastX = 0;
-  let lastY = 0;
 
-  wrapper.addEventListener('mousemove', (e) => {
-    lastX = e.clientX;
-    lastY = e.clientY;
-  });
-
-  wrapper.addEventListener('mouseenter', (e) => {
-    lastX = e.clientX;
-    lastY = e.clientY;
+  wrapper.addEventListener('mouseenter', () => {
     timer = setTimeout(async () => {
       try {
         const res = await apiFetch('/api/documents/' + encodeURIComponent(docId) + '/preview');
         if (!res.ok) return;
         const data = await res.json() as { preview?: string };
         if (data.preview !== undefined) {
-          showPreview(data.preview, lastX, lastY);
+          const rect = wrapper.getBoundingClientRect();
+          showPreview(data.preview, rect.right, rect.top);
         }
       } catch {
         // Preview fetch failed silently

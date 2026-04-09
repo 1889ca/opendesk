@@ -40,6 +40,7 @@ export interface FeatureTranslationKeys {
   'search.noResults': string;
   'search.searching': string;
   'search.resultCount': string;
+  'search.resultCountOne': string;
   'search.shortcut': string;
   'search.tipTitle': string;
   'search.tipContent': string;

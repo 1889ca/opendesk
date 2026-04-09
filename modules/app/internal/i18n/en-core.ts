@@ -56,6 +56,7 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'docList.nextPage': 'Next',
   'docList.count': '{n} documents',
   'docList.countFiltered': '{n} matching',
+  'docList.starred': 'Starred',
   'time.justNow': 'just now',
   'time.secondsAgo': '{n} seconds ago',
   'time.minuteAgo': '1 minute ago',

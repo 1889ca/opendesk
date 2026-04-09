@@ -69,7 +69,6 @@ async function init() {
 
   const sidebarSlot = document.getElementById('workspace-sidebar');
   if (sidebarSlot) sidebarSlot.replaceWith(buildWorkspaceSidebar());
-  buildThemeToggle();
   buildNotificationBell();
 
   const listEl = document.getElementById('doc-list');

@@ -67,7 +67,7 @@ export function renderDocuments(options: RenderDocumentsOptions): void {
     section.className = 'doc-list-section';
     const heading = document.createElement('h2');
     heading.className = 'doc-list-section-heading';
-    heading.textContent = 'Starred';
+    heading.textContent = t('docList.starred');
     section.appendChild(heading);
     for (const doc of starredDocs) {
       section.appendChild(buildDocRow(doc, onDelete, rerender, selectedIds, onSelectionChange));
@@ -145,13 +145,7 @@ function buildDocRow(
   starBtn.setAttribute('aria-label', isStarred ? 'Unstar document' : 'Star document');
   starBtn.addEventListener('click', () => { toggleStar(doc.id); onStarToggle(); });
 
-  const deleteBtn = document.createElement('button');
-  deleteBtn.className = 'btn btn-delete';
-  deleteBtn.textContent = t('docList.delete');
-  deleteBtn.setAttribute('aria-label', t('docList.deleteAriaLabel', { name: docName }));
-  deleteBtn.addEventListener('click', () => confirmAndDelete(doc.id, docName, onDelete));
-
-  wrapper.append(checkLabel, row, starBtn, deleteBtn);
+  wrapper.append(checkLabel, row, starBtn);
 
   attachContextMenu(wrapper, doc, {
     onOpen: () => { window.location.href = meta.editor + '?doc=' + encodeURIComponent(doc.id); },

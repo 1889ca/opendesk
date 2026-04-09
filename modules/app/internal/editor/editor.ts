@@ -174,7 +174,12 @@ async function init() {
   const toolbarLeft = document.querySelector('.toolbar-left');
   if (toolbarLeft) toolbarLeft.appendChild(buildSaveIndicator(editor));
 
-  trackRecentDoc({ id: documentId, title: 'Document' });
+  apiFetch(`/api/documents/${encodeURIComponent(documentId)}`)
+    .then((res) => (res.ok ? res.json() : null))
+    .then((doc: { title?: string; document_type?: string } | null) => {
+      if (doc) trackRecentDoc({ id: documentId, title: doc.title || 'Untitled', document_type: doc.document_type });
+    })
+    .catch(() => {});
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
 

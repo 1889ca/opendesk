@@ -9,6 +9,8 @@
 import { apiFetch } from '../shared/api-client.ts';
 import { t } from '../i18n/index.ts';
 import { showNameDialog } from './name-dialog.ts';
+import { showDeleteConfirmDialog } from './delete-confirm-dialog.ts';
+import { showToast } from '../shared/toast.ts';
 import { toggleStar, getStarred } from './starred-store.ts';
 import { TYPE_META, type DocEntry } from './doc-row.ts';
 
@@ -178,6 +180,13 @@ export function buildContextCallbacks(
       }
     },
 
-    onDelete: onRefresh,
+    onDelete: async () => {
+      if (!await showDeleteConfirmDialog(doc.title || '')) return;
+      try {
+        await apiFetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' });
+        showToast('Document deleted', 'success');
+        onRefresh();
+      } catch (err) { console.error('Delete failed', err); }
+    },
   };
 }

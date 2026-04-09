@@ -5,16 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenDesk</title>
   <link rel="stylesheet" href="doc-list.bundle.css">
-  <script>
-    // Apply stored theme immediately to prevent flash of wrong theme
-    (function() {
-      var stored = localStorage.getItem('opendesk-theme');
-      var theme = stored === 'dark' ? 'dark'
-        : stored === 'light' ? 'light'
-        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      document.documentElement.setAttribute('data-theme', theme);
-    })();
-  </script>
+  <script src="theme-init.js"></script>
 </head>
 <body class="has-ws-sidebar">
   <div id="workspace-sidebar"></div>
@@ -40,8 +31,8 @@
       <a href="/kb.html" class="btn btn-secondary">Knowledge Base</a>
       <div class="new-doc-group">
         <button id="new-doc-btn" class="btn btn-primary" data-type="text">New Document</button>
-        <button id="new-sheet-btn" class="btn btn-secondary" data-type="spreadsheet" hidden>New Spreadsheet</button>
-        <button id="new-slides-btn" class="btn btn-secondary" data-type="presentation" hidden>New Presentation</button>
+        <button id="new-sheet-btn" class="btn btn-secondary" data-type="spreadsheet">New Spreadsheet</button>
+        <button id="new-slides-btn" class="btn btn-secondary" data-type="presentation">New Presentation</button>
       </div>
     </div>
   </header>
