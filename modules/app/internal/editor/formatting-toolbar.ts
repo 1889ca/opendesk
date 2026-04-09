@@ -11,7 +11,7 @@ import { enableToolbarNavigation, updateRovingTabindex } from './toolbar-nav.ts'
 import { openShortcutDialog } from '../shared/shortcut-dialog.ts';
 import { getIcon } from './toolbar-icons.ts';
 import { buildTextColorBtn } from './toolbar-color-btn.ts';
-import { buildFontSizeSelect, buildLineHeightSelect } from './toolbar-selects.ts';
+import { buildFontFamilySelect, buildFontSizeSelect, buildLineHeightSelect } from './toolbar-selects.ts';
 
 interface ToolbarButton {
   key: TranslationKey | null;
@@ -177,11 +177,13 @@ export function buildFormattingToolbar(editor: Editor): void {
   const render = () => {
     toolbar.innerHTML = '';
     renderToolbarButtons(toolbar, buildToolbarButtons(editor), editor);
-    // Insert font-size select after the undo/redo separator (position 3)
+    // Insert font-family select and font-size select after the undo/redo separator (position 3)
+    const fontFamilySelect = buildFontFamilySelect(editor);
     const fontSizeSelect = buildFontSizeSelect(editor);
     const children = Array.from(toolbar.children);
     const insertBefore = children[3] ?? null;
-    toolbar.insertBefore(fontSizeSelect, insertBefore);
+    toolbar.insertBefore(fontFamilySelect, insertBefore);
+    toolbar.insertBefore(fontSizeSelect, fontFamilySelect.nextSibling);
     // Insert line-height select right after the font-size select
     const lineHeightSelect = buildLineHeightSelect(editor);
     toolbar.insertBefore(lineHeightSelect, fontSizeSelect.nextSibling);

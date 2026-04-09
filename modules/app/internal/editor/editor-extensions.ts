@@ -28,6 +28,7 @@ import { DragHandle } from './drag-handle/index.ts';
 import { createEntityMentionExtension } from './entity-mentions/index.ts';
 import { TextAlign } from './text-align.ts';
 import { FontSize } from './font-size.ts';
+import { FontFamily } from './font-family.ts';
 import { LineHeight } from './line-height.ts';
 import { YHistory } from './y-history.ts';
 import { TextColor } from './text-color.ts';
@@ -72,6 +73,7 @@ export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
     createEntityMentionExtension(),
     DragHandle,
     TextAlign,
+    FontFamily,
     FontSize,
     LineHeight,
     TextColor,

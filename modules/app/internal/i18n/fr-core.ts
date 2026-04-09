@@ -105,6 +105,7 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'stats.minRead': '< 1 min de lecture',
   'dragHandle.tooltip': 'Glisser pour r\u00e9ordonner',
   'toolbar.fontFamily': 'Police',
+  'a11y.fontFamilyLabel': 'Famille de police',
   'toolbar.fontSize': 'Taille',
   'toolbar.lineHeight': 'Interligne',
   'toolbar.textColor': 'Couleur',
