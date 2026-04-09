@@ -24,6 +24,8 @@ export interface FeatureTranslationKeys {
   'image.insertTitle': string;
   'search.find': string;
   'search.replace': string;
+  'search.findLabel': string;
+  'search.replaceLabel': string;
   'search.findNext': string;
   'search.findPrev': string;
   'search.replaceOne': string;

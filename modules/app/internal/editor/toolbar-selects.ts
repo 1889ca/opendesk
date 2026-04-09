@@ -51,31 +51,57 @@ export function buildFontFamilySelect(editor: Editor): HTMLElement {
 }
 
 export function buildFontSizeSelect(editor: Editor): HTMLElement {
-  const select = document.createElement('select');
-  select.className = 'toolbar-select';
-  select.setAttribute('aria-label', t('a11y.fontSizeLabel'));
-  select.setAttribute('title', t('toolbar.fontSize'));
+  const wrapper = document.createElement('span');
+  wrapper.style.position = 'relative';
 
+  const datalist = document.createElement('datalist');
+  datalist.id = 'font-size-options';
   for (const size of FONT_SIZES) {
     const option = document.createElement('option');
     option.value = size;
-    option.textContent = size;
-    select.appendChild(option);
+    datalist.appendChild(option);
   }
 
-  select.addEventListener('change', () => {
-    editor.chain().focus().setFontSize(select.value).run();
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.className = 'toolbar-select toolbar-select--size';
+  input.setAttribute('aria-label', t('a11y.fontSizeLabel'));
+  input.setAttribute('title', t('toolbar.fontSize'));
+  input.setAttribute('min', '6');
+  input.setAttribute('max', '96');
+  input.setAttribute('step', '1');
+  input.setAttribute('list', 'font-size-options');
+  input.value = '14';
+
+  input.addEventListener('change', () => {
+    editor.chain().focus().setFontSize(String(input.value)).run();
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      editor.chain().focus().setFontSize(String(input.value)).run();
+      editor.commands.focus();
+    }
+    if (e.key === 'Escape') {
+      const attrs = editor.getAttributes('fontSize');
+      input.value = (attrs.fontSize as string | undefined) ?? '14';
+      editor.commands.focus();
+    }
   });
 
   const updateValue = () => {
     const attrs = editor.getAttributes('fontSize');
-    select.value = (attrs.fontSize as string | undefined) ?? '';
+    input.value = (attrs.fontSize as string | undefined) ?? '14';
   };
 
   editor.on('selectionUpdate', updateValue);
   editor.on('transaction', updateValue);
 
-  return select;
+  wrapper.appendChild(datalist);
+  wrapper.appendChild(input);
+  return wrapper;
 }
 
 export function buildLineHeightSelect(editor: Editor): HTMLElement {
@@ -102,6 +128,43 @@ export function buildLineHeightSelect(editor: Editor): HTMLElement {
 
   editor.on('selectionUpdate', updateValue);
   editor.on('transaction', updateValue);
+
+  return select;
+}
+
+const PARA_SPACINGS = [
+  { label: 'Compact', value: '0.25rem' },
+  { label: 'Normal', value: '0.5rem' },
+  { label: 'Relaxed', value: '1rem' },
+  { label: 'Spacious', value: '1.5rem' },
+];
+const PARA_SPACING_KEY = 'opendesk-para-spacing';
+
+export function buildParagraphSpacingSelect(_editor: Editor): HTMLElement {
+  const select = document.createElement('select');
+  select.className = 'toolbar-select';
+  select.setAttribute('aria-label', 'Paragraph spacing');
+  select.setAttribute('title', 'Paragraph spacing');
+
+  for (const s of PARA_SPACINGS) {
+    const opt = document.createElement('option');
+    opt.value = s.value;
+    opt.textContent = s.label;
+    select.appendChild(opt);
+  }
+
+  function applySpacing(v: string): void {
+    document.documentElement.style.setProperty('--editor-para-spacing', v);
+  }
+
+  const saved = localStorage.getItem(PARA_SPACING_KEY) || '0.5rem';
+  select.value = saved;
+  applySpacing(saved);
+
+  select.addEventListener('change', () => {
+    applySpacing(select.value);
+    localStorage.setItem(PARA_SPACING_KEY, select.value);
+  });
 
   return select;
 }

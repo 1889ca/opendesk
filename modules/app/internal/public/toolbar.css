@@ -244,6 +244,26 @@
   text-align: left;
 }
 
+.toolbar-select--size {
+  width: 4rem;
+  max-width: 4rem;
+  text-align: center;
+  -webkit-appearance: none;
+  appearance: none;
+  /* hide the number spinner in Chrome/Safari/Firefox */
+}
+
+.toolbar-select--size::-webkit-inner-spin-button,
+.toolbar-select--size::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+.toolbar-select--size[type=number] {
+  -moz-appearance: textfield;
+}
+
 /* Export Buttons */
 .export-group {
   display: flex;
