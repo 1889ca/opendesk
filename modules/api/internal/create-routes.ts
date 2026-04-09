@@ -13,7 +13,7 @@ import { createAdminRoutes } from './admin-routes.ts';
 import { createUploadRoutes } from './upload-routes.ts';
 import { createFileRoutes } from './file-routes.ts';
 import { createShareRoutes } from '../../sharing/index.ts';
-import { createMetricsRoutes, createTelemetryMiddleware } from '../../observability/index.ts';
+import { createTelemetryMiddleware } from '../../observability/index.ts';
 import {
   manifests,
   filterEnabled,
@@ -134,9 +134,6 @@ export async function mountRoutes(deps: RouteDependencies): Promise<{ shutdown: 
 
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
-
-  // Observability metrics routes
-  app.use('/api/admin/metrics', createMetricsRoutes({ observability, permissions, pool }));
 
   // Share link routes (create, resolve, revoke) — after auth
   app.use(createShareRoutes({
