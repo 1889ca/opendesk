@@ -90,29 +90,41 @@ function buildRlsConfig(): pg.PoolConfig {
 /**
  * Ensure an unprivileged role exists with the right grants on the
  * RLS-protected tables. Idempotent.
+ *
+ * Race-safety: must be called inside the advisory lock held by
+ * initPools. Vitest runs test files in parallel workers, and each
+ * worker tries to bootstrap the same role / schema, so naked
+ * IF NOT EXISTS checks race against each other.
  */
 async function ensureRlsRole(adminPool: pg.Pool): Promise<void> {
-  // CREATE ROLE is not idempotent in vanilla SQL — wrap in DO so we
-  // skip if it already exists.
-  await adminPool.query(`
-    DO $$
-    BEGIN
-      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '${RLS_ROLE}') THEN
-        CREATE ROLE ${RLS_ROLE}
-          LOGIN
-          PASSWORD '${RLS_PASSWORD}'
-          NOSUPERUSER
-          NOBYPASSRLS
-          NOINHERIT;
-      END IF;
-    END $$;
-  `);
+  try {
+    await adminPool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '${RLS_ROLE}') THEN
+          CREATE ROLE ${RLS_ROLE}
+            LOGIN
+            PASSWORD '${RLS_PASSWORD}'
+            NOSUPERUSER
+            NOBYPASSRLS
+            NOINHERIT;
+        END IF;
+      END $$;
+    `);
+  } catch (err) {
+    // Defensive: catch the duplicate-role race in case the advisory
+    // lock somehow fails to serialize. SQLSTATE 42710 = duplicate
+    // object, 23505 = unique violation.
+    const code = (err as { code?: string })?.code;
+    if (code !== '42710' && code !== '23505') throw err;
+  }
 
-  // Grant the role enough permission to exercise the production code
-  // paths the tests cover. We deliberately do NOT grant ownership —
-  // RLS should still apply. TRUNCATE is included so per-test cleanup
-  // works without an extra admin trip; DROP / CREATE remain
-  // owner-only and use the adminPool when needed.
+  // Grant the role enough permission to exercise the production
+  // code paths the tests cover. We deliberately do NOT grant
+  // ownership — RLS should still apply. TRUNCATE is included so
+  // per-test cleanup works without an extra admin trip;
+  // DROP / CREATE remain owner-only and use the adminPool when
+  // needed. The grants themselves are idempotent.
   await adminPool.query(`
     GRANT USAGE ON SCHEMA public TO ${RLS_ROLE};
     GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public TO ${RLS_ROLE};
@@ -148,8 +160,26 @@ async function initPools(): Promise<void> {
     );
   }
 
-  await runMigrations(admin);
-  await ensureRlsRole(admin);
+  // Vitest runs test files in parallel workers, so multiple processes
+  // race to bootstrap the same database. Hold a Postgres advisory
+  // lock for the entire setup so only one worker runs migrations and
+  // role creation; the others wait, then no-op past the idempotency
+  // checks. 419442 is an arbitrary application-specific lock id.
+  // The lock is held on a single connection from the pool — we use
+  // .connect() so the lock is tied to that client and reliably
+  // released when we release it.
+  const lockClient = await admin.connect();
+  try {
+    await lockClient.query('SELECT pg_advisory_lock(419442)');
+    try {
+      await runMigrations(admin);
+      await ensureRlsRole(admin);
+    } finally {
+      await lockClient.query('SELECT pg_advisory_unlock(419442)');
+    }
+  } finally {
+    lockClient.release();
+  }
 
   const rls = new pg.Pool(buildRlsConfig());
   try {
