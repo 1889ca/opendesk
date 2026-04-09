@@ -34,10 +34,15 @@
       <div class="export-group">
         <button id="import-file" class="export-btn" title="Import .docx, .odt, or .pdf">Import</button>
         <span class="toolbar-separator"></span>
-        <button id="export-html" class="export-btn" title="Export as HTML">HTML</button>
-        <button id="export-text" class="export-btn" title="Export as plain text">Text</button>
-        <button id="export-docx" class="export-btn" title="Export as Word document">DOCX</button>
-        <button id="export-odt" class="export-btn" title="Export as OpenDocument">ODT</button>
+        <div class="export-dropdown">
+          <button class="export-btn export-dropdown-toggle" aria-haspopup="true" aria-expanded="false" title="Export document">Export &#9660;</button>
+          <div class="export-dropdown-menu" hidden>
+            <button id="export-html" class="export-dropdown-item" title="Export as HTML">HTML</button>
+            <button id="export-text" class="export-dropdown-item" title="Export as plain text">Text</button>
+            <button id="export-docx" class="export-dropdown-item" title="Export as Word document">DOCX</button>
+            <button id="export-odt" class="export-dropdown-item" title="Export as OpenDocument">ODT</button>
+          </div>
+        </div>
       </div>
       <span class="toolbar-separator"></span>
       <button id="share-btn" class="export-btn share-btn" title="Share this document">Share</button>
@@ -61,16 +66,42 @@
         <button id="share-close" class="share-close-btn" aria-label="Close">&times;</button>
       </div>
       <div class="share-body">
-        <label for="share-role">Permission level</label>
-        <select id="share-role">
-          <option value="viewer">Viewer</option>
-          <option value="commenter">Commenter</option>
-          <option value="editor">Editor</option>
-        </select>
+        <span class="share-role-label" id="share-role-label">Permission level</span>
+        <div
+          class="share-role-dropdown"
+          id="share-role-dropdown"
+          role="listbox"
+          aria-labelledby="share-role-label"
+          aria-expanded="false"
+          tabindex="0"
+        >
+          <div class="share-role-trigger" id="share-role-trigger" aria-hidden="true">
+            <span class="share-role-trigger-text">Viewer</span>
+            <span class="share-role-arrow" aria-hidden="true">&#9660;</span>
+          </div>
+          <ul class="share-role-menu" role="presentation">
+            <li class="share-role-option share-role-option--selected" role="option" data-value="viewer" aria-selected="true" tabindex="-1">
+              <span class="share-role-check" aria-hidden="true">&#10003;</span>
+              <span class="share-role-option-label">Viewer</span>
+              <span class="share-role-option-desc">Can read the document</span>
+            </li>
+            <li class="share-role-option" role="option" data-value="commenter" aria-selected="false" tabindex="-1">
+              <span class="share-role-check" aria-hidden="true">&#10003;</span>
+              <span class="share-role-option-label">Commenter</span>
+              <span class="share-role-option-desc">Can read and comment</span>
+            </li>
+            <li class="share-role-option" role="option" data-value="editor" aria-selected="false" tabindex="-1">
+              <span class="share-role-check" aria-hidden="true">&#10003;</span>
+              <span class="share-role-option-label">Editor</span>
+              <span class="share-role-option-desc">Can read, comment, and edit</span>
+            </li>
+          </ul>
+        </div>
+        <input type="hidden" id="share-role" value="viewer">
         <button id="share-create" class="share-create-btn">Create link</button>
         <div id="share-result" class="share-result" hidden>
           <input id="share-url" class="share-url" readonly>
-          <button id="share-copy" class="share-copy-btn">Copy</button>
+          <button id="share-copy" class="share-copy-btn">Copy link</button>
         </div>
       </div>
     </div>

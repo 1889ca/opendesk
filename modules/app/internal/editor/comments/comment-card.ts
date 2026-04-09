@@ -54,6 +54,10 @@ function buildCommentBody(comment: CommentData): HTMLElement {
   const timeEl = document.createElement('span');
   timeEl.className = 'comment-time';
   timeEl.textContent = formatCommentTime(comment.createdAt);
+  timeEl.title = new Date(comment.createdAt).toLocaleString(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
 
   meta.appendChild(authorEl);
   meta.appendChild(timeEl);
