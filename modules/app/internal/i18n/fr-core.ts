@@ -134,8 +134,11 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'shortcuts.showShortcuts': 'Afficher les raccourcis clavier',
 
   // Statistiques
+  'stats.word': '{count} mot',
   'stats.words': '{count} mots',
+  'stats.character': '{count} caract\u00e8re',
   'stats.characters': '{count} caract\u00e8res',
+  'stats.paragraph': '{count} paragraphe',
   'stats.paragraphs': '{count} paragraphes',
   'stats.readingTime': '~{time} min de lecture',
   'stats.selected': '{selected} sur {total} mots s\u00e9lectionn\u00e9s',

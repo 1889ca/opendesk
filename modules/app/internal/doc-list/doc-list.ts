@@ -16,6 +16,7 @@ import { buildNotificationBell } from '../shared/notification-bell.ts';
 import { buildWorkspaceSidebar } from '../shared/workspace-sidebar.ts';
 import { createGlobalSearch } from '../editor/global-search.ts';
 import { renderDocuments, TYPE_META } from './doc-list-render.ts';
+import { showNameDialog } from './name-dialog.ts';
 import {
   registerServiceWorker,
   buildOfflineIndicator,
@@ -70,7 +71,7 @@ async function loadAll(listEl: HTMLElement) {
 
 async function createTypedDocument(documentType: string): Promise<void> {
   const meta = TYPE_META[documentType] || TYPE_META.text;
-  const titleText = prompt(`${meta.label} title:`);
+  const titleText = await showNameDialog('docList.titlePrompt');
   if (!titleText) return;
   try {
     const res = await apiFetch('/api/documents', {
