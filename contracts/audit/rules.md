@@ -57,6 +57,10 @@ Append-only HMAC-chained audit log recording all domain events. Provides tamper-
 - Schema validation: Parse valid and invalid `AuditEntry` objects through Zod schemas, assert correct acceptance/rejection.
 - Cursor pagination: Insert entries, query with cursor, assert correct subset returned in correct order.
 
+## Related Modules
+
+- `erasure` -- Extends chain verification with erasure-bridge awareness. The erasure module reads `audit_log` data and uses `computeHash`/`verifyHash` from `hmac-chain.ts` to validate chains across content deletions. The audit module itself remains append-only and unmodified.
+
 ## MVP Scope
 
 Implemented:

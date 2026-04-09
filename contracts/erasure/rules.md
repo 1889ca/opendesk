@@ -70,10 +70,12 @@ Resolves the tension between GDPR/PIPEDA data erasure requirements and the HMAC-
 
 ## MVP Scope
 
-Planned:
-- [ ] Erasure bridge creation and HMAC signing
-- [ ] Redaction-aware chain verification (VALID / VALID_WITH_ERASURES / TAMPERED)
-- [ ] Legal hold CRUD and conflict detection
-- [ ] Jurisdiction-aware erasure policies (GDPR, PIPEDA, HIPAA)
-- [ ] Selective disclosure proof generation and verification
-- [ ] Migration for erasure_bridges and legal_holds tables
+Implemented:
+- [x] Erasure bridge creation and HMAC signing
+- [x] Redaction-aware chain verification (VALID / VALID_WITH_ERASURES / TAMPERED)
+- [x] Legal hold CRUD and conflict detection
+- [x] Jurisdiction-aware erasure policies (GDPR, PIPEDA, HIPAA)
+- [x] Selective disclosure proof generation and verification
+- [x] Migration for erasure_bridges and legal_holds tables
+- [x] Permission-gated API routes for all erasure operations
+- [x] 36 contract and unit tests
