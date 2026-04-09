@@ -69,6 +69,8 @@ export interface A11yTranslationKeys {
   'a11y.outdentLabel': string;
   'a11y.superscriptLabel': string;
   'a11y.subscriptLabel': string;
+  'a11y.highlightLabel': string;
+  'a11y.clearFormattingLabel': string;
   'shortcuts.underline': string;
   'shortcuts.superscript': string;
   'shortcuts.subscript': string;

@@ -32,6 +32,8 @@ import { FontFamily } from './font-family.ts';
 import { LineHeight } from './line-height.ts';
 import { YHistory } from './y-history.ts';
 import { TextColor } from './text-color.ts';
+import { TextHighlight } from './text-highlight.ts';
+import { TabIndent } from './tab-indent.ts';
 import { Superscript, Subscript } from './super-sub.ts';
 
 const lowlight = createLowlight(common);
@@ -77,6 +79,8 @@ export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
     FontSize,
     LineHeight,
     TextColor,
+    TextHighlight,
+    TabIndent,
     Superscript,
     Subscript,
     YHistory,

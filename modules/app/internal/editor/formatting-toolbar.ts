@@ -10,7 +10,7 @@ import { announce } from '../shared/a11y-announcer.ts';
 import { enableToolbarNavigation, updateRovingTabindex } from './toolbar-nav.ts';
 import { openShortcutDialog } from '../shared/shortcut-dialog.ts';
 import { getIcon } from './toolbar-icons.ts';
-import { buildTextColorBtn } from './toolbar-color-btn.ts';
+import { buildTextColorBtn, buildHighlightBtn } from './toolbar-color-btn.ts';
 import { buildFontFamilySelect, buildFontSizeSelect, buildLineHeightSelect } from './toolbar-selects.ts';
 
 interface ToolbarButton {
@@ -41,6 +41,7 @@ function buildToolbarButtons(editor: Editor): ToolbarButton[] {
     { key: 'toolbar.code', icon: 'inlineCode', ariaKey: 'a11y.codeLabel', titleKey: 'shortcuts.code', action: () => editor.chain().focus().toggleCode().run(), isActive: () => editor.isActive('code'), announceOnKey: 'a11y.codeOn', announceOffKey: 'a11y.codeOff' },
     { key: 'toolbar.superscript', icon: 'superscript', ariaKey: 'a11y.superscriptLabel', titleKey: 'shortcuts.superscript', action: () => editor.chain().focus().toggleSuperscript().run(), isActive: () => editor.isActive('superscript') },
     { key: 'toolbar.subscript', icon: 'subscript', ariaKey: 'a11y.subscriptLabel', titleKey: 'shortcuts.subscript', action: () => editor.chain().focus().toggleSubscript().run(), isActive: () => editor.isActive('subscript') },
+    { key: 'toolbar.clearFormatting', icon: 'clearFormatting', ariaKey: 'a11y.clearFormattingLabel', action: () => editor.chain().focus().clearNodes().unsetAllMarks().run() },
     { key: null, action: () => false },
     // ── Headings ──────────────────────────────────────────────────────
     { key: 'toolbar.heading1', icon: 'heading1', ariaKey: 'a11y.heading1Label', titleKey: 'shortcuts.heading1', action: () => editor.chain().focus().toggleHeading({ level: 1 }).run(), isActive: () => editor.isActive('heading', { level: 1 }) },
@@ -187,9 +188,11 @@ export function buildFormattingToolbar(editor: Editor): void {
     // Insert line-height select right after the font-size select
     const lineHeightSelect = buildLineHeightSelect(editor);
     toolbar.insertBefore(lineHeightSelect, fontSizeSelect.nextSibling);
-    // Append text color button before the shortcuts button
+    // Append text color and highlight buttons before the shortcuts button
     const colorBtn = buildTextColorBtn(editor);
     toolbar.appendChild(colorBtn);
+    const highlightBtn = buildHighlightBtn(editor);
+    toolbar.appendChild(highlightBtn);
     addShortcutButton(toolbar);
     updateRovingTabindex(toolbar);
   };

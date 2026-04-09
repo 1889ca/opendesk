@@ -95,6 +95,8 @@ export interface CoreTranslationKeys {
   'a11y.lineHeightLabel': string;
   'toolbar.textColor': string;
   'a11y.textColorLabel': string;
+  'toolbar.highlight': string;
+  'toolbar.clearFormatting': string;
   'toolbar.saveToKb': string;
   'promoteKb.title': string;
   'promoteKb.noteTitle': string;

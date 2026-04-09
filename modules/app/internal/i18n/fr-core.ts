@@ -109,6 +109,8 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'toolbar.fontSize': 'Taille',
   'toolbar.lineHeight': 'Interligne',
   'toolbar.textColor': 'Couleur',
+  'toolbar.highlight': 'Surligner',
+  'toolbar.clearFormatting': 'Effacer',
   'toolbar.saveToKb': 'Sauver dans BC',
   'promoteKb.title': 'Sauvegarder dans la base de connaissances',
   'promoteKb.noteTitle': 'Titre',

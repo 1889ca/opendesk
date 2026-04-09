@@ -49,6 +49,8 @@ export const a11yTranslations: Partial<TranslationKeys> = {
   'a11y.fontSizeLabel': 'Taille de police',
   'a11y.lineHeightLabel': 'Interligne',
   'a11y.textColorLabel': 'Couleur du texte',
+  'a11y.highlightLabel': 'Couleur de surbrillance',
+  'a11y.clearFormattingLabel': 'Effacer la mise en forme',
 
   // Raccourcis clavier
   'shortcuts.title': 'Raccourcis clavier',

@@ -49,6 +49,8 @@ export const a11yTranslations: Partial<TranslationKeys> = {
   'a11y.fontSizeLabel': 'Font size',
   'a11y.lineHeightLabel': 'Line spacing',
   'a11y.textColorLabel': 'Text color',
+  'a11y.highlightLabel': 'Highlight color',
+  'a11y.clearFormattingLabel': 'Clear formatting',
 
   // Shortcuts
   'shortcuts.title': 'Keyboard Shortcuts',
