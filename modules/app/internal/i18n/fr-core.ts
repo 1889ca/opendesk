@@ -5,6 +5,7 @@ import type { TranslationKeys } from './types.ts';
 export const coreTranslations: Partial<TranslationKeys> = {
   'toolbar.bold': 'G',
   'toolbar.italic': 'I',
+  'toolbar.underline': 'S',
   'toolbar.strike': 'B',
   'toolbar.code': 'Code',
   'toolbar.superscript': 'Exposant',
@@ -65,6 +66,7 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'time.daysAgo': 'il y a {n} jours',
   'time.monthAgo': 'il y a 1 mois',
   'time.monthsAgo': 'il y a {n} mois',
+  'toolbar.link': 'Lien',
   'toolbar.image': 'Image',
   'toolbar.find': 'Rechercher',
   'toolbar.comment': 'Commenter',

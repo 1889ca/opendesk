@@ -5,6 +5,7 @@
 export interface CoreTranslationKeys {
   'toolbar.bold': string;
   'toolbar.italic': string;
+  'toolbar.underline': string;
   'toolbar.strike': string;
   'toolbar.code': string;
   'toolbar.superscript': string;
@@ -17,6 +18,7 @@ export interface CoreTranslationKeys {
   'toolbar.blockquote': string;
   'toolbar.codeBlock': string;
   'toolbar.horizontalRule': string;
+  'toolbar.link': string;
   'toolbar.image': string;
   'toolbar.find': string;
   'toolbar.comment': string;

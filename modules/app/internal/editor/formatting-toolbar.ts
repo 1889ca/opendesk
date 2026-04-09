@@ -10,7 +10,7 @@ import { announce } from '../shared/a11y-announcer.ts';
 import { enableToolbarNavigation, updateRovingTabindex } from './toolbar-nav.ts';
 import { getIcon } from './toolbar-icons.ts';
 import { buildTextColorBtn, buildHighlightBtn } from './toolbar-color-btn.ts';
-import { buildFontFamilySelect, buildFontSizeSelect, buildLineHeightSelect } from './toolbar-selects.ts';
+import { buildFontFamilySelect, buildFontSizeSelect, buildLineHeightSelect, buildParagraphSpacingSelect } from './toolbar-selects.ts';
 
 interface ToolbarButton {
   key: TranslationKey | null;
@@ -36,6 +36,7 @@ function buildToolbarButtons(editor: Editor): ToolbarButton[] {
     // ── Text formatting ───────────────────────────────────────────────
     { key: 'toolbar.bold', icon: 'bold', ariaKey: 'a11y.boldLabel', titleKey: 'shortcuts.bold', action: () => editor.chain().focus().toggleBold().run(), isActive: () => editor.isActive('bold'), announceOnKey: 'a11y.boldOn', announceOffKey: 'a11y.boldOff' },
     { key: 'toolbar.italic', icon: 'italic', ariaKey: 'a11y.italicLabel', titleKey: 'shortcuts.italic', action: () => editor.chain().focus().toggleItalic().run(), isActive: () => editor.isActive('italic'), announceOnKey: 'a11y.italicOn', announceOffKey: 'a11y.italicOff' },
+    { key: 'toolbar.underline', icon: 'underline', ariaKey: 'a11y.underlineLabel', titleKey: 'shortcuts.underline', action: () => editor.chain().focus().toggleUnderline().run(), isActive: () => editor.isActive('underline'), announceOnKey: 'a11y.underlineOn', announceOffKey: 'a11y.underlineOff' },
     { key: 'toolbar.strike', icon: 'strikethrough', ariaKey: 'a11y.strikeLabel', titleKey: 'shortcuts.strikethrough', action: () => editor.chain().focus().toggleStrike().run(), isActive: () => editor.isActive('strike'), announceOnKey: 'a11y.strikeOn', announceOffKey: 'a11y.strikeOff' },
     { key: 'toolbar.code', icon: 'inlineCode', ariaKey: 'a11y.codeLabel', titleKey: 'shortcuts.code', action: () => editor.chain().focus().toggleCode().run(), isActive: () => editor.isActive('code'), announceOnKey: 'a11y.codeOn', announceOffKey: 'a11y.codeOff' },
     { key: 'toolbar.superscript', icon: 'superscript', ariaKey: 'a11y.superscriptLabel', titleKey: 'shortcuts.superscript', action: () => editor.chain().focus().toggleSuperscript().run(), isActive: () => editor.isActive('superscript') },
@@ -64,7 +65,15 @@ function buildToolbarButtons(editor: Editor): ToolbarButton[] {
     { key: 'toolbar.horizontalRule', icon: 'horizontalRule', ariaKey: 'a11y.horizontalRuleLabel', titleKey: 'shortcuts.horizontalRule', action: () => editor.chain().focus().setHorizontalRule().run() },
     { key: null, action: () => false },
     // ── Insert ────────────────────────────────────────────────────────
-    { key: 'table.insert', icon: 'table', ariaKey: 'a11y.tableLabel', action: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
+    { key: 'toolbar.link', icon: 'link', ariaKey: 'a11y.linkLabel', titleKey: 'shortcuts.link', action: (btn?: HTMLButtonElement) => { document.dispatchEvent(new CustomEvent('opendesk:open-link-popover', { detail: { anchor: btn } })); return true; }, passSelf: true, isActive: () => editor.isActive('link') },
+    { key: 'table.insert', icon: 'table', ariaKey: 'a11y.tableLabel', action: () => {
+      const { state } = editor;
+      const { $from } = state.selection;
+      const isEmptyParagraph = $from.parent.type.name === 'paragraph' && $from.parent.textContent === '';
+      const chain = editor.chain().focus();
+      if (!isEmptyParagraph) chain.createParagraphNear();
+      return chain.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+    } },
     { key: 'toolbar.image', icon: 'image', ariaKey: 'a11y.imageLabel', action: () => { openImagePicker(editor); return true; } },
     { key: 'toolbar.emoji', icon: 'emoji', action: () => { document.dispatchEvent(new CustomEvent('opendesk:open-emoji')); return true; } },
     { key: null, action: () => false },
@@ -94,6 +103,8 @@ const MOD = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator
 const KB_HINTS: Partial<Record<string, string>> = {
   'shortcuts.bold':          `${MOD}B`,
   'shortcuts.italic':        `${MOD}I`,
+  'shortcuts.underline':     `${MOD}U`,
+  'shortcuts.link':          `${MOD}K`,
   'shortcuts.strikethrough': `${MOD}⇧X`,
   'shortcuts.code':          `${MOD}E`,
   'shortcuts.superscript':   `${MOD}.`,
@@ -194,6 +205,9 @@ export function buildFormattingToolbar(editor: Editor): void {
     // Insert line-height select right after the font-size select
     const lineHeightSelect = buildLineHeightSelect(editor);
     toolbar.insertBefore(lineHeightSelect, fontSizeSelect.nextSibling);
+    // Insert paragraph spacing select after line-height select
+    const paraSpacingSelect = buildParagraphSpacingSelect(editor);
+    toolbar.insertBefore(paraSpacingSelect, lineHeightSelect.nextSibling);
     // Append text color and highlight buttons
     const colorBtn = buildTextColorBtn(editor);
     toolbar.appendChild(colorBtn);

@@ -21,6 +21,7 @@ import { buildThemeToggle } from '../shared/theme-toggle.ts';
 import { buildNotificationBell } from '../shared/notification-bell.ts';
 import { trackRecentDoc } from '../shared/workspace-sidebar.ts';
 import { openEmojiPicker } from './emoji/index.ts';
+import { showLinkPopover } from './link-popover.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
 import { buildEditorExtensions } from './editor-extensions.ts';
 import { initEntityMentionClicks } from './entity-mentions/index.ts';
@@ -128,6 +129,12 @@ async function init() {
   editor.registerPlugin(createSuggestModePlugin(editor));
   setupSuggestionClickHandler(editor);
 
+  // Allow native context menu — prevent any TipTap extension or parent listener
+  // from suppressing right-click (issue #255)
+  editorEl.addEventListener('contextmenu', (e) => {
+    e.stopPropagation();
+  }, { capture: true });
+
   setupCodeBlockUI(editor);
   initEntityMentionClicks(editorEl);
   buildFormattingToolbar(editor);
@@ -171,6 +178,32 @@ async function init() {
   document.addEventListener('opendesk:open-emoji', () => {
     const emojiBtn = document.querySelector('[data-i18n-key="toolbar.emoji"]') as HTMLElement | null;
     if (emojiBtn) openEmojiPicker(editor, emojiBtn);
+  });
+
+  document.addEventListener('opendesk:open-link-popover', (e) => {
+    const detail = (e as CustomEvent<{ anchor?: HTMLButtonElement }>).detail;
+    let anchor = detail?.anchor as HTMLElement | null | undefined;
+    if (!anchor) {
+      anchor = document.querySelector('[data-i18n-key="toolbar.link"]') as HTMLElement | null;
+    }
+    if (!anchor) {
+      // Fallback: anchor to editor element
+      anchor = editorEl;
+    }
+    showLinkPopover(editor, anchor!);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    const isMod = e.metaKey || e.ctrlKey;
+    if (isMod && e.key === 'k' && !e.shiftKey && !e.altKey) {
+      const sel = editor.state.selection;
+      if (!sel.empty || editor.isActive('link')) {
+        e.preventDefault();
+        const linkBtn = document.querySelector('[data-i18n-key="toolbar.link"]') as HTMLElement | null;
+        const anchor = linkBtn ?? editorEl;
+        showLinkPopover(editor, anchor);
+      }
+    }
   });
 
   initEditorPanels({ editor, editorEl, commentStore, documentId, user });
