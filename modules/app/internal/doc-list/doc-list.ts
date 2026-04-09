@@ -13,6 +13,8 @@ import {
 } from './folder-list.ts';
 import { initTheme, buildThemeToggle } from '../shared/theme-toggle.ts';
 import { buildNotificationBell } from '../shared/notification-bell.ts';
+import { ensureNameConfirmed } from '../shared/name-setup.ts';
+import { buildProfileChip } from '../shared/profile-chip.ts';
 import { buildWorkspaceSidebar } from '../shared/workspace-sidebar.ts';
 import { createGlobalSearch } from '../editor/global-search.ts';
 import { renderDocuments, TYPE_META } from './doc-list-render.ts';
@@ -163,10 +165,13 @@ async function createTypedDocument(documentType: string): Promise<void> {
   }
 }
 
-function init() {
+async function init() {
   initTheme();
   initConnectivityListeners();
   registerServiceWorker();
+
+  // Block until user has set a display name (issue #170)
+  await ensureNameConfirmed();
 
   const sidebarSlot = document.getElementById('workspace-sidebar');
   if (sidebarSlot) sidebarSlot.replaceWith(buildWorkspaceSidebar());
@@ -182,6 +187,9 @@ function init() {
   if (toolbarRight) {
     toolbarRight.prepend(buildOfflineIndicator());
     createNewFolderButton(toolbarRight as HTMLElement);
+    // Profile chip — shows user's display name in the toolbar (issue #170)
+    const chip = buildProfileChip();
+    toolbarRight.appendChild(chip);
   }
   document.body.insertBefore(buildUpdateBanner(), document.body.firstChild);
   setupOnlineRefresh(() => loadAll(listEl, handleNewDocument));
