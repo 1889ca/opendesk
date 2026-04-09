@@ -1,4 +1,4 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/api/templates.md */
 
 import { Router, type Request, type Response } from 'express';
 import { randomUUID } from 'node:crypto';
@@ -9,9 +9,9 @@ import {
   listTemplates,
   updateTemplate,
   deleteTemplate,
-} from '../../storage/index.ts';
+} from '../index.ts';
 import type { AuthMode } from '../../config/contract.ts';
-import { asyncHandler } from './async-handler.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 
 const RESOURCE_TYPE = 'template';

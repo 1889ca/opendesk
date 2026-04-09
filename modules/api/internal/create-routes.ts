@@ -12,7 +12,6 @@ import type { PasswordRateLimiter, ShareResolveRateLimiter } from '../../sharing
 import { createAdminRoutes } from './admin-routes.ts';
 import { createUploadRoutes } from './upload-routes.ts';
 import { createFileRoutes } from './file-routes.ts';
-import { createTemplateRoutes } from './template-routes.ts';
 import { createShareRoutes } from '../../sharing/index.ts';
 import { createMetricsRoutes, createTelemetryMiddleware } from '../../observability/index.ts';
 import {
@@ -110,9 +109,6 @@ export async function mountRoutes(deps: RouteDependencies): Promise<{ shutdown: 
       res.status(503).json({ status: 'unhealthy' });
     }
   });
-
-  const authMode = config.auth.mode;
-  app.use('/api/templates', createTemplateRoutes({ permissions, authMode }));
 
   // Manifest-driven routes: every module that has been migrated to
   // modules/<name>/manifest.ts is mounted here in one shot. The
