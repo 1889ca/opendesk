@@ -8,7 +8,7 @@
 
 const DEV_TOKEN = 'dev';
 
-function getAuthToken(): string {
+export function getAuthToken(): string {
   // In production, retrieve from session/cookie/OIDC flow
   // For now, use the dev token
   return localStorage.getItem('opendesk-auth-token') || DEV_TOKEN;

@@ -164,6 +164,25 @@
   color: var(--accent);
 }
 
+/* Permission banner — shown for viewer and commenter share links */
+.permission-banner {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1.5rem;
+  background: var(--status-disconnected-bg, #fef3cd);
+  color: var(--text, #333);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+  gap: 0.5rem;
+}
+
+.permission-banner::before {
+  content: "🔒";
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
 /* Language Switcher */
 .lang-select {
   font-family: inherit;

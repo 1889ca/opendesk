@@ -23,7 +23,7 @@ import { buildThemeToggle } from '../shared/theme-toggle.ts';
 import { openEmojiPicker } from '../editor/emoji/index.ts';
 import { setupCodeBlockUI } from '../editor/code-block-ui.ts';
 import { buildEditorExtensions } from '../editor/editor-extensions.ts';
-import { apiFetch } from '../shared/api-client.ts';
+import { apiFetch, getAuthToken } from '../shared/api-client.ts';
 import { navigate } from '../shell/router.ts';
 import { buildEditorToolbar } from './editor-toolbar.ts';
 import { mountSidebars } from './editor-sidebars.ts';
@@ -53,6 +53,48 @@ function getUserIdentity() {
   return { name, color };
 }
 
+/** Fetch the current user's role on a document. Returns null on error. */
+async function fetchMyRole(documentId: string): Promise<{ role: string; canWrite: boolean; canComment: boolean } | null> {
+  try {
+    const res = await apiFetch(`/api/documents/${encodeURIComponent(documentId)}/my-role`);
+    if (!res.ok) return null;
+    return res.json() as Promise<{ role: string; canWrite: boolean; canComment: boolean }>;
+  } catch {
+    return null;
+  }
+}
+
+/** Apply read-only or comment-only mode to the editor and toolbar. */
+function applyPermissionMode(
+  editorInstance: Editor,
+  formattingToolbarEl: HTMLElement,
+  perm: { canWrite: boolean; canComment: boolean } | null,
+): void {
+  const canWrite = perm?.canWrite ?? true; // fail open only in case of fetch error
+  const canComment = perm?.canComment ?? true;
+
+  if (!canWrite) {
+    editorInstance.setEditable(false);
+
+    // Hide or disable the formatting toolbar for viewers and commenters.
+    // Commenters can add comments via the sidebar; the toolbar is for editing only.
+    formattingToolbarEl.hidden = true;
+    formattingToolbarEl.setAttribute('aria-hidden', 'true');
+
+    // Show a read-only banner above the editor.
+    const banner = document.createElement('div');
+    banner.className = 'permission-banner';
+    banner.setAttribute('role', 'status');
+    banner.textContent = canComment
+      ? 'You can view and comment on this document.'
+      : 'You have read-only access to this document.';
+    const parent = formattingToolbarEl.parentElement;
+    if (parent) {
+      parent.insertBefore(banner, formattingToolbarEl.nextSibling);
+    }
+  }
+}
+
 export async function mount(container: HTMLElement, params: Record<string, string>): Promise<void> {
   const documentId = params.id || 'default';
   cleanupFns = [];
@@ -80,12 +122,18 @@ export async function mount(container: HTMLElement, params: Record<string, strin
 
   loadDocTitle(documentId, titleInput);
 
-  // Set up collab
+  // Fetch permission level before connecting collab so we can set the
+  // initial editable state correctly. We do this in parallel with setting
+  // up the collab provider because the WS handshake takes time.
+  const permPromise = fetchMyRole(documentId);
+
+  // Set up collab. Use the real auth token so the WS authenticate hook
+  // sees the same principal as HTTP requests — not the hardcoded 'dev' sentinel.
   ydoc = new Y.Doc();
   const commentStore = new CommentStore(ydoc);
   const wsUrl = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/collab`;
   provider = new HocuspocusProvider({
-    url: wsUrl, name: documentId, document: ydoc, token: 'dev',
+    url: wsUrl, name: documentId, document: ydoc, token: getAuthToken(),
     onConnect() {
       if (statusEl) { statusEl.textContent = t('status.connected'); statusEl.className = 'status connected'; }
     },
@@ -111,6 +159,11 @@ export async function mount(container: HTMLElement, params: Record<string, strin
   buildThemeToggle();
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
+
+  // Apply permission mode once we know the user's role.
+  // We await here (after editor setup) so the editor exists when we configure it.
+  const perm = await permPromise;
+  applyPermissionMode(editor, formattingToolbar, perm);
 
   const onEmoji = () => {
     const emojiBtn = document.querySelector('[data-i18n-key="toolbar.emoji"]') as HTMLElement | null;

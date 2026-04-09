@@ -124,6 +124,38 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
     res.status(201).json({ ...doc, templateContent });
   }));
 
+  // Get current user's effective role on a document — requires read permission.
+  // Called by the editor on load to enforce read-only mode for viewers/commenters.
+  router.get('/:id/my-role', permissions.require('read'), asyncHandler(async (req: Request, res: Response) => {
+    const documentId = String(req.params.id);
+    const principal = req.principal!;
+    const grants = await permissions.grantStore.findByPrincipalAndResource(
+      principal.id,
+      documentId,
+      'document',
+    );
+
+    if (grants.length === 0) {
+      // Permission middleware already verified read access; this is a safety net.
+      res.status(403).json({ error: 'No grant found' });
+      return;
+    }
+
+    // Pick the highest-ranked grant (matches the evaluate() logic).
+    const ROLE_RANK: Record<string, number> = {
+      owner: 4, editor: 3, commenter: 2, viewer: 1,
+    };
+    const best = grants.reduce((a, b) =>
+      (ROLE_RANK[b.role] ?? 0) > (ROLE_RANK[a.role] ?? 0) ? b : a,
+    );
+
+    res.json({
+      role: best.role,
+      canWrite: ['owner', 'editor'].includes(best.role),
+      canComment: ['owner', 'editor', 'commenter'].includes(best.role),
+    });
+  }));
+
   // Get document — requires read permission
   router.get('/:id', permissions.require('read'), asyncHandler(async (req: Request, res: Response) => {
     const doc = await getDocument(String(req.params.id));
