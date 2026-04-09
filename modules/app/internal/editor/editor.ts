@@ -14,7 +14,7 @@ import {
   createSuggestModePlugin,
   setupSuggestionClickHandler,
 } from './suggestions/index.ts';
-import { bindShortcutDialogKey } from '../shared/shortcut-dialog.ts';
+import { bindShortcutDialogKey, openShortcutDialog } from '../shared/shortcut-dialog.ts';
 import { initTouchSupport } from '../shared/touch-support.ts';
 import { buildThemeToggle } from '../shared/theme-toggle.ts';
 import { buildNotificationBell } from '../shared/notification-bell.ts';
@@ -139,6 +139,21 @@ async function init() {
   if (toolbarRightEl) {
     const chip = buildProfileChip();
     toolbarRightEl.appendChild(chip);
+  }
+
+  // Shortcut help button — header location (issue #225)
+  const toolbarRightForShortcut = document.querySelector('.toolbar-right');
+  if (toolbarRightForShortcut) {
+    const sep = document.createElement('span');
+    sep.className = 'toolbar-separator';
+    const helpBtn = document.createElement('button');
+    helpBtn.className = 'export-btn shortcut-help-btn';
+    helpBtn.setAttribute('aria-label', t('a11y.shortcutsLabel'));
+    helpBtn.setAttribute('title', t('shortcuts.showShortcuts'));
+    helpBtn.textContent = '?';
+    helpBtn.addEventListener('click', (e) => { e.preventDefault(); openShortcutDialog(); });
+    toolbarRightForShortcut.appendChild(sep);
+    toolbarRightForShortcut.appendChild(helpBtn);
   }
 
   // Save indicator — "Saving…" / "Saved" next to doc title

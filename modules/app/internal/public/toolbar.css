@@ -296,6 +296,23 @@
   border-color: var(--accent);
 }
 
+/* Breadcrumb separator between back link and doc title */
+.breadcrumb-sep {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  opacity: 0.5;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Shortcut help button — compact ? button in header toolbar */
+.shortcut-help-btn {
+  min-width: 1.5rem;
+  padding: 0.25rem 0.4rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
 /* Back Link — simple inline text link, not a button */
 .back-link {
   font-size: 0.8125rem;

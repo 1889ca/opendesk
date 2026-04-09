@@ -8,7 +8,6 @@ import './page-break.ts';
 import { isSuggesting, setSuggesting } from './suggestions/suggest-mode.ts';
 import { announce } from '../shared/a11y-announcer.ts';
 import { enableToolbarNavigation, updateRovingTabindex } from './toolbar-nav.ts';
-import { openShortcutDialog } from '../shared/shortcut-dialog.ts';
 import { getIcon } from './toolbar-icons.ts';
 import { buildTextColorBtn, buildHighlightBtn } from './toolbar-color-btn.ts';
 import { buildFontFamilySelect, buildFontSizeSelect, buildLineHeightSelect } from './toolbar-selects.ts';
@@ -154,20 +153,6 @@ function renderToolbarButtons(
   }
 }
 
-function addShortcutButton(toolbar: HTMLElement): void {
-  const sep = document.createElement('span');
-  sep.className = 'toolbar-separator';
-  sep.setAttribute('role', 'separator');
-  toolbar.appendChild(sep);
-  const btn = document.createElement('button');
-  btn.className = 'toolbar-btn toolbar-btn--icon';
-  btn.setAttribute('aria-label', t('a11y.shortcutsLabel'));
-  btn.setAttribute('title', t('shortcuts.showShortcuts'));
-  btn.innerHTML = getIcon('shortcuts') + `<span class="toolbar-btn-label">?</span>`;
-  btn.addEventListener('click', (e) => { e.preventDefault(); openShortcutDialog(); });
-  toolbar.appendChild(btn);
-}
-
 /** Build the main formatting toolbar with all editor actions. */
 export function buildFormattingToolbar(editor: Editor): void {
   const toolbar = document.getElementById('formatting-toolbar');
@@ -188,12 +173,11 @@ export function buildFormattingToolbar(editor: Editor): void {
     // Insert line-height select right after the font-size select
     const lineHeightSelect = buildLineHeightSelect(editor);
     toolbar.insertBefore(lineHeightSelect, fontSizeSelect.nextSibling);
-    // Append text color and highlight buttons before the shortcuts button
+    // Append text color and highlight buttons
     const colorBtn = buildTextColorBtn(editor);
     toolbar.appendChild(colorBtn);
     const highlightBtn = buildHighlightBtn(editor);
     toolbar.appendChild(highlightBtn);
-    addShortcutButton(toolbar);
     updateRovingTabindex(toolbar);
   };
   render();

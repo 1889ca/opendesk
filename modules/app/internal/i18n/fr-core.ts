@@ -90,7 +90,7 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'lang.fr': 'Fran\u00e7ais',
   'theme.light': 'Clair',
   'theme.dark': 'Sombre',
-  'theme.system': 'Syst\u00e8me',
+  'theme.system': 'Automatique',
   'print.title': 'Imprimer le document',
   'pdf.title': 'Exporter en PDF',
   'pageBreak.title': 'Ins\u00e9rer un saut de page',
