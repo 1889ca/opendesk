@@ -64,6 +64,15 @@
   background: var(--connected);
 }
 
+.status.connecting {
+  color: var(--text-muted);
+}
+
+.status.connecting::before {
+  background: var(--text-muted);
+  animation: pulse-dot 1s ease-in-out infinite;
+}
+
 .status.disconnected {
   color: var(--text-muted);
 }

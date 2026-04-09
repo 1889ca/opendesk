@@ -89,6 +89,9 @@ async function init() {
   }
   document.body.insertBefore(buildUpdateBanner(), document.body.firstChild);
 
+  // Show connecting state immediately, before the WS handshake completes
+  if (statusEl) { statusEl.textContent = t('status.connecting'); statusEl.className = 'status connecting'; }
+
   const provider = new HocuspocusProvider({
     url: wsUrl, name: documentId, document: ydoc, token: 'dev',
     onConnect() {
