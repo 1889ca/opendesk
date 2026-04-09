@@ -8,8 +8,8 @@ export interface CommentMarkOptions {
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     commentMark: {
-      /** Apply a comment mark to the current selection. */
-      setComment: (commentId: string) => ReturnType;
+      /** Apply a comment mark to an explicit range (or current selection if omitted). */
+      setComment: (commentId: string, range?: { from: number; to: number }) => ReturnType;
       /** Remove a comment mark by ID from the current selection. */
       unsetComment: (commentId: string) => ReturnType;
     };
@@ -56,9 +56,17 @@ export const CommentMark = Mark.create<CommentMarkOptions>({
   addCommands() {
     return {
       setComment:
-        (commentId: string) =>
-        ({ commands }) =>
-          commands.setMark(this.name, { commentId }),
+        (commentId: string, range?: { from: number; to: number }) =>
+        ({ tr, state, dispatch }) => {
+          const markType = state.schema.marks[this.name];
+          if (!markType) return false;
+          const { from, to } = range ?? state.selection;
+          if (from === to) return false;
+          if (dispatch) {
+            tr.addMark(from, to, markType.create({ commentId }));
+          }
+          return true;
+        },
 
       unsetComment:
         (commentId: string) =>

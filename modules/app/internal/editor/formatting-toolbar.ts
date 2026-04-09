@@ -13,10 +13,12 @@ import { openShortcutDialog } from '../shared/shortcut-dialog.ts';
 interface ToolbarButton {
   key: TranslationKey | null;
   ariaKey?: TranslationKey;
-  action: () => boolean | void;
+  action: (btn?: HTMLButtonElement) => boolean | void;
   isActive?: () => boolean;
   announceOnKey?: TranslationKey;
   announceOffKey?: TranslationKey;
+  /** If true, the button element is passed to action() as the first argument. */
+  passSelf?: boolean;
 }
 
 function buildToolbarButtons(editor: Editor): ToolbarButton[] {
@@ -49,7 +51,11 @@ function buildToolbarButtons(editor: Editor): ToolbarButton[] {
     { key: 'toolbar.toc', ariaKey: 'toc.title' as TranslationKey, action: () => { document.dispatchEvent(new CustomEvent('opendesk:toggle-toc')); return true; } },
     { key: null, action: () => false },
     { key: 'toolbar.print', action: () => { printDocument(); return true; } },
-    { key: 'toolbar.pdf', action: () => { exportPdf(); return true; } },
+    {
+      key: 'toolbar.pdf',
+      action: (btn?: HTMLButtonElement) => { exportPdf(btn); return true; },
+      passSelf: true,
+    },
     { key: null, action: () => false },
     { key: 'toolbar.references', action: () => { document.dispatchEvent(new CustomEvent('opendesk:toggle-reference-library')); return true; } },
     { key: 'toolbar.versions', action: () => { document.dispatchEvent(new CustomEvent('opendesk:toggle-versions')); return true; } },
@@ -79,7 +85,7 @@ function renderToolbarButtons(
     if (isActive) btn.setAttribute('aria-pressed', String(isActive()));
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      action();
+      btnDef.passSelf ? action(btn) : action();
       if (isActive && btnDef.announceOnKey && btnDef.announceOffKey) {
         const active = isActive();
         btn.setAttribute('aria-pressed', String(active));

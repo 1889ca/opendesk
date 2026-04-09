@@ -62,13 +62,8 @@ export function showCommentInput(
       authorColor: user.color,
     });
 
-    // Apply mark to the selected text range
-    editor
-      .chain()
-      .focus()
-      .setTextSelection({ from, to })
-      .setComment(commentId)
-      .run();
+    // Apply mark to the captured selection range, then restore focus
+    editor.chain().setComment(commentId, { from, to }).focus().run();
 
     hideCommentInput();
   };

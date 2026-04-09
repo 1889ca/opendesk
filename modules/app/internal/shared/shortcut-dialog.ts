@@ -27,7 +27,7 @@ function getGroups(): ShortcutGroup[] {
     ]},
     { titleKey: 'shortcuts.search', entries: [
       { keys: `${MOD}+F`, labelKey: 'shortcuts.find' },
-      { keys: `${MOD}+H`, labelKey: 'shortcuts.findReplace' },
+      { keys: `${MOD}+Shift+H`, labelKey: 'shortcuts.findReplace' },
     ]},
     { titleKey: 'shortcuts.document', entries: [
       { keys: `${MOD}+Z`, labelKey: 'shortcuts.undo' },
