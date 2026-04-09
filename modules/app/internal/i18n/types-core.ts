@@ -129,4 +129,7 @@ export interface CoreTranslationKeys {
   'nav.knowledgeBase': string;
   'nav.newDocument': string;
   'nav.recent': string;
+
+  // Footnotes
+  'toolbar.footnote': string;
 }

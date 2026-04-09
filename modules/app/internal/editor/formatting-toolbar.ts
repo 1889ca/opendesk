@@ -97,6 +97,13 @@ function buildToolbarButtons(editor: Editor): ToolbarButton[] {
     { key: 'toolbar.workflows', icon: 'workflows', action: () => { document.dispatchEvent(new CustomEvent('opendesk:toggle-workflows')); return true; } },
     { key: null, action: () => false },
     { key: 'toolbar.saveToKb', icon: 'saveToKb', action: () => { document.dispatchEvent(new CustomEvent('opendesk:promote-to-kb')); return true; } },
+    { key: null, action: () => false },
+    // ── Footnotes ──────────────────────────────────────────────────────
+    { key: 'toolbar.footnote', icon: 'footnote', action: () => {
+      const text = prompt('Footnote text:');
+      if (text) editor.chain().focus().insertFootnote(text).run();
+      return true;
+    } },
   ];
 }
 

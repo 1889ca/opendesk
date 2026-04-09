@@ -377,3 +377,48 @@ body:has(.comment-sidebar-open) .editor-wrapper {
     content: counter(page);
   }
 }
+
+/* Footnotes */
+.footnote-ref {
+  font-size: 0.6em;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: none;
+  vertical-align: super;
+  padding: 0 1px;
+}
+
+.footnote-ref:hover {
+  text-decoration: underline;
+}
+
+.footnote-panel {
+  width: 100%;
+  max-width: 56rem;
+  border-top: 1px solid var(--border);
+  padding: 1rem 5rem;
+  margin-top: 0.5rem;
+  background: var(--editor-paper-bg, #ffffff);
+  border-radius: 0 0 8px 8px;
+}
+
+.footnote-panel-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.5rem;
+}
+
+.footnote-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.footnote-item {
+  margin-bottom: 0.25rem;
+  line-height: 1.5;
+}

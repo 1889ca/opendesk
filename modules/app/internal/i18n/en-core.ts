@@ -137,4 +137,5 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'nav.knowledgeBase': 'Knowledge Base',
   'nav.newDocument': 'New Document',
   'nav.recent': 'Recent',
+  'toolbar.footnote': 'Footnote',
 };

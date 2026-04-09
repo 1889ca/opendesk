@@ -91,6 +91,14 @@ const insertIcons: Record<string, string> = {
     '<line x1="8" y1="6" x2="8" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
     '<line x1="6" y1="8" x2="10" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
   ),
+  footnote: svg(
+    '<line x1="2" y1="10" x2="10" y2="10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
+    '<line x1="2" y1="13" x2="14" y2="13" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>' +
+    '<line x1="2" y1="7" x2="8" y2="7" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>' +
+    '<circle cx="12" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.2"/>' +
+    '<line x1="12" y1="3.8" x2="12" y2="6.2" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>' +
+    '<line x1="10.8" y1="5" x2="13.2" y2="5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>',
+  ),
 };
 
 export const icons: Record<string, string> = { ...textIcons, ...insertIcons };
