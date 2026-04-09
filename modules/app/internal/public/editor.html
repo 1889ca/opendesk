@@ -56,6 +56,8 @@
         </div>
       </div>
       <span class="toolbar-separator"></span>
+      <button id="ruler-toggle" class="btn btn-ghost btn-sm" title="Show or hide the document ruler" aria-pressed="true">Hide Ruler</button>
+      <span class="toolbar-separator"></span>
       <button id="share-btn" class="btn btn-ghost btn-sm share-btn" title="Share this document">Share</button>
       <span class="toolbar-separator"></span>
       <span id="status" class="status disconnected">Connecting...</span>
@@ -66,6 +68,7 @@
     </div>
   </header>
   <div id="formatting-toolbar" class="formatting-toolbar"></div>
+  <div id="ruler-h" class="ruler-h" aria-hidden="true"></div>
   <main class="editor-wrapper" role="main" aria-label="Document editor">
     <div id="editor"></div>
   </main>

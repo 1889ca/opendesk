@@ -1,0 +1,95 @@
+/* Horizontal document ruler — #217 */
+
+#ruler-h {
+  position: relative;
+  height: 28px;
+  flex-shrink: 0;
+  background: var(--canvas);
+  border-bottom: 1px solid var(--border);
+  overflow: visible;
+  user-select: none;
+  z-index: 10;
+}
+
+.ruler-canvas {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  cursor: crosshair;
+  display: block;
+}
+
+/* Margin handles — draggable triangular markers */
+.ruler-handle {
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 28px;
+  cursor: ew-resize;
+  z-index: 2;
+}
+
+.ruler-handle::before,
+.ruler-handle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.ruler-handle::before {
+  top: 2px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid var(--accent);
+}
+
+.ruler-handle::after {
+  bottom: 2px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 7px solid var(--accent);
+}
+
+.ruler-handle:hover::before {
+  border-top-color: var(--accent-hover, var(--accent));
+}
+
+.ruler-handle:hover::after {
+  border-bottom-color: var(--accent-hover, var(--accent));
+}
+
+/* Tab stop markers — small downward triangles on the ruler track */
+.ruler-tab-stop {
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 8px solid var(--accent);
+  transform: translateX(-4px);
+  cursor: grab;
+  z-index: 3;
+  opacity: 0.75;
+  transition: opacity 0.15s;
+}
+
+.ruler-tab-stop:hover {
+  opacity: 1;
+  cursor: grabbing;
+}
+
+/* Toggle button in toolbar */
+#ruler-toggle {
+  font-size: 0.75rem;
+  min-width: 5rem;
+}
+
+@media (max-width: 640px) {
+  #ruler-h { display: none; }
+}

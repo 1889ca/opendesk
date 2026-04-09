@@ -29,6 +29,7 @@ import { ensureNameConfirmed } from '../shared/name-setup.ts';
 import { buildProfileChip } from '../shared/profile-chip.ts';
 import { initEditorPage } from './editor-page.ts';
 import { initEditorPanels } from './editor-panels.ts';
+import { initRuler } from './editor-ruler.ts';
 import { buildSaveIndicator } from './save-indicator.ts';
 import {
   registerServiceWorker,
@@ -172,6 +173,7 @@ async function init() {
   });
 
   initEditorPanels({ editor, editorEl, commentStore, documentId, user });
+  initRuler();
 
   function updateUsers() {
     if (!usersEl || !provider.awareness) return;
