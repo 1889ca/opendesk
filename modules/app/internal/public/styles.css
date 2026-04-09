@@ -8,6 +8,12 @@
   padding: 0;
 }
 
+/* Ensure [hidden] always wins over author display rules (e.g. display:flex).
+   The browser UA stylesheet sets [hidden]{display:none} but author styles
+   with higher specificity (class selectors) can override it. !important
+   prevents that. Safari is stricter about this than Chrome. */
+[hidden] { display: none !important; }
+
 :root {
   --bg: var(--bg-primary);
   --surface: var(--bg-surface);

@@ -122,7 +122,7 @@ export async function startServer(port = 3000) {
 
   // Mount all API routes
   const publicDir = resolve(__dirname, '../../app/internal/public');
-  const { ai } = mountRoutes({
+  const { shutdown: manifestShutdown } = await mountRoutes({
     app, auth, permissions, hocuspocus, redisClient,
     config, eventBus, audit, workflow, observability,
     shareLinkService, shareRateLimiter, shareResolveRateLimiter, publicDir,
@@ -166,7 +166,7 @@ export async function startServer(port = 3000) {
   // Graceful shutdown
   const shutdown = async () => {
     log.info('shutting down...');
-    if (ai) ai.stopConsumer();
+    await manifestShutdown();
     observability.stopHealthMonitor();
     eventBus.stopConsuming();
     eventBus.stopBackgroundJobs();

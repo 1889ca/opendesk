@@ -8,10 +8,9 @@ import {
   type KbEntryData,
   type KbVersionData,
 } from './kb-api.ts';
-import type { KbEntryStatus } from '../../../kb/contract.ts';
+import { buildKbUri, type KbEntryStatus } from '../../../kb/contract.ts';
 import { createStatusBadge, createTransitionButtons } from './status-badge.ts';
 import { formatRelativeTime } from '../shared/time-format.ts';
-import { buildKbUri } from '../../../kb/index.ts';
 
 export interface DetailPanelCallbacks {
   onUpdate: () => void;
