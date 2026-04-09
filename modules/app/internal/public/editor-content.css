@@ -299,3 +299,81 @@ body:has(.comment-sidebar-open) .editor-wrapper {
     column-gap: var(--editor-column-gap, 2rem);
   }
 }
+
+/* Header / footer zones — contenteditable areas above/below the paper */
+.doc-header-zone,
+.doc-footer-zone {
+  width: 100%;
+  max-width: 56rem;
+  background: var(--editor-paper-bg, #ffffff);
+  border: 1px solid var(--border);
+  padding: 0.5rem 5rem;
+  min-height: 2.5rem;
+  outline: none;
+  font-size: 0.875rem;
+  color: var(--text);
+  position: relative;
+  transform: scale(var(--editor-zoom, 1));
+  transform-origin: top center;
+}
+
+.doc-header-zone {
+  border-bottom: 1px dashed var(--border);
+  border-radius: 8px 8px 0 0;
+  margin-bottom: -1px;
+}
+
+.doc-footer-zone {
+  border-top: 1px dashed var(--border);
+  border-radius: 0 0 8px 8px;
+  margin-top: -1px;
+}
+
+/* Placeholder text when empty */
+.doc-header-zone:empty::before,
+.doc-footer-zone:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  opacity: 0.5;
+  pointer-events: none;
+  position: absolute;
+}
+
+/* Remove top/bottom border-radius from #editor when header/footer zones are present */
+.doc-header-zone + #editor {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+#editor:has(+ .doc-footer-zone) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Page number marker */
+.page-num-marker {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border: 1px dashed var(--border);
+  border-radius: 3px;
+  padding: 0 0.25rem;
+}
+
+/* Print styles — header/footer appear on every page */
+@media print {
+  .doc-header-zone {
+    position: running(header);
+  }
+  .doc-footer-zone {
+    position: running(footer);
+  }
+  @page {
+    margin-top: 3cm;
+    margin-bottom: 3cm;
+    @top-center { content: element(header); }
+    @bottom-center { content: element(footer); }
+  }
+  .page-num-marker::before {
+    content: counter(page);
+  }
+}

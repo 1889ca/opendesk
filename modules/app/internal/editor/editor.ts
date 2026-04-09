@@ -34,6 +34,7 @@ import { initRuler } from './editor-ruler.ts';
 import { initZoomControl } from './zoom-control.ts';
 import { buildSaveIndicator } from './save-indicator.ts';
 import { initPageSetup, showPageSetupDialog } from './page-setup.ts';
+import { insertHeaderFooter, insertPageNumber } from './header-footer.ts';
 import {
   registerServiceWorker,
   buildOfflineIndicator,
@@ -215,6 +216,14 @@ async function init() {
 
   // Wire up the Page Setup button in the toolbar
   document.getElementById('page-setup-btn')?.addEventListener('click', showPageSetupDialog);
+
+  // Header / footer zones — inserted above and below the editor paper
+  const { footerZone } = insertHeaderFooter(documentId);
+
+  // Wire up "Insert Page Number" button
+  document.getElementById('insert-page-number')?.addEventListener('click', () => {
+    insertPageNumber(footerZone);
+  });
 
   // Apply built-in template if one was stored for this doc via sessionStorage
   const pendingHtml = sessionStorage.getItem(`opendesk-template-${documentId}`);
