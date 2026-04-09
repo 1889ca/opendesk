@@ -8,6 +8,7 @@ import { buildTableToolbar } from './table-toolbar.ts';
 import { setupImageHandlers } from './image-handlers.ts';
 import { buildSearchPanel } from './search/search-panel.ts';
 import { buildFormattingToolbar } from './formatting-toolbar.ts';
+import { buildBubbleMenu } from './bubble-menu.ts';
 import { CommentStore } from './comments/index.ts';
 import {
   setSuggestUser,
@@ -128,6 +129,7 @@ async function init() {
   setupCodeBlockUI(editor);
   initEntityMentionClicks(editorEl);
   buildFormattingToolbar(editor);
+  buildBubbleMenu(editor);
   buildTableToolbar(editor);
   buildSearchPanel(editor);
   buildLanguageSwitcher();
