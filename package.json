@@ -6,7 +6,7 @@
   "description": "Sovereign, agent-first open office suite",
   "license": "AGPL-3.0-only",
   "scripts": {
-    "build": "npm run build:frontend && npm run check",
+    "build": "npm run check && npm run lint && npm run test -- --run && npm run build:frontend",
     "build:frontend": "node scripts/build-frontend.js",
     "check": "tsc --noEmit",
     "start": "npm run build:frontend && node --import=tsx server.ts",
