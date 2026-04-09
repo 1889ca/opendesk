@@ -33,6 +33,7 @@ import { createAiRoutes, createAi } from '../../ai/index.ts';
 import { createErasure, createErasureRoutes } from '../../erasure/index.ts';
 import { createFederation, createFederationRoutes } from '../../federation/index.ts';
 import { idempotencyMiddleware } from './idempotency.ts';
+import { serveHtmlWithNonce } from './csp-nonce.ts';
 import { principalContextMiddleware } from '../../storage/index.ts';
 // Composition root: pool comes from storage/internal/pool.ts since
 // the public storage surface no longer re-exports it (#134).
@@ -76,7 +77,8 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
     exemptPaths: ['/share/'],
   }));
 
-  // Serve static frontend
+  // Serve HTML with CSP nonces injected (L11), then static assets
+  app.use(serveHtmlWithNonce(publicDir));
   app.use(express.static(publicDir));
 
   // Auth middleware on all /api routes (except public paths)

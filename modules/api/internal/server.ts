@@ -19,7 +19,9 @@ import { initPool, initSchema } from '../../storage/index.ts';
 // the composition root and the existing pg-* stores reach in here.
 import { pool } from '../../storage/internal/pool.ts';
 import { initCollabora } from '../../convert/index.ts';
-import { ensureS3Bucket, initS3 } from './s3-client.ts'; import { applySecurityMiddleware } from './security.ts';
+import { ensureS3Bucket, initS3 } from './s3-client.ts';
+import { applySecurityMiddleware } from './security.ts';
+import { sendHtmlWithNonce } from './csp-nonce.ts';
 import { createEventBus } from '../../events/index.ts';
 import { createAudit } from '../../audit/index.ts';
 import { createWorkflow } from '../../workflow/index.ts';
@@ -127,13 +129,17 @@ export async function startServer(port = 3000) {
   });
 
   // SPA catch-all: serve spa.html for any non-API, non-static route
-  // This enables client-side routing (pushState) to work for all app routes
+  // This enables client-side routing (pushState) to work for all app routes.
+  // Uses sendHtmlWithNonce so inline scripts get the per-request CSP nonce.
+  const spaPath = resolve(publicDir, 'spa.html');
   app.get('*', (req: Request, res: Response, next: NextFunction) => {
     // Skip API routes and requests for static files (with extensions)
     if (req.path.startsWith('/api/') || req.path.startsWith('/collab') || /\.\w+$/.test(req.path)) {
       return next();
     }
-    res.sendFile(resolve(publicDir, 'spa.html'));
+    sendHtmlWithNonce(res, spaPath).catch(() =>
+      res.status(500).json({ error: 'Internal server error' }),
+    );
   });
 
   // Global error handler — must be registered LAST (after all routes)

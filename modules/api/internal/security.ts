@@ -4,9 +4,10 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
-import type { Express } from 'express';
+import type { Express, Response } from 'express';
 import type { Redis } from 'ioredis';
 import type { ServerConfig } from '../../config/contract.ts';
+import { cspNonceMiddleware } from './csp-nonce.ts';
 
 export interface SecurityMiddlewareOptions {
   /** Redis client for distributed rate limiting across instances. */
@@ -24,6 +25,12 @@ export interface SecurityMiddlewareOptions {
 export function applySecurityMiddleware(app: Express, opts: SecurityMiddlewareOptions): void {
   const origins = opts.serverConfig.corsOrigins;
 
+  // Generate a unique CSP nonce per request (L11). The nonce is
+  // stored on res.locals.cspNonce and referenced by both the
+  // helmet CSP directive (below) and the HTML-serving middleware
+  // that injects it into inline <script> tags.
+  app.use(cspNonceMiddleware());
+
   // CORS — restrict to configured origins, or allow same-origin only if none set
   app.use(cors({
     origin: origins.length > 0 ? origins : false,
@@ -33,17 +40,17 @@ export function applySecurityMiddleware(app: Express, opts: SecurityMiddlewareOp
     maxAge: 86400,
   }));
 
-  // Security headers
+  // Security headers — nonce-based CSP replaces the previous sha256
+  // hash approach (L11). Each response gets a unique nonce so only
+  // scripts the server explicitly annotates will execute. The nonce
+  // function reads from res.locals, which cspNonceMiddleware set above.
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: [
           "'self'",
-          // Theme-detection inline scripts (editor.html + index.html)
-          "'sha256-P0tJR3Q9jyRl1vNpgiYrKQGPWs8ReNY1F3D0m/F6QzA='",
-          // Theme-detection inline script (share.html — no comment variant)
-          "'sha256-2u/Uh4z9crM/+6p4RwTBXMk5W4tz0+QA4BL+MIhhclQ='",
+          (_req, res) => `'nonce-${(res as Response).locals.cspNonce}'`,
         ],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'blob:'],
