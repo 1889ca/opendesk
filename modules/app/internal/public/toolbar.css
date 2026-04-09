@@ -239,6 +239,12 @@
   color: var(--text);
 }
 
+.toolbar-select--style {
+  min-width: 7rem;
+  max-width: 9rem;
+  text-align: left;
+}
+
 .toolbar-select--font {
   max-width: 8rem;
   text-align: left;

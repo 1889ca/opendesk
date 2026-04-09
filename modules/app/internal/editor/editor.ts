@@ -115,7 +115,7 @@ async function init() {
     editor = new Editor({
       element: editorEl,
       extensions: buildEditorExtensions({ ydoc, provider, user }),
-      editorProps: { attributes: { class: 'editor-content' } },
+      editorProps: { attributes: { class: 'editor-content', spellcheck: 'true' } },
     });
   } catch (err) {
     console.error('Editor initialization failed:', err);

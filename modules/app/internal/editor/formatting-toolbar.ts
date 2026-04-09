@@ -10,7 +10,7 @@ import { announce } from '../shared/a11y-announcer.ts';
 import { enableToolbarNavigation, updateRovingTabindex } from './toolbar-nav.ts';
 import { getIcon } from './toolbar-icons.ts';
 import { buildTextColorBtn, buildHighlightBtn } from './toolbar-color-btn.ts';
-import { buildFontFamilySelect, buildFontSizeSelect, buildLineHeightSelect, buildParagraphSpacingSelect } from './toolbar-selects.ts';
+import { buildFontFamilySelect, buildFontSizeSelect, buildLineHeightSelect, buildParagraphSpacingSelect, buildStyleSelect } from './toolbar-selects.ts';
 
 interface ToolbarButton {
   key: TranslationKey | null;
@@ -195,12 +195,14 @@ export function buildFormattingToolbar(editor: Editor): void {
   const render = () => {
     toolbar.innerHTML = '';
     renderToolbarButtons(toolbar, buildToolbarButtons(editor), editor);
-    // Insert font-family select and font-size select after the undo/redo separator (position 3)
+    // Insert style select, font-family select and font-size select after the undo/redo separator (position 3)
+    const styleSelect = buildStyleSelect(editor);
     const fontFamilySelect = buildFontFamilySelect(editor);
     const fontSizeSelect = buildFontSizeSelect(editor);
     const children = Array.from(toolbar.children);
     const insertBefore = children[3] ?? null;
-    toolbar.insertBefore(fontFamilySelect, insertBefore);
+    toolbar.insertBefore(styleSelect, insertBefore);
+    toolbar.insertBefore(fontFamilySelect, styleSelect.nextSibling);
     toolbar.insertBefore(fontSizeSelect, fontFamilySelect.nextSibling);
     // Insert line-height select right after the font-size select
     const lineHeightSelect = buildLineHeightSelect(editor);
