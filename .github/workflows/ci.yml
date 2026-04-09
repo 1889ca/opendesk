@@ -65,6 +65,15 @@ jobs:
           --health-interval 2s
           --health-timeout 5s
           --health-retries 10
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 10
 
     env:
       OPENDESK_TEST_PG: '1'
@@ -94,6 +103,7 @@ jobs:
           PG_DATABASE: opendesk
           PG_USER: opendesk
           PG_PASSWORD: opendesk_dev
+          REDIS_URL: redis://localhost:6379
 
       - name: Wait for server
         run: |
