@@ -134,4 +134,14 @@ export const featureTranslations: Partial<TranslationKeys> = {
   'emoji.travel': 'Voyages et lieux',
   'emoji.objects': 'Objets',
   'emoji.symbols': 'Symboles',
+
+  // Hors ligne
+  'offline.offline': 'Hors ligne',
+  'offline.syncing': 'Synchronisation...',
+  'offline.synced': 'Synchronis\u00e9',
+  'offline.updateAvailable': 'Une nouvelle version est disponible.',
+  'offline.updateAction': 'Mettre \u00e0 jour',
+  'offline.cachedDocs': 'Documents en cache affich\u00e9s',
+  'offline.queuedChanges': '{count} modification(s) en attente',
+  'offline.badge': 'hors ligne',
 };

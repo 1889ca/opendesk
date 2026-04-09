@@ -134,4 +134,14 @@ export const featureTranslations: Partial<TranslationKeys> = {
   'emoji.travel': 'Travel & Places',
   'emoji.objects': 'Objects',
   'emoji.symbols': 'Symbols',
+
+  // Offline
+  'offline.offline': 'Offline',
+  'offline.syncing': 'Syncing...',
+  'offline.synced': 'Synced',
+  'offline.updateAvailable': 'A new version is available.',
+  'offline.updateAction': 'Update now',
+  'offline.cachedDocs': 'Showing cached documents',
+  'offline.queuedChanges': '{count} change(s) queued',
+  'offline.badge': 'offline',
 };

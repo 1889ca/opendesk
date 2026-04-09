@@ -134,4 +134,12 @@ export interface FeatureTranslationKeys {
   'emoji.objects': string;
   'emoji.symbols': string;
   'dragHandle.tooltip': string;
+  'offline.offline': string;
+  'offline.syncing': string;
+  'offline.synced': string;
+  'offline.updateAvailable': string;
+  'offline.updateAction': string;
+  'offline.cachedDocs': string;
+  'offline.queuedChanges': string;
+  'offline.badge': string;
 }
