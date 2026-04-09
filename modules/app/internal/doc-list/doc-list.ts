@@ -16,6 +16,7 @@ import { buildNotificationBell } from '../shared/notification-bell.ts';
 import { buildWorkspaceSidebar } from '../shared/workspace-sidebar.ts';
 import { createGlobalSearch } from '../editor/global-search.ts';
 import { renderDocuments, TYPE_META } from './doc-list-render.ts';
+import { createBulkActionBar } from './bulk-actions.ts';
 import { showNameDialog } from './name-dialog.ts';
 import {
   registerServiceWorker,
@@ -29,9 +30,13 @@ import {
   setupOnlineRefresh,
 } from '../offline/doc-list-offline.ts';
 
-async function loadAll(listEl: HTMLElement) {
+let selectedIds: Set<string> = new Set();
+
+async function loadAll(listEl: HTMLElement, onNewDocument: () => void) {
   const folderId = getCurrentFolderId();
   listEl.innerHTML = '';
+  selectedIds = new Set();
+  bulkBar?.update(selectedIds);
 
   let breadcrumbEl = document.getElementById('folder-breadcrumbs');
   if (!breadcrumbEl) {
@@ -53,7 +58,17 @@ async function loadAll(listEl: HTMLElement) {
     const data = await res.json();
     const docs = Array.isArray(data) ? data : [];
     cacheDocListResponse(docs);
-    renderDocuments(listEl, docs, () => loadAll(listEl));
+    renderDocuments({
+      listEl,
+      docs,
+      onDelete: () => loadAll(listEl, onNewDocument),
+      onNewDocument,
+      selectedIds,
+      onSelectionChange: (ids) => {
+        selectedIds = ids;
+        bulkBar?.update(ids);
+      },
+    });
   } catch (err) {
     console.error('Failed to load documents', err);
     const cached = await renderCachedDocuments(listEl);
@@ -87,6 +102,8 @@ async function createTypedDocument(documentType: string): Promise<void> {
   }
 }
 
+let bulkBar: ReturnType<typeof createBulkActionBar> | null = null;
+
 function init() {
   initTheme();
   initConnectivityListeners();
@@ -108,7 +125,7 @@ function init() {
     createNewFolderButton(toolbarRight as HTMLElement);
   }
   document.body.insertBefore(buildUpdateBanner(), document.body.firstChild);
-  setupOnlineRefresh(() => loadAll(listEl));
+  setupOnlineRefresh(() => loadAll(listEl, handleNewDocument));
 
   const searchEl = createGlobalSearch((active) => {
     listEl.style.display = active ? 'none' : '';
@@ -117,21 +134,27 @@ function init() {
   });
   listEl.parentElement?.insertBefore(searchEl, listEl);
 
-  setNavigateCallback(() => loadAll(listEl));
+  // Bulk action bar — inserted above the list
+  bulkBar = createBulkActionBar(() => loadAll(listEl, handleNewDocument));
+  listEl.parentElement?.insertBefore(bulkBar.el, listEl);
 
-  newBtn.addEventListener('click', async () => {
+  setNavigateCallback(() => loadAll(listEl, handleNewDocument));
+
+  async function handleNewDocument() {
     try {
       const docId = await createDocumentFromTemplate();
       if (docId) window.location.href = '/editor.html?doc=' + encodeURIComponent(docId);
     } catch (err) { console.error('Create failed', err); }
-  });
+  }
+
+  newBtn.addEventListener('click', handleNewDocument);
 
   document.getElementById('new-sheet-btn')
     ?.addEventListener('click', () => createTypedDocument('spreadsheet'));
   document.getElementById('new-slides-btn')
     ?.addEventListener('click', () => createTypedDocument('presentation'));
 
-  loadAll(listEl);
+  loadAll(listEl, handleNewDocument);
 }
 
 document.addEventListener('DOMContentLoaded', init);

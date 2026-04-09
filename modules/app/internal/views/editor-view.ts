@@ -27,31 +27,12 @@ import { apiFetch, getAuthToken } from '../shared/api-client.ts';
 import { navigate } from '../shell/router.ts';
 import { buildEditorToolbar } from './editor-toolbar.ts';
 import { mountSidebars } from './editor-sidebars.ts';
-
-const COLORS = [
-  '#958DF1', '#F98181', '#FBBC88', '#FAF594',
-  '#70CFF8', '#94FADB', '#B9F18D', '#C3E2C2',
-];
+import { getUserIdentity } from '../shared/identity.ts';
 
 let editor: Editor | null = null;
 let provider: HocuspocusProvider | null = null;
 let ydoc: Y.Doc | null = null;
 let cleanupFns: (() => void)[] = [];
-
-function getUserIdentity() {
-  let name = localStorage.getItem('opendesk:userName');
-  let color = localStorage.getItem('opendesk:userColor');
-  if (!name) {
-    const defaults = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Hank'];
-    name = defaults[Math.floor(Math.random() * defaults.length)];
-    localStorage.setItem('opendesk:userName', name);
-  }
-  if (!color) {
-    color = COLORS[Math.floor(Math.random() * COLORS.length)];
-    localStorage.setItem('opendesk:userColor', color);
-  }
-  return { name, color };
-}
 
 /** Fetch the current user's role on a document. Returns null on error. */
 async function fetchMyRole(documentId: string): Promise<{ role: string; canWrite: boolean; canComment: boolean } | null> {

@@ -36,7 +36,77 @@
   font-size: 0.875rem;
 }
 
-/* Wrapper is the visual card — holds the link and delete button as siblings */
+/* ── Empty state (issue #182) ─────────────────────────────────────── */
+
+.empty-state-icon-wrap {
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.empty-state-icon {
+  width: 4rem;
+  height: 4rem;
+}
+
+.empty-state-new-btn {
+  margin-top: 1.25rem;
+}
+
+/* ── Bulk action bar (issue #173) ─────────────────────────────────── */
+
+.bulk-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--accent);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  width: 100%;
+  max-width: 40rem;
+  box-sizing: border-box;
+}
+
+.bulk-action-bar[hidden] {
+  display: none;
+}
+
+.bulk-action-count {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.bulk-delete-btn {
+  margin-left: auto;
+  font-size: 0.8125rem;
+}
+
+/* ── Checkbox column (issue #173) ─────────────────────────────────── */
+
+.doc-row-check-label {
+  display: flex;
+  align-items: center;
+  padding: 0 0.25rem 0 0.75rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.doc-row-checkbox {
+  width: 1rem;
+  height: 1rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.doc-row-wrapper:hover .doc-row-checkbox,
+.doc-row-checkbox:checked {
+  opacity: 1;
+}
+
+/* ── Wrapper is the visual card — holds the link and delete button as siblings */
 .doc-row-wrapper {
   display: flex;
   align-items: center;
@@ -149,6 +219,45 @@
 
 .btn-delete:hover {
   background: var(--status-disconnected-bg);
+}
+
+/* Star button — shown on row hover */
+.btn-star {
+  opacity: 0;
+  background: none;
+  color: var(--text-muted);
+  padding: 0.35rem 0.4rem;
+  font-size: 1rem;
+  line-height: 1;
+  transition: opacity 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-star--active {
+  opacity: 1;
+  color: #f59e0b;
+}
+
+.doc-row-wrapper:hover .btn-star {
+  opacity: 1;
+}
+
+.btn-star:hover {
+  color: #f59e0b;
+}
+
+/* Starred section heading */
+.doc-list-section {
+  margin-bottom: 1.5rem;
+}
+
+.doc-list-section-heading {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem 0;
 }
 
 /* Danger button — used in delete confirmation modal */
