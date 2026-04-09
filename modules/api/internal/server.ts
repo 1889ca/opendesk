@@ -71,14 +71,17 @@ export async function startServer(port = 3000) {
     nodeEnv: config.server.nodeEnv,
   });
 
-  // Wire collab server with auth dependency
-  const { handleUpgrade, hocuspocus } = createCollabServer({
-    tokenVerifier: auth.tokenVerifier,
-  });
-
-  // Wire permissions module with PG-backed grant store
+  // Wire permissions module with PG-backed grant store.
+  // Must be created BEFORE collab so the WS authenticate hook can
+  // gate document access (issue #125).
   const grantStore = createPgGrantStore(pool);
   const permissions = createPermissions({ grantStore, authMode: config.auth.mode });
+
+  // Wire collab server with auth + permissions dependencies.
+  const { handleUpgrade, hocuspocus } = createCollabServer({
+    tokenVerifier: auth.tokenVerifier,
+    permissions,
+  });
 
   // Wire event bus, audit, and workflow modules
   const eventBus = createEventBus(pool, redisClient);
