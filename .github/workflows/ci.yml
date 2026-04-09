@@ -25,3 +25,67 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ./scripts/security-lint.sh
+
+  # CONSTITUTION Article II §1: PRs touching restricted zones must be
+  # gated by an explicit human-approved label. This job runs only on
+  # pull_request events; it computes the diff against the base branch,
+  # asks scripts/check-restricted-zones.sh which paths matched, and
+  # fails the check if any restricted path was touched without the
+  # `human-approved` label on the PR. See issue #128.
+  restricted-zones:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect restricted-zone changes
+        id: detect
+        run: |
+          # Fetch the base branch so the diff has a real ref to compare against.
+          git fetch origin "${{ github.base_ref }}" --depth=200
+
+          touched="$(./scripts/check-restricted-zones.sh "${{ github.base_ref }}")"
+
+          if [ -z "$touched" ]; then
+            echo "No restricted-zone changes detected."
+            echo "touched=" >> "$GITHUB_OUTPUT"
+          else
+            echo "Restricted-zone paths touched:"
+            echo "$touched"
+            # Persist as a multiline output for the next step.
+            {
+              echo "touched<<EOF"
+              echo "$touched"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Require human-approved label when restricted zones touched
+        if: steps.detect.outputs.touched != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          labels="$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name')"
+          if echo "$labels" | grep -qx 'human-approved'; then
+            echo "human-approved label is present — restricted-zone changes authorized."
+            exit 0
+          fi
+
+          cat <<MSG
+          ❌ This PR touches CONSTITUTION-restricted zones but has no
+          'human-approved' label.
+
+          Touched paths:
+          ${{ steps.detect.outputs.touched }}
+
+          Restricted zones (per CONSTITUTION.md Article II §1) require
+          explicit human maintainer sign-off. A maintainer must add the
+          'human-approved' label to this PR before CI will pass.
+          MSG
+          exit 1
