@@ -33,7 +33,10 @@ import { createAiRoutes, createAi } from '../../ai/index.ts';
 import { createErasure, createErasureRoutes } from '../../erasure/index.ts';
 import { createFederation, createFederationRoutes } from '../../federation/index.ts';
 import { idempotencyMiddleware } from './idempotency.ts';
-import { pool, principalContextMiddleware } from '../../storage/index.ts';
+import { principalContextMiddleware } from '../../storage/index.ts';
+// Composition root: pool comes from storage/internal/pool.ts since
+// the public storage surface no longer re-exports it (#134).
+import { pool } from '../../storage/internal/pool.ts';
 import type { AppConfig } from '../../config/contract.ts';
 import type { EventBusModule } from '../../events/contract.ts';
 

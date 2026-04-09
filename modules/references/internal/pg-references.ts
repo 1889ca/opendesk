@@ -1,5 +1,6 @@
 /** Contract: contracts/references/rules.md */
-import { pool } from '../../storage/index.ts';
+// #134 follow-up: factory + DI. See modules/kb/internal/pg-entries.ts.
+import { pool } from '../../storage/internal/pool.ts';
 
 export interface ReferenceRow {
   id: string;

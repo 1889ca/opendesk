@@ -1,5 +1,6 @@
 /** Contract: contracts/kb/rules.md */
-import { pool } from '../../storage/index.ts';
+// #134 follow-up: factory + DI. See pg-entries.ts.
+import { pool } from '../../storage/internal/pool.ts';
 
 export interface KbVersionRow {
   id: string;

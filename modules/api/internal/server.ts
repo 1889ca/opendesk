@@ -8,7 +8,11 @@ import { getRedisClient, setRedisConfig, disconnectRedis } from './redis.ts';
 import { createAuth, createAuthRateLimiter } from '../../auth/index.ts';
 import { createPermissions, createPgGrantStore } from '../../permissions/index.ts';
 import { createShareLinkService, createPgShareLinkStore, createPasswordRateLimiter } from '../../sharing/index.ts';
-import { pool, initPool, initSchema } from '../../storage/index.ts';
+import { initPool, initSchema } from '../../storage/index.ts';
+// Composition root: pool comes from storage/internal/pool.ts because
+// the public storage surface no longer re-exports it (#134). Only
+// the composition root and the existing pg-* stores reach in here.
+import { pool } from '../../storage/internal/pool.ts';
 import { initCollabora } from '../../convert/index.ts';
 import { ensureS3Bucket, initS3 } from './s3-client.ts'; import { applySecurityMiddleware } from './security.ts';
 import { createEventBus } from '../../events/index.ts';

@@ -1,5 +1,8 @@
 /** Contract: contracts/kb/rules.md */
-import { pool } from '../../storage/index.ts';
+// #134 follow-up: this should become a factory that takes pool via DI.
+// For now, importing through the storage internal pool keeps the
+// public storage contract clean.
+import { pool } from '../../storage/internal/pool.ts';
 import type { KbEntryStatus } from '../contract.ts';
 
 export interface KbEntryRow {
