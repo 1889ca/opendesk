@@ -43,6 +43,8 @@ body {
   align-items: center;
   justify-content: flex-start;
   padding: 2.5rem 1.5rem;
+  /* Reserve space for fixed status bar at bottom */
+  padding-bottom: calc(2.5rem + 2rem);
   background: var(--canvas);
 }
 

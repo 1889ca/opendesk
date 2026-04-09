@@ -30,12 +30,10 @@ export interface PanelDeps {
 export function initEditorPanels(deps: PanelDeps): void {
   const { editor, editorEl, commentStore, documentId, user } = deps;
 
-  const editorWrapper = editorEl.closest('.editor-wrapper');
-  if (editorWrapper) {
-    editorWrapper.appendChild(buildStatusBar(editor));
-  }
+  document.body.appendChild(buildStatusBar(editor));
 
   const bib = createBibliography(editor);
+  const editorWrapper = editorEl.closest('.editor-wrapper');
   if (editorWrapper) {
     editorWrapper.appendChild(bib.element);
   } else {
