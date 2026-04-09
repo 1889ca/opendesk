@@ -33,10 +33,11 @@ import {
   manifests,
   filterEnabled,
   mountManifestRoutes,
+  runManifestStartHooks,
+  runManifestShutdownHooks,
   createServiceRegistry,
   type AppContext,
 } from '../../core/manifest/index.ts';
-import { createAiRoutes, createAi } from '../../ai/index.ts';
 import { idempotencyMiddleware } from './idempotency.ts';
 import { serveHtmlWithNonce } from './csp-nonce.ts';
 import { principalContextMiddleware } from '../../storage/index.ts';
@@ -64,10 +65,15 @@ export interface RouteDependencies {
 }
 
 /**
- * Mount all API routes onto the Express app.
- * Returns the AI module reference (if started) for shutdown coordination.
+ * Mount all API routes onto the Express app and run lifecycle
+ * start hooks for every enabled manifest. Returns a `shutdown`
+ * closure that the composition root must call during graceful
+ * teardown so each manifest's `onShutdown` runs in reverse order.
+ *
+ * Async because manifest `onStart` hooks may be async (e.g. an
+ * AI consumer that opens a connection during startup).
  */
-export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof createAi> | null } {
+export async function mountRoutes(deps: RouteDependencies): Promise<{ shutdown: () => Promise<void> }> {
   const {
     app, auth, permissions, hocuspocus, redisClient,
     config, eventBus, audit, workflow, observability,
@@ -156,6 +162,11 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
   // the migrated set; see modules/core/manifest/registry.ts for the
   // canonical list. Restricted-zone modules (auth/sharing/permissions
   // per CONSTITUTION.md) are deliberately still hand-mounted below.
+  //
+  // Order matters: runManifestStartHooks must run BEFORE
+  // mountManifestRoutes so that lifecycle hooks (e.g. ai's onStart
+  // creating its consumer) can register handles into the service
+  // registry before any route factory tries to read them.
   const ctx: AppContext = {
     app, config, pool,
     auth, permissions, hocuspocus, redisClient,
@@ -163,21 +174,15 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
     shareLinkService, shareRateLimiter, shareResolveRateLimiter, publicDir,
     ...createServiceRegistry(),
   };
-  mountManifestRoutes(ctx, filterEnabled(manifests, ctx));
+  const enabledManifests = filterEnabled(manifests, ctx);
+  const manifestHandles = await runManifestStartHooks(ctx, enabledManifests);
+  mountManifestRoutes(ctx, enabledManifests);
 
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
 
   // Observability metrics routes
   app.use('/api/admin/metrics', createMetricsRoutes({ observability, permissions, pool }));
-
-  // AI routes (semantic search, RAG assistant, embedding) — gated by config
-  let ai: ReturnType<typeof createAi> | null = null;
-  if (config.ai.enabled) {
-    ai = createAi({ pool, config: config.ai, eventBus });
-    ai.startConsumer();
-    app.use('/api/ai', createAiRoutes({ ai, permissions }));
-  }
 
   // Share link routes (create, resolve, revoke) — after auth
   app.use(createShareRoutes({
@@ -192,5 +197,7 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
   app.use('/api', createUploadRoutes({ permissions }));
   app.use('/api', createFileRoutes({ permissions }));
 
-  return { ai };
+  return {
+    shutdown: () => runManifestShutdownHooks(ctx, manifestHandles),
+  };
 }

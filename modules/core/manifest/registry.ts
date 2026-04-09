@@ -1,6 +1,7 @@
 /** Contract: contracts/core/manifest/rules.md */
 
 import type { OpenDeskManifest } from './contract.ts';
+import { manifest as aiManifest } from '../../ai/manifest.ts';
 import { manifest as auditManifest } from '../../audit/manifest.ts';
 import { manifest as erasureManifest } from '../../erasure/manifest.ts';
 import { manifest as federationManifest } from '../../federation/manifest.ts';
@@ -22,6 +23,7 @@ import { manifest as workflowManifest } from '../../workflow/manifest.ts';
  * until a human maintainer signs off on migrating them.
  */
 export const manifests: OpenDeskManifest[] = [
+  aiManifest,
   auditManifest,
   erasureManifest,
   federationManifest,
