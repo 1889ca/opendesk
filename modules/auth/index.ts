@@ -30,5 +30,11 @@ export { createOidcVerifier } from './internal/oidc-verifier.ts';
 export { createDevTokenVerifier, createDevApiKeyVerifier } from './internal/dev-verifier.ts';
 export { createApiKeyVerifier, type ServiceAccountStore, type ServiceAccountRecord } from './internal/apikey-verifier.ts';
 export { createServiceAccountManager, type ServiceAccountStorage } from './internal/service-accounts.ts';
-export { hashApiKey, generateApiKey } from './internal/hash.ts';
+export {
+  generateApiKey,
+  generateAccountId,
+  parseApiKey,
+  verifyApiKeySecret,
+  type ParsedApiKey,
+} from './internal/hash.ts';
 export { createAuthRateLimiter, createInMemoryAuthRateLimiter, type AuthRateLimiter, type AuthRateLimiterOptions } from './internal/auth-rate-limit.ts';

@@ -2,10 +2,12 @@
 
 import { describe, it, expect } from 'vitest';
 import { createServiceAccountManager, type ServiceAccountStorage } from './service-accounts.ts';
-import { hashApiKey } from './hash.ts';
+import { parseApiKey, verifyApiKeySecret } from './hash.ts';
 import type { ServiceAccountRecord } from './apikey-verifier.ts';
 
-function makeStorage(): ServiceAccountStorage & { records: Map<string, ServiceAccountRecord & { createdAt: string }> } {
+function makeStorage(): ServiceAccountStorage & {
+  records: Map<string, ServiceAccountRecord & { createdAt: string }>;
+} {
   const records = new Map<string, ServiceAccountRecord & { createdAt: string }>();
   return {
     records,
@@ -23,30 +25,47 @@ function makeStorage(): ServiceAccountStorage & { records: Map<string, ServiceAc
 }
 
 describe('Service Account Manager', () => {
-  it('creates a service account and returns raw key', async () => {
+  it('creates a service account and returns the full opd_ key once', async () => {
     const storage = makeStorage();
     const manager = createServiceAccountManager(storage);
 
     const sa = await manager.create({ displayName: 'Bot', scopes: ['read'] });
     expect(sa.id).toBeTruthy();
-    expect(sa.apiKey).toHaveLength(64); // hex-encoded 32 bytes
+    expect(sa.apiKey.startsWith('opd_')).toBe(true);
     expect(sa.displayName).toBe('Bot');
     expect(sa.scopes).toEqual(['read']);
     expect(sa.createdAt).toBeTruthy();
   });
 
-  it('stores hashed key, not raw key', async () => {
+  it('embeds the account id in the api key (parseable)', async () => {
+    const storage = makeStorage();
+    const manager = createServiceAccountManager(storage);
+
+    const sa = await manager.create({ displayName: 'Bot', scopes: [] });
+    const parsed = parseApiKey(sa.apiKey);
+    expect(parsed).not.toBeNull();
+    expect(parsed?.accountId).toBe(sa.id);
+  });
+
+  it('stores a bcrypt secret hash, not the raw key', async () => {
     const storage = makeStorage();
     const manager = createServiceAccountManager(storage);
 
     const sa = await manager.create({ displayName: 'Bot', scopes: [] });
     const stored = storage.records.get(sa.id);
     expect(stored).toBeTruthy();
-    expect(stored!.keyHash).toBe(hashApiKey(sa.apiKey));
-    expect(stored!.keyHash).not.toBe(sa.apiKey);
+    expect(stored!.secretHash).toMatch(/^\$2[aby]\$/);
+    expect(sa.apiKey).not.toContain(stored!.secretHash);
+
+    // The stored bcrypt hash actually verifies the secret portion
+    // of the issued key — round-trip integrity check.
+    const parsed = parseApiKey(sa.apiKey);
+    expect(parsed).not.toBeNull();
+    const ok = await verifyApiKeySecret(parsed!.secret, stored!.secretHash);
+    expect(ok).toBe(true);
   });
 
-  it('read returns masked key', async () => {
+  it('read returns the masked key, never the original', async () => {
     const storage = makeStorage();
     const manager = createServiceAccountManager(storage);
 
@@ -57,14 +76,14 @@ describe('Service Account Manager', () => {
     expect(read!.displayName).toBe('Bot');
   });
 
-  it('read returns null for unknown id', async () => {
+  it('read returns null for an unknown id', async () => {
     const storage = makeStorage();
     const manager = createServiceAccountManager(storage);
     const read = await manager.read('nonexistent');
     expect(read).toBeNull();
   });
 
-  it('revoke marks account as revoked', async () => {
+  it('revoke marks the account as revoked', async () => {
     const storage = makeStorage();
     const manager = createServiceAccountManager(storage);
 

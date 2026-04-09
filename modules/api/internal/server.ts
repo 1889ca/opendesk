@@ -60,7 +60,7 @@ export async function startServer(port = 3000) {
   // Auth failure rate limiter — 10 failed attempts per 15 min per IP (brute-force protection)
   const authRateLimiter = createAuthRateLimiter(redisClient);
   const auth = createAuth({
-    serviceAccountStore: { findByKeyHash: async () => null },
+    serviceAccountStore: { findById: async () => null },
     serviceAccountStorage: {
       insertServiceAccount: async () => {},
       findServiceAccountById: async () => null,
