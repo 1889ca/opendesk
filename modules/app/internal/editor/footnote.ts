@@ -1,6 +1,5 @@
 /** Contract: contracts/app/rules.md */
-import { Node, mergeAttributes } from '@tiptap/core';
-import type { NodeViewRendererProps } from '@tiptap/core';
+import { Node, mergeAttributes, type NodeViewRendererProps } from '@tiptap/core';
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
