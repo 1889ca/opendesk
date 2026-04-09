@@ -89,6 +89,11 @@ jobs:
         env:
           AUTH_MODE: dev
           PORT: '3000'
+          PG_HOST: localhost
+          PG_PORT: '5433'
+          PG_DATABASE: opendesk
+          PG_USER: opendesk
+          PG_PASSWORD: opendesk_dev
 
       - name: Wait for server
         run: |
