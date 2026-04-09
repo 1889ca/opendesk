@@ -90,8 +90,11 @@ export interface FeatureTranslationKeys {
   'templates.selectTitle': string;
   'templates.loading': string;
   'templates.loadFailed': string;
+  'stats.word': string;
   'stats.words': string;
+  'stats.character': string;
   'stats.characters': string;
+  'stats.paragraph': string;
   'stats.paragraphs': string;
   'stats.readingTime': string;
   'stats.selected': string;

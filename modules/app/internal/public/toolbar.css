@@ -105,6 +105,34 @@
   border-color: var(--accent);
 }
 
+/* Icon button: SVG-only display with visually-hidden text label */
+.toolbar-btn--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem;
+  line-height: 1;
+  position: relative;
+}
+
+.toolbar-btn--icon svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* Visually hidden but accessible label for screen readers */
+.toolbar-btn-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* Export Buttons */
 .export-group {
   display: flex;
@@ -129,6 +157,48 @@
 .export-btn:hover {
   background: var(--bg);
   border-color: var(--text-muted);
+}
+
+/* Export dropdown */
+.export-dropdown {
+  position: relative;
+}
+
+.export-dropdown-toggle {
+  white-space: nowrap;
+}
+
+.export-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px var(--shadow-color, rgba(0, 0, 0, 0.12));
+  min-width: 7rem;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem;
+}
+
+.export-dropdown-item {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.export-dropdown-item:hover {
+  background: var(--bg);
 }
 
 /* Editor Title Input */
@@ -162,6 +232,25 @@
 
 .back-link:hover {
   color: var(--accent);
+}
+
+/* Permission banner — shown for viewer and commenter share links */
+.permission-banner {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1.5rem;
+  background: var(--status-disconnected-bg, #fef3cd);
+  color: var(--text, #333);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+  gap: 0.5rem;
+}
+
+.permission-banner::before {
+  content: "🔒";
+  font-size: 0.875rem;
+  flex-shrink: 0;
 }
 
 /* Language Switcher */

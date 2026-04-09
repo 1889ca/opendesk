@@ -2,6 +2,7 @@
 
 .editor-wrapper {
   flex: 1;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -15,7 +16,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 
 #editor {
   width: 100%;
-  max-width: 48rem;
+  max-width: 860px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;

@@ -54,7 +54,12 @@ export function applySecurityMiddleware(app: Express, opts: SecurityMiddlewareOp
         ],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'blob:'],
-        connectSrc: ["'self'", 'ws:', 'wss:'],
+        // 'self' covers same-origin ws:// and wss:// connections.
+        // Bare scheme sources ('ws:' / 'wss:') are not supported by Safari
+        // (they cause a CSP parse error in WebKit which can cascade to blocking
+        // all script execution on the page). Explicit same-origin is correct
+        // and sufficient for the Hocuspocus collab endpoint. (#185)
+        connectSrc: ["'self'"],
         fontSrc: ["'self'"],
         objectSrc: ["'none'"],
         frameAncestors: ["'none'"],

@@ -46,9 +46,25 @@ export interface CoreTranslationKeys {
   'docList.noDocumentsSubtitle': string;
   'docList.delete': string;
   'docList.deleteConfirm': string;
+  'docList.deleteAriaLabel': string;
   'docList.updated': string;
   'docList.loadFailed': string;
   'docList.titlePrompt': string;
+  'docList.namePlaceholder': string;
+  'docList.nameCancel': string;
+  'docList.nameCreate': string;
+  'docList.filterAll': string;
+  'docList.filterDocuments': string;
+  'docList.filterSpreadsheets': string;
+  'docList.filterPresentations': string;
+  'docList.sortLabel': string;
+  'docList.sortUpdated': string;
+  'docList.sortCreated': string;
+  'docList.sortNameAZ': string;
+  'docList.sortNameZA': string;
+  'docList.pageOf': string;
+  'docList.prevPage': string;
+  'docList.nextPage': string;
   'time.justNow': string;
   'time.secondsAgo': string;
   'time.minuteAgo': string;
@@ -72,6 +88,17 @@ export interface CoreTranslationKeys {
   'promoteKb.saving': string;
   'promoteKb.success': string;
   'promoteKb.error': string;
+
+  // Bubble menu
+  'bubble.bold': string;
+  'bubble.italic': string;
+  'bubble.underline': string;
+  'bubble.link': string;
+  'bubble.linkPrompt': string;
+
+  // Version name dialog
+  'versions.namePrompt': string;
+  'versions.namePlaceholder': string;
 
   // Navigation (SPA shell)
   'nav.dashboard': string;

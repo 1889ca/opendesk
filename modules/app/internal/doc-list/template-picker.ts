@@ -2,6 +2,7 @@
 
 import { apiFetch } from '../shared/api-client.ts';
 import { t } from '../i18n/index.ts';
+import { showNameDialog } from './name-dialog.ts';
 
 interface TemplateOption {
   id: string;
@@ -117,7 +118,7 @@ function createCard(
 export async function createDocumentFromTemplate(): Promise<string | null> {
   const templateId = await showTemplatePicker();
 
-  const titleText = prompt(t('docList.titlePrompt'));
+  const titleText = await showNameDialog('docList.titlePrompt');
   if (!titleText) return null;
 
   const url = templateId

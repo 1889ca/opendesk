@@ -2,16 +2,30 @@
 
 /**
  * Shared API client that adds authentication headers to all requests.
- * In dev mode (AUTH_MODE=dev), uses a static Bearer token.
+ * In dev mode (AUTH_MODE=dev), builds a structured token:
+ *   dev:<stableId>:<displayName>:*
+ * which the server's dev-verifier can decode into a real identity.
  * In production, this would use OIDC tokens from the session.
+ *
+ * Issue #170: wire anonymous localStorage identity into auth token.
  */
 
-const DEV_TOKEN = 'dev';
+const DEV_FALLBACK = 'dev';
 
-function getAuthToken(): string {
+export function getAuthToken(): string {
   // In production, retrieve from session/cookie/OIDC flow
-  // For now, use the dev token
-  return localStorage.getItem('opendesk-auth-token') || DEV_TOKEN;
+  try {
+    const stableId = localStorage.getItem('opendesk:anonToken');
+    const displayName = localStorage.getItem('opendesk:userName');
+    if (stableId && displayName) {
+      // Sanitise: strip colons from name so the token format stays parseable
+      const safeName = displayName.replace(/:/g, '-');
+      return `dev:${stableId}:${safeName}:*`;
+    }
+  } catch {
+    // localStorage unavailable (e.g. private browsing with strict settings)
+  }
+  return DEV_FALLBACK;
 }
 
 function authHeaders(): Record<string, string> {

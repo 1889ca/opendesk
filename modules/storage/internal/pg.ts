@@ -13,18 +13,71 @@ export interface DocumentRow {
   updated_at: Date;
 }
 
-export async function listDocuments(folderId?: string | null): Promise<DocumentRow[]> {
+export type SortField = 'updated_at' | 'created_at' | 'title';
+export type SortDir = 'asc' | 'desc';
+
+export interface ListDocumentsOptions {
+  folderId?: string | null;
+  type?: string | null;
+  sort?: SortField;
+  sortDir?: SortDir;
+  limit?: number;
+  offset?: number;
+}
+
+export interface ListDocumentsResult {
+  rows: DocumentRow[];
+  total: number;
+}
+
+export async function listDocuments(
+  opts: ListDocumentsOptions = {},
+): Promise<ListDocumentsResult> {
+  const {
+    folderId,
+    type,
+    sort = 'updated_at',
+    sortDir = 'desc',
+    limit = 20,
+    offset = 0,
+  } = opts;
+
+  // Allowlist sort field and direction to prevent SQL injection
+  const allowedSorts: SortField[] = ['updated_at', 'created_at', 'title'];
+  const safeSort: SortField = allowedSorts.includes(sort) ? sort : 'updated_at';
+  const safeDir = sortDir === 'asc' ? 'ASC' : 'DESC';
+
+  const conditions: string[] = [];
+  const values: (string | number)[] = [];
+
   if (folderId) {
-    const result = await pool.query<DocumentRow>(
-      'SELECT id, title, document_type, folder_id, created_at, updated_at FROM documents WHERE folder_id = $1 ORDER BY updated_at DESC',
-      [folderId],
-    );
-    return result.rows;
+    conditions.push(`folder_id = $${values.length + 1}`);
+    values.push(folderId);
+  } else {
+    conditions.push('folder_id IS NULL');
   }
-  const result = await pool.query<DocumentRow>(
-    'SELECT id, title, document_type, folder_id, created_at, updated_at FROM documents WHERE folder_id IS NULL ORDER BY updated_at DESC',
+
+  if (type) {
+    conditions.push(`document_type = $${values.length + 1}`);
+    values.push(type);
+  }
+
+  const where = `WHERE ${conditions.join(' AND ')}`;
+
+  const countResult = await pool.query<{ count: string }>(
+    `SELECT COUNT(*) FROM documents ${where}`,
+    values,
   );
-  return result.rows;
+  const total = parseInt(countResult.rows[0].count, 10);
+
+  const limitVal = values.length + 1;
+  const offsetVal = values.length + 2;
+  const dataResult = await pool.query<DocumentRow>(
+    `SELECT id, title, document_type, folder_id, created_at, updated_at FROM documents ${where} ORDER BY ${safeSort} ${safeDir} LIMIT $${limitVal} OFFSET $${offsetVal}`,
+    [...values, limit, offset],
+  );
+
+  return { rows: dataResult.rows, total };
 }
 
 export async function getDocument(id: string): Promise<DocumentRow | null> {

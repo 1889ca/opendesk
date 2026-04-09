@@ -19,6 +19,7 @@ import {
   createNewFolderButton,
 } from '../doc-list/folder-list.ts';
 import { createGlobalSearch } from '../editor/global-search.ts';
+import { showDeleteConfirmDialog } from '../doc-list/delete-confirm-dialog.ts';
 
 interface DocEntry {
   id: string;
@@ -71,10 +72,12 @@ function renderDocuments(container: HTMLElement, docs: DocEntry[]) {
       e.preventDefault();
       e.stopPropagation();
       const name = doc.title || t('editor.untitled');
-      if (!confirm(t('docList.deleteConfirm', { name }))) return;
-      apiFetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
-        .then(() => { if (listEl) loadAll(listEl); })
-        .catch((err: unknown) => { console.error('Delete failed', err); });
+      showDeleteConfirmDialog(name).then((confirmed) => {
+        if (!confirmed) return;
+        apiFetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
+          .then(() => { if (listEl) loadAll(listEl); })
+          .catch((err: unknown) => { console.error('Delete failed', err); });
+      });
     });
 
     row.appendChild(info);

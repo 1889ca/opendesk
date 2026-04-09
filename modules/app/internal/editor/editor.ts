@@ -24,6 +24,8 @@ import { setupCodeBlockUI } from './code-block-ui.ts';
 import { buildEditorExtensions } from './editor-extensions.ts';
 import { initEntityMentionClicks } from './entity-mentions/index.ts';
 import { getUserIdentity, getDocumentId } from '../shared/identity.ts';
+import { ensureNameConfirmed } from '../shared/name-setup.ts';
+import { buildProfileChip } from '../shared/profile-chip.ts';
 import { initEditorPage } from './editor-page.ts';
 import { initEditorPanels } from './editor-panels.ts';
 import {
@@ -50,7 +52,7 @@ function addSkipLink(): void {
   onLocaleChange(() => { link.textContent = t('a11y.skipToContent'); });
 }
 
-function init() {
+async function init() {
   initTouchSupport();
   initConnectivityListeners();
   registerServiceWorker();
@@ -61,6 +63,9 @@ function init() {
   updateHtmlLang();
   onLocaleChange(updateHtmlLang);
   addSkipLink();
+
+  // Block until user has set a display name (issue #170)
+  await ensureNameConfirmed();
 
   const editorEl = document.getElementById('editor');
   if (!editorEl) return;
@@ -124,6 +129,13 @@ function init() {
   buildLanguageSwitcher();
   buildThemeToggle();
   buildNotificationBell();
+
+  // Profile chip — shows user's display name in the toolbar (issue #170)
+  const toolbarRightEl = document.querySelector('.toolbar-right');
+  if (toolbarRightEl) {
+    const chip = buildProfileChip();
+    toolbarRightEl.appendChild(chip);
+  }
 
   trackRecentDoc({ id: documentId, title: 'Document' });
   setupImageHandlers(editor, editorEl);

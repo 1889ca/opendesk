@@ -89,7 +89,9 @@ export const SearchExtension = Extension.create({
         document.dispatchEvent(new CustomEvent('opendesk:open-search'));
         return true;
       },
-      'Mod-h': () => {
+      // ⌘H / Ctrl+H is reserved by macOS (hide window) and some browsers,
+      // so we use ⌘Shift+H / Ctrl+Shift+H for Find & Replace instead.
+      'Mod-Shift-h': () => {
         document.dispatchEvent(
           new CustomEvent('opendesk:open-search', {
             detail: { showReplace: true },

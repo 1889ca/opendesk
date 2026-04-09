@@ -32,9 +32,25 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'docList.noDocumentsSubtitle': 'Create your first document to get started.',
   'docList.delete': 'Delete',
   'docList.deleteConfirm': 'Delete "{name}"? This cannot be undone.',
+  'docList.deleteAriaLabel': 'Delete {name}',
   'docList.updated': 'Updated {time}',
   'docList.loadFailed': 'Failed to load documents',
   'docList.titlePrompt': 'Document title:',
+  'docList.namePlaceholder': 'Enter a name…',
+  'docList.nameCancel': 'Cancel',
+  'docList.nameCreate': 'Create',
+  'docList.filterAll': 'All',
+  'docList.filterDocuments': 'Documents',
+  'docList.filterSpreadsheets': 'Spreadsheets',
+  'docList.filterPresentations': 'Presentations',
+  'docList.sortLabel': 'Sort:',
+  'docList.sortUpdated': 'Last modified',
+  'docList.sortCreated': 'Date created',
+  'docList.sortNameAZ': 'Name (A–Z)',
+  'docList.sortNameZA': 'Name (Z–A)',
+  'docList.pageOf': 'Page {page} of {total}',
+  'docList.prevPage': 'Previous',
+  'docList.nextPage': 'Next',
   'time.justNow': 'just now',
   'time.secondsAgo': '{n} seconds ago',
   'time.minuteAgo': '1 minute ago',
@@ -130,8 +146,11 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'shortcuts.showShortcuts': 'Show keyboard shortcuts',
 
   // Stats
+  'stats.word': '{count} word',
   'stats.words': '{count} words',
+  'stats.character': '{count} character',
   'stats.characters': '{count} characters',
+  'stats.paragraph': '{count} paragraph',
   'stats.paragraphs': '{count} paragraphs',
   'stats.readingTime': '~{time} min read',
   'stats.selected': '{selected} of {total} words selected',
@@ -152,6 +171,17 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'promoteKb.saving': 'Saving...',
   'promoteKb.success': 'Saved to Knowledge Base',
   'promoteKb.error': 'Failed to save to Knowledge Base',
+
+  // Bubble menu
+  'bubble.bold': 'Bold',
+  'bubble.italic': 'Italic',
+  'bubble.underline': 'Underline',
+  'bubble.link': 'Link',
+  'bubble.linkPrompt': 'Enter URL',
+
+  // Version name dialog
+  'versions.namePrompt': 'Name this version (optional)',
+  'versions.namePlaceholder': 'e.g. Before restructure',
 
   // Navigation (SPA shell)
   'nav.dashboard': 'Documents',

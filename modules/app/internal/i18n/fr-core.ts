@@ -32,9 +32,25 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'docList.noDocumentsSubtitle': 'Cr\u00e9ez votre premier document pour commencer.',
   'docList.delete': 'Supprimer',
   'docList.deleteConfirm': 'Supprimer \u00ab {name} \u00bb ? Cette action est irr\u00e9versible.',
+  'docList.deleteAriaLabel': 'Supprimer {name}',
   'docList.updated': 'Modifi\u00e9 {time}',
   'docList.loadFailed': 'Impossible de charger les documents',
   'docList.titlePrompt': 'Titre du document :',
+  'docList.namePlaceholder': 'Saisir un nom\u2026',
+  'docList.nameCancel': 'Annuler',
+  'docList.nameCreate': 'Cr\u00e9er',
+  'docList.filterAll': 'Tout',
+  'docList.filterDocuments': 'Documents',
+  'docList.filterSpreadsheets': 'Feuilles de calcul',
+  'docList.filterPresentations': 'Pr\u00e9sentations',
+  'docList.sortLabel': 'Tri\u00a0:',
+  'docList.sortUpdated': 'Derni\u00e8re modification',
+  'docList.sortCreated': 'Date de cr\u00e9ation',
+  'docList.sortNameAZ': 'Nom (A\u2013Z)',
+  'docList.sortNameZA': 'Nom (Z\u2013A)',
+  'docList.pageOf': 'Page {page} sur {total}',
+  'docList.prevPage': 'Pr\u00e9c\u00e9dent',
+  'docList.nextPage': 'Suivant',
   'time.justNow': '\u00e0 l\u2019instant',
   'time.secondsAgo': 'il y a {n} secondes',
   'time.minuteAgo': 'il y a 1 minute',
@@ -130,8 +146,11 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'shortcuts.showShortcuts': 'Afficher les raccourcis clavier',
 
   // Statistiques
+  'stats.word': '{count} mot',
   'stats.words': '{count} mots',
+  'stats.character': '{count} caract\u00e8re',
   'stats.characters': '{count} caract\u00e8res',
+  'stats.paragraph': '{count} paragraphe',
   'stats.paragraphs': '{count} paragraphes',
   'stats.readingTime': '~{time} min de lecture',
   'stats.selected': '{selected} sur {total} mots s\u00e9lectionn\u00e9s',
@@ -152,6 +171,17 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'promoteKb.saving': 'Sauvegarde...',
   'promoteKb.success': 'Sauvegard\u00e9 dans la base de connaissances',
   'promoteKb.error': '\u00c9chec de la sauvegarde dans la base de connaissances',
+
+  // Menu flottant
+  'bubble.bold': 'Gras',
+  'bubble.italic': 'Italique',
+  'bubble.underline': 'Souligné',
+  'bubble.link': 'Lien',
+  'bubble.linkPrompt': 'Saisir l\'URL',
+
+  // Boîte de dialogue de version
+  'versions.namePrompt': 'Nommer cette version (facultatif)',
+  'versions.namePlaceholder': 'ex. Avant restructuration',
 
   // Navigation (coquille SPA)
   'nav.dashboard': 'Documents',

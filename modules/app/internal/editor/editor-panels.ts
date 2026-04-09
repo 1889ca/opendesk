@@ -51,6 +51,8 @@ export function initEditorPanels(deps: PanelDeps): void {
   const tocPanel = buildTocPanel(editor);
   document.body.appendChild(tocPanel);
   document.addEventListener('opendesk:toggle-toc', () => {
+    // Mutually exclusive with the comment sidebar
+    toggleSidebar(commentSidebar, false);
     toggleTocPanel(tocPanel);
   });
 
@@ -82,6 +84,8 @@ export function initEditorPanels(deps: PanelDeps): void {
 
   document.addEventListener('opendesk:add-comment', () => {
     showCommentInput(editor, commentStore, documentId, user);
+    // Mutually exclusive with the TOC panel
+    toggleTocPanel(tocPanel, false);
     toggleSidebar(commentSidebar, true);
     announce(t('a11y.commentAdded'));
   });

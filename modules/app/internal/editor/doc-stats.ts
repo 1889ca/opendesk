@@ -48,7 +48,13 @@ function buildStats(text: string, paragraphs: number): DocStats {
 }
 
 export function calculateStats(editor: Editor): StatsResult {
-  const docText = editor.state.doc.textContent;
+  const doc = editor.state.doc;
+  // Use textBetween with a block separator so word counts are consistent
+  // between the full document and any selection. Using doc.textContent (no
+  // separator) causes words straddling paragraph boundaries to fuse into one
+  // token for the total but split correctly for a selection — producing the
+  // impossible "X of Y" display where X > Y.
+  const docText = doc.textBetween(0, doc.content.size, ' ');
   const docParagraphs = countParagraphs(editor);
   const document = buildStats(docText, docParagraphs);
 
@@ -57,13 +63,18 @@ export function calculateStats(editor: Editor): StatsResult {
     return { document, selection: null };
   }
 
-  const selText = editor.state.doc.textBetween(from, to, ' ');
+  const selText = doc.textBetween(from, to, ' ');
   let selParagraphs = 0;
-  editor.state.doc.nodesBetween(from, to, (node) => {
+  doc.nodesBetween(from, to, (node) => {
     if (node.isBlock && node.isTextblock) selParagraphs++;
     return true;
   });
-  const selection = buildStats(selText, Math.max(selParagraphs, 1));
+  // Guard: selection word count must never exceed document word count.
+  const selStats = buildStats(selText, Math.max(selParagraphs, 1));
+  const selection: DocStats = {
+    ...selStats,
+    words: Math.min(selStats.words, document.words),
+  };
 
   return { document, selection };
 }
