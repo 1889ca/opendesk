@@ -24,6 +24,7 @@ import { createMentionExtension } from './mentions/index.ts';
 import { EmojiInputRule } from './emoji/index.ts';
 import { DragHandle } from './drag-handle/index.ts';
 import { createEntityMentionExtension } from './entity-mentions/index.ts';
+import { TextAlign } from './text-align.ts';
 
 const lowlight = createLowlight(common);
 
@@ -63,5 +64,6 @@ export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
     createMentionExtension(provider),
     createEntityMentionExtension(),
     DragHandle,
+    TextAlign,
   ];
 }

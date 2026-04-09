@@ -17,6 +17,7 @@
 :root {
   --bg: var(--bg-primary);
   --surface: var(--bg-surface);
+  --canvas: var(--editor-canvas-bg, var(--bg-secondary));
   --border: var(--border-color);
   --text: var(--text-primary);
   --text-muted: var(--text-secondary);
@@ -39,7 +40,8 @@ body {
   flex: 1;
   display: flex;
   justify-content: center;
-  padding: 2rem 1rem;
+  padding: 2.5rem 1.5rem;
+  background: var(--canvas);
 }
 
 #editor {
@@ -48,7 +50,7 @@ body {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px var(--shadow-color), 0 8px 32px var(--shadow-medium);
   min-height: 60vh;
 }
 

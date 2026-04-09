@@ -2,9 +2,12 @@
 import type { Editor } from '@tiptap/core';
 import { BubbleMenuPlugin } from '@tiptap/extension-bubble-menu';
 import { t } from '../i18n/index.ts';
+import { getIcon } from './toolbar-icons.ts';
 
 interface BubbleAction {
   label: () => string;
+  ariaLabel: () => string;
+  icon: string;
   isActive: () => boolean;
   run: () => void;
 }
@@ -16,22 +19,37 @@ function promptLink(): string | null {
 function buildActions(editor: Editor): BubbleAction[] {
   return [
     {
-      label: () => t('bubble.bold'),
+      label: () => t('toolbar.bold'),
+      ariaLabel: () => t('a11y.boldLabel'),
+      icon: 'bold',
       isActive: () => editor.isActive('bold'),
       run: () => editor.chain().focus().toggleBold().run(),
     },
     {
-      label: () => t('bubble.italic'),
+      label: () => t('toolbar.italic'),
+      ariaLabel: () => t('a11y.italicLabel'),
+      icon: 'italic',
       isActive: () => editor.isActive('italic'),
       run: () => editor.chain().focus().toggleItalic().run(),
     },
     {
+      label: () => t('toolbar.strike'),
+      ariaLabel: () => t('a11y.strikeLabel'),
+      icon: 'strikethrough',
+      isActive: () => editor.isActive('strike'),
+      run: () => editor.chain().focus().toggleStrike().run(),
+    },
+    {
       label: () => t('bubble.underline'),
+      ariaLabel: () => t('bubble.underline'),
+      icon: 'underline',
       isActive: () => editor.isActive('underline'),
       run: () => editor.chain().focus().toggleUnderline().run(),
     },
     {
       label: () => t('bubble.link'),
+      ariaLabel: () => t('bubble.link'),
+      icon: 'link',
       isActive: () => editor.isActive('link'),
       run: () => {
         if (editor.isActive('link')) {
@@ -47,7 +65,7 @@ function buildActions(editor: Editor): BubbleAction[] {
 
 /**
  * Create a floating bubble menu that appears on text selection.
- * Registers itself as a ProseMirror plugin on the given editor.
+ * Shows icon-based formatting buttons at the point of selection.
  */
 export function buildBubbleMenu(editor: Editor): void {
   const menu = document.createElement('div');
@@ -63,8 +81,11 @@ export function buildBubbleMenu(editor: Editor): void {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'bubble-menu-btn';
-    btn.textContent = action.label();
-    btn.setAttribute('aria-label', action.label());
+    const iconSvg = getIcon(action.icon);
+    btn.innerHTML = iconSvg + `<span class="toolbar-btn-label">${action.label()}</span>`;
+    btn.setAttribute('aria-label', action.ariaLabel());
+    btn.setAttribute('title', action.ariaLabel());
+    btn.setAttribute('aria-pressed', String(action.isActive()));
     btn.addEventListener('mousedown', (e) => {
       // prevent editor losing focus before the click fires
       e.preventDefault();

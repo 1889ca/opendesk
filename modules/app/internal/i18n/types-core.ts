@@ -28,6 +28,14 @@ export interface CoreTranslationKeys {
   'toolbar.toc': string;
   'toolbar.theme': string;
   'toolbar.emoji': string;
+  'toolbar.undo': string;
+  'toolbar.redo': string;
+  'toolbar.alignLeft': string;
+  'toolbar.alignCenter': string;
+  'toolbar.alignRight': string;
+  'toolbar.alignJustify': string;
+  'toolbar.indent': string;
+  'toolbar.outdent': string;
   'toolbar.moreOptions': string;
   'status.connected': string;
   'status.disconnected': string;

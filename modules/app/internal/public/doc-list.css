@@ -10,7 +10,7 @@
 
 .doc-list {
   width: 100%;
-  max-width: 40rem;
+  max-width: 56rem;
 }
 
 .doc-list-loading {
@@ -64,7 +64,7 @@
   border-radius: 6px;
   margin-bottom: 0.75rem;
   width: 100%;
-  max-width: 40rem;
+  max-width: 56rem;
   box-sizing: border-box;
 }
 
@@ -177,7 +177,7 @@
   gap: 0.75rem;
   flex-wrap: wrap;
   width: 100%;
-  max-width: 40rem;
+  max-width: 56rem;
   margin: 0 auto 0.75rem;
 }
 
@@ -242,7 +242,7 @@
   justify-content: center;
   gap: 0.75rem;
   width: 100%;
-  max-width: 40rem;
+  max-width: 56rem;
   margin: 0.75rem auto 0;
 }
 

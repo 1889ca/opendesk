@@ -59,4 +59,12 @@ export interface A11yTranslationKeys {
   'shortcuts.undo': string;
   'shortcuts.redo': string;
   'shortcuts.showShortcuts': string;
+  'a11y.undoLabel': string;
+  'a11y.redoLabel': string;
+  'a11y.alignLeftLabel': string;
+  'a11y.alignCenterLabel': string;
+  'a11y.alignRightLabel': string;
+  'a11y.alignJustifyLabel': string;
+  'a11y.indentLabel': string;
+  'a11y.outdentLabel': string;
 }
