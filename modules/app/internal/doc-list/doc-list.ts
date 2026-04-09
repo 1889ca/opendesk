@@ -165,6 +165,13 @@ async function createTypedDocument(documentType: string): Promise<void> {
   }
 }
 
+function registerNewDocShortcut(onCreate: () => void): void {
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    if ((e.key !== 'n' && e.key !== 'N') || ['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName) || (e.target as HTMLElement).isContentEditable) return;
+    e.preventDefault(); onCreate();
+  });
+}
+
 async function init() {
   initTheme();
   initConnectivityListeners();
@@ -176,41 +183,31 @@ async function init() {
   const sidebarSlot = document.getElementById('workspace-sidebar');
   if (sidebarSlot) sidebarSlot.replaceWith(buildWorkspaceSidebar());
 
-  buildThemeToggle();
-  buildNotificationBell();
+  buildThemeToggle(); buildNotificationBell();
 
   const listEl = document.getElementById('doc-list');
   const newBtn = document.getElementById('new-doc-btn');
-  const toolbarRight = document.querySelector('.toolbar-right');
   if (!listEl || !newBtn) return;
+  const toolbarRight = document.querySelector('.toolbar-right');
 
   if (toolbarRight) {
     toolbarRight.prepend(buildOfflineIndicator());
     createNewFolderButton(toolbarRight as HTMLElement);
-    // Profile chip — shows user's display name in the toolbar (issue #170)
-    const chip = buildProfileChip();
-    toolbarRight.appendChild(chip);
+    toolbarRight.appendChild(buildProfileChip());
   }
   document.body.insertBefore(buildUpdateBanner(), document.body.firstChild);
   setupOnlineRefresh(() => loadAll(listEl, handleNewDocument));
 
+  const d = (el: HTMLElement | null, active: boolean) => { if (el) el.style.display = active ? 'none' : ''; };
   const searchEl = createGlobalSearch((active) => {
-    listEl.style.display = active ? 'none' : '';
-    const breadcrumbs = document.getElementById('folder-breadcrumbs');
-    if (breadcrumbs) breadcrumbs.style.display = active ? 'none' : '';
-    if (controlsEl) controlsEl.style.display = active ? 'none' : '';
-    if (paginationEl) paginationEl.style.display = active ? 'none' : '';
+    d(listEl, active); d(document.getElementById('folder-breadcrumbs'), active);
+    d(controlsEl, active); d(paginationEl, active);
   });
   listEl.parentElement?.insertBefore(searchEl, listEl);
 
   // Bulk action bar — inserted above the list
   bulkBar = createBulkActionBar(() => loadAll(listEl, handleNewDocument));
   listEl.parentElement?.insertBefore(bulkBar.el, listEl);
-
-  setNavigateCallback(() => {
-    updateState({ page: 1 });
-    loadAll(listEl, handleNewDocument);
-  });
 
   async function handleNewDocument() {
     try {
@@ -219,7 +216,9 @@ async function init() {
     } catch (err) { console.error('Create failed', err); }
   }
 
+  setNavigateCallback(() => { updateState({ page: 1 }); loadAll(listEl, handleNewDocument); });
   newBtn.addEventListener('click', handleNewDocument);
+  registerNewDocShortcut(handleNewDocument);
 
   document.getElementById('new-sheet-btn')
     ?.addEventListener('click', () => createTypedDocument('spreadsheet'));

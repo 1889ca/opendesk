@@ -90,6 +90,7 @@ function buildDocRow(
 
   const wrapper = document.createElement('div');
   wrapper.className = 'doc-row-wrapper';
+  wrapper.dataset.type = doc.document_type || 'text';
 
   const checkLabel = document.createElement('label');
   checkLabel.className = 'doc-row-check-label';

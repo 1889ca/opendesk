@@ -379,6 +379,65 @@
   background: #b91c1c;
 }
 
+/* ── Document type color-coded left border accents ────────────────── */
+
+.doc-row-wrapper[data-type="text"],
+.doc-row-wrapper[data-type="document"] {
+  border-left: 3px solid var(--accent);
+}
+
+.doc-row-wrapper[data-type="spreadsheet"] {
+  border-left: 3px solid #4caf50;
+}
+
+.doc-row-wrapper[data-type="presentation"] {
+  border-left: 3px solid #ff9800;
+}
+
+/* ── Loading skeleton animation ───────────────────────────────────── */
+
+.doc-row--skeleton {
+  background: linear-gradient(90deg, var(--bg) 25%, var(--bg-secondary, var(--surface)) 50%, var(--bg) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s infinite;
+  border-radius: 4px;
+  height: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes skeleton-pulse {
+  to { background-position: -200% 0; }
+}
+
+/* ── Empty state pseudo-element illustration ──────────────────────── */
+
+.doc-list-empty {
+  position: relative;
+}
+
+.doc-list-empty::before {
+  content: '';
+  display: block;
+  width: 3.5rem;
+  height: 4.5rem;
+  margin: 0 auto 0.75rem;
+  border: 3px solid var(--text-muted);
+  border-radius: 4px 14px 4px 4px;
+  position: relative;
+  background: transparent;
+  box-shadow: 6px -6px 0 -3px var(--surface), 6px -6px 0 0px var(--text-muted);
+}
+
+/* ── Search input pill shape override ─────────────────────────────── */
+
+.global-search-input {
+  border-radius: 20px;
+}
+
+.global-search-input:focus {
+  box-shadow: 0 0 0 3px var(--accent-shadow, rgba(59, 130, 246, 0.2));
+}
+
 /* Delete confirmation modal (issue #163) */
 .delete-confirm-overlay {
   position: fixed;
