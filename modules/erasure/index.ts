@@ -27,6 +27,9 @@ export {
 // Factory
 export { createErasure, type ErasureDependencies } from './internal/create-erasure.ts';
 
+// Routes
+export { createErasureRoutes, type ErasureRoutesOptions } from './internal/erasure-routes.ts';
+
 // Hash utilities (for testing / external verification)
 export {
   computeBridgeHash,
