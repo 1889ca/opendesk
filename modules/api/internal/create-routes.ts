@@ -9,9 +9,6 @@ import type { WorkflowModule } from '../../workflow/contract.ts';
 import type { ObservabilityModule } from '../../observability/contract.ts';
 import type { ShareLinkService } from '../../sharing/internal/share-links.ts';
 import type { PasswordRateLimiter, ShareResolveRateLimiter } from '../../sharing/internal/rate-limit.ts';
-import { createAdminRoutes } from './admin-routes.ts';
-import { createUploadRoutes } from './upload-routes.ts';
-import { createFileRoutes } from './file-routes.ts';
 import { createShareRoutes } from '../../sharing/index.ts';
 import { createTelemetryMiddleware } from '../../observability/index.ts';
 import {
@@ -132,10 +129,10 @@ export async function mountRoutes(deps: RouteDependencies): Promise<{ shutdown: 
   const manifestHandles = await runManifestStartHooks(ctx, enabledManifests);
   mountManifestRoutes(ctx, enabledManifests);
 
-  // Admin routes (user data purge)
-  app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
-
-  // Share link routes (create, resolve, revoke) — after auth
+  // Share link routes — restricted-zone module per CONSTITUTION.md.
+  // The sharing module is deliberately NOT in the manifest registry
+  // (it touches grants/principals/RLS policies) and stays
+  // hand-mounted here until a human maintainer signs off.
   app.use(createShareRoutes({
     service: shareLinkService,
     grantStore: permissions.grantStore,
@@ -143,10 +140,6 @@ export async function mountRoutes(deps: RouteDependencies): Promise<{ shutdown: 
     rateLimiter: shareRateLimiter,
     resolveRateLimiter: shareResolveRateLimiter,
   }));
-
-  // File upload and serving routes — after auth, with permission checks
-  app.use('/api', createUploadRoutes({ permissions }));
-  app.use('/api', createFileRoutes({ permissions }));
 
   return {
     shutdown: () => runManifestShutdownHooks(ctx, manifestHandles),

@@ -2,6 +2,7 @@
 
 import type { OpenDeskManifest } from './contract.ts';
 import { manifest as aiManifest } from '../../ai/manifest.ts';
+import { manifest as apiManifest } from '../../api/manifest.ts';
 import { manifest as auditManifest } from '../../audit/manifest.ts';
 import { manifest as convertManifest } from '../../convert/manifest.ts';
 import { manifest as documentManifest } from '../../document/manifest.ts';
@@ -30,6 +31,7 @@ import { manifest as workflowManifest } from '../../workflow/manifest.ts';
  */
 export const manifests: OpenDeskManifest[] = [
   aiManifest,
+  apiManifest,
   auditManifest,
   convertManifest,
   documentManifest,
