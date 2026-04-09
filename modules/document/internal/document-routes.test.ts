@@ -25,6 +25,7 @@ function createInMemoryDocStorage(): DocumentStorageFns & {
       return existed;
     },
     updateDocumentTitle: async () => {},
+    moveDocument: async () => true,
     getTemplate: async () => null,
   };
 }

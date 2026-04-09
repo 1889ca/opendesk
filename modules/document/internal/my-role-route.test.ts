@@ -28,6 +28,7 @@ function createTestDocStorage(docs: Record<string, { id: string; title: string }
     getDocument: async (id) => map.get(id) ?? null,
     deleteDocument: async (id) => { const had = map.has(id); map.delete(id); return had; },
     updateDocumentTitle: async () => {},
+    moveDocument: async () => true,
     getTemplate: async () => null,
   };
 }

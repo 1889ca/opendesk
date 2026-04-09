@@ -20,6 +20,7 @@ import { initTouchSupport } from '../shared/touch-support.ts';
 import { buildThemeToggle } from '../shared/theme-toggle.ts';
 import { buildNotificationBell } from '../shared/notification-bell.ts';
 import { trackRecentDoc } from '../shared/workspace-sidebar.ts';
+import { apiFetch } from '../shared/api-client.ts';
 import { openEmojiPicker } from './emoji/index.ts';
 import { showLinkPopover } from './link-popover.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
@@ -175,7 +176,7 @@ async function init() {
   if (toolbarLeft) toolbarLeft.appendChild(buildSaveIndicator(editor));
 
   apiFetch(`/api/documents/${encodeURIComponent(documentId)}`)
-    .then((res) => (res.ok ? res.json() : null))
+    .then((res: Response) => (res.ok ? res.json() : null))
     .then((doc: { title?: string; document_type?: string } | null) => {
       if (doc) trackRecentDoc({ id: documentId, title: doc.title || 'Untitled', document_type: doc.document_type });
     })
