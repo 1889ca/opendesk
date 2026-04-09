@@ -72,6 +72,16 @@ const entries = [
     entryPoints: ['modules/app/internal/share-resolve.ts'],
     outfile: 'modules/app/internal/public/share-resolve.bundle.js',
   },
+  {
+    ...sharedJS,
+    entryPoints: ['modules/app/internal/admin-models/admin-models.ts'],
+    outfile: 'modules/app/internal/public/admin-models.bundle.js',
+  },
+  {
+    ...sharedCSS,
+    entryPoints: ['modules/app/internal/css/admin-models.css'],
+    outfile: 'modules/app/internal/public/admin-models.bundle.css',
+  },
 ];
 
 const contexts = await Promise.all(

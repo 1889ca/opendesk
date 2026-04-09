@@ -2,26 +2,35 @@
 
 ## Purpose
 
-Air-gapped local AI module providing a BYOM (Bring Your Own Model) abstraction over Ollama for document embeddings, semantic search, and RAG-based document assistance. All inference stays within the sovereign deployment boundary.
+Air-gapped local AI module providing a BYOM (Bring Your Own Model) abstraction over Ollama for document embeddings, semantic search, RAG-based document assistance, and sovereign-safe AI model management with a curated model registry. All inference stays within the sovereign deployment boundary.
 
 ## Inputs
 
 - Document text content (extracted from Yjs state or ProseMirror snapshots)
 - User queries (natural language search or questions)
 - Ollama endpoint URL and model identifiers (via config)
-- `allowedDocumentIds` — permission-filtered document scope
+- `allowedDocumentIds` -- permission-filtered document scope
+- `workspaceId` -- scopes all operations to a workspace
+- Model zoo entries from `model-zoo.json`
+- `pool` -- PostgreSQL connection pool for persisting model config
 
 ## Outputs
 
-- `EmbeddingChunk`: `{ id, documentId, chunkIndex, content, embedding (vector), updatedAt }` — A stored text chunk with its vector embedding.
-- `SemanticSearchResult`: `{ documentId, title, chunkContent, similarity }` — A search result ranked by cosine similarity.
-- `AssistantResponse`: `{ answer, sources: SemanticSearchResult[] }` — A RAG-generated response with attribution.
+- `EmbeddingRecord`: Stored text chunk with vector embedding and source metadata.
+- `SemanticSearchResult`: Search result ranked by cosine similarity.
+- `AssistantResponse`: RAG-generated response with source attribution.
+- `ModelZooEntry`: Curated model metadata (name, provider tag, capabilities, license, hardware reqs).
+- `ModelConfig`: Per-workspace active model selection (embedding + generation).
+- `OllamaModelInfo`: Installed model list from Ollama.
 
 ## Side Effects
 
 - Stores embeddings in `document_embeddings` table (pgvector).
 - Calls Ollama HTTP API for embedding generation and LLM inference.
 - Subscribes to `StateFlushed` events to trigger re-embedding.
+- Triggers Ollama `/api/pull` to download models.
+- Triggers Ollama `/api/delete` to remove models.
+- Writes to `ai_model_config` table for workspace model preferences.
 
 ## Invariants
 
@@ -29,15 +38,18 @@ Air-gapped local AI module providing a BYOM (Bring Your Own Model) abstraction o
 - No data leaves the configured Ollama endpoint (sovereign boundary).
 - Embedding pipeline is read-only on document data (never mutates documents).
 - Semantic search respects the same permission filtering as tsvector search.
-- Ollama failures are graceful — semantic search falls back to empty results, not crashes.
+- Ollama failures are graceful -- semantic search falls back to empty results, not crashes.
 - Chunk size is configurable, default 512 tokens.
+- All zoo models must have permissive licenses (Apache 2.0, MIT, or open-weight).
+- Only one embedding model and one generation model active per workspace at a time.
+- KB entries only embed when published (not drafts or archived).
 
 ## Dependencies
 
-- `config` — Provides AI configuration (Ollama URL, model names, chunk size).
-- `storage` — PG pool for embedding storage, document loading.
-- `logger` — Structured logging.
-- `events` — EventBus subscription for re-embedding triggers.
+- `config` -- Provides AI configuration (Ollama URL, model names, chunk size).
+- `storage` -- PG pool for embedding storage, document loading, ai_model_config persistence.
+- `logger` -- Structured logging.
+- `events` -- EventBus subscription for re-embedding triggers.
 
 ## Boundary Rules
 
@@ -45,9 +57,15 @@ Air-gapped local AI module providing a BYOM (Bring Your Own Model) abstraction o
 - MUST: Enforce permission filtering on all search/RAG endpoints.
 - MUST: Handle Ollama unavailability gracefully (log, return empty, don't crash).
 - MUST: Support configurable embedding and chat model names.
+- MUST: Validate model IDs against zoo + custom registry before pull.
+- MUST: Return real Ollama download progress, not synthetic.
+- MUST: Use pgvector for vector storage (not a separate vector DB).
+- MUST: Replace all existing chunks when re-embedding a source (idempotent).
 - MUST NOT: Send document content to any external endpoint other than the configured Ollama instance.
 - MUST NOT: Mutate document content or state.
 - MUST NOT: Cache or persist LLM responses (stateless inference).
+- MUST NOT: Ship models that require proprietary licenses.
+- MUST NOT: Store model weights in PostgreSQL -- Ollama manages storage.
 
 ## Verification
 
@@ -56,81 +74,12 @@ Air-gapped local AI module providing a BYOM (Bring Your Own Model) abstraction o
 - Graceful degradation: Kill Ollama, verify semantic search returns empty (not error).
 - Chunk consistency: Embed document, modify, re-embed, verify old chunks replaced.
 - RAG attribution: Verify assistant response includes source chunks with document IDs.
-Provide the local AI infrastructure for OpenDesk: BYOM (Bring Your Own Model) abstraction over Ollama, document/KB text extraction, vector embedding pipeline, and RAG-enhanced semantic search. All AI operations run locally -- no data leaves the deployment.
-- `documentId`: `string` -- Document to extract text from and embed.
-- `kbEntryId`: `string` -- KB entry to extract text from and embed.
-- `query`: `string` -- Natural language query for semantic search.
-- `workspaceId`: `string` -- Scopes all operations to a workspace.
-- `snapshot`: `DocumentSnapshot` -- Document content to extract text from.
-### Extractor Registry
-A type-keyed registry of text extractors. Each extractor takes a typed document/entry and returns plain text for embedding.
-```typescript
-type ExtractorType = 'text' | 'spreadsheet' | 'presentation' | 'kb-reference' | 'kb-entity' | 'kb-dataset' | 'kb-note' | 'kb-glossary';
-type TextExtractor<T> = (source: T) => string;
-type ExtractorRegistry = Map<ExtractorType, TextExtractor<unknown>>;
-```
-### Embedding Result
-```typescript
-type EmbeddingRecord = {
-  id: string;                    // UUIDv4
-  sourceId: string;              // document ID or KB entry ID
-  sourceType: 'document' | 'kb-entry';
-  workspaceId: string;
-  chunkIndex: number;            // position within the source
-  chunkText: string;             // the text that was embedded
-  embedding: number[];           // vector
-  createdAt: string;             // ISO 8601
-};
-```
-### Semantic Search Result
-```typescript
-type SemanticSearchResult = {
-  sourceId: string;
-  sourceType: 'document' | 'kb-entry';
-  chunkText: string;
-  similarity: number;            // 0.0 to 1.0
-  metadata: Record<string, unknown>;
-};
-```
-### BYOM Provider
-```typescript
-type ModelProvider = {
-  embed(text: string): Promise<number[]>;
-  generate(prompt: string, context?: string): Promise<string>;
-};
-```
-- Reads/writes embedding vectors to pgvector in PostgreSQL.
-- Calls Ollama API for embedding generation and text generation.
-- Subscribes to events for automatic re-embedding on document/KB updates.
-1. **No data leaves the deployment.** All model calls go to local Ollama.
-2. **Source type discriminates embeddings.** Every embedding record has a `sourceType` field.
-3. **KB entries only embed when published.** Draft and archived entries are not embedded.
-4. **Corpus filtering in RAG.** Only `knowledge` and `reference` corpus entries feed RAG queries.
-5. **KB entries receive higher relevance weighting in RAG.** Configurable boost factor.
-6. **Extractors are registered, not hardcoded.** New document types register via the registry.
-7. **Chunks are idempotent.** Re-embedding the same source replaces previous chunks.
-- `storage` -- Provides the PostgreSQL connection pool (pgvector extension).
-- `document` -- Provides `DocumentSnapshot` types for extraction.
-- `kb` -- Provides `KbEntry` types for extraction.
-- `events` -- Subscribes to document/KB update events for automatic re-embedding.
-- `config` -- Provides Ollama connection configuration.
-- MUST: Use pgvector for vector storage (not a separate vector DB).
-- MUST: Extract text via registered extractors, never hardcoded per-type logic in the pipeline.
-- MUST: Replace all existing chunks when re-embedding a source (idempotent).
-- MUST: Filter KB entries by lifecycle=published before embedding.
-- MUST: Filter KB entries by corpus in ['knowledge', 'reference'] for RAG queries.
-- MUST: Apply configurable relevance boost to KB results in RAG.
-- MUST NOT: Call external APIs. All model operations are local (Ollama).
-- MUST NOT: Embed draft or archived KB entries.
-- MUST NOT: Handle HTTP requests or routing. That belongs to `api`.
-- No external calls -> Code audit: grep for non-localhost HTTP calls.
-- Source type discrimination -> Unit test: embed doc and KB entry, query, verify sourceType.
-- Published-only embedding -> Unit test: attempt embed of draft entry, verify rejection.
-- Corpus filtering -> Unit test: embed knowledge + operational entries, query RAG, verify only knowledge/reference returned.
-- KB relevance boost -> Unit test: verify KB results have boosted similarity scores.
-- Extractor registry -> Unit test: register extractor, extract text, verify output.
-- Idempotent re-embedding -> Integration test: embed, re-embed, verify chunk count unchanged.
+- Zoo JSON validates against schema (all required fields present, licenses permissive).
+- Config persistence round-trips (save then load returns same model selection).
+- Pull/delete proxy calls hit correct Ollama endpoints.
+
 ## File Structure
+
 ```
 modules/ai/
   contract.ts          -- Zod schemas, inferred types, interfaces
@@ -140,6 +89,10 @@ modules/ai/
     kb-extractors.ts   -- KB entry type extractors
     embedder.ts        -- chunking and embedding pipeline
     vector-store.ts    -- pgvector read/write operations
-    ollama-provider.ts -- BYOM Ollama adapter
+    ollama-client.ts   -- BYOM Ollama adapter (embed, chat, model management)
     rag.ts             -- RAG query engine with corpus filtering
+    zoo-loader.ts      -- curated model registry loader
+    config-store.ts    -- per-workspace model config persistence
+    model-service.ts   -- model management service
+    ai-routes.ts       -- API routes (RAG + model zoo management)
 ```

@@ -52,8 +52,6 @@ const builds = [
   // Spreadsheet JS (app-sheets module)
   {
     entryPoints: ['modules/app-sheets/internal/spreadsheet-editor.ts'],
-  // Spreadsheet JS
-    entryPoints: ['modules/app/internal/spreadsheet-editor.ts'],
     outfile: `${OUTDIR}/spreadsheet.bundle.js`,
     bundle: true,
     format: 'esm',
@@ -64,8 +62,6 @@ const builds = [
   // Spreadsheet CSS (app-sheets module)
   {
     entryPoints: ['modules/app-sheets/internal/css/spreadsheet.css'],
-  // Spreadsheet CSS
-    entryPoints: ['modules/app/internal/css/spreadsheet.css'],
     outfile: `${OUTDIR}/spreadsheet.bundle.css`,
     bundle: true,
     minify: true,
@@ -74,8 +70,6 @@ const builds = [
   // Presentation JS (app-slides module)
   {
     entryPoints: ['modules/app-slides/internal/presentation-editor.ts'],
-  // Presentation JS
-    entryPoints: ['modules/app/internal/presentation-editor.ts'],
     outfile: `${OUTDIR}/presentation.bundle.js`,
     bundle: true,
     format: 'esm',
@@ -86,8 +80,6 @@ const builds = [
   // Presentation CSS (app-slides module)
   {
     entryPoints: ['modules/app-slides/internal/css/presentation.css'],
-  // Presentation CSS
-    entryPoints: ['modules/app/internal/css/presentation.css'],
     outfile: `${OUTDIR}/presentation.bundle.css`,
     bundle: true,
     minify: true,
@@ -135,6 +127,24 @@ const builds = [
   {
     entryPoints: ['modules/app/internal/css/workflows.css'],
     outfile: `${OUTDIR}/workflows.bundle.css`,
+    bundle: true,
+    minify: true,
+    sourcemap: true,
+  },
+  // Admin models JS
+  {
+    entryPoints: ['modules/app/internal/admin-models/admin-models.ts'],
+    outfile: `${OUTDIR}/admin-models.bundle.js`,
+    bundle: true,
+    format: 'esm',
+    target: 'es2022',
+    minify: true,
+    sourcemap: true,
+  },
+  // Admin models CSS
+  {
+    entryPoints: ['modules/app/internal/css/admin-models.css'],
+    outfile: `${OUTDIR}/admin-models.bundle.css`,
     bundle: true,
     minify: true,
     sourcemap: true,
