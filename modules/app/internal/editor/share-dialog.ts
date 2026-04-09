@@ -55,8 +55,9 @@ function setupRoleDropdown(): void {
   const dropdown = document.getElementById('share-role-dropdown');
   const hiddenInput = document.getElementById('share-role') as HTMLInputElement;
   const triggerText = dropdown?.querySelector('.share-role-trigger-text');
-  const options = dropdown?.querySelectorAll<HTMLElement>('.share-role-option');
-  if (!dropdown || !hiddenInput || !triggerText || !options) return;
+  const optionsRaw = dropdown?.querySelectorAll<HTMLElement>('.share-role-option');
+  if (!dropdown || !hiddenInput || !triggerText || !optionsRaw) return;
+  const options = optionsRaw;
 
   let isOpen = false;
 

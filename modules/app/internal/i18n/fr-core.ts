@@ -172,6 +172,17 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'promoteKb.success': 'Sauvegard\u00e9 dans la base de connaissances',
   'promoteKb.error': '\u00c9chec de la sauvegarde dans la base de connaissances',
 
+  // Menu flottant
+  'bubble.bold': 'Gras',
+  'bubble.italic': 'Italique',
+  'bubble.underline': 'Souligné',
+  'bubble.link': 'Lien',
+  'bubble.linkPrompt': 'Saisir l\'URL',
+
+  // Boîte de dialogue de version
+  'versions.namePrompt': 'Nommer cette version (facultatif)',
+  'versions.namePlaceholder': 'ex. Avant restructuration',
+
   // Navigation (coquille SPA)
   'nav.dashboard': 'Documents',
   'nav.knowledgeBase': 'Base de connaissances',

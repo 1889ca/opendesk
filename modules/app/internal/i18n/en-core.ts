@@ -172,6 +172,17 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'promoteKb.success': 'Saved to Knowledge Base',
   'promoteKb.error': 'Failed to save to Knowledge Base',
 
+  // Bubble menu
+  'bubble.bold': 'Bold',
+  'bubble.italic': 'Italic',
+  'bubble.underline': 'Underline',
+  'bubble.link': 'Link',
+  'bubble.linkPrompt': 'Enter URL',
+
+  // Version name dialog
+  'versions.namePrompt': 'Name this version (optional)',
+  'versions.namePlaceholder': 'e.g. Before restructure',
+
   // Navigation (SPA shell)
   'nav.dashboard': 'Documents',
   'nav.knowledgeBase': 'Knowledge Base',

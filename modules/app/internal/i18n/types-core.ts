@@ -89,6 +89,17 @@ export interface CoreTranslationKeys {
   'promoteKb.success': string;
   'promoteKb.error': string;
 
+  // Bubble menu
+  'bubble.bold': string;
+  'bubble.italic': string;
+  'bubble.underline': string;
+  'bubble.link': string;
+  'bubble.linkPrompt': string;
+
+  // Version name dialog
+  'versions.namePrompt': string;
+  'versions.namePlaceholder': string;
+
   // Navigation (SPA shell)
   'nav.dashboard': string;
   'nav.knowledgeBase': string;
