@@ -29,6 +29,14 @@ import { setupCodeBlockUI } from './code-block-ui.ts';
 import { buildEditorExtensions } from './editor-extensions.ts';
 import { getUserIdentity, getDocumentId } from '../shared/identity.ts';
 import { initEditorPage } from './editor-page.ts';
+import {
+  registerServiceWorker,
+  buildOfflineIndicator,
+  buildUpdateBanner,
+  initConnectivityListeners,
+  setConnectionState,
+  flushQueue,
+} from '../offline/index.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -47,6 +55,8 @@ function addSkipLink(): void {
 
 function init() {
   initTouchSupport();
+  initConnectivityListeners();
+  registerServiceWorker();
 
   const locale = resolveLocale();
   setLocale(locale);
@@ -68,13 +78,24 @@ function init() {
   const ydoc = new Y.Doc();
   const commentStore = new CommentStore(ydoc);
   const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/collab`;
+  // Offline UI
+  const toolbarRight = document.querySelector('.toolbar-right');
+  if (toolbarRight) {
+    const offlineEl = buildOfflineIndicator();
+    toolbarRight.insertBefore(offlineEl, toolbarRight.firstChild);
+  }
+  document.body.insertBefore(buildUpdateBanner(), document.body.firstChild);
+
   const provider = new HocuspocusProvider({
     url: wsUrl, name: documentId, document: ydoc, token: 'dev',
     onConnect() {
       if (statusEl) { statusEl.textContent = t('status.connected'); statusEl.className = 'status connected'; }
+      setConnectionState('syncing');
+      flushQueue().then(() => setConnectionState('online')).catch(() => {});
     },
     onDisconnect() {
       if (statusEl) { statusEl.textContent = t('status.disconnected'); statusEl.className = 'status disconnected'; }
+      setConnectionState('offline');
     },
   });
 

@@ -132,6 +132,7 @@ modules/app/
 - `contracts/app/print.md` — Print stylesheet, PageBreak node, print/PDF buttons
 - `contracts/app/accessibility.md` — ARIA announcer, roving tabindex toolbar, shortcut dialog
 - `contracts/app/mobile.md` — Touch support, responsive toolbar overflow, viewport management
+- `contracts/app/offline.md` — Service worker caching, IndexedDB persistence, offline editing, background sync
 
 ## MVP Scope
 
@@ -160,6 +161,7 @@ Implemented:
 - [x] Tables support (table toolbar)
 - [x] Image upload and handling
 - [x] Keyboard shortcut dialog
+- [x] Offline mode: service worker, IndexedDB cache, background sync (see `contracts/app/offline.md`)
 
 Post-MVP (deferred):
 - [ ] Block ID assignment extension (`blockId` UUIDv4 on new top-level blocks) — blocks exist but auto-ID assignment extension not yet built
