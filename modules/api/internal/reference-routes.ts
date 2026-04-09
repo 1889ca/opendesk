@@ -7,7 +7,7 @@ import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from './async-handler.ts';
 import {
   createReference,
-  getReference,
+  getReference as defaultGetReference,
   listReferences,
   updateReference,
   deleteReference,
@@ -16,6 +16,15 @@ import {
   ensureLibraryGrant,
   checkLibraryAccess,
 } from '../../references/index.ts';
+
+/**
+ * Minimal injectable surface for the references store. Defaults to the
+ * pg-backed implementation; tests inject in-memory functions to avoid
+ * mocking pg or coupling route tests to the database layer.
+ */
+export type ReferenceLookupFns = {
+  getReference: typeof defaultGetReference;
+};
 
 const CreateReferenceBody = z.object({
   title: z.string().min(1).max(500),
@@ -53,6 +62,13 @@ const ListReferencesQuery = z.object({
 
 export type ReferenceRoutesOptions = {
   permissions: PermissionsModule;
+  /**
+   * Optional override for the references store lookup functions.
+   * Production wires the pg-backed defaults; tests inject in-memory
+   * functions so the route's auth/permission gates can be exercised
+   * without a database.
+   */
+  store?: Partial<ReferenceLookupFns>;
 };
 
 /**
@@ -60,6 +76,7 @@ export type ReferenceRoutesOptions = {
  */
 export function createReferenceRoutes(opts: ReferenceRoutesOptions): Router {
   const { permissions } = opts;
+  const getReference = opts.store?.getReference ?? defaultGetReference;
   const router = Router();
 
   // List references — optional ?documentId= filter
@@ -123,8 +140,17 @@ export function createReferenceRoutes(opts: ReferenceRoutesOptions): Router {
     res.json(result.data);
   }));
 
-  // Get single reference
+  // Get single reference — gated on workspace read access (issue #129).
+  // Without this gate, any authenticated user could fetch any reference
+  // by UUID, bypassing the workspace/library grant system.
   router.get('/:id', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
+    const principal = req.principal!;
+    const workspaceId = '00000000-0000-0000-0000-000000000000';
+    const canRead = await checkLibraryAccess(permissions.grantStore, principal.id, workspaceId, 'read');
+    if (!canRead) {
+      res.status(403).json({ error: 'No read access to reference library' });
+      return;
+    }
     const ref = await getReference(String(req.params.id));
     if (!ref) {
       res.status(404).json({ error: 'Reference not found' });
