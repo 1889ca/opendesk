@@ -7,8 +7,10 @@ test.describe('Doc List', () => {
   test('doc list API returns array', async () => {
     const res = await fetch(`${API}/api/documents`, { headers: AUTH });
     expect(res.ok).toBe(true);
-    const docs = await res.json();
-    expect(Array.isArray(docs)).toBe(true);
+    // GET /api/documents returns the paginated shape from #171/#172:
+    // { data: Doc[], pagination: { page, limit, total, totalPages } }
+    const body = await res.json();
+    expect(Array.isArray(body.data)).toBe(true);
   });
 
   test('created document appears in API list', async () => {
@@ -16,8 +18,8 @@ test.describe('Doc List', () => {
     await createDocViaAPI(title);
 
     const res = await fetch(`${API}/api/documents`, { headers: AUTH });
-    const docs = await res.json();
-    const found = docs.some((d: { title: string }) => d.title === title);
+    const body = await res.json();
+    const found = body.data.some((d: { title: string }) => d.title === title);
     expect(found).toBe(true);
   });
 

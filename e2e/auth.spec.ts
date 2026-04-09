@@ -7,8 +7,10 @@ test.describe('Auth Flow', () => {
   test('dev token returns document list', async () => {
     const res = await fetch(`${API}/api/documents`, { headers: AUTH });
     expect(res.ok).toBe(true);
-    const docs = await res.json();
-    expect(Array.isArray(docs)).toBe(true);
+    // GET /api/documents returns the paginated shape from #171/#172:
+    // { data: Doc[], pagination: { page, limit, total, totalPages } }
+    const body = await res.json();
+    expect(Array.isArray(body.data)).toBe(true);
   });
 
   test('dev token can create a document', async () => {
@@ -41,8 +43,8 @@ test.describe('Auth Flow', () => {
       headers: { Authorization: 'Bearer dev:alice:Alice:read,write' },
     });
     expect(res.ok).toBe(true);
-    const docs = await res.json();
-    expect(Array.isArray(docs)).toBe(true);
+    const body = await res.json();
+    expect(Array.isArray(body.data)).toBe(true);
   });
 
   test('different dev users have distinct identities', async () => {
