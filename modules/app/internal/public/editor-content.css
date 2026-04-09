@@ -17,16 +17,17 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 
 #editor {
   width: 100%;
-  max-width: 860px;
-  background: var(--surface);
+  max-width: 56rem;
+  background: var(--editor-paper-bg, var(--surface));
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 2px 8px var(--shadow-color), 0 8px 32px var(--shadow-medium);
-  min-height: 60vh;
+  min-height: calc(100vh - 120px);
+  padding: 4rem 5rem;
 }
 
 .editor-content {
-  padding: 2rem;
+  padding: 0;
   outline: none;
   line-height: 1.7;
   font-size: 1rem;
@@ -37,20 +38,20 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 }
 
 .editor-content h1 {
-  font-size: 1.75rem;
+  font-size: 2em;
   font-weight: 700;
   margin: 1.5rem 0 0.75rem;
   letter-spacing: -0.02em;
 }
 
 .editor-content h2 {
-  font-size: 1.375rem;
+  font-size: 1.5em;
   font-weight: 600;
   margin: 1.25rem 0 0.5rem;
 }
 
 .editor-content h3 {
-  font-size: 1.125rem;
+  font-size: 1.25em;
   font-weight: 600;
   margin: 1rem 0 0.5rem;
 }
@@ -103,6 +104,17 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   border: none;
   border-top: 1px solid var(--border);
   margin: 1.5rem 0;
+}
+
+.editor-content a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: opacity 0.15s;
+}
+
+.editor-content a:hover {
+  opacity: 0.8;
 }
 
 /* Images in editor */

@@ -39,23 +39,26 @@ body {
 .editor-wrapper {
   flex: 1;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   padding: 2.5rem 1.5rem;
   background: var(--canvas);
 }
 
 #editor {
   width: 100%;
-  max-width: 48rem;
-  background: var(--surface);
+  max-width: 56rem;
+  background: var(--editor-paper-bg, var(--surface));
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 2px 8px var(--shadow-color), 0 8px 32px var(--shadow-medium);
-  min-height: 60vh;
+  min-height: calc(100vh - 120px);
+  padding: 4rem 5rem;
 }
 
 .editor-content {
-  padding: 2rem;
+  padding: 0;
   outline: none;
   line-height: 1.7;
   font-size: 1rem;
