@@ -13,7 +13,16 @@
  *   entryPoint:  the source file
  *   outfile:     the bundled output (relative to repo root)
  *   alias?:      esbuild alias map (optional, JS only)
+ *
+ * Migration in progress (modules/core/manifest): bundles owned by a
+ * registered manifest are pulled in from the registry below. The
+ * legacy hand-coded list still holds bundles for modules that have
+ * not yet been migrated to a manifest. As each module gets a
+ * manifest its entries are deleted from the hand-coded list (no
+ * zombie code).
  */
+
+import { tsImport } from 'tsx/esm/api';
 
 const OUTDIR = 'modules/app/internal/public';
 
@@ -25,8 +34,11 @@ const OUTDIR = 'modules/app/internal/public';
  * @property {Record<string,string>=} alias
  */
 
+// Bundles owned by modules that have NOT yet been migrated to a
+// manifest. As modules migrate they move out of this list and into
+// their own modules/<name>/manifest.ts.
 /** @type {BundleEntry[]} */
-export const bundles = [
+const legacyBundles = [
   // Editor
   {
     kind: 'js',
@@ -95,16 +107,18 @@ export const bundles = [
     outfile: `${OUTDIR}/share-resolve.bundle.js`,
   },
 
-  // Workflows
+  // (workflows: now owned by modules/workflow/manifest.ts)
+
+  // Knowledge Base browser
   {
     kind: 'js',
-    entryPoint: 'modules/app/internal/workflows/workflow-page.ts',
-    outfile: `${OUTDIR}/workflows.bundle.js`,
+    entryPoint: 'modules/app/internal/kb-browser/kb-browser.ts',
+    outfile: `${OUTDIR}/kb-browser.bundle.js`,
   },
   {
     kind: 'css',
-    entryPoint: 'modules/app/internal/css/workflows.css',
-    outfile: `${OUTDIR}/workflows.bundle.css`,
+    entryPoint: 'modules/app/internal/css/kb-browser.css',
+    outfile: `${OUTDIR}/kb-browser.bundle.css`,
   },
 
   // Admin models
@@ -119,6 +133,42 @@ export const bundles = [
     outfile: `${OUTDIR}/admin-models.bundle.css`,
   },
 ];
+
+/**
+ * Pull frontend bundle declarations out of every registered module
+ * manifest. Manifests are TypeScript so we go through tsx's
+ * programmatic ESM API — that lets the build/watch scripts stay
+ * plain Node ESM (no loader flag required) while still reading the
+ * canonical typed registry.
+ *
+ * The manifest stores `outfile` as a bare filename; this loader
+ * prepends OUTDIR so the result matches the legacy list shape that
+ * `toEsbuildOptions` consumes.
+ *
+ * @returns {Promise<BundleEntry[]>}
+ */
+async function loadManifestBundles() {
+  const mod = await tsImport('../modules/core/manifest/index.ts', import.meta.url);
+  /** @type {Array<{name: string, frontend?: {bundles?: BundleEntry[]}}>} */
+  const manifests = mod.manifests ?? [];
+  return manifests.flatMap((m) =>
+    (m.frontend?.bundles ?? []).map((b) => ({
+      kind: b.kind,
+      entryPoint: b.entryPoint,
+      outfile: `${OUTDIR}/${b.outfile}`,
+      ...(b.alias ? { alias: b.alias } : {}),
+    })),
+  );
+}
+
+/**
+ * The merged bundle list: legacy hand-coded entries followed by
+ * everything contributed by the manifest registry. Top-level await
+ * is required so importers receive the resolved array directly.
+ *
+ * @type {BundleEntry[]}
+ */
+export const bundles = [...legacyBundles, ...(await loadManifestBundles())];
 
 /**
  * Build esbuild options for a single bundle entry.

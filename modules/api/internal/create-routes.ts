@@ -26,9 +26,14 @@ import { createKBEntryRoutes } from './kb-entry-routes.ts';
 import { createKBDatasetRoutes } from './kb-dataset-routes.ts';
 import { createKBSnapshotRoutes } from './kb-snapshot-routes.ts';
 import { createShareRoutes } from '../../sharing/index.ts';
-import { createAuditRoutes } from '../../audit/index.ts';
-import { createWorkflowRoutes, createPluginRoutes } from '../../workflow/index.ts';
 import { createMetricsRoutes, createTelemetryMiddleware } from '../../observability/index.ts';
+import {
+  manifests,
+  filterEnabled,
+  mountManifestRoutes,
+  createServiceRegistry,
+  type AppContext,
+} from '../../core/manifest/index.ts';
 import { createAiRoutes, createAi } from '../../ai/index.ts';
 import { createErasure, createErasureRoutes } from '../../erasure/index.ts';
 import { createFederation, createFederationRoutes } from '../../federation/index.ts';
@@ -141,19 +146,20 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
   // KB entity directory routes
   app.use('/api/kb/entities', createEntityRoutes({ permissions }));
 
-  // Audit routes (crypto audit log + chain verification)
-  app.use('/api/audit', createAuditRoutes({
-    permissions,
-    auditModule: audit,
-    pool,
-    hmacSecret: config.audit.hmacSecret,
-  }));
-
-  // Workflow routes (trigger/action CRUD + execution history)
-  app.use('/api/workflows', createWorkflowRoutes({ permissions, workflowModule: workflow }));
-
-  // Wasm plugin routes (plugin registry for sandboxed integrations)
-  app.use('/api/workflows/plugins', createPluginRoutes({ permissions, pool }));
+  // Manifest-driven routes: every module that has been migrated to
+  // modules/<name>/manifest.ts is mounted here in one shot. The
+  // composition root no longer hard-codes per-module imports for
+  // the migrated set; see modules/core/manifest/registry.ts for the
+  // canonical list. Restricted-zone modules (auth/sharing/permissions
+  // per CONSTITUTION.md) are deliberately still hand-mounted below.
+  const ctx: AppContext = {
+    app, config, pool,
+    auth, permissions, hocuspocus, redisClient,
+    eventBus, audit, workflow, observability,
+    shareLinkService, shareRateLimiter, shareResolveRateLimiter, publicDir,
+    ...createServiceRegistry(),
+  };
+  mountManifestRoutes(ctx, filterEnabled(manifests, ctx));
 
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
