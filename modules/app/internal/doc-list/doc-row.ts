@@ -41,13 +41,15 @@ export interface RenderDocumentsOptions {
   onNewDocument?: () => void;
   selectedIds: Set<string>;
   onSelectionChange: (ids: Set<string>) => void;
+  /** When true, append rows rather than replacing the list (used by infinite scroll). */
+  append?: boolean;
 }
 
 export function renderDocuments(options: RenderDocumentsOptions): void {
-  const { listEl, docs, onDelete, onNewDocument, selectedIds, onSelectionChange } = options;
+  const { listEl, docs, onDelete, onNewDocument, selectedIds, onSelectionChange, append } = options;
 
   if (!docs.length) {
-    renderEmptyState(listEl, onNewDocument);
+    if (!append) renderEmptyState(listEl, onNewDocument);
     return;
   }
 
@@ -156,6 +158,7 @@ function buildDocRow(
     onRename: () => renameDoc(doc, onDelete),
     onDuplicate: () => duplicateDoc(doc.id, onDelete),
     onDelete: () => confirmAndDelete(doc.id, docName, onDelete),
+    onMove: onDelete,
   });
 
   attachHoverPreview(wrapper, doc.id);

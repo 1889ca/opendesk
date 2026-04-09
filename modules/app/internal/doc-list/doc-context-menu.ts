@@ -13,6 +13,7 @@ import { showDeleteConfirmDialog } from './delete-confirm-dialog.ts';
 import { showToast } from '../shared/toast.ts';
 import { toggleStar, getStarred } from './starred-store.ts';
 import { TYPE_META, type DocEntry } from './doc-row.ts';
+import { showFolderPickerDialog } from './folder-picker-dialog.ts';
 
 export interface ContextMenuCallbacks {
   onDelete: () => void;
@@ -20,6 +21,7 @@ export interface ContextMenuCallbacks {
   onRename: () => void;
   onDuplicate: () => void;
   onOpen: () => void;
+  onMove?: () => void;
 }
 
 let activeMenu: HTMLElement | null = null;
@@ -76,6 +78,16 @@ export function attachContextMenu(
     menu.appendChild(buildSeparator());
     menu.appendChild(buildMenuItem('Rename', callbacks.onRename));
     menu.appendChild(buildMenuItem('Duplicate', callbacks.onDuplicate));
+    menu.appendChild(buildMenuItem('Move to Folder', async () => {
+      const folderId = await showFolderPickerDialog();
+      if (folderId === undefined) return;
+      await apiFetch('/api/documents/' + encodeURIComponent(doc.id), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folderId }),
+      });
+      callbacks.onMove?.();
+    }));
     menu.appendChild(buildMenuItem(isStarred ? 'Unstar' : 'Star', callbacks.onStar));
     menu.appendChild(buildSeparator());
     menu.appendChild(buildMenuItem('Download DOCX', () => {
@@ -200,5 +212,7 @@ export function buildContextCallbacks(
         onRefresh();
       } catch (err) { console.error('Delete failed', err); }
     },
+
+    onMove: onRefresh,
   };
 }

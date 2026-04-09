@@ -9,6 +9,7 @@ import {
   getDocument as defaultGetDocument,
   deleteDocument as defaultDeleteDocument,
   updateDocumentTitle as defaultUpdateDocumentTitle,
+  moveDocument as defaultMoveDocument,
   getTemplate as defaultGetTemplate,
   type ListDocumentsOptions,
 } from '../../storage/index.ts';
@@ -39,7 +40,8 @@ const CreateDocumentQuery = z.object({
 });
 
 const UpdateDocumentBody = z.object({
-  title: z.string().min(1).max(200),
+  title: z.string().min(1).max(200).optional(),
+  folderId: z.string().uuid().nullable().optional(),
 });
 
 
@@ -60,6 +62,7 @@ export type DocumentStorageFns = {
   getDocument: (id: string) => Promise<DocRecord | null>;
   deleteDocument: (id: string) => Promise<boolean>;
   updateDocumentTitle: (id: string, title: string) => Promise<void>;
+  moveDocument: (id: string, folderId: string | null) => Promise<boolean>;
   getTemplate: (id: string) => Promise<{ content: Record<string, unknown> } | null>;
 };
 
@@ -81,6 +84,7 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   const getDocument = storage?.getDocument ?? defaultGetDocument;
   const deleteDocument = storage?.deleteDocument ?? defaultDeleteDocument;
   const updateDocumentTitle = storage?.updateDocumentTitle ?? defaultUpdateDocumentTitle;
+  const moveDocument = storage?.moveDocument ?? defaultMoveDocument;
   const getTemplate = storage?.getTemplate ?? defaultGetTemplate;
 
   // List documents — supports ?folderId=, ?page=, ?limit=, ?sort=, ?sortDir=, ?type=
@@ -205,15 +209,21 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
     res.json(doc);
   }));
 
-  // Update document title — requires write permission
+  // Update document title and/or move to folder — requires write permission
   router.patch('/:id', permissions.require('write'), asyncHandler(async (req: Request, res: Response) => {
     const bodyResult = UpdateDocumentBody.safeParse(req.body);
     if (!bodyResult.success) {
       res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
       return;
     }
-    const { title } = bodyResult.data;
-    await updateDocumentTitle(String(req.params.id), title);
+    const { title, folderId } = bodyResult.data;
+    const id = String(req.params.id);
+    if (title !== undefined) {
+      await updateDocumentTitle(id, title);
+    }
+    if (folderId !== undefined) {
+      await moveDocument(id, folderId);
+    }
     res.json({ ok: true });
   }));
 

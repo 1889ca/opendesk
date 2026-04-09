@@ -21,6 +21,8 @@ export interface RenderDocumentsGridOptions {
   onDelete: () => void;
   selectedIds: Set<string>;
   onSelectionChange: (ids: Set<string>) => void;
+  /** When true, append cards rather than replacing the list (used by infinite scroll). */
+  append?: boolean;
 }
 
 export function renderDocumentsGrid(options: RenderDocumentsGridOptions): void {
