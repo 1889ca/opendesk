@@ -128,6 +128,37 @@ function setupImport(docId: string): void {
   });
 }
 
+function setupExportDropdown(): void {
+  const toggle = document.querySelector<HTMLButtonElement>('.export-dropdown-toggle');
+  const menu = document.querySelector<HTMLElement>('.export-dropdown-menu');
+  if (!toggle || !menu) return;
+
+  function openMenu(): void {
+    menu!.hidden = false;
+    toggle!.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeMenu(): void {
+    menu!.hidden = true;
+    toggle!.setAttribute('aria-expanded', 'false');
+  }
+
+  toggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (menu.hidden) { openMenu(); } else { closeMenu(); }
+  });
+
+  menu.addEventListener('click', () => { closeMenu(); });
+
+  document.addEventListener('click', (e) => {
+    if (!menu.hidden && !toggle.contains(e.target as Node)) { closeMenu(); }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !menu.hidden) { closeMenu(); toggle.focus(); }
+  });
+}
+
 export function initEditorPage(): void {
   const docId = getDocumentId();
   if (docId === 'default') {
@@ -139,4 +170,5 @@ export function initEditorPage(): void {
   setupCollaboraExports(docId);
   setupImport(docId);
   setupShareDialog(docId);
+  setupExportDropdown();
 }

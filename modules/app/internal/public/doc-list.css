@@ -169,6 +169,99 @@
   color: var(--text-muted);
 }
 
+/* ── Sort + filter controls bar (issues #171, #172) ──────────────── */
+
+.doc-list-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto 0.75rem;
+}
+
+.doc-list-filter-group {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.doc-list-filter-btn {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--text-muted);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.doc-list-filter-btn:hover {
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+.doc-list-filter-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.doc-list-sort-label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.doc-list-sort-select {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* ── Pagination bar (issue #171) ──────────────────────────────────── */
+
+.doc-list-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0.75rem auto 0;
+}
+
+.doc-list-page-info {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  min-width: 8rem;
+  text-align: center;
+}
+
+.doc-list-page-btn {
+  min-width: 6rem;
+}
+
+.doc-list-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* New document group */
 .new-doc-group {
   display: flex;

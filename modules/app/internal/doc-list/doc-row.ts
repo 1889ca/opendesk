@@ -11,27 +11,7 @@ import { t } from '../i18n/index.ts';
 import { formatRelativeTime } from '../shared/time-format.ts';
 import { getCurrentFolderId } from './folder-list.ts';
 import { showDeleteConfirmDialog } from './delete-confirm-dialog.ts';
-
-const STARRED_KEY = 'opendesk-starred-docs';
-
-function getStarred(): Set<string> {
-  try {
-    const raw = localStorage.getItem(STARRED_KEY);
-    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function saveStarred(ids: Set<string>): void {
-  localStorage.setItem(STARRED_KEY, JSON.stringify([...ids]));
-}
-
-function toggleStar(id: string): void {
-  const starred = getStarred();
-  if (starred.has(id)) { starred.delete(id); } else { starred.add(id); }
-  saveStarred(starred);
-}
+import { getStarred, toggleStar } from './starred-store.ts';
 
 export interface DocEntry {
   id: string;
@@ -46,12 +26,12 @@ export const TYPE_META: Record<string, { icon: string; label: string; editor: st
   presentation: { icon: '\u{1F3AC}', label: 'Presentation', editor: '/presentation.html' },
 };
 
-const EMPTY_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false" class="empty-state-icon">
-  <rect x="10" y="8" width="38" height="48" rx="4" ry="4" fill="none" stroke="currentColor" stroke-width="3"/>
-  <line x1="18" y1="22" x2="40" y2="22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="18" y1="30" x2="40" y2="30" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="18" y1="38" x2="32" y2="38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-</svg>`;
+const EMPTY_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false" class="empty-state-icon">'
+  + '<rect x="10" y="8" width="38" height="48" rx="4" ry="4" fill="none" stroke="currentColor" stroke-width="3"/>'
+  + '<line x1="18" y1="22" x2="40" y2="22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>'
+  + '<line x1="18" y1="30" x2="40" y2="30" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>'
+  + '<line x1="18" y1="38" x2="32" y2="38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>'
+  + '</svg>';
 
 export interface RenderDocumentsOptions {
   listEl: HTMLElement;
