@@ -87,6 +87,10 @@ export interface CoreTranslationKeys {
   // Promote to KB
   'toolbar.fontSize': string;
   'a11y.fontSizeLabel': string;
+  'toolbar.lineHeight': string;
+  'a11y.lineHeightLabel': string;
+  'toolbar.textColor': string;
+  'a11y.textColorLabel': string;
   'toolbar.saveToKb': string;
   'promoteKb.title': string;
   'promoteKb.noteTitle': string;

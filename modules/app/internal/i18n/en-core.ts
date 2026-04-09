@@ -178,6 +178,10 @@ export const coreTranslations: Partial<TranslationKeys> = {
   // Promote to KB
   'toolbar.fontSize': 'Size',
   'a11y.fontSizeLabel': 'Font size',
+  'toolbar.lineHeight': 'Spacing',
+  'a11y.lineHeightLabel': 'Line spacing',
+  'toolbar.textColor': 'Color',
+  'a11y.textColorLabel': 'Text color',
   'toolbar.saveToKb': 'Save to KB',
   'promoteKb.title': 'Save to Knowledge Base',
   'promoteKb.noteTitle': 'Title',
