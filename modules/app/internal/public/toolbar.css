@@ -340,3 +340,64 @@
   border-color: var(--accent);
 }
 
+/* Color palette popup */
+.color-palette-popup {
+  position: absolute;
+  z-index: 300;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px var(--shadow-medium, rgba(0,0,0,0.2));
+  padding: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+
+.color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.15);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.color-swatch:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.color-swatch--default {
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* Text color button underline bar */
+.toolbar-color-btn {
+  position: relative;
+  flex-direction: column;
+  gap: 1px;
+  padding-bottom: 0;
+}
+
+.toolbar-color-bar {
+  display: block;
+  height: 3px;
+  width: 12px;
+  border-radius: 1px;
+  background: currentColor;
+  margin-top: 1px;
+}
+
+.toolbar-color-group {
+  position: relative;
+  display: inline-flex;
+}
+
