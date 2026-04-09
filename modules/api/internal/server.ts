@@ -132,7 +132,7 @@ export async function startServer(port = 3000) {
   // This enables client-side routing (pushState) to work for all app routes.
   // Uses sendHtmlWithNonce so inline scripts get the per-request CSP nonce.
   const spaPath = resolve(publicDir, 'spa.html');
-  app.get('*', (req: Request, res: Response, next: NextFunction) => {
+  app.get('{*path}', (req: Request, res: Response, next: NextFunction) => {
     // Skip API routes and requests for static files (with extensions)
     if (req.path.startsWith('/api/') || req.path.startsWith('/collab') || /\.\w+$/.test(req.path)) {
       return next();
