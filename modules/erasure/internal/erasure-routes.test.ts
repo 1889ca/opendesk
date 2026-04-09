@@ -52,6 +52,16 @@ function createInMemoryErasure(overrides: Partial<ErasureModule> = {}): ErasureM
       attestations: [],
       dryRun: false as const,
     }) satisfies PruneResult),
+    // Bridge methods (stubs for route tests)
+    createBridge: vi.fn(async () => ({ id: 'bridge-1', documentId: DOC_ID, attestationId: 'att-1', preErasureHash: 'a'.repeat(64), postErasureHash: 'b'.repeat(64), legalBasis: 'GDPR_ART_17' as const, jurisdiction: null, actorId: 'user-1', bridgeHash: 'c'.repeat(64), createdAt: '2026-04-08T00:00:00.000Z' })),
+    verifyChain: vi.fn(async () => ({ documentId: DOC_ID, totalEntries: 0, status: 'VALID' as const, erasureBridgeCount: 0, brokenAtId: null })),
+    generateProof: vi.fn(async () => ({ documentId: DOC_ID, timestamp: '2026-04-08T00:00:00.000Z', hashAtPoint: 'a'.repeat(64), entryId: '550e8400-e29b-41d4-a716-446655440000', chainPosition: 0, totalChainLength: 1, erasureBridges: [], proofHash: 'd'.repeat(64) })),
+    verifyProof: vi.fn(() => true),
+    checkConflicts: vi.fn(async () => []),
+    createHold: vi.fn(async () => ({ id: 'hold-1', documentId: DOC_ID, holdType: 'litigation' as const, authority: 'Court', reason: null, actorId: 'user-1', startedAt: '2026-04-08T00:00:00.000Z', expiresAt: null, releasedAt: null, releasedBy: null })),
+    releaseHold: vi.fn(async () => ({ id: 'hold-1', documentId: DOC_ID, holdType: 'litigation' as const, authority: 'Court', reason: null, actorId: 'user-1', startedAt: '2026-04-08T00:00:00.000Z', expiresAt: null, releasedAt: '2026-04-08T01:00:00.000Z', releasedBy: 'user-1' })),
+    getActiveHolds: vi.fn(async () => []),
+    getPolicy: vi.fn(() => ({ jurisdiction: 'EU' as const, legalBasis: 'GDPR_ART_17' as const, erasureDeadlineDays: 30, description: 'GDPR Right to Erasure' })),
     ...overrides,
   };
 }
