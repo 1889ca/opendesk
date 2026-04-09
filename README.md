@@ -15,6 +15,32 @@ OpenDesk is an office suite built from scratch to solve this:
 - **Fully self-hostable.** Run it on your own infrastructure if you need to.
 - **AGPL-3.0 licensed.** The code is yours to audit, fork, and improve.
 
+## Getting Started
+
+**Prerequisites:** Node.js 22+, Docker
+
+```bash
+git clone https://github.com/1889ca/opendesk.git
+cd opendesk
+npm install
+./scripts/install-hooks.sh     # pre-push: lint + typecheck + tests + security
+cp .env.example .env           # dev defaults work as-is
+docker compose up -d           # starts Postgres, Redis, MinIO, Collabora
+npm run dev                    # http://localhost:5500
+```
+
+The pre-push hook mirrors what CI runs, so your first PR doesn't fail
+on something the hook would have caught. Skip it (not recommended) by
+omitting the install step.
+
+Auth is bypassed automatically in dev mode (`AUTH_MODE=dev`). To run tests:
+
+```bash
+npm test
+```
+
+See [.env.example](./.env.example) for all configuration options.
+
 ## Core Principles
 
 ### Agent-First Development

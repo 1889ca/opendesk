@@ -27,7 +27,7 @@ export function createCollabServer(
     loadYjsState,
   });
 
-  const onAuthenticate = createOnAuthenticate(deps.tokenVerifier);
+  const onAuthenticate = createOnAuthenticate(deps.tokenVerifier, deps.permissions);
 
   const hocuspocus = new Hocuspocus({
     name: config?.hocuspocus?.name ?? 'opendesk-collab',

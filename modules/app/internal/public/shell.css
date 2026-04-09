@@ -1,0 +1,6 @@
+/** Contract: contracts/app/rules.md */
+
+/* Shell layout — imports for split CSS modules */
+
+@import url('shell-sidebar.css');
+@import url('shell-content.css');

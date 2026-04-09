@@ -1,6 +1,20 @@
 /** Contract: contracts/workflow/rules.md */
 import { z } from 'zod';
 
+// Re-export config schemas
+export {
+  WebhookConfigSchema, type WebhookConfig,
+  ExportConfigSchema, type ExportConfig,
+  NotifyConfigSchema, type NotifyConfig,
+  SetMetadataConfigSchema, type SetMetadataConfig,
+  MoveToFolderConfigSchema, type MoveToFolderConfig,
+  ChangeStatusConfigSchema, type ChangeStatusConfig,
+  SendEmailConfigSchema, type SendEmailConfig,
+  WasmPluginConfigSchema, type WasmPluginConfig,
+  ConditionOperatorSchema, type ConditionOperator,
+  ConditionConfigSchema, type ConditionConfig,
+} from './internal/config-schemas.ts';
+
 // --- Trigger & Action Enums ---
 
 export const TriggerTypeSchema = z.enum([
@@ -12,30 +26,50 @@ export const TriggerTypeSchema = z.enum([
 
 export type TriggerType = z.infer<typeof TriggerTypeSchema>;
 
-export const ActionTypeSchema = z.enum(['webhook', 'export', 'notify']);
+export const ActionTypeSchema = z.enum([
+  'webhook', 'export', 'notify',
+  'set_metadata', 'move_to_folder', 'change_status', 'send_email',
+  'wasm_plugin',
+]);
 
 export type ActionType = z.infer<typeof ActionTypeSchema>;
 
-// --- Action Config Schemas ---
+// --- Node Types ---
 
-export const WebhookConfigSchema = z.object({
-  url: z.string().url(),
-  headers: z.record(z.string()).optional(),
+export const NodeTypeSchema = z.enum([
+  'trigger', 'condition', 'action', 'parallel_split',
+]);
+
+export type NodeType = z.infer<typeof NodeTypeSchema>;
+
+// --- Graph Node & Edge ---
+
+export const WorkflowNodeSchema = z.object({
+  id: z.string().min(1),
+  type: NodeTypeSchema,
+  label: z.string().max(100).default(''),
+  x: z.number(),
+  y: z.number(),
+  config: z.record(z.unknown()).default({}),
 });
 
-export type WebhookConfig = z.infer<typeof WebhookConfigSchema>;
+export type WorkflowNode = z.infer<typeof WorkflowNodeSchema>;
 
-export const ExportConfigSchema = z.object({
-  format: z.enum(['docx', 'odt', 'pdf']),
+export const WorkflowEdgeSchema = z.object({
+  id: z.string().min(1),
+  sourceId: z.string().min(1),
+  targetId: z.string().min(1),
+  label: z.string().max(50).default(''),
 });
 
-export type ExportConfig = z.infer<typeof ExportConfigSchema>;
+export type WorkflowEdge = z.infer<typeof WorkflowEdgeSchema>;
 
-export const NotifyConfigSchema = z.object({
-  message: z.string().min(1),
+export const WorkflowGraphSchema = z.object({
+  nodes: z.array(WorkflowNodeSchema),
+  edges: z.array(WorkflowEdgeSchema),
 });
 
-export type NotifyConfig = z.infer<typeof NotifyConfigSchema>;
+export type WorkflowGraph = z.infer<typeof WorkflowGraphSchema>;
 
 // --- Workflow Definition ---
 
@@ -48,6 +82,7 @@ export const WorkflowDefinitionSchema = z.object({
   triggerType: TriggerTypeSchema,
   actionType: ActionTypeSchema,
   actionConfig: z.record(z.unknown()),
+  graph: WorkflowGraphSchema.optional(),
   createdBy: z.string().min(1),
   active: z.boolean(),
   createdAt: z.string(),
@@ -56,7 +91,7 @@ export const WorkflowDefinitionSchema = z.object({
 
 export type WorkflowDefinition = z.infer<typeof WorkflowDefinitionSchema>;
 
-// --- Create / Update Schemas ---
+// --- Create / Update ---
 
 export const CreateWorkflowSchema = z.object({
   name: z.string().min(1).max(200),
@@ -64,6 +99,7 @@ export const CreateWorkflowSchema = z.object({
   triggerType: TriggerTypeSchema,
   actionType: ActionTypeSchema,
   actionConfig: z.record(z.unknown()),
+  graph: WorkflowGraphSchema.optional(),
 });
 
 export type CreateWorkflow = z.infer<typeof CreateWorkflowSchema>;
@@ -73,6 +109,7 @@ export const UpdateWorkflowSchema = z.object({
   triggerType: TriggerTypeSchema.optional(),
   actionType: ActionTypeSchema.optional(),
   actionConfig: z.record(z.unknown()).optional(),
+  graph: WorkflowGraphSchema.optional(),
   active: z.boolean().optional(),
 });
 
@@ -80,12 +117,7 @@ export type UpdateWorkflow = z.infer<typeof UpdateWorkflowSchema>;
 
 // --- Execution ---
 
-export const ExecutionStatusSchema = z.enum([
-  'pending',
-  'running',
-  'completed',
-  'failed',
-]);
+export const ExecutionStatusSchema = z.enum(['pending', 'running', 'completed', 'failed']);
 
 export type ExecutionStatus = z.infer<typeof ExecutionStatusSchema>;
 
@@ -101,14 +133,33 @@ export const WorkflowExecutionSchema = z.object({
 
 export type WorkflowExecution = z.infer<typeof WorkflowExecutionSchema>;
 
+// --- Execution Step Log ---
+
+export const ExecutionStepLogSchema = z.object({
+  id: z.string().regex(uuidv4Regex),
+  executionId: z.string().regex(uuidv4Regex),
+  nodeId: z.string().min(1),
+  nodeType: NodeTypeSchema,
+  input: z.record(z.unknown()).nullable(),
+  output: z.record(z.unknown()).nullable(),
+  durationMs: z.number().int().min(0),
+  status: z.enum(['evaluated', 'executed', 'skipped', 'failed']),
+  error: z.string().nullable().optional(),
+  createdAt: z.string(),
+});
+
+export type ExecutionStepLog = z.infer<typeof ExecutionStepLogSchema>;
+
 // --- Module Interface ---
 
 export interface WorkflowModule {
   createDefinition(def: CreateWorkflow, createdBy: string): Promise<WorkflowDefinition>;
   getDefinition(id: string): Promise<WorkflowDefinition | null>;
   listDefinitions(documentId: string): Promise<WorkflowDefinition[]>;
+  listAllDefinitions(): Promise<WorkflowDefinition[]>;
   updateDefinition(id: string, updates: UpdateWorkflow): Promise<WorkflowDefinition | null>;
   deleteDefinition(id: string): Promise<boolean>;
   listExecutions(workflowId: string, limit?: number): Promise<WorkflowExecution[]>;
+  getExecutionLog(executionId: string): Promise<ExecutionStepLog[]>;
   startConsuming(): Promise<void>;
 }

@@ -1,0 +1,186 @@
+/* ==========================================================================
+   Workflow Editor — palette, properties, list, and execution panels
+   ========================================================================== */
+
+/* --- Palette --- */
+.wf-palette-container {
+  padding: 1rem;
+}
+
+.wf-palette-heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--wf-text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.wf-palette-item {
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.375rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  cursor: grab;
+  border: 1px solid transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.wf-palette-item:hover { border-color: var(--wf-border); }
+
+.wf-palette-item--trigger { background: var(--wf-trigger-fill); color: var(--wf-trigger-stroke); }
+.wf-palette-item--condition { background: var(--wf-condition-fill); color: var(--wf-condition-stroke); }
+.wf-palette-item--action { background: var(--wf-action-fill); color: var(--wf-action-stroke); }
+.wf-palette-item--parallel_split { background: var(--wf-split-fill); color: var(--wf-split-stroke); }
+
+/* --- Properties --- */
+.wf-prop-heading {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-transform: capitalize;
+}
+
+.wf-prop-empty {
+  color: var(--wf-text-muted);
+  font-size: 0.8125rem;
+  padding: 1rem 0;
+}
+
+.wf-prop-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.wf-prop-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--wf-text-muted);
+}
+
+.wf-prop-input {
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--wf-border);
+  border-radius: 4px;
+  background: var(--wf-bg);
+  color: var(--wf-text);
+  font-size: 0.8125rem;
+}
+
+.wf-prop-input:focus {
+  outline: 2px solid var(--wf-accent);
+  outline-offset: -1px;
+}
+
+.wf-prop-delete {
+  margin-top: 1rem;
+  padding: 0.375rem 0.75rem;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  width: 100%;
+}
+
+.wf-prop-delete:hover { background: #fee2e2; }
+
+[data-theme="dark"] .wf-prop-delete {
+  background: #450a0a;
+  border-color: #7f1d1d;
+}
+
+/* --- Workflow List --- */
+.wf-list-container { padding: 1rem; border-bottom: 1px solid var(--wf-border); }
+.wf-list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+.wf-list-title { font-size: 0.9375rem; font-weight: 600; }
+
+.wf-list-new-btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border: 1px solid var(--wf-accent);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--wf-accent);
+  cursor: pointer;
+}
+
+.wf-list-new-btn:hover { background: var(--wf-accent); color: #fff; }
+
+.wf-list-item {
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-bottom: 0.25rem;
+  transition: background 0.15s;
+}
+
+.wf-list-item:hover { background: var(--wf-bg); }
+.wf-list-item-name { font-size: 0.8125rem; font-weight: 500; }
+.wf-list-item-trigger { font-size: 0.6875rem; color: var(--wf-text-muted); }
+.wf-list-item-status { font-size: 0.6875rem; font-weight: 600; }
+.wf-list-item--active { color: #16a34a; }
+.wf-list-item--inactive { color: #dc2626; }
+.wf-list-empty, .wf-list-error { font-size: 0.8125rem; color: var(--wf-text-muted); }
+
+/* --- Execution Log --- */
+.wf-exec-container { max-height: 40vh; overflow-y: auto; border-top: 1px solid var(--wf-border); padding: 1rem; }
+.wf-exec-heading { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.75rem; }
+
+.wf-exec-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.375rem 0; border-bottom: 1px solid var(--wf-border);
+  font-size: 0.8125rem;
+}
+
+.wf-exec-status {
+  padding: 0.125rem 0.5rem;
+  border-radius: 99px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.wf-exec-status--completed { background: #dcfce7; color: #16a34a; }
+.wf-exec-status--failed { background: #fee2e2; color: #dc2626; }
+.wf-exec-status--running { background: #dbeafe; color: #3b82f6; }
+.wf-exec-status--pending { background: #f3f4f6; color: #6b7280; }
+
+.wf-exec-time { color: var(--wf-text-muted); font-size: 0.75rem; }
+.wf-exec-err { color: #dc2626; font-size: 0.75rem; flex: 1; overflow: hidden; text-overflow: ellipsis; }
+
+.wf-exec-expand {
+  padding: 0.125rem 0.375rem;
+  font-size: 0.6875rem;
+  border: 1px solid var(--wf-border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--wf-text-muted);
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.wf-exec-expand:hover { background: var(--wf-bg); }
+.wf-exec-empty, .wf-exec-error { font-size: 0.8125rem; color: var(--wf-text-muted); }
+
+/* --- Steps Table --- */
+.wf-steps-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.75rem; margin-top: 0.5rem;
+}
+
+.wf-steps-table th {
+  text-align: left; padding: 0.375rem 0.5rem;
+  background: var(--wf-bg); font-weight: 600;
+  border-bottom: 1px solid var(--wf-border);
+}
+
+.wf-steps-table td { padding: 0.375rem 0.5rem; border-bottom: 1px solid var(--wf-border); }
+.wf-step--failed td { color: #dc2626; }
+.wf-step-output { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wf-step-error { color: #dc2626; font-size: 0.6875rem; }

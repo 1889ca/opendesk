@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenDesk — Observability Dashboard</title>
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="admin-observability.css">
+  <script>
+    (function() {
+      var stored = localStorage.getItem('opendesk-theme');
+      var theme = stored === 'dark' ? 'dark'
+        : stored === 'light' ? 'light'
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+<body>
+  <header class="obs-header">
+    <div class="obs-header-left">
+      <a href="/" class="obs-back-link">OpenDesk</a>
+      <h1 class="obs-title">Observability</h1>
+    </div>
+    <div class="obs-header-right">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
+      <button id="detect-anomalies" class="btn btn-primary">Run Detection</button>
+    </div>
+  </header>
+
+  <nav class="obs-tabs" role="tablist">
+    <button class="obs-tab active" data-tab="telemetry" role="tab" aria-selected="true">Telemetry</button>
+    <button class="obs-tab" data-tab="anomalies" role="tab" aria-selected="false">Anomalies</button>
+    <button class="obs-tab" data-tab="forensics" role="tab" aria-selected="false">Forensics</button>
+    <button class="obs-tab" data-tab="siem" role="tab" aria-selected="false">SIEM Export</button>
+  </nav>
+
+  <main class="obs-main">
+    <!-- Telemetry Panel -->
+    <section id="panel-telemetry" class="obs-panel active" role="tabpanel">
+      <div class="obs-controls">
+        <select id="ts-metric" class="obs-select" aria-label="Metric">
+          <optgroup label="Documents">
+            <option value="document.edits_per_sec">Edits/sec</option>
+            <option value="document.active_collaborators">Active Collaborators</option>
+            <option value="document.conversion_throughput">Conversion Throughput</option>
+          </optgroup>
+          <optgroup label="Sheets">
+            <option value="sheet.cell_updates_per_sec">Cell Updates/sec</option>
+            <option value="sheet.formula_evaluations">Formula Evaluations</option>
+            <option value="sheet.active_users">Active Users</option>
+          </optgroup>
+          <optgroup label="Slides">
+            <option value="slides.element_mutations">Element Mutations</option>
+            <option value="slides.presentation_views">Presentation Views</option>
+            <option value="slides.export_count">Export Count</option>
+          </optgroup>
+          <optgroup label="Knowledge Base">
+            <option value="kb.entry_creates">Entry Creates</option>
+            <option value="kb.entry_updates">Entry Updates</option>
+            <option value="kb.search_queries_per_sec">Search Queries/sec</option>
+            <option value="kb.relationship_changes">Relationship Changes</option>
+          </optgroup>
+        </select>
+        <input id="ts-from" type="datetime-local" class="obs-input" aria-label="From">
+        <input id="ts-to" type="datetime-local" class="obs-input" aria-label="To">
+        <button id="ts-query" class="btn btn-secondary">Query</button>
+      </div>
+      <div class="obs-chart-area">
+        <canvas id="ts-canvas" width="900" height="320"></canvas>
+      </div>
+      <div id="ts-breakdown" class="obs-breakdown"></div>
+    </section>
+
+    <!-- Anomalies Panel -->
+    <section id="panel-anomalies" class="obs-panel" role="tabpanel" hidden>
+      <div class="obs-controls">
+        <select id="alert-severity" class="obs-select" aria-label="Severity filter">
+          <option value="">All Severities</option>
+          <option value="critical">Critical</option>
+          <option value="warning">Warning</option>
+          <option value="info">Info</option>
+        </select>
+        <label class="obs-checkbox">
+          <input type="checkbox" id="alert-unacked"> Unacknowledged only
+        </label>
+      </div>
+      <div id="alert-list" class="obs-alert-list"></div>
+    </section>
+
+    <!-- Forensics Panel -->
+    <section id="panel-forensics" class="obs-panel" role="tabpanel" hidden>
+      <div class="obs-controls">
+        <select id="fr-type" class="obs-select" aria-label="Content type">
+          <option value="">All Types</option>
+          <option value="document">Document</option>
+          <option value="sheet">Sheet</option>
+          <option value="slides">Slides</option>
+          <option value="kb">KB</option>
+        </select>
+        <input id="fr-actor" type="text" class="obs-input" placeholder="Actor ID" aria-label="Actor ID">
+        <input id="fr-action" type="text" class="obs-input" placeholder="Action" aria-label="Action">
+        <input id="fr-from" type="datetime-local" class="obs-input" aria-label="From">
+        <input id="fr-to" type="datetime-local" class="obs-input" aria-label="To">
+        <button id="fr-query" class="btn btn-secondary">Search</button>
+        <button id="fr-export-json" class="btn btn-secondary">Export JSON</button>
+      </div>
+      <div id="forensics-timeline" class="obs-timeline"></div>
+      <aside id="forensics-detail" class="obs-detail-panel" hidden>
+        <button id="fr-close-detail" class="obs-detail-close" aria-label="Close detail">&times;</button>
+        <h3>Event Detail</h3>
+        <pre id="fr-detail-content"></pre>
+      </aside>
+    </section>
+
+    <!-- SIEM Panel -->
+    <section id="panel-siem" class="obs-panel" role="tabpanel" hidden>
+      <div class="obs-siem-grid">
+        <div class="obs-siem-export">
+          <h3>Batch Export</h3>
+          <div class="obs-controls">
+            <select id="siem-format" class="obs-select" aria-label="Format">
+              <option value="cef">CEF (ArcSight/QRadar)</option>
+              <option value="syslog">Syslog (RFC 5424)</option>
+              <option value="jsonlines">JSON Lines (Splunk/Elastic)</option>
+            </select>
+            <input id="siem-from" type="datetime-local" class="obs-input" aria-label="From">
+            <input id="siem-to" type="datetime-local" class="obs-input" aria-label="To">
+            <button id="siem-download" class="btn btn-primary">Download</button>
+          </div>
+        </div>
+        <div class="obs-siem-configs">
+          <h3>Integrations</h3>
+          <button id="siem-add-config" class="btn btn-secondary">Add Integration</button>
+          <div id="siem-config-list" class="obs-config-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="obs-chart-render.js"></script>
+  <script src="admin-observability.js"></script>
+</body>
+</html>

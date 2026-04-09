@@ -1,64 +1,97 @@
 /** Contract: contracts/auth/rules.md */
 
 import { describe, it, expect } from 'vitest';
-import { createApiKeyVerifier, type ServiceAccountStore, type ServiceAccountRecord } from './apikey-verifier.ts';
-import { hashApiKey } from './hash.ts';
+import {
+  createApiKeyVerifier,
+  type ServiceAccountStore,
+  type ServiceAccountRecord,
+} from './apikey-verifier.ts';
+import { generateApiKey, generateAccountId } from './hash.ts';
 
 function makeStore(records: ServiceAccountRecord[]): ServiceAccountStore {
   return {
-    async findByKeyHash(keyHash: string) {
-      return records.find((r) => r.keyHash === keyHash) || null;
+    async findById(id: string) {
+      return records.find((r) => r.id === id) || null;
     },
   };
 }
 
 describe('API Key Verifier', () => {
-  const rawKey = 'test-api-key-abc123';
-  const keyHash = hashApiKey(rawKey);
+  it('resolves a valid key to an agent principal', async () => {
+    const accountId = generateAccountId();
+    const { apiKey, secretHash } = await generateApiKey(accountId);
 
-  const activeRecord: ServiceAccountRecord = {
-    id: 'sa-1',
-    keyHash,
-    displayName: 'Test Agent',
-    scopes: ['documents.read'],
-    revoked: false,
-  };
+    const record: ServiceAccountRecord = {
+      id: accountId,
+      secretHash,
+      displayName: 'Test Agent',
+      scopes: ['documents.read'],
+      revoked: false,
+    };
+    const verifier = createApiKeyVerifier(makeStore([record]));
 
-  const revokedRecord: ServiceAccountRecord = {
-    ...activeRecord,
-    id: 'sa-2',
-    keyHash: hashApiKey('revoked-key'),
-    revoked: true,
-  };
-
-  it('resolves valid key to agent principal', async () => {
-    const verifier = createApiKeyVerifier(makeStore([activeRecord]));
-    const result = await verifier.verifyApiKey(rawKey);
+    const result = await verifier.verifyApiKey(apiKey);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.principal.actorType).toBe('agent');
-    expect(result.principal.id).toBe('sa-1');
+    expect(result.principal.id).toBe(accountId);
     expect(result.principal.displayName).toBe('Test Agent');
     expect(result.principal.scopes).toEqual(['documents.read']);
   });
 
-  it('rejects unknown key', async () => {
-    const verifier = createApiKeyVerifier(makeStore([activeRecord]));
-    const result = await verifier.verifyApiKey('unknown-key');
+  it('rejects a key whose account id is not in the store', async () => {
+    const accountId = generateAccountId();
+    const otherId = generateAccountId();
+    const { apiKey, secretHash } = await generateApiKey(accountId);
+
+    const record: ServiceAccountRecord = {
+      id: otherId, // Store has a DIFFERENT id
+      secretHash,
+      displayName: 'Other',
+      scopes: [],
+      revoked: false,
+    };
+    const verifier = createApiKeyVerifier(makeStore([record]));
+
+    const result = await verifier.verifyApiKey(apiKey);
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe('KEY_INVALID');
   });
 
-  it('rejects revoked key', async () => {
-    const verifier = createApiKeyVerifier(makeStore([revokedRecord]));
-    const result = await verifier.verifyApiKey('revoked-key');
+  it('rejects a key whose secret does not match the stored hash', async () => {
+    const accountId = generateAccountId();
+    const { apiKey: legitKey, secretHash } = await generateApiKey(accountId);
+
+    // Tamper with the secret portion of the apiKey while keeping the
+    // account id intact. The store finds the record by id but the
+    // bcrypt compare fails.
+    const tampered = legitKey.slice(0, -64) + 'b'.repeat(64);
+
+    const record: ServiceAccountRecord = {
+      id: accountId,
+      secretHash,
+      displayName: 'Tampered',
+      scopes: [],
+      revoked: false,
+    };
+    const verifier = createApiKeyVerifier(makeStore([record]));
+
+    const result = await verifier.verifyApiKey(tampered);
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.error.code).toBe('KEY_REVOKED');
+    expect(result.error.code).toBe('KEY_INVALID');
   });
 
-  it('rejects empty key', async () => {
+  it('rejects a malformed key', async () => {
+    const verifier = createApiKeyVerifier(makeStore([]));
+    const result = await verifier.verifyApiKey('not-a-real-key');
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe('KEY_INVALID');
+  });
+
+  it('rejects an empty key', async () => {
     const verifier = createApiKeyVerifier(makeStore([]));
     const result = await verifier.verifyApiKey('');
     expect(result.ok).toBe(false);
@@ -66,10 +99,40 @@ describe('API Key Verifier', () => {
     expect(result.error.code).toBe('KEY_INVALID');
   });
 
+  it('rejects a revoked key (after the secret check passes)', async () => {
+    const accountId = generateAccountId();
+    const { apiKey, secretHash } = await generateApiKey(accountId);
+
+    const record: ServiceAccountRecord = {
+      id: accountId,
+      secretHash,
+      displayName: 'Revoked',
+      scopes: [],
+      revoked: true,
+    };
+    const verifier = createApiKeyVerifier(makeStore([record]));
+
+    const result = await verifier.verifyApiKey(apiKey);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe('KEY_REVOKED');
+  });
+
   it('same key resolves to same id (stable identity)', async () => {
-    const verifier = createApiKeyVerifier(makeStore([activeRecord]));
-    const r1 = await verifier.verifyApiKey(rawKey);
-    const r2 = await verifier.verifyApiKey(rawKey);
+    const accountId = generateAccountId();
+    const { apiKey, secretHash } = await generateApiKey(accountId);
+
+    const record: ServiceAccountRecord = {
+      id: accountId,
+      secretHash,
+      displayName: 'Stable',
+      scopes: [],
+      revoked: false,
+    };
+    const verifier = createApiKeyVerifier(makeStore([record]));
+
+    const r1 = await verifier.verifyApiKey(apiKey);
+    const r2 = await verifier.verifyApiKey(apiKey);
     expect(r1.ok && r2.ok).toBe(true);
     if (r1.ok && r2.ok) {
       expect(r1.principal.id).toBe(r2.principal.id);

@@ -3,7 +3,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { evaluate, type Action } from '../contract.ts';
 import type { GrantStore } from './grant-store.ts';
-import { loadConfig } from '../../config/index.ts';
+import type { AuthMode } from '../../config/contract.ts';
 import { ensureDevGrant } from './dev-grant-helper.ts';
 
 export type PermissionMiddlewareOptions = {
@@ -12,6 +12,8 @@ export type PermissionMiddlewareOptions = {
   getResourceId?: (req: Request) => string | undefined;
   /** Resource type for permission queries. Defaults to 'document'. */
   resourceType?: string;
+  /** Auth mode — injected from config to avoid internal loadConfig() calls. */
+  authMode?: AuthMode;
 };
 
 /**
@@ -51,7 +53,7 @@ export function requirePermission(action: Action, opts: PermissionMiddlewareOpti
     }
 
     // In dev mode, auto-create an owner grant so permission evaluation still runs
-    if (loadConfig().auth.mode === 'dev') {
+    if (opts.authMode === 'dev') {
       await ensureDevGrant(opts.grantStore, principal.id, resourceId, resourceType);
     }
 
@@ -94,6 +96,34 @@ export function requireAuth() {
       });
       return;
     }
+    next();
+  };
+}
+
+/**
+ * Middleware that requires admin-level access.
+ * Checks that the principal is authenticated and has a wildcard ('*')
+ * or 'admin' scope. Returns 401 if unauthenticated, 403 if not admin.
+ */
+export function requireAdmin() {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.principal) {
+      res.status(401).json({
+        code: 'UNAUTHENTICATED',
+        message: 'Authentication required',
+      });
+      return;
+    }
+
+    const scopes = req.principal.scopes ?? [];
+    if (!scopes.includes('*') && !scopes.includes('admin')) {
+      res.status(403).json({
+        code: 'FORBIDDEN',
+        message: 'Admin access required',
+      });
+      return;
+    }
+
     next();
   };
 }

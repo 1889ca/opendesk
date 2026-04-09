@@ -1,0 +1,28 @@
+/** Contract: contracts/app/rules.md */
+
+/* KB Browser — responsive breakpoints */
+
+@media (max-width: 768px) {
+  .kb-browser__content {
+    flex-direction: column;
+  }
+
+  .kb-detail-panel {
+    width: 100%;
+    position: static;
+    max-height: none;
+  }
+
+  .kb-entry-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .kb-filter-bar {
+    flex-direction: column;
+  }
+
+  .kb-search-input,
+  .kb-tags-input {
+    min-width: 0;
+  }
+}

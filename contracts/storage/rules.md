@@ -47,7 +47,7 @@ Abstract document persistence behind a unified `DocumentRepository` interface, t
 - MUST NOT: understand document semantics (this module stores opaque blobs and typed snapshots, nothing more)
 - MUST NOT: emit events or trigger side effects beyond persistence (that is the caller's responsibility)
 - MUST NOT: perform schema migrations (the `document` module owns schema evolution)
-- MUST NOT: expose adapter internals (PG connection pools, S3 clients) outside this module
+- MUST NOT: expose adapter internals (PG connection pools, S3 clients) outside this module — **partially fixed (#134)**: `pool` and `getPool` are no longer exported from `modules/storage/index.ts`. The composition root (`modules/api/internal/server.ts`, `create-routes.ts`) and a small set of pg-* stores in `modules/kb/`, `modules/references/`, and `modules/ai/` still reach in via the cross-module-internal path `modules/storage/internal/pool.ts`. The proper fix is converting each pg-* store into a factory that takes the pool via constructor injection so the pool flows from the composition root. Tracked as a follow-up.
 
 ## Verification
 
@@ -75,3 +75,5 @@ Post-MVP (deferred):
 - [ ] `staleSeconds` indicator on cold-tier reads — no cold tier exists yet
 - [ ] Atomic snapshot + state vector co-persistence in a single PG transaction — snapshots and state vectors are saved but not yet in the same transaction
 - [ ] State vector pruning for clients offline > 30 days
+- [x] Remove direct `pool`/`getPool` exports from `storage/index.ts` (#134, partial)
+- [ ] Convert pg-* stores in `modules/kb/`, `modules/references/`, and `modules/ai/` from module-scope `pool` imports to factory + DI so the cross-module-internal access goes away (#134 follow-up)

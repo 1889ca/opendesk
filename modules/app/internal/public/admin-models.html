@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenDesk — Model Zoo</title>
+  <link rel="stylesheet" href="admin-models.bundle.css">
+  <script>
+    (function() {
+      var stored = localStorage.getItem('opendesk-theme');
+      var theme = stored === 'dark' ? 'dark'
+        : stored === 'light' ? 'light'
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+<body>
+  <header class="toolbar">
+    <div class="toolbar-left">
+      <a href="/" class="back-link">Back to documents</a>
+      <span class="toolbar-separator"></span>
+      <h1 class="page-title">AI Model Zoo</h1>
+    </div>
+    <div class="toolbar-right">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
+      <button id="add-custom-btn" class="btn btn-primary">Add Custom Model</button>
+    </div>
+  </header>
+
+  <main class="admin-models">
+    <section class="active-config" id="active-config">
+      <h2>Active Models</h2>
+      <div class="config-cards">
+        <div class="config-card">
+          <span class="config-label">Embedding</span>
+          <span id="active-embedding" class="config-value">Not configured</span>
+        </div>
+        <div class="config-card">
+          <span class="config-label">Generation</span>
+          <span id="active-generation" class="config-value">Not configured</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="filters" id="filters">
+      <label>
+        Capability
+        <select id="filter-capability">
+          <option value="">All</option>
+          <option value="generate">Generate</option>
+          <option value="embed">Embed</option>
+          <option value="both">Both</option>
+        </select>
+      </label>
+      <label>
+        Tier
+        <select id="filter-tier">
+          <option value="">All</option>
+          <option value="recommended">Recommended</option>
+          <option value="lightweight">Lightweight</option>
+          <option value="specialized">Specialized</option>
+        </select>
+      </label>
+      <label>
+        Use Case
+        <select id="filter-usecase">
+          <option value="">All</option>
+          <option value="general">General</option>
+          <option value="code">Code</option>
+          <option value="embedding">Embedding</option>
+          <option value="multilingual">Multilingual</option>
+          <option value="legal">Legal</option>
+          <option value="medical">Medical</option>
+        </select>
+      </label>
+      <label>
+        Status
+        <select id="filter-status">
+          <option value="">All</option>
+          <option value="installed">Installed</option>
+          <option value="available">Not Installed</option>
+        </select>
+      </label>
+    </section>
+
+    <div id="model-grid" class="model-grid">
+      <div class="loading">Loading models...</div>
+    </div>
+  </main>
+
+  <dialog id="custom-model-dialog">
+    <form id="custom-model-form" method="dialog">
+      <h2>Add Custom Model</h2>
+      <label>
+        Name
+        <input type="text" name="name" required placeholder="My Custom Model">
+      </label>
+      <label>
+        Ollama Tag
+        <input type="text" name="ollamaTag" required placeholder="mymodel:latest">
+      </label>
+      <label>
+        Capability
+        <select name="capability" required>
+          <option value="generate">Generate</option>
+          <option value="embed">Embed</option>
+          <option value="both">Both</option>
+        </select>
+      </label>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-secondary" id="cancel-custom">Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Model</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="admin-models.bundle.js"></script>
+</body>
+</html>

@@ -124,7 +124,7 @@ Implemented:
 
 Post-MVP (deferred):
 - [ ] "Cannot grant higher than own role" enforcement — requires auth wiring to look up grantor's role
-- [ ] `GrantCreated` event emission — requires events module implementation
-- [ ] `GrantRevoked` event emission — requires events module implementation
+- [ ] `GrantCreated` event emission — events module is now fully implemented; ready to wire via `createEventBus().emit()`
+- [ ] `GrantRevoked` event emission — events module is now fully implemented; ready to wire via `createEventBus().emit()`
 - [ ] Invite-by-email workflow (pending grants that activate on authentication)
 - [ ] `updateGrant` role change support

@@ -3,15 +3,22 @@
 import type pg from 'pg';
 import type { ShareLink } from '../contract.ts';
 import type { ShareLinkStore } from './store.ts';
+import { rlsQuery } from '../../storage/internal/rls-query.ts';
 
 /**
  * PostgreSQL-backed share link store.
- * Survives server restarts, suitable for production.
+ *
+ * All queries route through {@link rlsQuery} so the Postgres RLS
+ * policies on `share_links` (migration 011) are actually enforced.
+ * The caller must be inside a principal context — either
+ * `runWithPrincipal(req.principal.id, ...)` for HTTP requests or
+ * `runAsSystem(...)` for the anonymous resolution path. See issue #126.
  */
 export function createPgShareLinkStore(pool: pg.Pool): ShareLinkStore {
   return {
     async save(link) {
-      await pool.query(
+      await rlsQuery(
+        pool,
         `INSERT INTO share_links (token, doc_id, grantor_id, role, expires_at, max_redemptions, redemption_count, revoked, password_hash, created_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
         [
@@ -24,7 +31,8 @@ export function createPgShareLinkStore(pool: pg.Pool): ShareLinkStore {
     },
 
     async findByToken(token) {
-      const { rows } = await pool.query(
+      const { rows } = await rlsQuery(
+        pool,
         `SELECT * FROM share_links WHERE token = $1`,
         [token],
       );
@@ -51,14 +59,16 @@ export function createPgShareLinkStore(pool: pg.Pool): ShareLinkStore {
 
       if (sets.length === 0) return;
       vals.push(token);
-      await pool.query(
+      await rlsQuery(
+        pool,
         `UPDATE share_links SET ${sets.join(', ')} WHERE token = $${i}`,
         vals,
       );
     },
 
     async listByDoc(docId) {
-      const { rows } = await pool.query(
+      const { rows } = await rlsQuery(
+        pool,
         `SELECT * FROM share_links WHERE doc_id = $1 ORDER BY created_at DESC`,
         [docId],
       );

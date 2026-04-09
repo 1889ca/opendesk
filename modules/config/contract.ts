@@ -50,6 +50,26 @@ export const AuditConfigSchema = z.object({
   hmacSecret: z.string().min(32).default('dev-audit-secret-must-change-in-prod-32chars'),
 });
 
+export const LoggerConfigSchema = z.object({
+  level: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+});
+
+export const ObservabilityConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  sampleRate: z.coerce.number().min(0).max(1).default(1),
+  healthIntervalMs: z.coerce.number().int().positive().default(60000),
+});
+
+export const AiConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  ollamaUrl: z.string().default('http://localhost:11434'),
+  embeddingModel: z.string().default('all-minilm'),
+  chatModel: z.string().default('llama3.2'),
+  chunkSize: z.coerce.number().int().positive().default(512),
+  chunkOverlap: z.coerce.number().int().nonnegative().default(64),
+  embeddingDimensions: z.coerce.number().int().positive().default(384),
+});
+
 export const AppConfigSchema = z.object({
   server: ServerConfigSchema,
   auth: AuthConfigSchema,
@@ -58,6 +78,29 @@ export const AppConfigSchema = z.object({
   redis: RedisConfigSchema,
   collabora: CollaboraConfigSchema,
   audit: AuditConfigSchema,
+  logger: LoggerConfigSchema,
+  observability: ObservabilityConfigSchema,
+  ai: AiConfigSchema,
+  federation: z.object({
+    enabled: z.boolean().default(false),
+    instanceId: z.string().default(''),
+    privateKey: z.string().default(''),
+    publicKey: z.string().default(''),
+    /**
+     * Allow federation peers whose hostname resolves to RFC1918
+     * (10/8, 172.16/12, 192.168/16) or IPv6 ULA addresses. Required
+     * for self-hosted instances on a LAN. Loopback and link-local are
+     * always forbidden regardless. See issue #131.
+     */
+    allowPrivateNetworks: z.coerce.boolean().default(false),
+    /**
+     * Allow http:// and ws:// federation peer URLs (in addition to
+     * https:// and wss://). Off by default; intended for tests and
+     * local development. Production federation traffic must be
+     * encrypted.
+     */
+    allowInsecureSchemes: z.coerce.boolean().default(false),
+  }),
 });
 
 export type AuthMode = z.infer<typeof AuthModeSchema>;
@@ -67,5 +110,8 @@ export type S3Config = z.infer<typeof S3ConfigSchema>;
 export type RedisConfig = z.infer<typeof RedisConfigSchema>;
 export type CollaboraConfig = z.infer<typeof CollaboraConfigSchema>;
 export type AuditConfig = z.infer<typeof AuditConfigSchema>;
+export type LoggerConfig = z.infer<typeof LoggerConfigSchema>;
+export type ObservabilityConfig = z.infer<typeof ObservabilityConfigSchema>;
+export type AiConfig = z.infer<typeof AiConfigSchema>;
 export type ServerConfig = z.infer<typeof ServerConfigSchema>;
 export type AppConfig = z.infer<typeof AppConfigSchema>;

@@ -90,16 +90,18 @@ How to test each invariant:
 ## MVP Scope
 
 Implemented:
-- [x] `DomainEvent` base type exported (types-only)
+- [x] `DomainEvent` base type and Zod schemas exported
 - [x] `EventType` enum with registered event types
+- [x] `createEventBus(pool, redis)` factory returning full `EventBusModule`
+- [x] `emit()` with PG transactional outbox persistence (caller-supplied transaction or standalone)
+- [x] `subscribe()` with Redis Streams consumer group creation
+- [x] `acknowledge()` for consumer group event acknowledgement
+- [x] `registerEventType()` with schema registry (one-owner-per-event-type enforcement)
+- [x] Redis Streams consumer group delivery via `consumer-loop.ts`
+- [x] Outbox poller with retry logic (`outbox-poller.ts`)
+- [x] 7-day TTL pruning background job (`pruner.ts`)
+- [x] Circuit breaker for consumer loop resilience (`circuit-breaker.ts`)
+- [x] Lifecycle management (`startConsuming`, `stopConsuming`, `startBackgroundJobs`, `stopBackgroundJobs`)
 
 Post-MVP (deferred):
-- [ ] EventBus implementation (emit, subscribe, acknowledge) — required before Pillar 2 (Audit) and Pillar 6 (Observability)
-- [ ] PG transactional outbox persistence
-- [ ] Redis Streams consumer group delivery
-- [ ] Outbox poller and retry logic
-- [ ] 7-day TTL pruning background job
-- [ ] Schema registry with one-owner-per-event-type enforcement
-- [ ] At-least-once delivery guarantees
-
-> **Note:** The entire events module implementation is deferred. Currently types-only. The contract defines the target architecture; implementation is blocked until a downstream module requires event delivery at runtime.
+- [ ] At-least-once delivery guarantee verification (implementation exists but needs integration testing to confirm redelivery semantics)

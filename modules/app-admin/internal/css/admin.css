@@ -1,0 +1,6 @@
+/** CSS bundle entry for admin.html */
+@import "../../../app/internal/public/theme.css";
+@import "../../../app/internal/public/styles.css";
+@import "../../../app/internal/public/toolbar.css";
+@import "../../../app/internal/public/admin.css";
+@import "../observability-dashboard.css";

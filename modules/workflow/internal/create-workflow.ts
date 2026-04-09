@@ -4,7 +4,9 @@ import type { EventBusModule } from '../../events/contract.ts';
 import type { WorkflowModule, CreateWorkflow, UpdateWorkflow } from '../contract.ts';
 import * as store from './workflow-store.ts';
 import * as execStore from './execution-store.ts';
+import * as stepStore from './step-store.ts';
 import { createWorkflowConsumer } from './workflow-consumer.ts';
+import { seedBuiltinPlugins } from './builtin-plugins.ts';
 
 export type WorkflowDependencies = {
   pool: Pool;
@@ -25,6 +27,9 @@ export function createWorkflow(deps: WorkflowDependencies): WorkflowModule {
     listDefinitions(documentId: string) {
       return store.listDefinitions(pool, documentId);
     },
+    listAllDefinitions() {
+      return store.listAllDefinitions(pool);
+    },
     updateDefinition(id: string, updates: UpdateWorkflow) {
       return store.updateDefinition(pool, id, updates);
     },
@@ -34,7 +39,11 @@ export function createWorkflow(deps: WorkflowDependencies): WorkflowModule {
     listExecutions(workflowId: string, limit?: number) {
       return execStore.listExecutions(pool, workflowId, limit);
     },
-    startConsuming() {
+    getExecutionLog(executionId: string) {
+      return stepStore.listSteps(pool, executionId);
+    },
+    async startConsuming() {
+      await seedBuiltinPlugins(pool);
       return consumer.start();
     },
   };

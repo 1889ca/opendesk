@@ -1,0 +1,87 @@
+/** Contract: contracts/app/rules.md */
+
+/* Entity create/edit dialog */
+
+.entity-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.entity-dialog {
+  background: var(--surface, #fff);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  width: 28rem;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.entity-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+.entity-dialog__header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.entity-dialog__close {
+  border: none;
+  background: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: var(--text-muted, #6b7280);
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.entity-dialog__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.25rem;
+}
+
+.entity-dialog__form label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text, #1f2937);
+  margin-top: 0.25rem;
+}
+
+.entity-dialog__form input,
+.entity-dialog__form select,
+.entity-dialog__form textarea {
+  padding: 0.5rem 0.625rem;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 6px;
+  background: var(--bg, #f9fafb);
+  color: var(--text, #1f2937);
+  outline: none;
+}
+
+.entity-dialog__form input:focus,
+.entity-dialog__form select:focus,
+.entity-dialog__form textarea:focus {
+  border-color: var(--accent, #2563eb);
+}
+
+.entity-dialog__actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}

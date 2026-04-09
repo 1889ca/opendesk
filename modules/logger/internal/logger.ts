@@ -1,11 +1,16 @@
 /** Contract: contracts/logger/rules.md */
 
 import { LogLevel, type LogLevelName, type Logger, type LogEntry } from '../contract.ts';
+import { loadConfig } from '../../config/index.ts';
 
-/** Resolve the minimum log level from the LOG_LEVEL env var. */
+/** Resolve the minimum log level from centralized config. */
 function resolveMinLevel(): number {
-  const raw = (process.env.LOG_LEVEL ?? 'info').toLowerCase();
-  return LogLevel[raw as LogLevelName] ?? LogLevel.info;
+  try {
+    return LogLevel[loadConfig().logger.level];
+  } catch {
+    // Config may not be ready during early bootstrap — fall back to 'info'.
+    return LogLevel.info;
+  }
 }
 
 const minLevel = resolveMinLevel();

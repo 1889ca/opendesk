@@ -60,9 +60,33 @@ export {
   searchDocuments,
 } from './internal/pg-search.ts';
 
+// Global cross-type search
+export type { GlobalSearchResult, ContentType } from './internal/pg-global-search.ts';
+export { globalSearch } from './internal/pg-global-search.ts';
+
 // Schema initialization and pool (for server startup)
 export { initSchema } from './internal/schema.ts';
-export { pool, getPool } from './internal/pool.ts';
+// Issue #134: pool / getPool are no longer exported through the public
+// surface — the storage contract forbids exposing adapter internals.
+// initPool is kept because the composition root must call it once at
+// startup to inject the PostgresConfig before any module reads from
+// the database. The composition root and existing internal stores
+// import the pool directly from ./internal/pool.ts; that
+// cross-module-internal access is a known smaller smell tracked as a
+// follow-up to #134 (the proper fix is converting each store to a
+// factory that takes pool as a parameter).
+export { initPool } from './internal/pool.ts';
+
+// RLS principal context (issue #126)
+export {
+  runWithPrincipal,
+  runAsSystem,
+  getCurrentPrincipal,
+  SYSTEM_PRINCIPAL,
+  type PrincipalContext,
+} from './internal/principal-context.ts';
+export { rlsQuery } from './internal/rls-query.ts';
+export { principalContextMiddleware } from './internal/principal-context-middleware.ts';
 
 // Folder storage
 export type { FolderRow } from './internal/folders.ts';

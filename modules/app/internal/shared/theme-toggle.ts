@@ -108,7 +108,7 @@ export function buildThemeToggle(): void {
 
 /**
  * Initialize theme on page load (for non-editor pages like doc list).
- * Applies stored preference without creating a toggle button.
+ * Applies stored preference and wires up an existing #theme-toggle button if present.
  */
 export function initTheme(): void {
   mediaQuery = globalThis.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
@@ -118,4 +118,25 @@ export function initTheme(): void {
   mediaQuery?.addEventListener('change', () => {
     if (currentMode === 'system') applyTheme('system');
   });
+
+  // Wire up an existing theme toggle button (e.g. on doc-list page)
+  const existingBtn = document.getElementById('theme-toggle') as HTMLButtonElement | null;
+  if (existingBtn) {
+    function updateExistingBtn(): void {
+      existingBtn!.textContent = `${getIcon(currentMode)} ${getLabel(currentMode)}`;
+      existingBtn!.setAttribute('aria-label', `Theme: ${getLabel(currentMode)}`);
+    }
+
+    updateExistingBtn();
+
+    existingBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      currentMode = nextMode(currentMode);
+      globalThis.localStorage?.setItem(STORAGE_KEY, currentMode);
+      applyTheme(currentMode);
+      updateExistingBtn();
+    });
+
+    onLocaleChange(() => updateExistingBtn());
+  }
 }

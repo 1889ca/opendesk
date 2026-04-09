@@ -1,0 +1,89 @@
+/** Contract: contracts/app/rules.md */
+
+/* Entity card list and individual card styles */
+
+.entity-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 1rem;
+}
+
+.entity-list-loading,
+.entity-list-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted, #6b7280);
+  font-size: 0.9375rem;
+}
+
+/* Entity card */
+.entity-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  background: var(--surface, #fff);
+  transition: box-shadow 0.15s;
+}
+
+.entity-card:hover {
+  box-shadow: 0 2px 8px var(--shadow, rgba(0, 0, 0, 0.06));
+}
+
+.entity-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.entity-card__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.entity-card__name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text, #1f2937);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.entity-card__subtype {
+  font-size: 0.6875rem;
+  color: var(--text-muted, #6b7280);
+  flex-shrink: 0;
+}
+
+.entity-card__summary {
+  font-size: 0.8125rem;
+  color: var(--text-muted, #6b7280);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entity-card__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}

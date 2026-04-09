@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"]
+  },
+  "include": ["modules/app/**/*.ts", "modules/app-slides/**/*.ts", "modules/app-sheets/**/*.ts", "modules/app-admin/**/*.ts", "modules/app-kb/**/*.ts", "modules/app-entities/**/*.ts"]
+}

@@ -4,98 +4,17 @@
 /**
  * Parallel frontend build script using esbuild.
  * Bundles JS + CSS for each entry point concurrently.
+ *
+ * Bundle list lives in scripts/frontend-bundles.mjs and is shared
+ * with scripts/watch-frontend.mjs (issue #137).
  */
 
 import * as esbuild from 'esbuild';
+import { bundles, toEsbuildOptions } from './frontend-bundles.mjs';
 
-const OUTDIR = 'modules/app/internal/public';
-
-/** @type {esbuild.BuildOptions[]} */
-const builds = [
-  // Editor JS
-  {
-    entryPoints: ['modules/app/internal/editor/editor.ts'],
-    outfile: `${OUTDIR}/editor.bundle.js`,
-    bundle: true,
-    format: 'esm',
-    target: 'es2022',
-    minify: true,
-    sourcemap: true,
-    alias: { '@tiptap/y-tiptap': 'y-prosemirror' },
-  },
-  // Editor CSS
-  {
-    entryPoints: ['modules/app/internal/css/editor.css'],
-    outfile: `${OUTDIR}/editor.bundle.css`,
-    bundle: true,
-    minify: true,
-    sourcemap: true,
-  },
-  // Doc list JS
-  {
-    entryPoints: ['modules/app/internal/doc-list/doc-list.ts'],
-    outfile: `${OUTDIR}/doc-list.bundle.js`,
-    bundle: true,
-    format: 'esm',
-    target: 'es2022',
-    minify: true,
-    sourcemap: true,
-  },
-  // Doc list CSS
-  {
-    entryPoints: ['modules/app/internal/css/doc-list.css'],
-    outfile: `${OUTDIR}/doc-list.bundle.css`,
-    bundle: true,
-    minify: true,
-    sourcemap: true,
-  },
-  // Spreadsheet JS
-  {
-    entryPoints: ['modules/app/internal/spreadsheet-editor.ts'],
-    outfile: `${OUTDIR}/spreadsheet.bundle.js`,
-    bundle: true,
-    format: 'esm',
-    target: 'es2022',
-    minify: true,
-    sourcemap: true,
-  },
-  // Spreadsheet CSS
-  {
-    entryPoints: ['modules/app/internal/css/spreadsheet.css'],
-    outfile: `${OUTDIR}/spreadsheet.bundle.css`,
-    bundle: true,
-    minify: true,
-    sourcemap: true,
-  },
-  // Presentation JS
-  {
-    entryPoints: ['modules/app/internal/presentation-editor.ts'],
-    outfile: `${OUTDIR}/presentation.bundle.js`,
-    bundle: true,
-    format: 'esm',
-    target: 'es2022',
-    minify: true,
-    sourcemap: true,
-  },
-  // Presentation CSS
-  {
-    entryPoints: ['modules/app/internal/css/presentation.css'],
-    outfile: `${OUTDIR}/presentation.bundle.css`,
-    bundle: true,
-    minify: true,
-    sourcemap: true,
-  },
-  // Share resolve JS
-  {
-    entryPoints: ['modules/app/internal/share-resolve.ts'],
-    outfile: `${OUTDIR}/share-resolve.bundle.js`,
-    bundle: true,
-    format: 'esm',
-    target: 'es2022',
-    minify: true,
-    sourcemap: true,
-  },
-];
+const builds = bundles.map((entry) =>
+  toEsbuildOptions(entry, { minify: true, sourcemap: true }),
+);
 
 async function main() {
   const t0 = performance.now();

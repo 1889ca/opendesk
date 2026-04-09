@@ -3,7 +3,7 @@
     "target": "ES2022",
     "module": "Node16",
     "moduleResolution": "Node16",
-    "lib": ["ES2022", "DOM"],
+    "lib": ["ES2022"],
     "outDir": "dist",
     "rootDir": ".",
     "strict": true,
@@ -24,7 +24,14 @@
       "@opendesk/sharing": ["./modules/sharing/index.ts"],
       "@opendesk/convert": ["./modules/convert/index.ts"],
       "@opendesk/api": ["./modules/api/index.ts"],
-      "@opendesk/app": ["./modules/app/index.ts"]
+      "@opendesk/app": ["./modules/app/index.ts"],
+      "@opendesk/app-slides": ["./modules/app-slides/index.ts"],
+      "@opendesk/app-sheets": ["./modules/app-sheets/index.ts"],
+      "@opendesk/app-admin": ["./modules/app-admin/index.ts"],
+      "@opendesk/app-kb": ["./modules/app-kb/index.ts"],
+      "@opendesk/app-entities": ["./modules/app-entities/index.ts"],
+      "@opendesk/kb": ["./modules/kb/index.ts"],
+      "@opendesk/sheets-formula": ["./modules/sheets-formula/index.ts"]
     }
   },
   "include": ["modules/**/*.ts"],

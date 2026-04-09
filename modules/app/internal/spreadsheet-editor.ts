@@ -3,6 +3,9 @@ import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
 import { getUserIdentity, getDocumentId } from './shared/identity.ts';
 import { setupTitleSync } from './shared/title-sync.ts';
+import { setupSheetImport, setupSheetExport } from './sheets/sheet-import-export.ts';
+import { initDatasetLink, type DatasetLinkState } from './sheets/dataset-link.ts';
+import { updateDatasetIndicator, setCellsReadOnly, setupDatasetButtons } from './sheets/dataset-ui.ts';
 
 const DEFAULT_COLS = 26;
 const DEFAULT_ROWS = 50;
@@ -49,10 +52,8 @@ function init() {
     },
   });
 
-  // Yjs shared data: Y.Array of Y.Arrays (rows of cells)
   const ysheet = ydoc.getArray<Y.Array<string>>('sheet-0');
 
-  // Initialize grid if empty
   function ensureGrid() {
     if (ysheet.length === 0) {
       ydoc.transact(() => {
@@ -75,12 +76,10 @@ function init() {
     gridEl.innerHTML = '';
     gridEl.style.gridTemplateColumns = `3rem repeat(${DEFAULT_COLS}, minmax(5rem, 1fr))`;
 
-    // Corner cell
     const corner = document.createElement('div');
     corner.className = 'cell header';
     gridEl.appendChild(corner);
 
-    // Column headers
     for (let c = 0; c < DEFAULT_COLS; c++) {
       const hdr = document.createElement('div');
       hdr.className = 'cell header';
@@ -88,9 +87,7 @@ function init() {
       gridEl.appendChild(hdr);
     }
 
-    // Rows
     for (let r = 0; r < Math.min(ysheet.length, DEFAULT_ROWS); r++) {
-      // Row header
       const rh = document.createElement('div');
       rh.className = 'cell row-header';
       rh.textContent = String(r + 1);
@@ -129,13 +126,8 @@ function init() {
   }
 
   renderGrid();
+  ysheet.observeDeep(() => renderGrid());
 
-  // Re-render on remote changes
-  ysheet.observeDeep(() => {
-    renderGrid();
-  });
-
-  // Formula bar input syncs to active cell
   if (formulaInput) {
     formulaInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
@@ -152,7 +144,6 @@ function init() {
     });
   }
 
-  // Presence
   function updateUsers() {
     if (!usersEl || !provider.awareness) return;
     const states = provider.awareness.getStates();
@@ -165,6 +156,22 @@ function init() {
   provider.awareness?.setLocalStateField('user', user);
   provider.awareness?.on('change', updateUsers);
   updateUsers();
+
+  // Wire import/export and dataset linking
+  const getYSheet = () => ysheet as any;
+  const getYDoc = () => ydoc as any;
+  const getCols = () => DEFAULT_COLS;
+
+  setupSheetImport(documentId, getYSheet, getYDoc, getCols, () => DEFAULT_ROWS);
+  setupSheetExport(documentId, getYSheet, getCols);
+
+  const onDatasetStateChange = (ds: DatasetLinkState) => {
+    updateDatasetIndicator(ds);
+    setCellsReadOnly(gridEl, ds.linked && !ds.editMode);
+  };
+
+  initDatasetLink(documentId, getYSheet, getYDoc, getCols, onDatasetStateChange);
+  setupDatasetButtons(documentId, getYSheet, getYDoc, getCols, onDatasetStateChange);
 
   Object.assign(window, { ydoc, provider, ysheet });
 }

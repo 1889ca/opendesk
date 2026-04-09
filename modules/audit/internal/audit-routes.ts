@@ -4,7 +4,8 @@ import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import type { AuditModule } from '../contract.ts';
-import { asyncHandler } from '../../api/index.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
+import { exportAuditProof, exportAuditProofSummary, verifyAuditProof, type AuditProof } from './proof-export.ts';
 
 const LogQueryParams = z.object({
   cursor: z.string().uuid().optional(),
@@ -14,6 +15,8 @@ const LogQueryParams = z.object({
 export type AuditRoutesOptions = {
   permissions: PermissionsModule;
   auditModule: AuditModule;
+  pool?: import('pg').Pool;
+  hmacSecret?: string;
 };
 
 /**
@@ -50,7 +53,7 @@ export function createAuditRoutes(opts: AuditRoutesOptions): Router {
       const documentId = String(req.params.documentId);
 
       // Check permission programmatically since resourceId comes from params
-      const principal = (req as any).principal;
+      const principal = req.principal!;
       const allowed = await permissions.checkPermission(
         principal.id,
         documentId,
@@ -65,6 +68,63 @@ export function createAuditRoutes(opts: AuditRoutesOptions): Router {
       res.json(result);
     }),
   );
+
+  // Point-in-Time Verifiability (Pillar 2 M2)
+  // These endpoints require pool and hmacSecret to be provided.
+  if (opts.pool && opts.hmacSecret) {
+    const { pool: auditPool, hmacSecret } = opts;
+
+    // GET /proof/:documentId — full exportable audit proof bundle
+    router.get(
+      '/proof/:documentId',
+      permissions.requireForResource('manage', 'document'),
+      asyncHandler(async (req: Request, res: Response) => {
+        const documentId = String(req.params.documentId);
+        const principal = req.principal!;
+        const allowed = await permissions.checkPermission(principal.id, documentId, 'manage');
+        if (!allowed) {
+          res.status(403).json({ error: 'Forbidden' });
+          return;
+        }
+
+        const proof = await exportAuditProof(auditPool, documentId, hmacSecret);
+        res.json(proof);
+      }),
+    );
+
+    // GET /proof/:documentId/summary — lightweight proof summary
+    router.get(
+      '/proof/:documentId/summary',
+      permissions.requireForResource('manage', 'document'),
+      asyncHandler(async (req: Request, res: Response) => {
+        const documentId = String(req.params.documentId);
+        const principal = req.principal!;
+        const allowed = await permissions.checkPermission(principal.id, documentId, 'manage');
+        if (!allowed) {
+          res.status(403).json({ error: 'Forbidden' });
+          return;
+        }
+
+        const summary = await exportAuditProofSummary(auditPool, documentId, hmacSecret);
+        res.json(summary);
+      }),
+    );
+
+    // POST /proof/verify — verify a proof bundle against server HMAC
+    router.post(
+      '/proof/verify',
+      permissions.requireAuth,
+      asyncHandler(async (req: Request, res: Response) => {
+        const body = req.body as { proof?: AuditProof };
+        if (!body.proof) {
+          res.status(400).json({ error: 'proof is required' });
+          return;
+        }
+        const result = verifyAuditProof(body.proof, hmacSecret);
+        res.json(result);
+      }),
+    );
+  }
 
   return router;
 }

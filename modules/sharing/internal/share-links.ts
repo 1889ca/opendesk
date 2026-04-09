@@ -31,9 +31,14 @@ export interface CreateShareLinkInput {
 
 export interface ShareLinkService {
   create(input: CreateShareLinkInput): Promise<ShareLink>;
-  resolve(token: string, password?: string): Promise<ShareLinkResult>;
+  resolve(token: string, password?: string, options?: ResolveOptions): Promise<ShareLinkResult>;
   revoke(token: string): Promise<boolean>;
   getByToken(token: string): Promise<ShareLink | null>;
+}
+
+export interface ResolveOptions {
+  /** When true, skip incrementing the redemption counter. */
+  skipIncrement?: boolean;
 }
 
 export type ShareLinkResult =
@@ -69,7 +74,7 @@ export function createShareLinkService(store: ShareLinkStore): ShareLinkService 
       return link;
     },
 
-    async resolve(token, password) {
+    async resolve(token, password, options) {
       const link = await store.findByToken(token);
       if (!link) return { ok: false, reason: 'not_found' };
       if (link.revoked) return { ok: false, reason: 'revoked' };
@@ -88,7 +93,9 @@ export function createShareLinkService(store: ShareLinkStore): ShareLinkService 
         if (!valid) return { ok: false, reason: 'wrong_password' };
       }
 
-      await store.update(token, { redemptionCount: link.redemptionCount + 1 });
+      if (!options?.skipIncrement) {
+        await store.update(token, { redemptionCount: link.redemptionCount + 1 });
+      }
       return { ok: true, link };
     },
 

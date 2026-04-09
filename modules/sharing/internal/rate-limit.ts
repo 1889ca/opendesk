@@ -3,12 +3,30 @@
 import type { Redis } from 'ioredis';
 
 /**
- * Redis-backed rate limiter for password attempts on share link resolution.
- * Uses INCR + EXPIRE for atomic, distributed rate tracking.
+ * Redis-backed rate limiters for share-link traffic. Two distinct
+ * limiters are factored from the same generic engine:
+ *
+ * 1. Password rate limiter — keyed by token, tracks failed password
+ *    attempts on a known token. 5 attempts per 60 seconds per token.
+ *
+ * 2. Resolve rate limiter — keyed by source IP, slows blind token
+ *    enumeration on POST /api/share/:token/resolve (issue #135).
+ *    20 attempts per 60 seconds per IP.
+ *
+ * Both use INCR + EXPIRE on Redis for atomic, distributed tracking.
  */
 
 export type PasswordRateLimiter = {
-  /** Check if a new attempt is allowed for this token. */
+  /**
+   * Atomically count this attempt and return whether the request is
+   * allowed. Returns true if the post-increment count is at or below
+   * the threshold, false otherwise. Use this in preference to the
+   * separate check/record pair — review-2026-04-08 MED-3 flagged the
+   * check-then-record pattern as a TOCTOU race that lets concurrent
+   * requests overshoot the limit.
+   */
+  consume(token: string): Promise<boolean>;
+  /** Check if a new attempt is allowed for this token (no increment). */
   check(token: string): Promise<boolean>;
   /** Record a failed password attempt. */
   record(token: string): Promise<void>;
@@ -18,103 +36,182 @@ export type PasswordRateLimiter = {
   disconnect(): Promise<void>;
 };
 
-const DEFAULT_MAX_ATTEMPTS = 5;
-const DEFAULT_WINDOW_SECONDS = 60;
-const KEY_PREFIX = 'opendesk:share-ratelimit:';
+/** Same shape as PasswordRateLimiter, but the keys are IPs not tokens. */
+export type ShareResolveRateLimiter = PasswordRateLimiter;
+
+const DEFAULT_PASSWORD_MAX_ATTEMPTS = 5;
+const DEFAULT_PASSWORD_WINDOW_SECONDS = 60;
+const PASSWORD_KEY_PREFIX = 'opendesk:share-ratelimit:';
+
+const DEFAULT_RESOLVE_MAX_ATTEMPTS = 20;
+const DEFAULT_RESOLVE_WINDOW_SECONDS = 60;
+const RESOLVE_KEY_PREFIX = 'opendesk:share-resolve-ratelimit:';
 
 export type RateLimiterOptions = {
   maxAttempts?: number;
   windowSeconds?: number;
 };
 
-function redisKey(token: string): string {
-  return `${KEY_PREFIX}${token}`;
-}
-
 /**
- * Create a Redis-backed password rate limiter with configurable thresholds.
- * Uses INCR + EXPIRE so entries auto-expire and scale across instances.
+ * Generic Redis-backed window rate limiter. Both share-link limiters
+ * close over a key prefix and threshold pair so we don't duplicate
+ * the INCR + EXPIRE logic.
  */
-export function createPasswordRateLimiter(
+function createWindowRateLimiter(
   redis: Redis,
-  opts?: RateLimiterOptions,
+  keyPrefix: string,
+  maxAttempts: number,
+  windowSeconds: number,
 ): PasswordRateLimiter {
-  const maxAttempts = opts?.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
-  const windowSeconds = opts?.windowSeconds ?? DEFAULT_WINDOW_SECONDS;
+  function redisKey(id: string): string {
+    return `${keyPrefix}${id}`;
+  }
+
+  async function incr(id: string): Promise<number> {
+    const key = redisKey(id);
+    const count = await redis.incr(key);
+    if (count === 1) {
+      await redis.expire(key, windowSeconds);
+    }
+    return count;
+  }
 
   return {
-    async check(token) {
-      const key = redisKey(token);
+    async consume(id) {
+      const count = await incr(id);
+      return count <= maxAttempts;
+    },
+
+    async check(id) {
+      const key = redisKey(id);
       const current = await redis.get(key);
       if (current === null) return true;
       return parseInt(current, 10) < maxAttempts;
     },
 
-    async record(token) {
-      const key = redisKey(token);
-      const count = await redis.incr(key);
-      // Set expiry only on first attempt (when count transitions to 1)
-      if (count === 1) {
-        await redis.expire(key, windowSeconds);
-      }
+    async record(id) {
+      await incr(id);
     },
 
-    async reset(token) {
-      const key = redisKey(token);
+    async reset(id) {
+      const key = redisKey(id);
       await redis.del(key);
     },
 
     async disconnect() {
-      // No-op: the shared Redis client lifecycle is managed externally
+      // No-op: the shared Redis client lifecycle is managed externally.
     },
   };
+}
+
+/** Password attempts limiter — keyed by share-link token. */
+export function createPasswordRateLimiter(
+  redis: Redis,
+  opts?: RateLimiterOptions,
+): PasswordRateLimiter {
+  return createWindowRateLimiter(
+    redis,
+    PASSWORD_KEY_PREFIX,
+    opts?.maxAttempts ?? DEFAULT_PASSWORD_MAX_ATTEMPTS,
+    opts?.windowSeconds ?? DEFAULT_PASSWORD_WINDOW_SECONDS,
+  );
+}
+
+/**
+ * Resolve attempts limiter — keyed by source IP (issue #135).
+ *
+ * The password limiter is keyed by token so token enumeration
+ * (trying random tokens to find one that exists) bypasses it
+ * entirely. This second limiter caps total resolve attempts per IP
+ * regardless of which token is being tried.
+ */
+export function createShareResolveRateLimiter(
+  redis: Redis,
+  opts?: RateLimiterOptions,
+): ShareResolveRateLimiter {
+  return createWindowRateLimiter(
+    redis,
+    RESOLVE_KEY_PREFIX,
+    opts?.maxAttempts ?? DEFAULT_RESOLVE_MAX_ATTEMPTS,
+    opts?.windowSeconds ?? DEFAULT_RESOLVE_WINDOW_SECONDS,
+  );
 }
 
 /**
  * In-memory rate limiter for tests (no Redis dependency).
  * Same interface, synchronous internals wrapped in Promises.
  */
-export function createInMemoryPasswordRateLimiter(
-  opts?: RateLimiterOptions,
+function createInMemoryRateLimiter(
+  maxAttempts: number,
+  windowSeconds: number,
 ): PasswordRateLimiter {
-  const maxAttempts = opts?.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
-  const windowMs = (opts?.windowSeconds ?? DEFAULT_WINDOW_SECONDS) * 1000;
+  const windowMs = windowSeconds * 1000;
 
   type Entry = { count: number; firstAttemptAt: number };
   const attempts = new Map<string, Entry>();
 
-  function getEntry(token: string): Entry | null {
-    const entry = attempts.get(token);
+  function getEntry(id: string): Entry | null {
+    const entry = attempts.get(id);
     if (!entry) return null;
     if (Date.now() - entry.firstAttemptAt > windowMs) {
-      attempts.delete(token);
+      attempts.delete(id);
       return null;
     }
     return entry;
   }
 
+  function incr(id: string): number {
+    const entry = getEntry(id);
+    if (entry) {
+      entry.count += 1;
+      return entry.count;
+    }
+    attempts.set(id, { count: 1, firstAttemptAt: Date.now() });
+    return 1;
+  }
+
   return {
-    async check(token) {
-      const entry = getEntry(token);
+    async consume(id) {
+      const count = incr(id);
+      return count <= maxAttempts;
+    },
+
+    async check(id) {
+      const entry = getEntry(id);
       if (!entry) return true;
       return entry.count < maxAttempts;
     },
 
-    async record(token) {
-      const entry = getEntry(token);
-      if (entry) {
-        entry.count += 1;
-      } else {
-        attempts.set(token, { count: 1, firstAttemptAt: Date.now() });
-      }
+    async record(id) {
+      incr(id);
     },
 
-    async reset(token) {
-      attempts.delete(token);
+    async reset(id) {
+      attempts.delete(id);
     },
 
     async disconnect() {
       attempts.clear();
     },
   };
+}
+
+/** In-memory password rate limiter — keyed by token. */
+export function createInMemoryPasswordRateLimiter(
+  opts?: RateLimiterOptions,
+): PasswordRateLimiter {
+  return createInMemoryRateLimiter(
+    opts?.maxAttempts ?? DEFAULT_PASSWORD_MAX_ATTEMPTS,
+    opts?.windowSeconds ?? DEFAULT_PASSWORD_WINDOW_SECONDS,
+  );
+}
+
+/** In-memory share-resolve rate limiter — keyed by source IP. */
+export function createInMemoryShareResolveRateLimiter(
+  opts?: RateLimiterOptions,
+): ShareResolveRateLimiter {
+  return createInMemoryRateLimiter(
+    opts?.maxAttempts ?? DEFAULT_RESOLVE_MAX_ATTEMPTS,
+    opts?.windowSeconds ?? DEFAULT_RESOLVE_WINDOW_SECONDS,
+  );
 }

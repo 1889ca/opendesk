@@ -8,11 +8,39 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+
+    # Postgres service for the integration test suite (issue #126/127).
+    # Tests opt in via OPENDESK_TEST_PG=1; without that var the
+    # describeIntegration wrapper skips them, so devs without docker
+    # can still run `npm test` locally.
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_DB: opendesk
+          POSTGRES_USER: opendesk
+          POSTGRES_PASSWORD: opendesk_dev
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U opendesk"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      OPENDESK_TEST_PG: '1'
+      OPENDESK_TEST_PG_HOST: localhost
+      OPENDESK_TEST_PG_PORT: '5433'
+      OPENDESK_TEST_PG_DATABASE: opendesk
+      OPENDESK_TEST_PG_USER: opendesk
+      OPENDESK_TEST_PG_PASSWORD: opendesk_dev
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run check
@@ -20,8 +48,148 @@ jobs:
       - run: npm run test -- --run
       - run: npm run build:frontend
 
+  test-e2e:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_DB: opendesk
+          POSTGRES_USER: opendesk
+          POSTGRES_PASSWORD: opendesk_dev
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U opendesk"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      OPENDESK_TEST_PG: '1'
+      OPENDESK_TEST_PG_HOST: localhost
+      OPENDESK_TEST_PG_PORT: '5433'
+      OPENDESK_TEST_PG_DATABASE: opendesk
+      OPENDESK_TEST_PG_USER: opendesk
+      OPENDESK_TEST_PG_PASSWORD: opendesk_dev
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build:frontend
+
+      - name: Start server
+        run: node --import=tsx server.ts &
+        env:
+          AUTH_MODE: dev
+          PORT: '3000'
+          PG_HOST: localhost
+          PG_PORT: '5433'
+          PG_DATABASE: opendesk
+          PG_USER: opendesk
+          PG_PASSWORD: opendesk_dev
+          REDIS_URL: redis://localhost:6379
+
+      - name: Wait for server
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3000/api/health && exit 0
+            sleep 1
+          done
+          echo "Server failed to start within 30s"
+          exit 1
+
+      - run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
   security-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: ./scripts/security-lint.sh
+
+  # CONSTITUTION Article II §1: PRs touching restricted zones must be
+  # gated by an explicit human-approved label. This job runs only on
+  # pull_request events; it computes the diff against the base branch,
+  # asks scripts/check-restricted-zones.sh which paths matched, and
+  # fails the check if any restricted path was touched without the
+  # `human-approved` label on the PR. See issue #128.
+  restricted-zones:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect restricted-zone changes
+        id: detect
+        run: |
+          # Fetch the base branch so the diff has a real ref to compare against.
+          git fetch origin "${{ github.base_ref }}" --depth=200
+
+          touched="$(./scripts/check-restricted-zones.sh "${{ github.base_ref }}")"
+
+          if [ -z "$touched" ]; then
+            echo "No restricted-zone changes detected."
+            echo "touched=" >> "$GITHUB_OUTPUT"
+          else
+            echo "Restricted-zone paths touched:"
+            echo "$touched"
+            # Persist as a multiline output for the next step.
+            {
+              echo "touched<<EOF"
+              echo "$touched"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Require human-approved label when restricted zones touched
+        if: steps.detect.outputs.touched != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          labels="$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name')"
+          if echo "$labels" | grep -qx 'human-approved'; then
+            echo "human-approved label is present — restricted-zone changes authorized."
+            exit 0
+          fi
+
+          cat <<MSG
+          ❌ This PR touches CONSTITUTION-restricted zones but has no
+          'human-approved' label.
+
+          Touched paths:
+          ${{ steps.detect.outputs.touched }}
+
+          Restricted zones (per CONSTITUTION.md Article II §1) require
+          explicit human maintainer sign-off. A maintainer must add the
+          'human-approved' label to this PR before CI will pass.
+          MSG
+          exit 1

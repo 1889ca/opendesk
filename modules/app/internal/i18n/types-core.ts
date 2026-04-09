@@ -23,6 +23,7 @@ export interface CoreTranslationKeys {
   'toolbar.pdf': string;
   'toolbar.pageBreak': string;
   'toolbar.versions': string;
+  'toolbar.workflows': string;
   'toolbar.references': string;
   'toolbar.toc': string;
   'toolbar.theme': string;
@@ -58,4 +59,23 @@ export interface CoreTranslationKeys {
   'time.daysAgo': string;
   'time.monthAgo': string;
   'time.monthsAgo': string;
+
+  // Promote to KB
+  'toolbar.saveToKb': string;
+  'promoteKb.title': string;
+  'promoteKb.noteTitle': string;
+  'promoteKb.preview': string;
+  'promoteKb.tags': string;
+  'promoteKb.tagsPlaceholder': string;
+  'promoteKb.save': string;
+  'promoteKb.cancel': string;
+  'promoteKb.saving': string;
+  'promoteKb.success': string;
+  'promoteKb.error': string;
+
+  // Navigation (SPA shell)
+  'nav.dashboard': string;
+  'nav.knowledgeBase': string;
+  'nav.newDocument': string;
+  'nav.recent': string;
 }

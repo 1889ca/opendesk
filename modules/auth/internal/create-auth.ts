@@ -7,6 +7,7 @@ import { createDevTokenVerifier, createDevApiKeyVerifier } from './dev-verifier.
 import { createApiKeyVerifier, type ServiceAccountStore } from './apikey-verifier.ts';
 import { createServiceAccountManager, type ServiceAccountStorage } from './service-accounts.ts';
 import { createAuthMiddleware, type AuthMiddlewareOptions } from './middleware.ts';
+import type { AuthRateLimiter } from './auth-rate-limit.ts';
 import { createSystemPrincipal } from './system.ts';
 import { createLogger } from '../../logger/index.ts';
 
@@ -26,6 +27,10 @@ export type AuthDependencies = {
   serviceAccountStorage: ServiceAccountStorage;
   /** Paths that skip authentication */
   publicPaths?: string[];
+  /** Rate limiter for failed auth attempts (brute-force protection). */
+  authRateLimiter?: AuthRateLimiter;
+  /** Node environment — used to block dev mode in production. Defaults to 'development'. */
+  nodeEnv?: string;
 };
 
 /**
@@ -39,7 +44,7 @@ export function createAuth(deps: AuthDependencies): AuthModule {
   let apiKeyVerifier: ApiKeyVerifier;
 
   if (config.mode === 'dev') {
-    if (process.env.NODE_ENV === 'production') {
+    if ((deps.nodeEnv ?? 'development') === 'production') {
       throw new Error('AUTH_MODE=dev is not allowed when NODE_ENV=production');
     }
     log.warn('running in DEV mode — no real token verification');
@@ -62,6 +67,7 @@ export function createAuth(deps: AuthDependencies): AuthModule {
     tokenVerifier,
     apiKeyVerifier,
     publicPaths: deps.publicPaths,
+    authRateLimiter: deps.authRateLimiter,
   };
 
   return {

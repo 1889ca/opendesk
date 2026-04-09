@@ -83,6 +83,18 @@ export function createImportExportRoutes(opts: ImportExportRoutesOptions): Route
       return;
     }
 
+    // Cap the parsed entry count so a 1 MB body of micro-entries
+    // can't translate into thousands of INSERTs (review-2026-04-08
+    // MED-4). 500 is generous for legitimate library imports.
+    if (parsed.length > 500) {
+      res.status(413).json({
+        error: 'Too many references in one import',
+        limit: 500,
+        received: parsed.length,
+      });
+      return;
+    }
+
     const principal = req.principal!;
     const workspaceId = '00000000-0000-0000-0000-000000000000';
 

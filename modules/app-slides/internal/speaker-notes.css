@@ -1,0 +1,87 @@
+/* Speaker Notes Panel */
+
+.speaker-notes-panel {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 0;
+  width: 100%;
+  max-width: 60rem;
+  transition: max-height 0.2s ease;
+}
+
+.speaker-notes-panel.collapsed .speaker-notes__textarea {
+  display: none;
+}
+
+.speaker-notes__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.375rem 0.75rem;
+  cursor: default;
+}
+
+.speaker-notes__title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.speaker-notes__toggle {
+  background: none;
+  border: none;
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.speaker-notes__toggle:hover {
+  color: var(--text);
+}
+
+.speaker-notes__textarea {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  resize: vertical;
+  min-height: 3rem;
+  max-height: 10rem;
+  box-sizing: border-box;
+}
+
+.speaker-notes__textarea:focus {
+  outline: none;
+  background: var(--surface);
+}
+
+.speaker-notes__textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Present button in toolbar */
+
+.slide-present-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.slide-present-btn:hover {
+  opacity: 0.9;
+}

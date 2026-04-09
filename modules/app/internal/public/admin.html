@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenDesk Admin</title>
+  <link rel="stylesheet" href="admin.bundle.css">
+  <script>
+    (function() {
+      var stored = localStorage.getItem('opendesk-theme');
+      var theme = stored === 'dark' ? 'dark'
+        : stored === 'light' ? 'light'
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+<body>
+  <header class="toolbar">
+    <div class="toolbar-left">
+      <a href="/" class="logo-link"><h1 class="logo">OpenDesk</h1></a>
+      <span class="toolbar-separator"></span>
+      <span class="admin-breadcrumb">Admin Dashboard</span>
+    </div>
+    <div class="toolbar-right">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
+      <button id="refresh-btn" class="btn btn-secondary">Refresh</button>
+    </div>
+  </header>
+  <main class="admin-wrapper">
+    <div class="admin-grid">
+      <section id="health-panel" class="admin-panel">
+        <h2 class="admin-panel-title">System Health</h2>
+        <div id="health-indicators" class="health-grid">
+          <div class="admin-loading">Loading...</div>
+        </div>
+      </section>
+
+      <section id="operations-panel" class="admin-panel">
+        <h2 class="admin-panel-title">Request Metrics <span id="metrics-window" class="admin-panel-badge">last 15 min</span></h2>
+        <div id="operations-table" class="operations-container">
+          <div class="admin-loading">Loading...</div>
+        </div>
+      </section>
+
+      <section id="audit-panel" class="admin-panel admin-panel-narrow">
+        <h2 class="admin-panel-title">Audit Trail</h2>
+        <div id="audit-info" class="system-info-grid">
+          <div class="admin-loading">Loading...</div>
+        </div>
+      </section>
+
+      <section id="system-panel" class="admin-panel admin-panel-narrow">
+        <h2 class="admin-panel-title">System Info</h2>
+        <div id="system-info" class="system-info-grid">
+          <div class="admin-loading">Loading...</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module" src="admin.bundle.js"></script>
+</body>
+</html>

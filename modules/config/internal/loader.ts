@@ -48,6 +48,31 @@ function readEnv(): unknown {
     audit: {
       hmacSecret: env.OPENDESK_AUDIT_HMAC_SECRET,
     },
+    logger: {
+      level: env.LOG_LEVEL,
+    },
+    observability: {
+      enabled: env.OBSERVABILITY_ENABLED,
+      sampleRate: env.OBSERVABILITY_SAMPLE_RATE,
+      healthIntervalMs: env.OBSERVABILITY_HEALTH_INTERVAL_MS,
+    },
+    federation: {
+      enabled: env.FEDERATION_ENABLED,
+      instanceId: env.FEDERATION_INSTANCE_ID,
+      privateKey: env.FEDERATION_PRIVATE_KEY,
+      publicKey: env.FEDERATION_PUBLIC_KEY,
+      allowPrivateNetworks: env.OPENDESK_FEDERATION_ALLOW_PRIVATE,
+      allowInsecureSchemes: env.OPENDESK_FEDERATION_ALLOW_INSECURE_SCHEMES,
+    },
+    ai: {
+      enabled: env.AI_ENABLED,
+      ollamaUrl: env.AI_OLLAMA_URL,
+      embeddingModel: env.AI_EMBEDDING_MODEL,
+      chatModel: env.AI_CHAT_MODEL,
+      chunkSize: env.AI_CHUNK_SIZE,
+      chunkOverlap: env.AI_CHUNK_OVERLAP,
+      embeddingDimensions: env.AI_EMBEDDING_DIMENSIONS,
+    },
   };
 }
 
@@ -69,8 +94,8 @@ function stripUndefined(obj: unknown): unknown {
  * Throws on startup if violated.
  */
 function validateProductionRules(config: AppConfig): void {
-  const isProd = config.server.nodeEnv === 'production';
-  if (!isProd) return;
+  const isDev = config.server.nodeEnv === 'development' || config.server.nodeEnv === 'test';
+  if (isDev) return;
 
   if (config.auth.mode === 'dev') {
     throw new Error(

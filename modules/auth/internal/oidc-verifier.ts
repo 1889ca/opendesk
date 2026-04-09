@@ -3,6 +3,7 @@
 import * as jose from 'jose';
 import type { TokenVerifier, VerificationResult } from '../contract.ts';
 import type { AuthConfig } from './config.ts';
+import { httpFetch, HttpFetchError } from '../../http/index.ts';
 
 /**
  * OIDC token verifier. Discovers the provider's JWKS and validates
@@ -12,23 +13,27 @@ import type { AuthConfig } from './config.ts';
  * JWKS caching is handled internally by jose.
  */
 export function createOidcVerifier(config: AuthConfig): TokenVerifier {
+  const DISCOVERY_TTL_MS = 3_600_000; // 1 hour
   let jwks: ReturnType<typeof jose.createRemoteJWKSet> | null = null;
+  let jwksFetchedAt = 0;
 
   async function getJwks(): Promise<ReturnType<typeof jose.createRemoteJWKSet>> {
-    if (jwks) return jwks;
+    if (jwks && Date.now() - jwksFetchedAt < DISCOVERY_TTL_MS) return jwks;
     const issuerUrl = config.oidcIssuer.replace(/\/$/, '');
     const discoveryUrl = `${issuerUrl}/.well-known/openid-configuration`;
 
     let discovery: { jwks_uri: string };
     try {
-      const res = await fetch(discoveryUrl);
+      const res = await httpFetch(discoveryUrl, { timeoutMs: 10_000 });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       discovery = (await res.json()) as { jwks_uri: string };
-    } catch {
+    } catch (err) {
+      if (err instanceof HttpFetchError) throw new ProviderUnreachableError(issuerUrl);
       throw new ProviderUnreachableError(issuerUrl);
     }
 
     jwks = jose.createRemoteJWKSet(new URL(discovery.jwks_uri));
+    jwksFetchedAt = Date.now();
     return jwks;
   }
 

@@ -1,3 +1,9 @@
 /** CSS bundle entry for spreadsheet.html */
+@import "../public/theme.css";
 @import "../public/styles.css";
+@import "../public/toolbar.css";
 @import "../public/spreadsheet.css";
+@import "../charts/chart-styles.css";
+@import "../public/settings-dropdown.css";
+@import "../public/notifications.css";
+@import "../public/workspace-sidebar.css";

@@ -8,27 +8,32 @@ import { buildTableToolbar } from './table-toolbar.ts';
 import { setupImageHandlers } from './image-handlers.ts';
 import { buildSearchPanel } from './search/search-panel.ts';
 import { buildFormattingToolbar } from './formatting-toolbar.ts';
-import { CommentStore, buildCommentSidebar, toggleSidebar, showCommentInput } from './comments/index.ts';
+import { CommentStore } from './comments/index.ts';
 import {
   setSuggestUser,
   createSuggestModePlugin,
   setupSuggestionClickHandler,
-  buildSuggestionSidebar,
-  toggleSuggestionSidebar,
 } from './suggestions/index.ts';
 import { bindShortcutDialogKey } from '../shared/shortcut-dialog.ts';
-import { announce } from '../shared/a11y-announcer.ts';
 import { initTouchSupport } from '../shared/touch-support.ts';
-import { buildTocPanel, toggleTocPanel } from './toc/index.ts';
-import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts';
-import { buildStatusBar } from './status-bar.ts';
 import { buildThemeToggle } from '../shared/theme-toggle.ts';
+import { buildNotificationBell } from '../shared/notification-bell.ts';
+import { trackRecentDoc } from '../shared/workspace-sidebar.ts';
 import { openEmojiPicker } from './emoji/index.ts';
-import { openCitationPicker, createBibliography, buildReferenceLibrary } from './citations/index.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
 import { buildEditorExtensions } from './editor-extensions.ts';
+import { initEntityMentionClicks } from './entity-mentions/index.ts';
 import { getUserIdentity, getDocumentId } from '../shared/identity.ts';
 import { initEditorPage } from './editor-page.ts';
+import { initEditorPanels } from './editor-panels.ts';
+import {
+  registerServiceWorker,
+  buildOfflineIndicator,
+  buildUpdateBanner,
+  initConnectivityListeners,
+  setConnectionState,
+  flushQueue,
+} from '../offline/index.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -47,6 +52,8 @@ function addSkipLink(): void {
 
 function init() {
   initTouchSupport();
+  initConnectivityListeners();
+  registerServiceWorker();
 
   const locale = resolveLocale();
   setLocale(locale);
@@ -68,33 +75,57 @@ function init() {
   const ydoc = new Y.Doc();
   const commentStore = new CommentStore(ydoc);
   const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/collab`;
+  // Offline UI
+  const toolbarRight = document.querySelector('.toolbar-right');
+  if (toolbarRight) {
+    const offlineEl = buildOfflineIndicator();
+    toolbarRight.insertBefore(offlineEl, toolbarRight.firstChild);
+  }
+  document.body.insertBefore(buildUpdateBanner(), document.body.firstChild);
+
   const provider = new HocuspocusProvider({
     url: wsUrl, name: documentId, document: ydoc, token: 'dev',
     onConnect() {
       if (statusEl) { statusEl.textContent = t('status.connected'); statusEl.className = 'status connected'; }
+      setConnectionState('syncing');
+      flushQueue().then(() => setConnectionState('online')).catch(() => {});
     },
     onDisconnect() {
       if (statusEl) { statusEl.textContent = t('status.disconnected'); statusEl.className = 'status disconnected'; }
+      setConnectionState('offline');
     },
   });
 
-  const editor = new Editor({
-    element: editorEl,
-    extensions: buildEditorExtensions({ ydoc, provider, user }),
-    editorProps: { attributes: { class: 'editor-content' } },
-  });
-
+  let editor: Editor;
+  try {
+    editor = new Editor({
+      element: editorEl,
+      extensions: buildEditorExtensions({ ydoc, provider, user }),
+      editorProps: { attributes: { class: 'editor-content' } },
+    });
+  } catch (err) {
+    console.error('Editor initialization failed:', err);
+    if (statusEl) {
+      statusEl.textContent = 'Editor failed to load';
+      statusEl.className = 'status error';
+    }
+    return;
+  }
 
   setSuggestUser(() => user);
   editor.registerPlugin(createSuggestModePlugin(editor));
   setupSuggestionClickHandler(editor);
 
   setupCodeBlockUI(editor);
+  initEntityMentionClicks(editorEl);
   buildFormattingToolbar(editor);
   buildTableToolbar(editor);
   buildSearchPanel(editor);
   buildLanguageSwitcher();
   buildThemeToggle();
+  buildNotificationBell();
+
+  trackRecentDoc({ id: documentId, title: 'Document' });
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
 
@@ -103,58 +134,7 @@ function init() {
     if (emojiBtn) openEmojiPicker(editor, emojiBtn);
   });
 
-  const editorWrapper = editorEl.closest('.editor-wrapper');
-  if (editorWrapper) {
-    editorWrapper.appendChild(buildStatusBar(editor));
-  }
-
-  const bib = createBibliography(editor);
-  if (editorWrapper) {
-    editorWrapper.appendChild(bib.element);
-  } else {
-    editorEl.parentElement?.appendChild(bib.element);
-  }
-
-  const commentSidebar = buildCommentSidebar(editor, commentStore, documentId, user);
-  document.body.appendChild(commentSidebar);
-
-  const suggestionSidebar = buildSuggestionSidebar(editor);
-  document.body.appendChild(suggestionSidebar);
-
-  const tocPanel = buildTocPanel(editor);
-  document.body.appendChild(tocPanel);
-  document.addEventListener('opendesk:toggle-toc', () => {
-    toggleTocPanel(tocPanel);
-  });
-
-  const versionSidebar = buildVersionSidebar();
-  document.body.appendChild(versionSidebar);
-  document.addEventListener('opendesk:toggle-versions', () => {
-    toggleVersionSidebar(versionSidebar);
-  });
-
-  const refLibrary = buildReferenceLibrary(editor);
-  document.body.appendChild(refLibrary.element);
-  document.addEventListener('opendesk:toggle-reference-library', () => {
-    refLibrary.toggle();
-  });
-
-  document.addEventListener('opendesk:insert-citation', () => {
-    const citeBtn = document.querySelector('[data-action="insert-citation"]') as HTMLElement | null;
-    const fallback = citeBtn ?? editorEl;
-    openCitationPicker(editor, fallback);
-  });
-
-  document.addEventListener('opendesk:add-comment', () => {
-    showCommentInput(editor, commentStore, documentId, user);
-    toggleSidebar(commentSidebar, true);
-    announce(t('a11y.commentAdded'));
-  });
-
-
-  document.addEventListener('opendesk:toggle-suggestions', () => {
-    toggleSuggestionSidebar(suggestionSidebar);
-  });
+  initEditorPanels({ editor, editorEl, commentStore, documentId, user });
 
   function updateUsers() {
     if (!usersEl || !provider.awareness) return;

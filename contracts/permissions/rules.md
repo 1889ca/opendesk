@@ -83,6 +83,6 @@ Implemented:
 - [x] Grant CRUD operations via storage
 - [x] `reason` string in every `PermissionResult`
 
-Post-MVP (deferred):
-- [ ] `GrantCreated` event emission — requires events module implementation
-- [ ] `GrantRevoked` event emission — requires events module implementation
+Post-MVP (now implemented):
+- [x] `GrantCreated` event emission — wired via `withGrantEvents()` decorator in `internal/event-emitting-grant-store.ts`
+- [x] `GrantRevoked` event emission — wired via `withGrantEvents()` decorator in `internal/event-emitting-grant-store.ts`

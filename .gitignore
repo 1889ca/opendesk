@@ -9,4 +9,7 @@ modules/app/internal/public/*.bundle.js
 modules/app/internal/public/*.bundle.css
 modules/app/internal/public/*.bundle.js.map
 modules/app/internal/public/*.bundle.css.map
+modules/app/internal/public/chunks/
 .claude/worktrees/
+audits/*
+!audits/README.md

@@ -7,7 +7,11 @@ import { z } from 'zod';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3, getS3Bucket } from './s3-client.ts';
 import { asyncHandler } from './async-handler.ts';
+import { matchesImageMagic } from './image-magic.ts';
+import { createLogger } from '../../logger/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
+
+const log = createLogger('api:upload');
 
 const UploadBody = z.object({
   documentId: z.string().regex(/^[0-9a-f-]+$/i).optional().default('general'),
@@ -54,11 +58,35 @@ export function createUploadRoutes(opts: UploadRoutesOptions): Router {
 
   router.post(
     '/upload',
+    // requireAuth runs BEFORE multer (issue #130) so unauthenticated
+    // requests are rejected with 401 before the multipart parser
+    // buffers up to MAX_SIZE bytes per request. Without this ordering,
+    // any unauthenticated client can drive memory pressure on the API
+    // process by streaming garbage payloads.
+    permissions.requireAuth,
     upload.single('file'),
     asyncHandler(async (req, res) => {
+      // requireAuth guarantees req.principal is set; assert for the
+      // type narrowing below.
+      const principal = req.principal!;
+
       const file = req.file;
       if (!file) {
         res.status(400).json({ error: 'No file provided' });
+        return;
+      }
+
+      // Issue #132: the multipart Content-Type is attacker-controlled.
+      // Verify the file's actual magic bytes match the claimed MIME
+      // before persisting it. multer's fileFilter already restricted
+      // the claimed MIME to ALLOWED_TYPES; this layer checks the
+      // bytes inside the buffer agree.
+      if (!matchesImageMagic(file.buffer, file.mimetype)) {
+        log.warn('upload rejected — content does not match claimed MIME', {
+          claimed: file.mimetype,
+          size: file.size,
+        });
+        res.status(400).json({ error: 'File content does not match claimed type' });
         return;
       }
 
@@ -69,18 +97,13 @@ export function createUploadRoutes(opts: UploadRoutesOptions): Router {
       }
       const { documentId } = bodyResult.data;
 
-      const principal = req.principal;
-      if (!principal) {
-        res.status(401).json({ error: 'Authentication required' });
-        return;
-      }
-
       if (documentId === 'general') {
         // General bucket: authenticated users may upload, but log for audit trail
-        console.info(
-          '[opendesk] general-bucket upload by %s (%s, %d bytes)',
-          principal.id, file.mimetype, file.size,
-        );
+        log.info('general-bucket upload', {
+          userId: principal.id,
+          mimetype: file.mimetype,
+          size: file.size,
+        });
       } else {
         // Document-specific bucket: enforce write permission
         const allowed = await permissions.checkPermission(principal.id, documentId, 'write');

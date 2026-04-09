@@ -6,6 +6,7 @@ import type {
   CreateWorkflow,
   UpdateWorkflow,
   TriggerType,
+  WorkflowGraph,
 } from '../contract.ts';
 
 function rowToDefinition(row: Record<string, unknown>): WorkflowDefinition {
@@ -16,6 +17,7 @@ function rowToDefinition(row: Record<string, unknown>): WorkflowDefinition {
     triggerType: row.trigger_type as TriggerType,
     actionType: row.action_type as WorkflowDefinition['actionType'],
     actionConfig: row.action_config as Record<string, unknown>,
+    graph: (row.graph as WorkflowGraph) ?? undefined,
     createdBy: row.created_by as string,
     active: row.active as boolean,
     createdAt: (row.created_at as Date).toISOString(),
@@ -30,10 +32,16 @@ export async function createDefinition(
 ): Promise<WorkflowDefinition> {
   const id = randomUUID();
   const { rows } = await pool.query(
-    `INSERT INTO workflow_definitions (id, document_id, name, trigger_type, action_type, action_config, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO workflow_definitions
+       (id, document_id, name, trigger_type, action_type, action_config, graph, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING *`,
-    [id, def.documentId, def.name, def.triggerType, def.actionType, JSON.stringify(def.actionConfig), createdBy],
+    [
+      id, def.documentId, def.name, def.triggerType,
+      def.actionType, JSON.stringify(def.actionConfig),
+      def.graph ? JSON.stringify(def.graph) : null,
+      createdBy,
+    ],
   );
   return rowToDefinition(rows[0]);
 }
@@ -54,8 +62,20 @@ export async function listDefinitions(
   documentId: string,
 ): Promise<WorkflowDefinition[]> {
   const { rows } = await pool.query(
-    'SELECT * FROM workflow_definitions WHERE document_id = $1 AND active = true ORDER BY created_at DESC',
+    `SELECT * FROM workflow_definitions
+     WHERE document_id = $1 AND active = true
+     ORDER BY created_at DESC`,
     [documentId],
+  );
+  return rows.map(rowToDefinition);
+}
+
+export async function listAllDefinitions(
+  pool: Pool,
+): Promise<WorkflowDefinition[]> {
+  const { rows } = await pool.query(
+    `SELECT * FROM workflow_definitions
+     WHERE active = true ORDER BY created_at DESC`,
   );
   return rows.map(rowToDefinition);
 }
@@ -85,6 +105,10 @@ export async function updateDefinition(
     setClauses.push(`action_config = $${paramIdx++}`);
     values.push(JSON.stringify(updates.actionConfig));
   }
+  if (updates.graph !== undefined) {
+    setClauses.push(`graph = $${paramIdx++}`);
+    values.push(JSON.stringify(updates.graph));
+  }
   if (updates.active !== undefined) {
     setClauses.push(`active = $${paramIdx++}`);
     values.push(updates.active);
@@ -92,7 +116,8 @@ export async function updateDefinition(
 
   values.push(id);
   const { rows } = await pool.query(
-    `UPDATE workflow_definitions SET ${setClauses.join(', ')} WHERE id = $${paramIdx} RETURNING *`,
+    `UPDATE workflow_definitions SET ${setClauses.join(', ')}
+     WHERE id = $${paramIdx} RETURNING *`,
     values,
   );
   return rows.length > 0 ? rowToDefinition(rows[0]) : null;
@@ -115,7 +140,8 @@ export async function findByTrigger(
   documentId: string,
 ): Promise<WorkflowDefinition[]> {
   const { rows } = await pool.query(
-    'SELECT * FROM workflow_definitions WHERE trigger_type = $1 AND document_id = $2 AND active = true',
+    `SELECT * FROM workflow_definitions
+     WHERE trigger_type = $1 AND document_id = $2 AND active = true`,
     [triggerType, documentId],
   );
   return rows.map(rowToDefinition);

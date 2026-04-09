@@ -8,6 +8,7 @@
 @import "../public/templates.css";
 @import "../public/folders.css";
 @import "../public/global-search.css";
+@import "../public/global-search-panels.css";
 @import "../public/sidebar.css";
 @import "../public/comments.css";
 @import "../public/comment-input.css";
@@ -27,3 +28,9 @@
 @import "../public/citation-library-items.css";
 @import "../public/print.css";
 @import "../public/share.css";
+@import "../public/workflows.css";
+@import "./promote-to-kb.css";
+@import "../public/settings-dropdown.css";
+@import "../public/notifications.css";
+@import "../public/workspace-sidebar.css";
+@import "../public/offline.css";

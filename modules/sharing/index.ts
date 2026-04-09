@@ -46,7 +46,10 @@ export { createPgShareLinkStore } from './internal/pg-store.ts';
 export {
   createPasswordRateLimiter,
   createInMemoryPasswordRateLimiter,
+  createShareResolveRateLimiter,
+  createInMemoryShareResolveRateLimiter,
   type PasswordRateLimiter,
+  type ShareResolveRateLimiter,
   type RateLimiterOptions,
 } from './internal/rate-limit.ts';
 

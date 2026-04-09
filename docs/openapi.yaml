@@ -1,0 +1,3086 @@
+openapi: 3.1.0
+info:
+  title: OpenDesk API
+  description: >
+    Sovereign, open-source office suite API. Provides document management,
+    real-time collaboration, sharing, audit trails, workflow automation,
+    cross-sovereign federation, local AI assistance, and verifiable data erasure.
+  version: 0.1.0
+  license:
+    name: AGPL-3.0
+    url: https://www.gnu.org/licenses/agpl-3.0.html
+
+servers:
+  - url: http://localhost:5500
+    description: Local development server
+
+tags:
+  - name: Documents
+    description: Document CRUD, search, export/import, and conversion
+  - name: Folders
+    description: Folder management and document organization
+  - name: Templates
+    description: Document template CRUD
+  - name: Versions
+    description: Document version history and restore
+  - name: References
+    description: Reference library CRUD, DOI/ISBN lookup, BibTeX/RIS import/export
+  - name: Files
+    description: File upload and retrieval (S3-backed)
+  - name: Sharing
+    description: Share links — create, resolve, and revoke
+  - name: Audit
+    description: Audit logs, HMAC chain verification, and proof export
+  - name: Workflow
+    description: Workflow definitions and execution history
+  - name: Federation
+    description: Cross-sovereign peer federation and document transfer
+  - name: AI
+    description: Local AI — semantic search, RAG assistant, embeddings
+  - name: Erasure
+    description: Verifiable data erasure and retention policies
+  - name: Admin
+    description: User data purge, metrics, and system health
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: JWT or dev-mode token passed as Bearer header
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: string
+        issues:
+          type: array
+          items:
+            type: object
+      required: [error, issues]
+
+    OkResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          const: true
+      required: [ok]
+
+    # --- Documents ---
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        documentType:
+          type: string
+          enum: [text, spreadsheet, presentation]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateDocumentBody:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        documentType:
+          type: string
+          enum: [text, spreadsheet, presentation]
+          default: text
+
+    UpdateDocumentBody:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+
+    MoveDocumentBody:
+      type: object
+      required: [folderId]
+      properties:
+        folderId:
+          type: string
+          format: uuid
+          nullable: true
+
+    # --- Folders ---
+    Folder:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        createdBy:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateFolderBody:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+
+    RenameFolderBody:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+
+    # --- Templates ---
+    Template:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        content:
+          type: object
+        isOwner:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateTemplateBody:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 1000
+          default: ""
+        content:
+          type: object
+          default: {}
+
+    UpdateTemplateBody:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 1000
+        content:
+          type: object
+
+    # --- Versions ---
+    Version:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        document_id:
+          type: string
+          format: uuid
+        version_number:
+          type: integer
+        content:
+          type: object
+        name:
+          type: string
+        created_by:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    CreateVersionBody:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 200
+
+    # --- References ---
+    Reference:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        authors:
+          type: array
+          items:
+            type: string
+        year:
+          type: integer
+          nullable: true
+        source:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum: [article, book, chapter, website, other]
+        doi:
+          type: string
+          nullable: true
+        isbn:
+          type: string
+          nullable: true
+        url:
+          type: string
+          format: uri
+          nullable: true
+        publisher:
+          type: string
+          nullable: true
+
+    CreateReferenceBody:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 500
+        authors:
+          type: array
+          items:
+            type: string
+          default: []
+        year:
+          type: integer
+          nullable: true
+        source:
+          type: string
+          maxLength: 500
+          nullable: true
+        volume:
+          type: string
+          maxLength: 100
+          nullable: true
+        issue:
+          type: string
+          maxLength: 100
+          nullable: true
+        pages:
+          type: string
+          maxLength: 100
+          nullable: true
+        doi:
+          type: string
+          maxLength: 200
+          nullable: true
+        isbn:
+          type: string
+          maxLength: 50
+          nullable: true
+        url:
+          type: string
+          format: uri
+          maxLength: 2000
+          nullable: true
+        publisher:
+          type: string
+          maxLength: 500
+          nullable: true
+        type:
+          type: string
+          enum: [article, book, chapter, website, other]
+          default: other
+
+    UpdateReferenceBody:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 500
+        authors:
+          type: array
+          items:
+            type: string
+        year:
+          type: integer
+          nullable: true
+        source:
+          type: string
+          maxLength: 500
+          nullable: true
+        volume:
+          type: string
+          maxLength: 100
+          nullable: true
+        issue:
+          type: string
+          maxLength: 100
+          nullable: true
+        pages:
+          type: string
+          maxLength: 100
+          nullable: true
+        doi:
+          type: string
+          maxLength: 200
+          nullable: true
+        isbn:
+          type: string
+          maxLength: 50
+          nullable: true
+        url:
+          type: string
+          format: uri
+          maxLength: 2000
+          nullable: true
+        publisher:
+          type: string
+          maxLength: 500
+          nullable: true
+        type:
+          type: string
+          enum: [article, book, chapter, website, other]
+
+    # --- Sharing ---
+    ShareLink:
+      type: object
+      properties:
+        token:
+          type: string
+        docId:
+          type: string
+        grantorId:
+          type: string
+        role:
+          type: string
+          enum: [viewer, editor, commenter]
+        expiresAt:
+          type: string
+          format: date-time
+        maxRedemptions:
+          type: integer
+        redemptionCount:
+          type: integer
+        revoked:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateShareLinkBody:
+      type: object
+      required: [role]
+      properties:
+        role:
+          type: string
+          enum: [viewer, editor, commenter]
+        options:
+          type: object
+          properties:
+            expiresIn:
+              type: integer
+              description: Seconds until expiry
+            maxRedemptions:
+              type: integer
+            password:
+              type: string
+              minLength: 1
+
+    ResolveShareLinkBody:
+      type: object
+      properties:
+        password:
+          type: string
+
+    # --- Audit ---
+    AuditEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        document_id:
+          type: string
+        action:
+          type: string
+        actor_id:
+          type: string
+        hmac:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    AuditProof:
+      type: object
+      properties:
+        documentId:
+          type: string
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditEntry"
+        hmacSecret:
+          type: string
+
+    # --- Workflow ---
+    WorkflowDefinition:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        documentId:
+          type: string
+        name:
+          type: string
+        triggerType:
+          type: string
+          enum: [document.updated, document.exported, grant.created, grant.revoked]
+        actionType:
+          type: string
+          enum: [webhook, export, notify]
+        actionConfig:
+          type: object
+        createdBy:
+          type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    CreateWorkflowBody:
+      type: object
+      required: [name, documentId, triggerType, actionType, actionConfig]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        documentId:
+          type: string
+          minLength: 1
+        triggerType:
+          type: string
+          enum: [document.updated, document.exported, grant.created, grant.revoked]
+        actionType:
+          type: string
+          enum: [webhook, export, notify]
+        actionConfig:
+          type: object
+
+    UpdateWorkflowBody:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        triggerType:
+          type: string
+          enum: [document.updated, document.exported, grant.created, grant.revoked]
+        actionType:
+          type: string
+          enum: [webhook, export, notify]
+        actionConfig:
+          type: object
+        active:
+          type: boolean
+
+    WorkflowExecution:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workflowId:
+          type: string
+          format: uuid
+        triggerEventId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        startedAt:
+          type: string
+        completedAt:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
+
+    # --- Federation ---
+    FederationPeer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        endpointUrl:
+          type: string
+          format: uri
+        publicKey:
+          type: string
+        trustLevel:
+          type: string
+          enum: [standard, elevated, restricted]
+        status:
+          type: string
+          enum: [active, suspended, revoked]
+        lastSeenAt:
+          type: string
+          nullable: true
+        registeredBy:
+          type: string
+        createdAt:
+          type: string
+
+    RegisterPeerBody:
+      type: object
+      required: [name, endpointUrl, publicKey]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        endpointUrl:
+          type: string
+          format: uri
+        publicKey:
+          type: string
+          minLength: 1
+        trustLevel:
+          type: string
+          enum: [standard, elevated, restricted]
+          default: standard
+
+    SendDocumentBody:
+      type: object
+      required: [documentId, peerId]
+      properties:
+        documentId:
+          type: string
+          format: uuid
+        peerId:
+          type: string
+          format: uuid
+
+    TransferBundle:
+      type: object
+      required: [sendingInstanceId, documentId, documentTitle, yjsStateBase64, signature, timestamp]
+      properties:
+        sendingInstanceId:
+          type: string
+        documentId:
+          type: string
+        documentTitle:
+          type: string
+        yjsStateBase64:
+          type: string
+        auditProofHash:
+          type: string
+        signature:
+          type: string
+        timestamp:
+          type: string
+
+    TransferRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        peerId:
+          type: string
+          format: uuid
+        direction:
+          type: string
+          enum: [inbound, outbound]
+        documentId:
+          type: string
+        documentTitle:
+          type: string
+          nullable: true
+        signature:
+          type: string
+        auditProofHash:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, completed, failed, rejected]
+        error:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+
+    # --- AI ---
+    SemanticSearchResult:
+      type: object
+      properties:
+        documentId:
+          type: string
+        title:
+          type: string
+        chunkContent:
+          type: string
+        similarity:
+          type: number
+
+    AssistantResponse:
+      type: object
+      properties:
+        answer:
+          type: string
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/SemanticSearchResult"
+
+    # --- Erasure ---
+    ErasureAttestation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        documentId:
+          type: string
+        actorId:
+          type: string
+        actorType:
+          type: string
+          enum: [human, agent, system]
+        reason:
+          type: string
+        preStateHash:
+          type: string
+        postStateHash:
+          type: string
+        stateChanged:
+          type: boolean
+        yjsSizeBefore:
+          type: integer
+        yjsSizeAfter:
+          type: integer
+        createdAt:
+          type: string
+
+    ErasureRequestBody:
+      type: object
+      required: [documentId, reason]
+      properties:
+        documentId:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+
+    RetentionPolicy:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        documentType:
+          type: string
+        maxAgeDays:
+          type: integer
+        autoPurge:
+          type: boolean
+        createdBy:
+          type: string
+        createdAt:
+          type: string
+
+    CreatePolicyBody:
+      type: object
+      required: [name, maxAgeDays]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        documentType:
+          type: string
+          default: "*"
+        maxAgeDays:
+          type: integer
+          minimum: 1
+        autoPurge:
+          type: boolean
+          default: false
+
+    RetentionScanResult:
+      type: object
+      properties:
+        policy:
+          $ref: "#/components/schemas/RetentionPolicy"
+        matchedDocuments:
+          type: array
+          items:
+            type: object
+            properties:
+              documentId:
+                type: string
+              title:
+                type: string
+              documentType:
+                type: string
+              updatedAt:
+                type: string
+              ageDays:
+                type: number
+
+    # --- Admin ---
+    PurgeReceipt:
+      type: object
+      properties:
+        userId:
+          type: string
+        action:
+          type: string
+          enum: [delete, transfer]
+        transferTo:
+          type: string
+        deletedAt:
+          type: string
+          format: date-time
+        deleted:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [document, grant]
+              id:
+                type: string
+        transferred:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [document, grant]
+              id:
+                type: string
+
+    # --- Metrics ---
+    MetricsSummary:
+      type: object
+      description: Full operational and health summary from observability module
+
+    HealthIndicators:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        indicators:
+          type: object
+
+    AuditMetrics:
+      type: object
+      properties:
+        totalEntries:
+          type: integer
+        documentsTracked:
+          type: integer
+        lastEntryAt:
+          type: string
+          format: date-time
+          nullable: true
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ===== Documents =====
+
+  /api/documents:
+    get:
+      tags: [Documents]
+      summary: List documents
+      description: List documents, optionally filtered by folder. Results filtered by user permissions.
+      parameters:
+        - name: folderId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Array of documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+    post:
+      tags: [Documents]
+      summary: Create a document
+      description: Create a new document. Optionally use a template via query param.
+      parameters:
+        - name: templateId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDocumentBody"
+      responses:
+        "201":
+          description: Created document
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Document"
+                  - type: object
+                    properties:
+                      templateContent:
+                        type: object
+                        nullable: true
+        "404":
+          description: Template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/documents/search:
+    get:
+      tags: [Documents]
+      summary: Full-text search documents
+      description: Search documents by text query. Results filtered by user permissions.
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 200
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    title:
+                      type: string
+                    rank:
+                      type: number
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+  /api/documents/{id}:
+    get:
+      tags: [Documents]
+      summary: Get a document
+      description: Retrieve a single document by ID. Requires read permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Document object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "404":
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      tags: [Documents]
+      summary: Update document title
+      description: Update the title of a document. Requires write permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDocumentBody"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+    delete:
+      tags: [Documents]
+      summary: Delete a document
+      description: Delete a document, its cache entries, and permission grants. Requires delete permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Deletion receipt
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deletedAt:
+                    type: string
+                    format: date-time
+                  documentId:
+                    type: string
+                  scope:
+                    type: string
+        "404":
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/documents/{id}/move:
+    put:
+      tags: [Documents]
+      summary: Move document to a folder
+      description: Move a document into a folder (or to root with null). Requires write permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoveDocumentBody"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "404":
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/documents/{id}/export:
+    post:
+      tags: [Documents]
+      summary: Export document as HTML or text
+      description: Client-side export. Requires read permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [format, content]
+              properties:
+                format:
+                  type: string
+                  enum: [html, text]
+                content:
+                  type: string
+                  description: HTML content to export
+      responses:
+        "200":
+          description: Exported file (text/html or text/plain)
+          content:
+            text/html:
+              schema:
+                type: string
+            text/plain:
+              schema:
+                type: string
+        "400":
+          description: Invalid format or missing content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/documents/{id}/import:
+    post:
+      tags: [Documents]
+      summary: Import HTML into a document
+      description: Import HTML content into an existing document. Requires write permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [html]
+              properties:
+                html:
+                  type: string
+      responses:
+        "200":
+          description: Import result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  html:
+                    type: string
+                  documentId:
+                    type: string
+        "400":
+          description: Missing HTML content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/documents/{id}/convert-export:
+    post:
+      tags: [Documents]
+      summary: Export document via Collabora (docx/odt/pdf)
+      description: Server-side conversion via Collabora. Requires read permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [format, content]
+              properties:
+                format:
+                  type: string
+                  enum: [docx, odt, pdf]
+                content:
+                  type: string
+                  description: HTML content to convert
+                requestedBy:
+                  type: string
+      responses:
+        "200":
+          description: Converted file binary
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          headers:
+            X-Export-Stale:
+              schema:
+                type: string
+            X-Export-At:
+              schema:
+                type: string
+        "400":
+          description: Invalid format or missing content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "502":
+          description: Collabora conversion service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/documents/{id}/convert-import:
+    post:
+      tags: [Documents]
+      summary: Import document via Collabora (docx/odt/pdf)
+      description: Upload a file for server-side conversion to document content. Requires write permission. Max 50 MB.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-Filename
+          in: header
+          schema:
+            type: string
+            default: upload.docx
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Import result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  documentId:
+                    type: string
+                  snapshot:
+                    type: object
+        "400":
+          description: Unsupported format or empty body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "502":
+          description: Collabora conversion service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Versions =====
+
+  /api/documents/{id}/versions:
+    get:
+      tags: [Versions]
+      summary: List versions
+      description: List all versions for a document. Requires read permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Array of versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Version"
+    post:
+      tags: [Versions]
+      summary: Create a named version
+      description: Snapshot the current document state as a named version. Requires write permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVersionBody"
+      responses:
+        "201":
+          description: Created version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Version"
+        "404":
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/documents/{id}/versions/{versionId}:
+    get:
+      tags: [Versions]
+      summary: Get a specific version
+      description: Retrieve a single version by ID. Requires read permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Version object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Version"
+        "404":
+          description: Version not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: [Versions]
+      summary: Delete a version
+      description: Remove a version record. Requires delete permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "404":
+          description: Version not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/documents/{id}/versions/{versionId}/restore:
+    post:
+      tags: [Versions]
+      summary: Restore a version
+      description: Restore a document to a previous version's state. Disconnects active WebSocket sessions. Requires write permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Restore result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  restoredVersion:
+                    type: integer
+        "404":
+          description: Version not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Folders =====
+
+  /api/folders:
+    get:
+      tags: [Folders]
+      summary: List folders
+      description: List folders at root or under a parent. Results filtered by user permissions.
+      parameters:
+        - name: parentId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Array of folders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Folder"
+    post:
+      tags: [Folders]
+      summary: Create a folder
+      description: Create a new folder. Auto-grants owner role to creator.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFolderBody"
+      responses:
+        "201":
+          description: Created folder
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Folder"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+  /api/folders/{id}:
+    put:
+      tags: [Folders]
+      summary: Rename a folder
+      description: Rename an existing folder. Requires write permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RenameFolderBody"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "404":
+          description: Folder not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: [Folders]
+      summary: Delete a folder
+      description: Delete a folder. Requires delete permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "404":
+          description: Folder not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Templates =====
+
+  /api/templates:
+    get:
+      tags: [Templates]
+      summary: List templates
+      description: List all templates. Annotates ownership per user.
+      responses:
+        "200":
+          description: Array of templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Template"
+    post:
+      tags: [Templates]
+      summary: Create a template
+      description: Create a new template. Auto-grants owner role to creator.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTemplateBody"
+      responses:
+        "201":
+          description: Created template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+  /api/templates/{id}:
+    get:
+      tags: [Templates]
+      summary: Get a template
+      description: Retrieve a single template. Requires read permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Template object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+        "404":
+          description: Template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      tags: [Templates]
+      summary: Update a template
+      description: Update template name, description, or content. Requires write permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTemplateBody"
+      responses:
+        "200":
+          description: Updated template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+        "404":
+          description: Template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: [Templates]
+      summary: Delete a template
+      description: Delete a template and clean up grants. Requires delete permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Deletion receipt
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  deletedAt:
+                    type: string
+                    format: date-time
+                  templateId:
+                    type: string
+
+  # ===== References =====
+
+  /api/references:
+    get:
+      tags: [References]
+      summary: List references
+      description: List references in the library. Optionally filter by documentId.
+      parameters:
+        - name: documentId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Array of references
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reference"
+        "403":
+          description: No read access to reference library
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags: [References]
+      summary: Create a reference
+      description: Add a new reference to the library.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReferenceBody"
+      responses:
+        "201":
+          description: Created reference
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reference"
+        "403":
+          description: No write access to reference library
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/references/lookup/doi/{doi}:
+    get:
+      tags: [References]
+      summary: Lookup reference by DOI
+      description: Fetch reference metadata from CrossRef by DOI.
+      parameters:
+        - name: doi
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reference metadata
+          content:
+            application/json:
+              schema:
+                type: object
+        "404":
+          description: DOI not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "502":
+          description: Upstream lookup error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/references/lookup/isbn/{isbn}:
+    get:
+      tags: [References]
+      summary: Lookup reference by ISBN
+      description: Fetch reference metadata from OpenLibrary by ISBN.
+      parameters:
+        - name: isbn
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reference metadata
+          content:
+            application/json:
+              schema:
+                type: object
+        "404":
+          description: ISBN not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "502":
+          description: Upstream lookup error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/references/{id}:
+    get:
+      tags: [References]
+      summary: Get a reference
+      description: Retrieve a single reference by ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Reference object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reference"
+        "404":
+          description: Reference not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      tags: [References]
+      summary: Update a reference
+      description: Update fields on an existing reference.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateReferenceBody"
+      responses:
+        "200":
+          description: Updated reference
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reference"
+        "403":
+          description: No write access to reference library
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Reference not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: [References]
+      summary: Delete a reference
+      description: Remove a reference from the library.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "403":
+          description: No delete access to reference library
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Reference not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/references/import:
+    post:
+      tags: [References]
+      summary: Import references from BibTeX or RIS
+      description: Parse and import references from BibTeX or RIS format. Set Content-Type to application/x-bibtex or application/x-ris.
+      requestBody:
+        required: true
+        content:
+          application/x-bibtex:
+            schema:
+              type: string
+          application/x-ris:
+            schema:
+              type: string
+      responses:
+        "201":
+          description: Import result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imported:
+                    type: integer
+                  references:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Reference"
+        "403":
+          description: No write access
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "415":
+          description: Unsupported format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: No valid references found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/references/export:
+    get:
+      tags: [References]
+      summary: Export references as BibTeX or RIS
+      description: Export the entire reference library in the specified format.
+      parameters:
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [bibtex, ris]
+      responses:
+        "200":
+          description: Exported file
+          content:
+            application/x-bibtex:
+              schema:
+                type: string
+            application/x-ris:
+              schema:
+                type: string
+        "400":
+          description: Invalid format parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: No read access
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Files =====
+
+  /api/upload:
+    post:
+      tags: [Files]
+      summary: Upload an image
+      description: Upload an image file (PNG, JPEG, GIF, WebP) to S3. Max 10 MB. Requires auth; document-specific uploads require write permission.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                documentId:
+                  type: string
+                  default: general
+      responses:
+        "200":
+          description: Upload result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                  key:
+                    type: string
+                  contentType:
+                    type: string
+                  size:
+                    type: integer
+        "400":
+          description: No file or unsupported type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: No write access to document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/files/{key}:
+    get:
+      tags: [Files]
+      summary: Retrieve a file
+      description: Stream a file from S3. Requires auth; document-specific files require read permission.
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "S3 key path (e.g. uploads/{docId}/{uuid}.png)"
+      responses:
+        "200":
+          description: File contents
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden file path or no read access
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Sharing =====
+
+  /api/documents/{id}/share:
+    post:
+      tags: [Sharing]
+      summary: Create a share link
+      description: Generate a share link for a document. Supports optional expiry, max redemptions, and password protection. Requires write permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateShareLinkBody"
+      responses:
+        "201":
+          description: Created share link (passwordHash is never returned)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShareLink"
+        "400":
+          description: Invalid role or options
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/share/{token}/resolve:
+    post:
+      tags: [Sharing]
+      summary: Resolve (redeem) a share link
+      description: Redeem a share link token to get access. Provide password if link is password-protected. Rate-limited. No auth required.
+      security: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResolveShareLinkBody"
+      responses:
+        "200":
+          description: Resolved grant and link info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  grant:
+                    type: object
+                    properties:
+                      docId:
+                        type: string
+                      role:
+                        type: string
+                  link:
+                    $ref: "#/components/schemas/ShareLink"
+        "403":
+          description: Wrong password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Link not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "410":
+          description: Link expired, revoked, or exhausted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Too many password attempts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  retryAfterSeconds:
+                    type: integer
+
+  /api/share/{token}:
+    delete:
+      tags: [Sharing]
+      summary: Revoke a share link
+      description: Revoke a share link. Only the creator or someone with write permission on the document may revoke.
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Link not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Audit =====
+
+  /api/audit/documents/{id}/log:
+    get:
+      tags: [Audit]
+      summary: Get paginated audit log
+      description: Retrieve the audit log for a document. Requires manage permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: cursor
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+      responses:
+        "200":
+          description: Array of audit log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuditEntry"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+  /api/audit/verify/{documentId}:
+    get:
+      tags: [Audit]
+      summary: Verify HMAC chain integrity
+      description: Verify the HMAC chain integrity for a document's audit log. Requires manage permission.
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  entries:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/audit/proof/{documentId}:
+    get:
+      tags: [Audit]
+      summary: Export full audit proof bundle
+      description: Export a complete cryptographic audit proof for a document. Requires manage permission.
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Full audit proof
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditProof"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/audit/proof/{documentId}/summary:
+    get:
+      tags: [Audit]
+      summary: Export lightweight proof summary
+      description: Export a lightweight summary of the audit proof for a document. Requires manage permission.
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Proof summary
+          content:
+            application/json:
+              schema:
+                type: object
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/audit/proof/verify:
+    post:
+      tags: [Audit]
+      summary: Verify a proof bundle offline
+      description: Stateless verification of an audit proof bundle. Requires auth but no document permissions.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [proof, hmacSecret]
+              properties:
+                proof:
+                  $ref: "#/components/schemas/AuditProof"
+                hmacSecret:
+                  type: string
+      responses:
+        "200":
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  entries:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "400":
+          description: Missing proof or hmacSecret
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Workflow =====
+
+  /api/workflows:
+    get:
+      tags: [Workflow]
+      summary: List workflow definitions
+      description: List workflow definitions for a document. Requires read permission on the document.
+      parameters:
+        - name: documentId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Array of workflow definitions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkflowDefinition"
+        "400":
+          description: Missing documentId
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags: [Workflow]
+      summary: Create a workflow definition
+      description: Create a new workflow. Requires manage permission on the linked document.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkflowBody"
+      responses:
+        "201":
+          description: Created workflow definition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowDefinition"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/workflows/{id}:
+    get:
+      tags: [Workflow]
+      summary: Get a workflow definition
+      description: Retrieve a single workflow definition. Requires read permission on the linked document.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Workflow definition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowDefinition"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      tags: [Workflow]
+      summary: Update a workflow definition
+      description: Update fields on a workflow definition. Requires manage permission on the linked document.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWorkflowBody"
+      responses:
+        "200":
+          description: Updated workflow definition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowDefinition"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: [Workflow]
+      summary: Delete a workflow definition
+      description: Delete a workflow definition. Requires manage permission on the linked document.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/workflows/{id}/executions:
+    get:
+      tags: [Workflow]
+      summary: List workflow executions
+      description: List execution history for a workflow. Requires read permission on the linked document.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Array of executions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkflowExecution"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Workflow not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Federation =====
+
+  /api/federation/peers:
+    get:
+      tags: [Federation]
+      summary: List federation peers
+      description: List all registered federation peers.
+      responses:
+        "200":
+          description: Array of peers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FederationPeer"
+    post:
+      tags: [Federation]
+      summary: Register a federation peer
+      description: Register a new peer instance for cross-sovereign federation. Admin only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterPeerBody"
+      responses:
+        "201":
+          description: Registered peer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FederationPeer"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+  /api/federation/peers/{id}:
+    patch:
+      tags: [Federation]
+      summary: Update peer status
+      description: Update a peer's status (active, suspended, revoked). Admin only.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [active, suspended, revoked]
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "404":
+          description: Peer not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/federation/send:
+    post:
+      tags: [Federation]
+      summary: Send a document to a peer
+      description: Initiate a signed document transfer to a federated peer. Admin only, requires manage permission on the document.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendDocumentBody"
+      responses:
+        "200":
+          description: Transfer record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransferRecord"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/federation/receive:
+    post:
+      tags: [Federation]
+      summary: Receive an inbound transfer
+      description: Endpoint called by federated peers to deliver a signed document bundle. Authenticates via peer signature verification (no user auth).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferBundle"
+      responses:
+        "200":
+          description: Transfer record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransferRecord"
+        "400":
+          description: Invalid transfer bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        "401":
+          description: Missing signature
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Unknown peer or invalid signature
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/federation/transfers:
+    get:
+      tags: [Federation]
+      summary: List transfer history
+      description: List federation transfer history, optionally filtered by peer.
+      parameters:
+        - name: peerId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 200
+      responses:
+        "200":
+          description: Array of transfer records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TransferRecord"
+
+  # ===== AI =====
+
+  /api/ai/search:
+    get:
+      tags: [AI]
+      summary: Semantic search
+      description: Search documents using semantic similarity via local embeddings. Results filtered by user permissions.
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 500
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        "200":
+          description: Semantic search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SemanticSearchResult"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+  /api/ai/ask:
+    post:
+      tags: [AI]
+      summary: RAG document assistant
+      description: Ask a question and get an AI-generated answer with source citations from your documents. Uses local Ollama models.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question]
+              properties:
+                question:
+                  type: string
+                  minLength: 2
+                  maxLength: 1000
+      responses:
+        "200":
+          description: Assistant response with sources
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+  /api/ai/embed:
+    post:
+      tags: [AI]
+      summary: Trigger document embedding
+      description: Generate or regenerate vector embeddings for a document. Requires write permission on the document.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [documentId]
+              properties:
+                documentId:
+                  type: string
+                  format: uuid
+      responses:
+        "200":
+          description: Embedding result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  documentId:
+                    type: string
+                  chunks:
+                    type: integer
+                    description: Number of chunks embedded
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/ai/health:
+    get:
+      tags: [AI]
+      summary: Check Ollama connectivity
+      description: Check if the local Ollama AI backend is reachable.
+      responses:
+        "200":
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ollama:
+                    type: string
+                    enum: [ok, unavailable]
+
+  # ===== Erasure =====
+
+  /api/erasure/erase:
+    post:
+      tags: [Erasure]
+      summary: Erase document CRDT history
+      description: Verifiably erase a document's CRDT history, producing a cryptographic attestation. Requires manage permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErasureRequestBody"
+      responses:
+        "201":
+          description: Erasure attestation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErasureAttestation"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/erasure/attestations/{documentId}:
+    get:
+      tags: [Erasure]
+      summary: Get erasure attestations
+      description: Retrieve all erasure attestations for a document. Requires manage permission.
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Array of attestations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErasureAttestation"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/erasure/policies:
+    get:
+      tags: [Erasure]
+      summary: List retention policies
+      description: List all retention policies. Admin only.
+      responses:
+        "200":
+          description: Array of retention policies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RetentionPolicy"
+    post:
+      tags: [Erasure]
+      summary: Create a retention policy
+      description: Create a new data retention policy. Admin only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePolicyBody"
+      responses:
+        "201":
+          description: Created policy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RetentionPolicy"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+  /api/erasure/policies/{id}:
+    delete:
+      tags: [Erasure]
+      summary: Delete a retention policy
+      description: Remove a retention policy. Admin only.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "404":
+          description: Policy not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/erasure/scan:
+    get:
+      tags: [Erasure]
+      summary: Scan for documents matching retention policies
+      description: Dry-run scan showing which documents match active retention policies. Admin only.
+      responses:
+        "200":
+          description: Array of scan results per policy
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RetentionScanResult"
+
+  /api/erasure/execute:
+    post:
+      tags: [Erasure]
+      summary: Execute retention auto-purge
+      description: Execute all active auto-purge retention policies, erasing matched documents. Admin only.
+      responses:
+        "200":
+          description: Execution result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  executed:
+                    type: integer
+                  attestations:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ErasureAttestation"
+
+  # ===== Admin =====
+
+  /api/admin/users/{id}/data:
+    delete:
+      tags: [Admin]
+      summary: Purge user data (GDPR)
+      description: Delete or transfer all data owned by a user. Users can only purge their own data.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: action
+          in: query
+          schema:
+            type: string
+            enum: [delete, transfer]
+            default: delete
+        - name: transferTo
+          in: query
+          schema:
+            type: string
+          description: Required when action is "transfer"
+      responses:
+        "200":
+          description: Purge receipt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurgeReceipt"
+        "400":
+          description: Invalid action or missing transferTo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Can only purge your own data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/metrics:
+    get:
+      tags: [Admin]
+      summary: Get full metrics summary
+      description: Full operational and health summary from the observability module.
+      responses:
+        "200":
+          description: Metrics summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricsSummary"
+
+  /api/admin/metrics/health:
+    get:
+      tags: [Admin]
+      summary: Get health indicators
+      description: Health indicators from the observability module.
+      responses:
+        "200":
+          description: Health indicators
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthIndicators"
+
+  /api/admin/metrics/audit:
+    get:
+      tags: [Admin]
+      summary: Get audit chain health
+      description: Summary of audit log chain health (entry count, documents tracked, last entry time).
+      responses:
+        "200":
+          description: Audit metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditMetrics"

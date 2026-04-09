@@ -34,14 +34,17 @@ export default [
 
       // Code quality
       'no-redeclare': 'off',
-      'no-console': 'off',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-debugger': 'error',
       'no-duplicate-imports': 'error',
       'prefer-const': 'error',
       'no-var': 'error',
 
+      // TypeScript strictness
+      '@typescript-eslint/no-explicit-any': 'warn',
+
       // Contract enforcement
-      'max-lines': ['warn', { max: 200, skipBlankLines: true, skipComments: true }],
+      'max-lines': ['error', { max: 200, skipBlankLines: true, skipComments: true }],
     },
   },
   {

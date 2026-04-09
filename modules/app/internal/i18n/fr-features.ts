@@ -107,11 +107,20 @@ export const featureTranslations: Partial<TranslationKeys> = {
   'folders.deleteFailed': 'Échec de la suppression du dossier. Veuillez réessayer.',
 
   // Recherche globale
-  'search.global': 'Rechercher des documents',
-  'search.placeholder': 'Rechercher dans tous les documents...',
-  'search.noResults': 'Aucun document ne correspond \u00e0 votre recherche.',
+  'search.global': 'Tout rechercher',
+  'search.placeholder': 'Rechercher docs, feuilles, diaporamas...',
+  'search.noResults': 'Aucun r\u00e9sultat ne correspond \u00e0 votre recherche.',
   'search.searching': 'Recherche en cours...',
   'search.resultCount': '{count} r\u00e9sultat(s) trouv\u00e9(s)',
+  'search.shortcut': 'Appuyez sur {key} pour rechercher',
+  'search.tipTitle': 'Conseils de recherche',
+  'search.tipContent': 'Recherchez par titre dans les documents, feuilles de calcul et pr\u00e9sentations. Utilisez 2+ caract\u00e8res.',
+  'search.recentTitle': 'Recherches r\u00e9centes',
+  'search.clearRecent': 'Effacer',
+  'search.typeDocument': 'Document',
+  'search.typeSheet': 'Feuille de calcul',
+  'search.typeSlides': 'Pr\u00e9sentation',
+  'search.typeKb': 'Base de connaissances',
 
   // Mentions
   'mentions.placeholder': 'Saisir un nom...',
@@ -134,4 +143,43 @@ export const featureTranslations: Partial<TranslationKeys> = {
   'emoji.travel': 'Voyages et lieux',
   'emoji.objects': 'Objets',
   'emoji.symbols': 'Symboles',
+
+  // Paramètres du thème
+  'theme.mode': 'Apparence',
+  'theme.accentColor': 'Couleur d\u2019accent',
+  'theme.custom': 'Personnalisé',
+
+  // Barre latérale
+  'sidebar.workspace': 'Espace de travail',
+  'sidebar.recent': 'Récents',
+  'sidebar.starred': 'Favoris',
+  'sidebar.folders': 'Dossiers',
+  'sidebar.collapse': 'Réduire la barre latérale',
+  'sidebar.expand': 'Étendre la barre latérale',
+  'sidebar.noRecent': 'Aucun document récent',
+  'sidebar.noStarred': 'Aucun document favori',
+  'sidebar.quickSearch': 'Rechercher...',
+  'sidebar.unstar': 'Retirer des favoris',
+  'sidebar.star': 'Ajouter aux favoris',
+
+  // Notifications
+  'notifications.title': 'Notifications',
+  'notifications.empty': 'Aucune notification',
+  'notifications.markAllRead': 'Tout marquer comme lu',
+  'notifications.markRead': 'Marquer comme lu',
+  'notifications.dismiss': 'Ignorer',
+  'notifications.commentAdded': 'Nouveau commentaire sur \u00ab {title} \u00bb',
+  'notifications.documentShared': 'Document partagé avec vous',
+  'notifications.workflowTriggered': 'Flux de travail déclenché',
+  'notifications.kbUpdated': 'Article de la base de connaissances mis à jour',
+
+  // Hors ligne
+  'offline.offline': 'Hors ligne',
+  'offline.syncing': 'Synchronisation...',
+  'offline.synced': 'Synchronisé',
+  'offline.updateAvailable': 'Une nouvelle version est disponible.',
+  'offline.updateAction': 'Mettre à jour',
+  'offline.cachedDocs': 'Documents en cache affichés',
+  'offline.queuedChanges': '{count} modification(s) en attente',
+  'offline.badge': 'hors ligne',
 };

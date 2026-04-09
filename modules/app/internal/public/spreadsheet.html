@@ -19,19 +19,38 @@
         spellcheck="false"
       />
     </div>
+    <div class="toolbar-center" id="chart-toolbar-mount"></div>
     <div class="toolbar-right">
+      <div class="export-group">
+        <button id="sheet-import" class="export-btn" title="Import .xlsx, .ods, or .csv">Import</button>
+        <span class="toolbar-separator"></span>
+        <button id="sheet-export-csv" class="export-btn" title="Export as CSV">CSV</button>
+        <button id="sheet-export-xlsx" class="export-btn" title="Export as Excel">XLSX</button>
+        <button id="sheet-export-ods" class="export-btn" title="Export as OpenDocument">ODS</button>
+      </div>
+      <span class="toolbar-separator"></span>
+      <div class="dataset-group">
+        <button id="dataset-link-btn" class="export-btn" title="Link KB Dataset">Dataset</button>
+        <span id="dataset-indicator" class="dataset-indicator" hidden></span>
+      </div>
+      <span class="toolbar-separator"></span>
       <span id="status" class="status disconnected">Connecting...</span>
       <span class="users-label">Editors:</span>
       <span id="users" class="users">-</span>
     </div>
   </header>
+  <div id="format-bar-container"></div>
   <div id="formula-bar" class="formula-bar">
     <label class="formula-bar-cell" id="cell-ref">A1</label>
     <input id="formula-input" class="formula-bar-input" type="text" placeholder="Enter value or formula" />
   </div>
   <main class="spreadsheet-wrapper">
-    <div id="spreadsheet" class="spreadsheet-grid"></div>
+    <div class="spreadsheet-viewport">
+      <div id="spreadsheet" class="spreadsheet-grid"></div>
+      <div id="chart-container" class="chart-container"></div>
+    </div>
   </main>
+  <div id="sheet-tab-container"></div>
 
   <script src="spreadsheet.bundle.js?v=2"></script>
 </body>

@@ -1,0 +1,56 @@
+/** Contract: contracts/app/rules.md */
+
+/* Column header resize zone — visual cue on hover */
+.spreadsheet-grid .cell.header[data-col-header]:hover {
+  position: relative;
+}
+
+/* Resize overlay — covers viewport during drag */
+.resize-overlay {
+  user-select: none;
+}
+
+/* Row header hover highlight for resize zone */
+.spreadsheet-grid .cell.row-header[data-row-header]:hover {
+  position: relative;
+}
+
+/* --- Context Menu --- */
+
+.sheet-context-menu {
+  position: fixed;
+  z-index: 10000;
+  min-width: 11rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 0.25rem 0;
+  font-size: 0.8125rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+.sheet-context-menu-item {
+  display: block;
+  width: 100%;
+  padding: 0.4rem 0.75rem;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+  font-size: inherit;
+  font-family: inherit;
+  line-height: 1.4;
+  border-radius: 0;
+}
+
+.sheet-context-menu-item:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.sheet-context-menu-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}

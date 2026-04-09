@@ -39,7 +39,7 @@ export function createFolderRoutes(opts: FolderRoutesOptions): Router {
   const { permissions } = opts;
   const router = Router();
 
-  // List folders (root if no parentId)
+  // List folders (root if no parentId) — always filtered by principal's grants (see issue #66)
   router.get('/', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     const queryResult = ListFoldersQuery.safeParse(req.query);
     if (!queryResult.success) {
@@ -47,7 +47,13 @@ export function createFolderRoutes(opts: FolderRoutesOptions): Router {
       return;
     }
     const folders = await listFolders(queryResult.data.parentId ?? null);
-    res.json(folders);
+
+    const principal = req.principal!;
+    const grants = await permissions.grantStore.findByPrincipal(principal.id);
+    const allowedIds = new Set(
+      grants.filter((g) => g.resourceType === 'folder').map((g) => g.resourceId),
+    );
+    res.json(folders.filter((f) => allowedIds.has(f.id)));
   }));
 
   // Create folder — auto-grants owner role to creator

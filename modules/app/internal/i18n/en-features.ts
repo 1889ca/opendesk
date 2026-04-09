@@ -107,11 +107,20 @@ export const featureTranslations: Partial<TranslationKeys> = {
   'folders.deleteFailed': 'Failed to delete folder. Please try again.',
 
   // Global search
-  'search.global': 'Search documents',
-  'search.placeholder': 'Search all documents...',
-  'search.noResults': 'No documents match your search.',
+  'search.global': 'Search everything',
+  'search.placeholder': 'Search docs, sheets, slides...',
+  'search.noResults': 'No results match your search.',
   'search.searching': 'Searching...',
   'search.resultCount': '{count} result(s) found',
+  'search.shortcut': 'Press {key} to search',
+  'search.tipTitle': 'Search tips',
+  'search.tipContent': 'Search by title across documents, spreadsheets, and presentations. Use 2+ characters to start.',
+  'search.recentTitle': 'Recent searches',
+  'search.clearRecent': 'Clear',
+  'search.typeDocument': 'Document',
+  'search.typeSheet': 'Spreadsheet',
+  'search.typeSlides': 'Presentation',
+  'search.typeKb': 'Knowledge Base',
 
   // Mentions
   'mentions.placeholder': 'Type a name...',
@@ -134,4 +143,43 @@ export const featureTranslations: Partial<TranslationKeys> = {
   'emoji.travel': 'Travel & Places',
   'emoji.objects': 'Objects',
   'emoji.symbols': 'Symbols',
+
+  // Theme settings
+  'theme.mode': 'Appearance',
+  'theme.accentColor': 'Accent color',
+  'theme.custom': 'Custom',
+
+  // Workspace sidebar
+  'sidebar.workspace': 'Workspace',
+  'sidebar.recent': 'Recent',
+  'sidebar.starred': 'Starred',
+  'sidebar.folders': 'Folders',
+  'sidebar.collapse': 'Collapse sidebar',
+  'sidebar.expand': 'Expand sidebar',
+  'sidebar.noRecent': 'No recent documents',
+  'sidebar.noStarred': 'No starred documents',
+  'sidebar.quickSearch': 'Search...',
+  'sidebar.unstar': 'Unstar',
+  'sidebar.star': 'Star',
+
+  // Notifications
+  'notifications.title': 'Notifications',
+  'notifications.empty': 'No notifications',
+  'notifications.markAllRead': 'Mark all as read',
+  'notifications.markRead': 'Mark as read',
+  'notifications.dismiss': 'Dismiss',
+  'notifications.commentAdded': 'New comment on "{title}"',
+  'notifications.documentShared': 'Document shared with you',
+  'notifications.workflowTriggered': 'Workflow triggered',
+  'notifications.kbUpdated': 'Knowledge base entry updated',
+
+  // Offline
+  'offline.offline': 'Offline',
+  'offline.syncing': 'Syncing...',
+  'offline.synced': 'Synced',
+  'offline.updateAvailable': 'A new version is available.',
+  'offline.updateAction': 'Update now',
+  'offline.cachedDocs': 'Showing cached documents',
+  'offline.queuedChanges': '{count} change(s) queued',
+  'offline.badge': 'offline',
 };
