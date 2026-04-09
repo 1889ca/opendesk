@@ -7,6 +7,8 @@ export interface CoreTranslationKeys {
   'toolbar.italic': string;
   'toolbar.strike': string;
   'toolbar.code': string;
+  'toolbar.superscript': string;
+  'toolbar.subscript': string;
   'toolbar.heading1': string;
   'toolbar.heading2': string;
   'toolbar.heading3': string;

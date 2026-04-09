@@ -120,4 +120,16 @@ export const textIcons: Record<string, string> = {
     '<line x1="5" y1="4.5" x2="11" y2="4.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.35"/>' +
     '<line x1="5" y1="11.5" x2="11" y2="11.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.35"/>',
   ),
+  superscript: svg(
+    '<line x1="2" y1="13" x2="7" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+    '<line x1="7" y1="3" x2="12" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+    '<line x1="4" y1="9" x2="10" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+    '<path d="M12.5 3.5a1 1 0 012 0c0 .7-1 1.2-1 2h1" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>',
+  ),
+  subscript: svg(
+    '<line x1="2" y1="13" x2="7" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+    '<line x1="7" y1="3" x2="12" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+    '<line x1="4" y1="9" x2="10" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+    '<path d="M11.5 12.5a1 1 0 012 0c0 .7-1 1.2-1 2h1" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>',
+  ),
 };

@@ -39,6 +39,8 @@ function buildToolbarButtons(editor: Editor): ToolbarButton[] {
     { key: 'toolbar.italic', icon: 'italic', ariaKey: 'a11y.italicLabel', titleKey: 'shortcuts.italic', action: () => editor.chain().focus().toggleItalic().run(), isActive: () => editor.isActive('italic'), announceOnKey: 'a11y.italicOn', announceOffKey: 'a11y.italicOff' },
     { key: 'toolbar.strike', icon: 'strikethrough', ariaKey: 'a11y.strikeLabel', titleKey: 'shortcuts.strikethrough', action: () => editor.chain().focus().toggleStrike().run(), isActive: () => editor.isActive('strike'), announceOnKey: 'a11y.strikeOn', announceOffKey: 'a11y.strikeOff' },
     { key: 'toolbar.code', icon: 'inlineCode', ariaKey: 'a11y.codeLabel', titleKey: 'shortcuts.code', action: () => editor.chain().focus().toggleCode().run(), isActive: () => editor.isActive('code'), announceOnKey: 'a11y.codeOn', announceOffKey: 'a11y.codeOff' },
+    { key: 'toolbar.superscript', icon: 'superscript', ariaKey: 'a11y.superscriptLabel', titleKey: 'shortcuts.superscript', action: () => editor.chain().focus().toggleSuperscript().run(), isActive: () => editor.isActive('superscript') },
+    { key: 'toolbar.subscript', icon: 'subscript', ariaKey: 'a11y.subscriptLabel', titleKey: 'shortcuts.subscript', action: () => editor.chain().focus().toggleSubscript().run(), isActive: () => editor.isActive('subscript') },
     { key: null, action: () => false },
     // ── Headings ──────────────────────────────────────────────────────
     { key: 'toolbar.heading1', icon: 'heading1', ariaKey: 'a11y.heading1Label', titleKey: 'shortcuts.heading1', action: () => editor.chain().focus().toggleHeading({ level: 1 }).run(), isActive: () => editor.isActive('heading', { level: 1 }) },

@@ -7,6 +7,8 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'toolbar.italic': 'I',
   'toolbar.strike': 'S',
   'toolbar.code': 'Code',
+  'toolbar.superscript': 'Superscript',
+  'toolbar.subscript': 'Subscript',
   'toolbar.heading1': 'H1',
   'toolbar.heading2': 'H2',
   'toolbar.heading3': 'H3',
@@ -133,6 +135,8 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'a11y.alignJustifyLabel': 'Justify text',
   'a11y.indentLabel': 'Increase indent',
   'a11y.outdentLabel': 'Decrease indent',
+  'a11y.superscriptLabel': 'Superscript',
+  'a11y.subscriptLabel': 'Subscript',
 
   // Shortcuts
   'shortcuts.title': 'Keyboard Shortcuts',
@@ -160,6 +164,8 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'shortcuts.undo': 'Undo',
   'shortcuts.redo': 'Redo',
   'shortcuts.showShortcuts': 'Show keyboard shortcuts',
+  'shortcuts.superscript': 'Superscript',
+  'shortcuts.subscript': 'Subscript',
 
   // Stats
   'stats.word': '{count} word',

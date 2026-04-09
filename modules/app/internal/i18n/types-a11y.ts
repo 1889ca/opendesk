@@ -67,4 +67,8 @@ export interface A11yTranslationKeys {
   'a11y.alignJustifyLabel': string;
   'a11y.indentLabel': string;
   'a11y.outdentLabel': string;
+  'a11y.superscriptLabel': string;
+  'a11y.subscriptLabel': string;
+  'shortcuts.superscript': string;
+  'shortcuts.subscript': string;
 }

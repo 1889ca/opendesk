@@ -7,6 +7,8 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'toolbar.italic': 'I',
   'toolbar.strike': 'B',
   'toolbar.code': 'Code',
+  'toolbar.superscript': 'Exposant',
+  'toolbar.subscript': 'Indice',
   'toolbar.heading1': 'T1',
   'toolbar.heading2': 'T2',
   'toolbar.heading3': 'T3',
@@ -133,6 +135,8 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'a11y.alignJustifyLabel': 'Justifier le texte',
   'a11y.indentLabel': 'Augmenter le retrait',
   'a11y.outdentLabel': 'Diminuer le retrait',
+  'a11y.superscriptLabel': 'Exposant',
+  'a11y.subscriptLabel': 'Indice',
 
   // Raccourcis clavier
   'shortcuts.title': 'Raccourcis clavier',
@@ -160,6 +164,8 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'shortcuts.undo': 'Annuler',
   'shortcuts.redo': 'R\u00e9tablir',
   'shortcuts.showShortcuts': 'Afficher les raccourcis clavier',
+  'shortcuts.superscript': 'Superscript',
+  'shortcuts.subscript': 'Subscript',
 
   // Statistiques
   'stats.word': '{count} mot',

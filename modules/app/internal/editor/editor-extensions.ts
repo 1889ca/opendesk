@@ -2,6 +2,7 @@
 import type { AnyExtension } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { common, createLowlight } from 'lowlight';
 import Image from '@tiptap/extension-image';
@@ -30,6 +31,7 @@ import { FontSize } from './font-size.ts';
 import { LineHeight } from './line-height.ts';
 import { YHistory } from './y-history.ts';
 import { TextColor } from './text-color.ts';
+import { Superscript, Subscript } from './super-sub.ts';
 
 const lowlight = createLowlight(common);
 
@@ -73,7 +75,10 @@ export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
     FontSize,
     LineHeight,
     TextColor,
+    Superscript,
+    Subscript,
     YHistory,
     Underline,
+    Link.configure({ openOnClick: false, autolink: true }),
   ];
 }
