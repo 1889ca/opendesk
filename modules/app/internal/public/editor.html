@@ -6,42 +6,13 @@
   <title>OpenDesk</title>
   <link rel="stylesheet" href="editor.bundle.css">
   <link rel="stylesheet" href="entity-mentions.css">
-  <script>
-    // Apply stored theme immediately to prevent flash of wrong theme
-    (function() {
-      var stored = localStorage.getItem('opendesk-theme');
-      var theme = stored === 'dark' ? 'dark'
-        : stored === 'light' ? 'light'
-        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      document.documentElement.setAttribute('data-theme', theme);
-    })();
-  </script>
+  <script src="theme-init.js"></script>
 </head>
 <body>
-  <header class="toolbar" role="banner">
-    <div class="toolbar-left">
-      <a href="/" class="logo-link" aria-label="OpenDesk — back to documents">
-        <svg class="logo-mark logo-mark--sm" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-          <rect x="2" y="3" width="16" height="20" rx="2.5" fill="var(--accent)" opacity="0.9"/>
-          <path d="M14 3 L18 7 L18 23" fill="var(--accent-hover, var(--accent))" opacity="0.7"/>
-          <line x1="5" y1="10" x2="13" y2="10" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="5" y1="14" x2="13" y2="14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="5" y1="18" x2="10" y2="18" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-          <rect x="16" y="16" width="10" height="8" rx="1.5" fill="var(--accent)" opacity="0.85"/>
-          <line x1="18" y1="20" x2="24" y2="20" stroke="white" stroke-width="1.25" stroke-linecap="round"/>
-          <line x1="18" y1="22.5" x2="22" y2="22.5" stroke="white" stroke-width="1.25" stroke-linecap="round"/>
-        </svg>
-      </a>
-      <span class="breadcrumb-sep" aria-hidden="true">›</span>
-      <input
-        id="doc-title"
-        class="doc-title-input"
-        type="text"
-        value="Loading..."
-        spellcheck="false"
-      />
-    </div>
-    <div class="toolbar-right">
+  <div class="editor-top-chrome">
+  <header class="toolbar" id="app-toolbar">
+    <!-- Shared chrome (logo, title, status, users) injected by mountAppToolbar() in editor.ts -->
+    <div class="toolbar-actions-slot">
       <div class="export-group">
         <button id="import-file" class="btn btn-ghost btn-sm" title="Import .docx, .odt, or .pdf">Import</button>
         <span class="toolbar-separator"></span>
@@ -59,16 +30,11 @@
       <button id="ruler-toggle" class="btn btn-ghost btn-sm" title="Show or hide the document ruler" aria-pressed="true">Hide Ruler</button>
       <span class="toolbar-separator"></span>
       <button id="share-btn" class="btn btn-ghost btn-sm share-btn" title="Share this document">Share</button>
-      <span class="toolbar-separator"></span>
-      <span id="status" class="status disconnected">Connecting...</span>
-      <span class="users-section" id="users-section" hidden>
-        <span class="users-label">Editors:</span>
-        <span id="users" class="users"></span>
-      </span>
     </div>
   </header>
   <div id="formatting-toolbar" class="formatting-toolbar"></div>
   <div id="ruler-h" class="ruler-h" aria-hidden="true"></div>
+  </div><!-- /.editor-top-chrome -->
   <main class="editor-wrapper" role="main" aria-label="Document editor">
     <div id="editor"></div>
   </main>

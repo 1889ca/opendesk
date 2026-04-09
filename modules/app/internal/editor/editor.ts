@@ -39,6 +39,7 @@ import {
   setConnectionState,
   flushQueue,
 } from '../offline/index.ts';
+import { mountAppToolbar } from '../shared/app-toolbar.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -201,6 +202,7 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  mountAppToolbar({ usersHidden: true });
   initEditorPage();
   init();
 });

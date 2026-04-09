@@ -1,5 +1,12 @@
 /* Toolbar — main header bar and formatting toolbar */
 
+/* Sticky chrome wrapper: keeps toolbar + formatting bar + ruler pinned at top */
+.editor-top-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
 .toolbar {
   display: flex;
   align-items: center;
@@ -131,6 +138,11 @@
   width: 1px;
   height: 1.25rem;
   background: var(--border);
+}
+
+/* Transparent wrapper — lets toolbar-right's flex layout apply directly to slot children */
+.toolbar-actions-slot {
+  display: contents;
 }
 
 /* Formatting Toolbar */
