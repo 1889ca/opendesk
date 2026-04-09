@@ -93,8 +93,14 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
     app.use(createTelemetryMiddleware(observability, config.observability.sampleRate));
   }
 
-  // BibTeX/RIS text body parser — after auth, before reference routes
-  app.use(express.text({ type: ['application/x-bibtex', 'application/x-ris'] }));
+  // BibTeX/RIS text body parser — after auth, before reference routes.
+  // Explicit 1 MB cap so a giant body can't exhaust memory before the
+  // route handler runs (review-2026-04-08 MED-4). The route also caps
+  // the parsed entry count.
+  app.use(express.text({
+    type: ['application/x-bibtex', 'application/x-ris'],
+    limit: '1mb',
+  }));
 
   // Collabora convert routes (import/export binary formats) — after auth
   app.use(createConvertRoutes({ permissions }));

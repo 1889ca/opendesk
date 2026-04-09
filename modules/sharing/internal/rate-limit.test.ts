@@ -10,7 +10,20 @@ import {
 // an underlying window engine — this suite covers both shapes.
 
 describe('createInMemoryPasswordRateLimiter (per-token)', () => {
-  it('allows attempts up to maxAttempts within the window', async () => {
+  it('consume() returns true up to maxAttempts and false after', async () => {
+    const rl = createInMemoryPasswordRateLimiter({ maxAttempts: 3, windowSeconds: 60 });
+
+    // The MED-3 fix: consume() is the atomic INCR-then-check primitive
+    // that replaces check + record. After 3 successful consumes the
+    // 4th attempt fails.
+    expect(await rl.consume('token-a')).toBe(true);
+    expect(await rl.consume('token-a')).toBe(true);
+    expect(await rl.consume('token-a')).toBe(true);
+    expect(await rl.consume('token-a')).toBe(false);
+    expect(await rl.consume('token-a')).toBe(false);
+  });
+
+  it('allows attempts up to maxAttempts within the window (legacy check/record)', async () => {
     const rl = createInMemoryPasswordRateLimiter({ maxAttempts: 3, windowSeconds: 60 });
 
     expect(await rl.check('token-a')).toBe(true);
@@ -42,7 +55,16 @@ describe('createInMemoryPasswordRateLimiter (per-token)', () => {
 });
 
 describe('createInMemoryShareResolveRateLimiter (per-IP, issue #135)', () => {
-  it('allows attempts up to maxAttempts per source IP', async () => {
+  it('consume() returns true up to maxAttempts and false after', async () => {
+    const rl = createInMemoryShareResolveRateLimiter({ maxAttempts: 3, windowSeconds: 60 });
+
+    expect(await rl.consume('1.2.3.4')).toBe(true);
+    expect(await rl.consume('1.2.3.4')).toBe(true);
+    expect(await rl.consume('1.2.3.4')).toBe(true);
+    expect(await rl.consume('1.2.3.4')).toBe(false);
+  });
+
+  it('allows attempts up to maxAttempts per source IP (legacy check/record)', async () => {
     const rl = createInMemoryShareResolveRateLimiter({ maxAttempts: 3, windowSeconds: 60 });
 
     expect(await rl.check('1.2.3.4')).toBe(true);

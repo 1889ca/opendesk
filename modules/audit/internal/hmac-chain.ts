@@ -1,6 +1,6 @@
 /** Contract: contracts/audit/rules.md */
 
-import { createHmac } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import type { AuditEntry } from '../contract.ts';
 
 export type HashFields = {
@@ -31,6 +31,11 @@ export function computeHash(fields: HashFields, secret: string): string {
 
 /**
  * Verify that an audit entry's hash matches recomputation.
+ *
+ * Uses constant-time comparison so a timing side-channel can't leak
+ * information about the correct hash byte-by-byte (review-2026-04-08
+ * MED-1). String === in JavaScript may short-circuit on the first
+ * differing character.
  */
 export function verifyHash(entry: AuditEntry, secret: string): boolean {
   const expected = computeHash(
@@ -44,5 +49,14 @@ export function verifyHash(entry: AuditEntry, secret: string): boolean {
     },
     secret,
   );
-  return expected === entry.hash;
+
+  // Reject mismatched lengths fast — timingSafeEqual throws on
+  // mismatched-length buffers, and a length mismatch can't be a
+  // legitimate equal hash anyway.
+  if (expected.length !== entry.hash.length) return false;
+
+  const a = Buffer.from(expected, 'hex');
+  const b = Buffer.from(entry.hash, 'hex');
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
 }

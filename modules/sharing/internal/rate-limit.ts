@@ -17,7 +17,16 @@ import type { Redis } from 'ioredis';
  */
 
 export type PasswordRateLimiter = {
-  /** Check if a new attempt is allowed for this token. */
+  /**
+   * Atomically count this attempt and return whether the request is
+   * allowed. Returns true if the post-increment count is at or below
+   * the threshold, false otherwise. Use this in preference to the
+   * separate check/record pair — review-2026-04-08 MED-3 flagged the
+   * check-then-record pattern as a TOCTOU race that lets concurrent
+   * requests overshoot the limit.
+   */
+  consume(token: string): Promise<boolean>;
+  /** Check if a new attempt is allowed for this token (no increment). */
   check(token: string): Promise<boolean>;
   /** Record a failed password attempt. */
   record(token: string): Promise<void>;
@@ -58,7 +67,21 @@ function createWindowRateLimiter(
     return `${keyPrefix}${id}`;
   }
 
+  async function incr(id: string): Promise<number> {
+    const key = redisKey(id);
+    const count = await redis.incr(key);
+    if (count === 1) {
+      await redis.expire(key, windowSeconds);
+    }
+    return count;
+  }
+
   return {
+    async consume(id) {
+      const count = await incr(id);
+      return count <= maxAttempts;
+    },
+
     async check(id) {
       const key = redisKey(id);
       const current = await redis.get(key);
@@ -67,11 +90,7 @@ function createWindowRateLimiter(
     },
 
     async record(id) {
-      const key = redisKey(id);
-      const count = await redis.incr(key);
-      if (count === 1) {
-        await redis.expire(key, windowSeconds);
-      }
+      await incr(id);
     },
 
     async reset(id) {
@@ -141,7 +160,22 @@ function createInMemoryRateLimiter(
     return entry;
   }
 
+  function incr(id: string): number {
+    const entry = getEntry(id);
+    if (entry) {
+      entry.count += 1;
+      return entry.count;
+    }
+    attempts.set(id, { count: 1, firstAttemptAt: Date.now() });
+    return 1;
+  }
+
   return {
+    async consume(id) {
+      const count = incr(id);
+      return count <= maxAttempts;
+    },
+
     async check(id) {
       const entry = getEntry(id);
       if (!entry) return true;
@@ -149,12 +183,7 @@ function createInMemoryRateLimiter(
     },
 
     async record(id) {
-      const entry = getEntry(id);
-      if (entry) {
-        entry.count += 1;
-      } else {
-        attempts.set(id, { count: 1, firstAttemptAt: Date.now() });
-      }
+      incr(id);
     },
 
     async reset(id) {

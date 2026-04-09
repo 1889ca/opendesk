@@ -82,27 +82,28 @@ export function createShareRoutes(opts: ShareRoutesOptions): Router {
     // Issue #135: rate-limit anonymous resolve attempts by source IP
     // BEFORE any other work. Token enumeration (random tokens) bypasses
     // the per-token password limiter because each guess is a different
-    // key; this per-IP cap slows blind enumeration regardless of which
-    // token is being tried. INCR-on-attempt: every resolve costs a hit
-    // even on success, but the threshold (20/min) is generous enough
-    // for legitimate use.
+    // key; this per-IP cap slows blind enumeration.
+    //
+    // review-2026-04-08 MED-3: use consume() (atomic INCR-then-check)
+    // instead of the previous check-then-record pair, which had a
+    // TOCTOU race that let concurrent requests overshoot the limit.
     if (resolveRateLimiter) {
       const ip = req.ip ?? req.socket.remoteAddress ?? 'unknown';
-      const allowed = await resolveRateLimiter.check(ip);
+      const allowed = await resolveRateLimiter.consume(ip);
       if (!allowed) {
         res.status(429).json({ error: 'too_many_attempts', retryAfterSeconds: 60 });
         return;
       }
-      await resolveRateLimiter.record(ip);
     }
 
     await runAsSystem(async () => {
     const token = String(req.params.token);
     const password = req.body?.password as string | undefined;
 
-    // Rate-limit password attempts per token
+    // Rate-limit password attempts per token. Same MED-3 fix:
+    // consume() is atomic; check() alone races.
     if (password !== undefined) {
-      const allowed = await rateLimiter.check(token);
+      const allowed = await rateLimiter.consume(token);
       if (!allowed) {
         res.status(429).json({ error: 'too_many_attempts', retryAfterSeconds: 60 });
         return;
@@ -119,9 +120,12 @@ export function createShareRoutes(opts: ShareRoutesOptions): Router {
     }
 
     if (!result.ok) {
-      if (result.reason === 'wrong_password') {
-        await rateLimiter.record(token);
-      }
+      // Note: we no longer call rateLimiter.record() on wrong_password
+      // because consume() above already incremented the counter when
+      // the request was admitted. The previous code path
+      // (check + record-on-failure) had a TOCTOU race; the new
+      // consume() pattern counts every attempt, which is exactly
+      // what we want for password brute force.
 
       const statusMap = {
         not_found: 404,

@@ -1,7 +1,20 @@
 /** Contract: contracts/erasure/rules.md */
 
-import { createHmac } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import type { ErasureBridge, SelectiveDisclosureProof } from '../contract.ts';
+
+/**
+ * Constant-time hex string comparison. Aligned with the audit
+ * chain's verifyHash (review-2026-04-08 MED-1) — `===` on hex
+ * strings can leak timing information.
+ */
+function timingSafeHexEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  const aBuf = Buffer.from(a, 'hex');
+  const bBuf = Buffer.from(b, 'hex');
+  if (aBuf.length !== bBuf.length) return false;
+  return timingSafeEqual(aBuf, bBuf);
+}
 
 export type BridgeHashFields = {
   documentId: string;
@@ -42,7 +55,7 @@ export function verifyBridgeHash(bridge: ErasureBridge, secret: string): boolean
     },
     secret,
   );
-  return expected === bridge.bridgeHash;
+  return timingSafeHexEqual(expected, bridge.bridgeHash);
 }
 
 export type ProofHashFields = {
@@ -81,5 +94,5 @@ export function verifyProofHash(proof: SelectiveDisclosureProof, secret: string)
     },
     secret,
   );
-  return expected === proof.proofHash;
+  return timingSafeHexEqual(expected, proof.proofHash);
 }

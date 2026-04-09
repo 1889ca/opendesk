@@ -1,6 +1,7 @@
 /** Contract: contracts/api/rules.md */
 
 import { Router, type Request, type Response } from 'express';
+import { z } from 'zod';
 import {
   deleteDocument as defaultDeleteDocument,
   runAsSystem,
@@ -8,6 +9,8 @@ import {
 import type { PermissionsModule } from '../../permissions/index.ts';
 import type { CacheClient } from './redis.ts';
 import { asyncHandler } from './async-handler.ts';
+
+const TransferToSchema = z.string().uuid();
 
 export type StorageFns = {
   deleteDocument: (id: string) => Promise<boolean>;
@@ -55,7 +58,7 @@ export function createAdminRoutes(opts: AdminRoutesOptions): Router {
 
       const userId = String(req.params.id);
       const action = (req.query.action as string) || 'delete';
-      const transferTo = req.query.transferTo as string | undefined;
+      const rawTransferTo = req.query.transferTo as string | undefined;
 
       if (action !== 'delete' && action !== 'transfer') {
         res.status(400).json({
@@ -64,11 +67,26 @@ export function createAdminRoutes(opts: AdminRoutesOptions): Router {
         return;
       }
 
-      if (action === 'transfer' && !transferTo) {
-        res.status(400).json({
-          error: 'transferTo is required when action is "transfer"',
-        });
-        return;
+      // review-2026-04-08 MED-2: validate transferTo as a UUID before
+      // it becomes a principalId on a created grant. Without this an
+      // attacker (or fat-finger) could create grants referencing a
+      // non-existent principal string.
+      let transferTo: string | undefined;
+      if (action === 'transfer') {
+        if (!rawTransferTo) {
+          res.status(400).json({
+            error: 'transferTo is required when action is "transfer"',
+          });
+          return;
+        }
+        const parsed = TransferToSchema.safeParse(rawTransferTo);
+        if (!parsed.success) {
+          res.status(400).json({
+            error: 'transferTo must be a valid UUID',
+          });
+          return;
+        }
+        transferTo = parsed.data;
       }
 
       // GDPR-style purge crosses user boundaries when cleaning up
