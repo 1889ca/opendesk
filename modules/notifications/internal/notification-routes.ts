@@ -1,9 +1,9 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/notifications/rules.md */
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
-import type { NotificationStore } from '../../notifications/contract.ts';
+import type { NotificationStore } from '../contract.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import { asyncHandler } from './async-handler.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
 
 const ListQuery = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
