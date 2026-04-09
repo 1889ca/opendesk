@@ -62,11 +62,27 @@ export function drawRulerTicks(
     ctx.moveTo(x, h - tickH);
     ctx.lineTo(x, h);
     ctx.stroke();
-    if (isMajor && i > 0 && x > leftMargin + 6 && x < contentEnd - 6) {
-      const relCm = Math.round((x - leftMargin) / CM_PX);
-      if (relCm > 0) ctx.fillText(String(relCm), x, 2);
+    if (isMajor && i > 0) {
+      // Labels inside content area: positive cm values
+      if (x > leftMargin + 6 && x < contentEnd - 6) {
+        const relCm = Math.round((x - leftMargin) / CM_PX);
+        if (relCm > 0) ctx.fillText(String(relCm), x, 2);
+      }
+      // Labels in left margin area: negative values relative to margin
+      if (x < leftMargin - 6) {
+        const negCm = Math.round((x - leftMargin) / CM_PX);
+        if (negCm < 0) ctx.fillText(String(negCm), x, 2);
+      }
     }
   }
+
+  // Unit label — "cm" near the left of the tick area
+  ctx.textAlign = 'right';
+  ctx.fillStyle = muted;
+  ctx.globalAlpha = 0.55;
+  ctx.fillText('cm', leftMargin - 4, 2);
+  ctx.globalAlpha = 1;
+  ctx.textAlign = 'center';
 
   // Margin boundary indicators
   ctx.strokeStyle = accent;

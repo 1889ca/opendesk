@@ -25,6 +25,8 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   box-shadow: 0 2px 8px var(--shadow-color), 0 8px 32px var(--shadow-medium);
   min-height: calc(100vh - 120px);
   padding: 4rem 5rem;
+  transform: scale(var(--editor-zoom, 1));
+  transform-origin: top center;
 }
 
 .editor-content {
@@ -61,7 +63,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 }
 
 .editor-content p {
-  margin: 0.5rem 0;
+  margin: var(--editor-para-spacing, 0.5rem) 0;
 }
 
 .editor-content ul,
@@ -172,6 +174,31 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 [data-theme="dark"] #editor {
   --text: #1a1a1a;
   color: #1a1a1a;
+}
+
+/* Canvas document title — displayed above the editor paper, Google Docs style */
+.editor-canvas-title-wrap {
+  width: 100%;
+  max-width: 56rem;
+  margin-bottom: 0.5rem;
+}
+
+.editor-canvas-title {
+  width: 100%;
+  font-size: 2rem;
+  font-weight: 700;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  padding: 0.5rem 5rem;
+  letter-spacing: -0.02em;
+  box-sizing: border-box;
+}
+
+.editor-canvas-title::placeholder {
+  color: var(--text-muted);
+  opacity: 0.5;
 }
 
 /* Collaboration cursors */

@@ -162,6 +162,23 @@ function setupExportDropdown(): void {
   });
 }
 
+function setupCanvasTitleSync(): void {
+  const canvasTitle = document.getElementById('canvas-doc-title') as HTMLInputElement | null;
+  const toolbarTitle = document.getElementById('doc-title') as HTMLInputElement | null;
+  if (!canvasTitle || !toolbarTitle) return;
+
+  canvasTitle.value = toolbarTitle.value;
+
+  toolbarTitle.addEventListener('input', () => {
+    canvasTitle.value = toolbarTitle.value;
+  });
+
+  canvasTitle.addEventListener('input', () => {
+    toolbarTitle.value = canvasTitle.value;
+    toolbarTitle.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+}
+
 export function initEditorPage(): void {
   const docId = getDocumentId();
   if (docId === 'default') {
@@ -174,4 +191,5 @@ export function initEditorPage(): void {
   setupImport(docId);
   setupShareDialog(docId);
   setupExportDropdown();
+  setupCanvasTitleSync();
 }

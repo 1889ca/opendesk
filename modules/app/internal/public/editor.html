@@ -29,6 +29,12 @@
       <span class="toolbar-separator"></span>
       <button id="ruler-toggle" class="btn btn-ghost btn-sm" title="Show or hide the document ruler" aria-pressed="true">Hide Ruler</button>
       <span class="toolbar-separator"></span>
+      <div class="zoom-control" id="zoom-control">
+        <button class="btn btn-ghost btn-sm zoom-btn" id="zoom-out" title="Zoom out (−)">−</button>
+        <span id="zoom-level" class="zoom-level">100%</span>
+        <button class="btn btn-ghost btn-sm zoom-btn" id="zoom-in" title="Zoom in (+)">+</button>
+      </div>
+      <span class="toolbar-separator"></span>
       <button id="share-btn" class="btn btn-ghost btn-sm share-btn" title="Share this document">Share</button>
     </div>
   </header>
@@ -36,6 +42,9 @@
   <div id="ruler-h" class="ruler-h" aria-hidden="true"></div>
   </div><!-- /.editor-top-chrome -->
   <main class="editor-wrapper" role="main" aria-label="Document editor">
+    <div class="editor-canvas-title-wrap">
+      <input type="text" id="canvas-doc-title" class="editor-canvas-title" placeholder="Untitled document" aria-label="Document title" spellcheck="false">
+    </div>
     <div id="editor"></div>
   </main>
 
