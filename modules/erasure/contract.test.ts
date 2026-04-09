@@ -1,136 +1,186 @@
 /** Contract: contracts/erasure/rules.md */
 import { describe, it, expect } from 'vitest';
 import {
-  TombstoneEntrySchema,
-  TombstoneReportSchema,
-  ErasureAttestationSchema,
-  RedactionResultSchema,
-  CascadeResultSchema,
+  ErasureBridgeSchema,
+  ChainVerifyResultSchema,
+  SelectiveDisclosureProofSchema,
+  LegalHoldSchema,
+  ErasureConflictSchema,
+  JurisdictionPolicySchema,
 } from './contract.ts';
 
-const validAttestation = {
+const validBridge = {
   id: '550e8400-e29b-41d4-a716-446655440000',
-  docId: 'doc-123',
-  type: 'redaction',
-  actorId: 'user-1',
-  legalBasis: 'GDPR Art. 17',
-  details: 'Redacted 3 items matching userId=user-2',
-  hash: 'a'.repeat(64),
-  previousHash: null,
-  issuedAt: '2026-04-07T12:00:00.000Z',
+  documentId: 'doc-123',
+  attestationId: 'att-456',
+  preErasureHash: 'a'.repeat(64),
+  postErasureHash: 'b'.repeat(64),
+  legalBasis: 'GDPR_ART_17',
+  jurisdiction: 'EU',
+  actorId: 'admin-1',
+  bridgeHash: 'c'.repeat(64),
+  createdAt: '2026-04-08T12:00:00.000Z',
 };
 
-describe('TombstoneEntrySchema', () => {
-  it('parses a valid tombstone entry', () => {
-    const result = TombstoneEntrySchema.safeParse({
-      itemId: '1234:5',
-      content: 'deleted text',
-      deletedAt: null,
-      deletedBy: '1234',
-      crdtType: 'text',
-    });
-    expect(result.success).toBe(true);
+describe('ErasureBridgeSchema', () => {
+  it('parses a valid bridge', () => {
+    expect(ErasureBridgeSchema.safeParse(validBridge).success).toBe(true);
   });
 
-  it('rejects invalid crdtType', () => {
-    const result = TombstoneEntrySchema.safeParse({
-      itemId: '1234:5',
-      content: 'text',
-      deletedAt: null,
-      deletedBy: null,
-      crdtType: 'unknown',
-    });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe('TombstoneReportSchema', () => {
-  it('parses a valid report', () => {
-    const result = TombstoneReportSchema.safeParse({
-      docId: 'doc-123',
-      tombstones: [],
-      extractedAt: '2026-04-07T12:00:00.000Z',
-    });
-    expect(result.success).toBe(true);
+  it('accepts null jurisdiction', () => {
+    expect(ErasureBridgeSchema.safeParse({ ...validBridge, jurisdiction: null }).success).toBe(true);
   });
 
-  it('rejects invalid extractedAt', () => {
-    const result = TombstoneReportSchema.safeParse({
-      docId: 'doc-123',
-      tombstones: [],
-      extractedAt: 'not-a-date',
-    });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe('ErasureAttestationSchema', () => {
-  it('parses a valid attestation', () => {
-    const result = ErasureAttestationSchema.safeParse(validAttestation);
-    expect(result.success).toBe(true);
+  it('rejects invalid hash format', () => {
+    expect(ErasureBridgeSchema.safeParse({ ...validBridge, bridgeHash: 'short' }).success).toBe(false);
   });
 
-  it('accepts chained attestation', () => {
-    const result = ErasureAttestationSchema.safeParse({
-      ...validAttestation,
-      previousHash: 'b'.repeat(64),
-    });
-    expect(result.success).toBe(true);
+  it('rejects invalid legal basis', () => {
+    expect(ErasureBridgeSchema.safeParse({ ...validBridge, legalBasis: 'MADE_UP' }).success).toBe(false);
   });
 
   it('rejects invalid UUID', () => {
-    const result = ErasureAttestationSchema.safeParse({
-      ...validAttestation,
-      id: 'not-a-uuid',
+    expect(ErasureBridgeSchema.safeParse({ ...validBridge, id: 'not-uuid' }).success).toBe(false);
+  });
+});
+
+describe('ChainVerifyResultSchema', () => {
+  it('parses VALID result', () => {
+    const result = ChainVerifyResultSchema.safeParse({
+      documentId: 'doc-123',
+      totalEntries: 10,
+      status: 'VALID',
+      erasureBridgeCount: 0,
+      brokenAtId: null,
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
-  it('rejects invalid hash', () => {
-    const result = ErasureAttestationSchema.safeParse({
-      ...validAttestation,
-      hash: 'short',
+  it('parses VALID_WITH_ERASURES result', () => {
+    const result = ChainVerifyResultSchema.safeParse({
+      documentId: 'doc-123',
+      totalEntries: 10,
+      status: 'VALID_WITH_ERASURES',
+      erasureBridgeCount: 2,
+      brokenAtId: null,
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
-  it('rejects empty legalBasis', () => {
-    const result = ErasureAttestationSchema.safeParse({
-      ...validAttestation,
-      legalBasis: '',
+  it('parses TAMPERED result', () => {
+    const result = ChainVerifyResultSchema.safeParse({
+      documentId: 'doc-123',
+      totalEntries: 5,
+      status: 'TAMPERED',
+      erasureBridgeCount: 0,
+      brokenAtId: '550e8400-e29b-41d4-a716-446655440000',
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
-  it('rejects invalid erasure type', () => {
-    const result = ErasureAttestationSchema.safeParse({
-      ...validAttestation,
-      type: 'invalid_type',
+  it('rejects invalid status', () => {
+    const result = ChainVerifyResultSchema.safeParse({
+      documentId: 'doc-123',
+      totalEntries: 5,
+      status: 'UNKNOWN',
+      erasureBridgeCount: 0,
+      brokenAtId: null,
     });
     expect(result.success).toBe(false);
   });
 });
 
-describe('RedactionResultSchema', () => {
-  it('parses a valid result', () => {
-    const result = RedactionResultSchema.safeParse({
-      docId: 'doc-123',
-      redactedCount: 3,
-      attestation: validAttestation,
+describe('LegalHoldSchema', () => {
+  const validHold = {
+    id: '550e8400-e29b-41d4-a716-446655440000',
+    documentId: 'doc-123',
+    holdType: 'litigation',
+    authority: 'Court of Appeals',
+    reason: 'Pending case #12345',
+    actorId: 'admin-1',
+    startedAt: '2026-04-08T12:00:00.000Z',
+    expiresAt: null,
+    releasedAt: null,
+    releasedBy: null,
+  };
+
+  it('parses a valid hold', () => {
+    expect(LegalHoldSchema.safeParse(validHold).success).toBe(true);
+  });
+
+  it('accepts all hold types', () => {
+    for (const holdType of ['litigation', 'regulatory', 'ediscovery']) {
+      expect(LegalHoldSchema.safeParse({ ...validHold, holdType }).success).toBe(true);
+    }
+  });
+
+  it('rejects invalid hold type', () => {
+    expect(LegalHoldSchema.safeParse({ ...validHold, holdType: 'custom' }).success).toBe(false);
+  });
+});
+
+describe('ErasureConflictSchema', () => {
+  it('parses a blocking conflict', () => {
+    const result = ErasureConflictSchema.safeParse({
+      type: 'LEGAL_HOLD',
+      holdId: '550e8400-e29b-41d4-a716-446655440000',
+      authority: 'Court',
+      blocking: true,
+      message: 'Blocked by litigation hold',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('parses a non-blocking conflict', () => {
+    const result = ErasureConflictSchema.safeParse({
+      type: 'ACTIVE_EDISCOVERY',
+      holdId: '550e8400-e29b-41d4-a716-446655440000',
+      authority: 'Legal team',
+      blocking: false,
+      message: 'Override required',
     });
     expect(result.success).toBe(true);
   });
 });
 
-describe('CascadeResultSchema', () => {
-  it('parses a valid cascade result', () => {
-    const result = CascadeResultSchema.safeParse({
-      sourceEntryId: 'kb-1',
-      affectedDocuments: ['doc-1', 'doc-2'],
-      notificationsSent: 2,
-      attestation: validAttestation,
+describe('JurisdictionPolicySchema', () => {
+  it('parses a valid policy', () => {
+    const result = JurisdictionPolicySchema.safeParse({
+      jurisdiction: 'EU',
+      legalBasis: 'GDPR_ART_17',
+      erasureDeadlineDays: 30,
+      description: 'Right to erasure',
     });
     expect(result.success).toBe(true);
   });
 });
 
+describe('SelectiveDisclosureProofSchema', () => {
+  it('parses a valid proof', () => {
+    const result = SelectiveDisclosureProofSchema.safeParse({
+      documentId: 'doc-123',
+      timestamp: '2026-04-08T12:00:00.000Z',
+      hashAtPoint: 'a'.repeat(64),
+      entryId: '550e8400-e29b-41d4-a716-446655440000',
+      chainPosition: 5,
+      totalChainLength: 10,
+      erasureBridges: [],
+      proofHash: 'b'.repeat(64),
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('parses proof with bridges', () => {
+    const result = SelectiveDisclosureProofSchema.safeParse({
+      documentId: 'doc-123',
+      timestamp: '2026-04-08T12:00:00.000Z',
+      hashAtPoint: 'a'.repeat(64),
+      entryId: '550e8400-e29b-41d4-a716-446655440000',
+      chainPosition: 5,
+      totalChainLength: 10,
+      erasureBridges: [validBridge],
+      proofHash: 'b'.repeat(64),
+    });
+    expect(result.success).toBe(true);
+  });
+});

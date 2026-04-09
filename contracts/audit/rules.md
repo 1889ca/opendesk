@@ -65,6 +65,10 @@ Implemented:
 - [x] Offline proof verification (no DB needed, just proof bundle + HMAC secret)
 - [x] API endpoints: GET /proof/:documentId, GET /proof/:documentId/summary, POST /proof/verify
 - [x] 5 tests covering valid chains, tampered entries, broken links, wrong secrets, empty chains
+
+## Related Modules
+
+- `erasure` -- Extends chain verification with erasure-bridge awareness. The erasure module reads `audit_log` data and uses `computeHash`/`verifyHash` from `hmac-chain.ts` to validate chains across content deletions. The audit module itself remains append-only and unmodified.
 ## MVP Scope
 
 Implemented:
