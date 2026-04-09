@@ -10,6 +10,7 @@ export {
   MoveToFolderConfigSchema, type MoveToFolderConfig,
   ChangeStatusConfigSchema, type ChangeStatusConfig,
   SendEmailConfigSchema, type SendEmailConfig,
+  WasmPluginConfigSchema, type WasmPluginConfig,
   ConditionOperatorSchema, type ConditionOperator,
   ConditionConfigSchema, type ConditionConfig,
 } from './internal/config-schemas.ts';
@@ -28,6 +29,7 @@ export type TriggerType = z.infer<typeof TriggerTypeSchema>;
 export const ActionTypeSchema = z.enum([
   'webhook', 'export', 'notify',
   'set_metadata', 'move_to_folder', 'change_status', 'send_email',
+  'wasm_plugin',
 ]);
 
 export type ActionType = z.infer<typeof ActionTypeSchema>;

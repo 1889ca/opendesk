@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Event-driven workflow engine with visual graph editor, conditional branching, and auditable execution logs. Documents can have workflows composed of trigger, condition, and action nodes connected in a directed graph.
+Event-driven workflow engine with visual graph editor, conditional branching, auditable execution logs, and Wasm-sandboxed plugin integrations. Documents can have workflows composed of trigger, condition, and action nodes connected in a directed graph. The `wasm_plugin` action type executes user-provided or built-in Wasm modules in a sandboxed environment with memory limits and CPU timeouts.
 
 ## Inputs
 
@@ -24,10 +24,11 @@ Event-driven workflow engine with visual graph editor, conditional branching, an
 
 ## Side Effects
 
-- Writes to `workflow_definitions`, `workflow_executions`, and `workflow_execution_steps` PG tables
+- Writes to `workflow_definitions`, `workflow_executions`, `workflow_execution_steps`, and `wasm_plugins` PG tables
 - Subscribes to EventBus consumer group "workflow" for trigger matching
-- Executes webhook HTTP calls, export requests, notification side effects, metadata updates, folder moves, status changes, and email sends
+- Executes webhook HTTP calls, export requests, notification side effects, metadata updates, folder moves, status changes, email sends, and Wasm plugin invocations
 - Emits `WorkflowTriggered` and `WorkflowCompleted` events via EventBus
+- Seeds built-in Wasm plugins (text-transformer, json-validator, word-counter) on startup
 
 ## Invariants
 
@@ -38,6 +39,10 @@ Event-driven workflow engine with visual graph editor, conditional branching, an
 - Every node evaluation is recorded as an execution step with input/output and duration
 - Failed actions record the error message but do not retry (at-least-once delivery from EventBus handles redelivery)
 - Webhook actions timeout after 10 seconds
+- Wasm plugin executions are sandboxed: 16MB memory limit, 5s CPU timeout, no filesystem or network access
+- Wasm plugin output is merged into event context for downstream nodes (keyed by `node_<id>`)
+- Built-in plugins use native JS executors; user-uploaded plugins run in WebAssembly sandbox
+- Compiled Wasm modules are cached in memory for performance
 - Condition nodes produce boolean results that determine which branch to follow
 - Parallel split nodes execute all outgoing branches concurrently
 - Permission checks enforce 'manage' for create/update/delete, 'read' for list/get
@@ -61,6 +66,10 @@ Event-driven workflow engine with visual graph editor, conditional branching, an
 - MUST NOT: execute workflows for inactive definitions
 - MUST NOT: include document content in webhook payloads (thin events only)
 - MUST NOT: block the event consumer on slow webhook calls (async execution)
+- MUST: validate Wasm binaries with WebAssembly.validate before storing
+- MUST: enforce memory and timeout limits on all Wasm executions
+- MUST: prevent built-in plugins from being deleted
+- MUST NOT: give Wasm modules access to host functions, filesystem, or network
 
 ## Verification
 

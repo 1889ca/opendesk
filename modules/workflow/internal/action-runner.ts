@@ -10,6 +10,7 @@ import type {
   ChangeStatusConfig,
   SendEmailConfig,
 } from '../contract.ts';
+import type { WasmPluginConfig } from './plugin-types.ts';
 import { createLogger } from '../../logger/index.ts';
 import { httpFetch } from '../../http/index.ts';
 
@@ -79,33 +80,52 @@ function runSendEmail(config: SendEmailConfig, event: DomainEvent): void {
   });
 }
 
+/** Options for running actions that may need DB access (wasm_plugin) */
+export type ActionRunnerOptions = {
+  pool?: import('pg').Pool;
+  eventContext?: Record<string, unknown>;
+};
+
 export async function runAction(
   actionType: ActionType,
   actionConfig: Record<string, unknown>,
   event: DomainEvent,
-): Promise<void> {
+  options?: ActionRunnerOptions,
+): Promise<Record<string, unknown> | void> {
   switch (actionType) {
     case 'webhook':
       await runWebhook(actionConfig as unknown as WebhookConfig, event);
-      break;
+      return;
     case 'export':
       runExport(actionConfig as unknown as ExportConfig, event);
-      break;
+      return;
     case 'notify':
       runNotify(actionConfig as unknown as NotifyConfig, event);
-      break;
+      return;
     case 'set_metadata':
       runSetMetadata(actionConfig as unknown as SetMetadataConfig, event);
-      break;
+      return;
     case 'move_to_folder':
       runMoveToFolder(actionConfig as unknown as MoveToFolderConfig, event);
-      break;
+      return;
     case 'change_status':
       runChangeStatus(actionConfig as unknown as ChangeStatusConfig, event);
-      break;
+      return;
     case 'send_email':
       runSendEmail(actionConfig as unknown as SendEmailConfig, event);
-      break;
+      return;
+    case 'wasm_plugin': {
+      if (!options?.pool) {
+        throw new Error('wasm_plugin action requires pool in options');
+      }
+      const { runWasmPlugin } = await import('./wasm-action.ts');
+      return runWasmPlugin(
+        options.pool,
+        actionConfig as unknown as WasmPluginConfig,
+        event,
+        options.eventContext ?? {},
+      );
+    }
     default:
       throw new Error(`Unknown action type: ${actionType}`);
   }

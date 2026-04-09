@@ -124,19 +124,29 @@ async function executeNode(
     const actionConfig = (node.config.actionConfig as Record<string, unknown>) ?? {};
     let error: string | undefined;
     let status: 'executed' | 'failed' = 'executed';
+    let actionOutput: Record<string, unknown> | void = undefined;
     try {
-      await runAction(actionType, actionConfig, ctx.event);
+      actionOutput = await runAction(actionType, actionConfig, ctx.event, {
+        pool: ctx.pool,
+        eventContext: ctx.eventContext,
+      });
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
       status = 'failed';
     }
+
+    // Merge wasm plugin output into event context for downstream nodes
+    if (actionOutput && typeof actionOutput === 'object') {
+      ctx.eventContext[`node_${node.id}`] = actionOutput;
+    }
+
     const durationMs = Math.round(performance.now() - start);
     await createStep(ctx.pool, {
       executionId: ctx.executionId,
       nodeId: node.id,
       nodeType: 'action',
       input: { actionType, actionConfig },
-      output: error ? { error } : { success: true },
+      output: error ? { error } : (actionOutput ?? { success: true }),
       durationMs,
       status,
       error,
@@ -152,10 +162,7 @@ async function executeNode(
   }
 }
 
-/**
- * Execute a workflow graph starting from its trigger node.
- * Falls through the graph following edges and evaluating conditions.
- */
+/** Execute a workflow graph starting from its trigger node. */
 export async function executeGraph(
   pool: Pool,
   executionId: string,

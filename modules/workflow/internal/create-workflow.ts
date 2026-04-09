@@ -6,6 +6,7 @@ import * as store from './workflow-store.ts';
 import * as execStore from './execution-store.ts';
 import * as stepStore from './step-store.ts';
 import { createWorkflowConsumer } from './workflow-consumer.ts';
+import { seedBuiltinPlugins } from './builtin-plugins.ts';
 
 export type WorkflowDependencies = {
   pool: Pool;
@@ -41,7 +42,8 @@ export function createWorkflow(deps: WorkflowDependencies): WorkflowModule {
     getExecutionLog(executionId: string) {
       return stepStore.listSteps(pool, executionId);
     },
-    startConsuming() {
+    async startConsuming() {
+      await seedBuiltinPlugins(pool);
       return consumer.start();
     },
   };

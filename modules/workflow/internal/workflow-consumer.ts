@@ -41,7 +41,7 @@ export function createWorkflowConsumer(
         if (def.graph && def.graph.nodes.length > 0) {
           await executeGraph(pool, execution.id, def.graph, event);
         } else {
-          await runAction(def.actionType, def.actionConfig, event);
+          await runAction(def.actionType, def.actionConfig, event, { pool });
         }
         await updateExecution(pool, execution.id, { status: 'completed' });
       } catch (err) {

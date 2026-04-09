@@ -13,6 +13,7 @@ export {
   MoveToFolderConfigSchema,
   ChangeStatusConfigSchema,
   SendEmailConfigSchema,
+  WasmPluginConfigSchema,
   ConditionConfigSchema,
   WorkflowNodeSchema,
   WorkflowEdgeSchema,
@@ -38,6 +39,7 @@ export type {
   MoveToFolderConfig,
   ChangeStatusConfig,
   SendEmailConfig,
+  WasmPluginConfig,
   ConditionConfig,
   WorkflowNode,
   WorkflowEdge,
@@ -56,3 +58,9 @@ export { createWorkflow, type WorkflowDependencies } from './internal/create-wor
 
 // Routes
 export { createWorkflowRoutes, type WorkflowRoutesOptions } from './internal/workflow-routes.ts';
+
+// Plugin routes
+export { createPluginRoutes, type PluginRoutesOptions } from './internal/plugin-routes.ts';
+
+// Plugin types
+export type { WasmPlugin, CreateWasmPlugin } from './internal/plugin-types.ts';

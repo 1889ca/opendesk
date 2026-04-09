@@ -49,6 +49,8 @@ export const SendEmailConfigSchema = z.object({
 
 export type SendEmailConfig = z.infer<typeof SendEmailConfigSchema>;
 
+export { WasmPluginConfigSchema, type WasmPluginConfig } from './plugin-types.ts';
+
 // --- Condition Config ---
 
 export const ConditionOperatorSchema = z.enum([

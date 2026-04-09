@@ -27,7 +27,7 @@ import { createKBDatasetRoutes } from './kb-dataset-routes.ts';
 import { createKBSnapshotRoutes } from './kb-snapshot-routes.ts';
 import { createShareRoutes } from '../../sharing/index.ts';
 import { createAuditRoutes } from '../../audit/index.ts';
-import { createWorkflowRoutes } from '../../workflow/index.ts';
+import { createWorkflowRoutes, createPluginRoutes } from '../../workflow/index.ts';
 import { createMetricsRoutes, createTelemetryMiddleware } from '../../observability/index.ts';
 import { createAiRoutes, createAi } from '../../ai/index.ts';
 import { createErasure, createErasureRoutes } from '../../erasure/index.ts';
@@ -133,6 +133,9 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
 
   // Workflow routes (trigger/action CRUD + execution history)
   app.use('/api/workflows', createWorkflowRoutes({ permissions, workflowModule: workflow }));
+
+  // Wasm plugin routes (plugin registry for sandboxed integrations)
+  app.use('/api/workflows/plugins', createPluginRoutes({ permissions, pool }));
 
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
