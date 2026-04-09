@@ -87,6 +87,8 @@ export interface CoreTranslationKeys {
   'time.monthsAgo': string;
 
   // Promote to KB
+  'toolbar.fontFamily': string;
+  'a11y.fontFamilyLabel': string;
   'toolbar.fontSize': string;
   'a11y.fontSizeLabel': string;
   'toolbar.lineHeight': string;

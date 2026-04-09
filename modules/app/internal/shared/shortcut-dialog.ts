@@ -12,8 +12,11 @@ function getGroups(): ShortcutGroup[] {
     { titleKey: 'shortcuts.formatting', entries: [
       { keys: `${MOD}+B`, labelKey: 'shortcuts.bold' },
       { keys: `${MOD}+I`, labelKey: 'shortcuts.italic' },
+      { keys: `${MOD}+U`, labelKey: 'shortcuts.underline' },
       { keys: `${MOD}+Shift+X`, labelKey: 'shortcuts.strikethrough' },
       { keys: `${MOD}+E`, labelKey: 'shortcuts.code' },
+      { keys: `${MOD}+.`, labelKey: 'shortcuts.superscript' },
+      { keys: `${MOD}+,`, labelKey: 'shortcuts.subscript' },
       { keys: `${MOD}+Alt+1`, labelKey: 'shortcuts.heading1' },
       { keys: `${MOD}+Alt+2`, labelKey: 'shortcuts.heading2' },
       { keys: `${MOD}+Alt+3`, labelKey: 'shortcuts.heading3' },
@@ -21,6 +24,12 @@ function getGroups(): ShortcutGroup[] {
       { keys: `${MOD}+Shift+7`, labelKey: 'shortcuts.orderedList' },
       { keys: `${MOD}+Shift+B`, labelKey: 'shortcuts.blockquote' },
       { keys: `${MOD}+Alt+C`, labelKey: 'shortcuts.codeBlock' },
+    ]},
+    { titleKey: 'shortcuts.alignment', entries: [
+      { keys: `${MOD}+Shift+L`, labelKey: 'shortcuts.alignLeft' },
+      { keys: `${MOD}+Shift+E`, labelKey: 'shortcuts.alignCenter' },
+      { keys: `${MOD}+Shift+R`, labelKey: 'shortcuts.alignRight' },
+      { keys: `${MOD}+Shift+J`, labelKey: 'shortcuts.alignJustify' },
     ]},
     { titleKey: 'shortcuts.comments', entries: [
       { keys: `${MOD}+Shift+M`, labelKey: 'shortcuts.addComment' },
@@ -31,7 +40,7 @@ function getGroups(): ShortcutGroup[] {
     ]},
     { titleKey: 'shortcuts.document', entries: [
       { keys: `${MOD}+Z`, labelKey: 'shortcuts.undo' },
-      { keys: `${MOD}+Shift+Z`, labelKey: 'shortcuts.redo' },
+      { keys: `${MOD}+Y`, labelKey: 'shortcuts.redo' },
       { keys: `${MOD}+/`, labelKey: 'shortcuts.showShortcuts' },
     ]},
   ];
