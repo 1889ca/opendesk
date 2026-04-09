@@ -27,5 +27,5 @@ CREATE TABLE IF NOT EXISTS federation_transfers (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_federation_transfers_peer ON federation_transfers (peer_id, created_at DESC);
-CREATE INDEX idx_federation_transfers_doc ON federation_transfers (document_id);
+CREATE INDEX IF NOT EXISTS idx_federation_transfers_peer ON federation_transfers (peer_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_federation_transfers_doc ON federation_transfers (document_id);
