@@ -7,7 +7,7 @@
 
 import { t, type TranslationKey } from '../i18n/index.ts';
 
-export type SortOption = 'updated_at-desc' | 'created_at-desc' | 'title-asc' | 'title-desc';
+export type SortOption = 'updated_at-desc' | 'updated_at-asc' | 'created_at-desc' | 'created_at-asc' | 'title-asc' | 'title-desc';
 export type TypeFilter = 'all' | 'text' | 'spreadsheet' | 'presentation';
 export type ViewMode = 'list' | 'grid';
 
@@ -34,7 +34,9 @@ const PAGE_SIZE = 20;
 
 const SORT_OPTIONS: { value: SortOption; labelKey: TranslationKey }[] = [
   { value: 'updated_at-desc', labelKey: 'docList.sortUpdated' },
+  { value: 'updated_at-asc', labelKey: 'docList.sortUpdatedAsc' },
   { value: 'created_at-desc', labelKey: 'docList.sortCreated' },
+  { value: 'created_at-asc', labelKey: 'docList.sortCreatedAsc' },
   { value: 'title-asc', labelKey: 'docList.sortNameAZ' },
   { value: 'title-desc', labelKey: 'docList.sortNameZA' },
 ];
@@ -68,9 +70,34 @@ export function buildApiUrl(
 export function createControlsBar(
   state: DocListState,
   onChange: (next: Partial<DocListState>) => void,
+  selectAllOptions?: {
+    docIds: string[];
+    selectedIds: Set<string>;
+    onSelectionChange: (ids: Set<string>) => void;
+  },
 ): HTMLElement {
   const bar = document.createElement('div');
   bar.className = 'doc-list-controls';
+
+  // Select-all checkbox
+  if (selectAllOptions && selectAllOptions.docIds.length > 0) {
+    const { docIds, selectedIds, onSelectionChange } = selectAllOptions;
+    const label = document.createElement('label');
+    label.className = 'doc-list-select-all';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'doc-list-select-all-checkbox';
+    const allSelected = docIds.length > 0 && docIds.every(id => selectedIds.has(id));
+    const someSelected = !allSelected && docIds.some(id => selectedIds.has(id));
+    checkbox.checked = allSelected;
+    checkbox.indeterminate = someSelected;
+    checkbox.setAttribute('aria-label', 'Select all documents');
+    checkbox.addEventListener('change', () => {
+      onSelectionChange(checkbox.checked ? new Set(docIds) : new Set());
+    });
+    label.appendChild(checkbox);
+    bar.appendChild(label);
+  }
 
   // Document count
   if (state.totalCount !== undefined) {

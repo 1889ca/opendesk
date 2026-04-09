@@ -27,9 +27,11 @@ import type { createBulkActionBar } from './bulk-actions.ts';
 export interface LoaderState {
   state: DocListState;
   selectedIds: Set<string>;
+  docIds: string[];
   controlsEl: HTMLElement | null;
   paginationEl: HTMLElement | null;
   bulkBar: ReturnType<typeof createBulkActionBar> | null;
+  _escHandler: ((e: KeyboardEvent) => void) | null;
 }
 
 export function rebuildControls(
@@ -38,11 +40,15 @@ export function rebuildControls(
   onNewDocument: () => void,
   updateState: (next: Partial<DocListState>) => void,
   reload: () => void,
+  onSelectionChange?: (ids: Set<string>) => void,
 ): void {
   const parent = listEl.parentElement;
   if (!parent) return;
   if (ls.controlsEl) ls.controlsEl.remove();
-  ls.controlsEl = createControlsBar(ls.state, (next) => { updateState(next); reload(); });
+  const selectAllOptions = onSelectionChange
+    ? { docIds: ls.docIds, selectedIds: ls.selectedIds, onSelectionChange }
+    : undefined;
+  ls.controlsEl = createControlsBar(ls.state, (next) => { updateState(next); reload(); }, selectAllOptions);
   const breadcrumbEl = document.getElementById('folder-breadcrumbs');
   if (breadcrumbEl?.nextSibling) {
     parent.insertBefore(ls.controlsEl, breadcrumbEl.nextSibling);
@@ -75,7 +81,29 @@ export async function loadDocuments(
   const folderId = getCurrentFolderId();
   listEl.innerHTML = '';
   ls.selectedIds = new Set();
+  ls.docIds = [];
   ls.bulkBar?.update(ls.selectedIds);
+
+  const handleSelectionChange = (ids: Set<string>): void => {
+    ls.selectedIds = ids;
+    ls.bulkBar?.update(ids);
+    rebuildControls(listEl, ls, onNewDocument, updateState, reload, handleSelectionChange);
+  };
+
+  // Escape key clears multi-select when not typing in an input/textarea.
+  // Register only once per loader; subsequent reloads reuse the same handler via closure over ls.
+  if (!ls._escHandler) {
+    ls._escHandler = (e: KeyboardEvent): void => {
+      if (e.key !== 'Escape') return;
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+      if (ls.selectedIds.size === 0) return;
+      ls.selectedIds = new Set();
+      ls.bulkBar?.update(ls.selectedIds);
+      rebuildControls(listEl, ls, onNewDocument, updateState, reload, handleSelectionChange);
+    };
+    document.addEventListener('keydown', ls._escHandler);
+  }
 
   let breadcrumbEl = document.getElementById('folder-breadcrumbs');
   if (!breadcrumbEl) {
@@ -84,7 +112,7 @@ export async function loadDocuments(
     listEl.parentElement?.insertBefore(breadcrumbEl, listEl);
   }
   renderBreadcrumbs(breadcrumbEl);
-  rebuildControls(listEl, ls, onNewDocument, updateState, reload);
+  rebuildControls(listEl, ls, onNewDocument, updateState, reload, handleSelectionChange);
 
   try {
     const folders = await loadFolders(folderId);
@@ -101,6 +129,7 @@ export async function loadDocuments(
     const docs = Array.isArray(json) ? json : (json.data ?? []);
     const pagination = json.pagination ?? null;
 
+    ls.docIds = docs.map((d: { id: string }) => d.id);
     cacheDocListResponse(docs);
     if (ls.state.viewMode === 'grid') {
       renderDocumentsGrid({
@@ -108,7 +137,7 @@ export async function loadDocuments(
         docs,
         onDelete: reload,
         selectedIds: ls.selectedIds,
-        onSelectionChange: (ids) => { ls.selectedIds = ids; ls.bulkBar?.update(ids); },
+        onSelectionChange: handleSelectionChange,
       });
     } else {
       renderDocuments({
@@ -117,13 +146,13 @@ export async function loadDocuments(
         onDelete: reload,
         onNewDocument,
         selectedIds: ls.selectedIds,
-        onSelectionChange: (ids) => { ls.selectedIds = ids; ls.bulkBar?.update(ids); },
+        onSelectionChange: handleSelectionChange,
       });
     }
 
     if (pagination) {
       updateState({ totalPages: pagination.totalPages, page: pagination.page, totalCount: pagination.total });
-      rebuildControls(listEl, ls, onNewDocument, updateState, reload);
+      rebuildControls(listEl, ls, onNewDocument, updateState, reload, handleSelectionChange);
       rebuildPagination(listEl, ls, updateState, reload);
     }
   } catch (err) {

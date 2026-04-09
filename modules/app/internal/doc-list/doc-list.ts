@@ -27,9 +27,11 @@ import { initStarredCache } from './starred-store.ts';
 const ls: LoaderState = {
   state: { sort: 'updated_at-desc', typeFilter: 'all', page: 1, totalPages: 1, viewMode: loadViewMode() },
   selectedIds: new Set<string>(),
+  docIds: [],
   controlsEl: null,
   paginationEl: null,
   bulkBar: null,
+  _escHandler: null,
 };
 
 function updateState(next: Partial<DocListState>): void {
