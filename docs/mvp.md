@@ -63,15 +63,15 @@ OpenDesk is organized into four **super-pillars** — independent product lines 
 
 See `decisions/2026-04-08-super-pillar-restructuring.md` for the full rationale.
 
-### Documents (~95% complete)
+### Documents (~98% complete)
 
-The flagship product line. Rich text editing with TipTap + Yjs, real-time collaboration, comments/suggestions, tables, images, templates, find/replace, print/PDF, accessibility, i18n.
+The flagship product line. Rich text editing with TipTap + Yjs, real-time collaboration, comments/suggestions, tables, images, templates, find/replace, print/PDF, accessibility, i18n. Offline editing via service workers with automatic CRDT merge on reconnect.
 
-**Remaining work:** Offline mode (service workers), performance for 100+ page documents, spreadsheet/presentation embedding, plugin system.
+**Remaining work:** Performance for 100+ page documents, spreadsheet/presentation embedding, plugin system.
 
 **Formats:** .docx, .odt, .pdf (import/export working via Collabora)
 
-### Knowledge Base (~92% complete)
+### Knowledge Base (~98% complete)
 
 A structured information store where organizational knowledge lives **separate from its presentation**. Documents, Sheets, and Slides *reference* KB entries — they don't own the underlying information. The existing Reference & Citation Management system (formerly Pillar 7, ~90% complete) is KB's first milestone. The generalized entry model with typed records (Reference, Entity, Dataset, Note), relationships (property graph lite), full-text search, and reverse dependency lookups is now implemented (`modules/kb/`).
 
@@ -105,13 +105,13 @@ A structured information store where organizational knowledge lives **separate f
 11. ~~**Snapshot sets**~~ (done) — `kb_snapshots` table with id, workspace_id, purpose, captured_by, captured_at, entry_versions (JSONB). Create snapshot captures all current entry versions atomically. Resolve snapshot fetches version history records. API at `/api/kb/snapshots`. Browser UI with create button, snapshot list, and entry resolution view. See `modules/kb/internal/pg-snapshots.ts`, `modules/api/internal/kb-snapshot-routes.ts`.
 12. ~~**Relationship graph**~~ (done) — Interactive SVG-based force-directed graph visualization. Pure DOM/SVG rendering (no external libs). Nodes colored by entry type, edges labeled by relation type. Click node to open detail. Depth selector (1/2/3 hops). Graph panel opens from "View Graph" button in detail. See `modules/app/internal/kb-browser/graph-*.ts`.
 
-### Sheets (~95% complete)
+### Sheets (~98% complete)
 
 Spreadsheet editor. Feature-rich with formula engine, formatting, multi-sheet tabs, copy/paste, column/row operations, sorting & filtering, conditional formatting, charts, import/export, and KB dataset integration.
 
 **What works:** Grid rendering, cell selection, real-time Yjs sync, presence. Formula engine (20+ functions). Cell formatting. Multi-sheet tabs. Copy/paste with range selection. Column/row operations. Sorting & filtering. Conditional formatting. Basic charts (bar, line, pie) with Canvas 2D rendering, Yjs sync, drag/resize. Import/export (.xlsx, .ods, .csv). KB dataset integration with bi-directional sync.
 
-**Remaining:** Pivot tables, advanced data analysis (post-1.0).
+**Post-1.0:** Pivot tables, advanced data analysis.
 
 *Milestones:*
 1. ~~**Formula engine**~~ (done) — Recursive descent parser with operator precedence, AST evaluator, 20+ functions (SUM, AVERAGE, COUNT, MIN, MAX, IF, VLOOKUP, CONCATENATE, text functions), cell references (A1, $A$1, ranges), all Excel error types (#VALUE!, #REF!, #DIV/0!, #NAME?, #N/A, #NUM!), circular reference detection via DFS. See `modules/sheets-formula/` and `contracts/sheets-formula/rules.md`.
@@ -127,13 +127,13 @@ Spreadsheet editor. Feature-rich with formula engine, formatting, multi-sheet ta
 
 Does not attempt: pivot tables, VBA macros, advanced data analysis, Power Query equivalent. Those are post-1.0.
 
-### Slides (~95% complete)
+### Slides (~98% complete)
 
 Presentation editor. Full-featured with element interaction, rich formatting, layouts, themes, speaker notes, presenter mode, transitions, slide sorter, import/export, and KB integration.
 
 **What works:** All element types with full interaction. Rich text formatting. 6 layouts, 6 themes. Speaker notes with Yjs sync. Presenter mode with timer and keyboard nav. Slide transitions. Slide sorter with drag-to-reorder. Import/export (.pptx, .odp, .pdf via Collabora). KB integration (citation picker, entity mentions, dataset charts, stale source detection).
 
-**Remaining:** Element animations, video embedding (post-1.0).
+**Post-1.0:** Element animations, video embedding.
 
 *Milestones:*
 1. ~~**Element interaction**~~ (done) — Drag, resize (8 handles + Shift for aspect ratio), rotate (15° snap), snap engine (grid + element edges), selection manager (single/multi/marquee), z-order (bring forward/back/front/bottom), Yjs transactional mutations, DOM overlay rendering. See `modules/app/internal/slides/` and `contracts/app/slides-interaction.md`.
@@ -155,7 +155,7 @@ Not a super-pillar but enables all of them: dashboard, navigation, type switchin
 
 **Current state:** Unified SPA with client-side pushState routing, dynamic editor loading via ESM code splitting, shared chrome (nav sidebar, top bar). Routes: `/` (dashboard), `/doc/:id` (editor), `/sheet/:id` (spreadsheet), `/slides/:id` (presentation). Old HTML pages preserved for backward compatibility. Editor chunk lazy-loaded on demand. Full cleanup on view transitions (editor destroy, WebSocket disconnect, listener removal).
 
-**Remaining:** Offline mode (service workers), shared state persistence.
+**Remaining:** Shared state persistence across views (partially done via IndexedDB offline storage).
 
 *Milestones:*
 1. ~~**Unified routing**~~ (done) — pushState router with param extraction, link interception, popstate handling. Lazy loader with module caching. Shared shell with nav sidebar and view mount/unmount lifecycle. See `modules/app/internal/shell/` and `contracts/app/shell.md`.
@@ -215,13 +215,13 @@ Not a super-pillar but enables all of them: dashboard, navigation, type switchin
 
 These pillars provide sovereignty, compliance, and intelligence capabilities that apply to **all** super-pillars. They were originally defined as Pillars 1-6 (see `decisions/2026-04-06-strategic-roadmap-segments-deliberation.md`), renumbered as C1-C6 in the super-pillar restructuring (see `decisions/2026-04-08-super-pillar-restructuring.md`). Former Pillar 7 (References) has been absorbed into the Knowledge Base super-pillar.
 
-### C1: Air-Gapped Local AI (BYOM) — ~95% complete
+### C1: Air-Gapped Local AI (BYOM) — ~100% complete
 
 Sovereign AI for organizations that cannot send data to cloud LLMs. BYOM abstraction over Ollama, pgvector in existing PostgreSQL, local RAG pipeline. Serves defense, healthcare, and legal sectors.
 
 **Applies to all super-pillars:** Document summarization, spreadsheet formula suggestions, slide content generation, KB-powered RAG (the KB is the natural primary corpus).
 
-*Milestones:* ~~BYOM abstraction layer~~ -> ~~CRDT-to-vector pipeline~~ -> ~~Local semantic search~~ -> ~~Context-aware document assistant~~ -> ~~KB-aware extraction~~ (done — type-specific extractors for all 5 KB entry types, corpus partitioning, lifecycle-aware embedding) -> ~~Cross-type extractors~~ (done — spreadsheet cell/formula extraction, slide element/notes extraction) -> Curated sovereign model zoo.
+*Milestones:* ~~BYOM abstraction layer~~ -> ~~CRDT-to-vector pipeline~~ -> ~~Local semantic search~~ -> ~~Context-aware document assistant~~ -> ~~KB-aware extraction~~ (done — type-specific extractors for all 5 KB entry types, corpus partitioning, lifecycle-aware embedding) -> ~~Cross-type extractors~~ (done — spreadsheet cell/formula extraction, slide element/notes extraction) -> ~~Curated sovereign model zoo~~ (done — 12 curated models, Ollama pull/delete, per-workspace config, admin UI with install/remove, custom model support).
 
 ### C2: Cryptographic Audit & e-Discovery — ~98% complete
 
@@ -231,21 +231,21 @@ Tamper-evident, append-only cryptographic ledger of all mutations and access eve
 
 *Milestones:* ~~Append-only HMAC-chained event store~~ -> ~~Point-in-time verifiability~~ -> ~~Tamper verification API~~ -> ~~Signed Yjs updates~~ (done — Ed25519 signing of Yjs binary diffs, full-chain verification API) -> ~~Automated SAR/FOIA engine~~ (done — subject access request by user ID, FOIA export by document + date range) -> ~~eDiscovery export formats~~ (done — JSON, CSV, human-readable text; admin UI panel).
 
-### C3: Verifiable Data Erasure & CRDT Pruning — ~90% complete
+### C3: Verifiable Data Erasure & CRDT Pruning — ~100% complete
 
 Solving the CRDT/GDPR collision -- Yjs tombstones retain deleted content, conflicting with Right to Be Forgotten. Uses structural tombstone anonymization (zero-fill payload while preserving CRDT pointers).
 
 **Applies to all super-pillars:** Each content type has different CRDT structures (XmlFragment, Y.Array, Y.Map) requiring type-specific erasure strategies. KB entries add a new dimension: erasing a KB entry must cascade notifications to all referencing documents.
 
-*Milestones:* ~~Erasure attestations~~ -> ~~Retention policies~~ -> ~~Tombstone extraction tooling~~ (done — scan Yjs docs for deleted content, extract to sealed archive) -> ~~Structural anonymization~~ (done — zero-fill tombstone payloads preserving CRDT clocks, per-user targeting) -> ~~Targeted redaction API~~ (done — redact by user ID or pattern, HMAC-chained attestation) -> ~~Policy-driven automated pruning~~ (done — retention rules, dry-run preview, interval scheduler) -> ~~KB cascade erasure~~ (done — reverse dependency lookup, placeholder replacement, cascade attestation).
+*Milestones:* ~~Erasure attestations~~ -> ~~Retention policies~~ -> ~~Tombstone extraction tooling~~ (done — scan Yjs docs for deleted content, extract to sealed archive) -> ~~Structural anonymization~~ (done — zero-fill tombstone payloads preserving CRDT clocks, per-user targeting) -> ~~Targeted redaction API~~ (done — redact by user ID or pattern, HMAC-chained attestation) -> ~~Policy-driven automated pruning~~ (done — retention rules, dry-run preview, interval scheduler) -> ~~KB cascade erasure~~ (done — reverse dependency lookup, placeholder replacement, cascade attestation) -> ~~Erasure-immutability resolution~~ (done — HMAC-signed erasure bridges, 3-state chain verification VALID/VALID_WITH_ERASURES/TAMPERED, legal holds, conflict detection, jurisdiction-aware policies for 15 combos, selective disclosure proofs).
 
-### C4: Sovereign Data Workflows & Process Automation — ~90% complete
+### C4: Sovereign Data Workflows & Process Automation — ~100% complete
 
 Visual workflow builder for content pipelines -- approval chains, redaction, translation, archival. All local execution via Wasm sandboxing (Extism/Wasmtime). No data leakage to external services.
 
 **Applies to all super-pillars:** Workflows trigger on any content type. Document approval chains, spreadsheet data validation pipelines, presentation review workflows, KB entry curation flows.
 
-*Milestones:* ~~Trigger/action API~~ -> ~~Execution history~~ -> ~~Visual workflow editor~~ (done — SVG drag-and-drop flow editor, node palette, properties panel, save/load) -> ~~Conditional logic & branching~~ (done — field comparisons, if/else branching, parallel splits) -> Local service integrations (Wasm) -> ~~Auditable execution logs~~ (done — per-node step logging, execution history UI with drill-down).
+*Milestones:* ~~Trigger/action API~~ -> ~~Execution history~~ -> ~~Visual workflow editor~~ (done — SVG drag-and-drop flow editor, node palette, properties panel, save/load) -> ~~Conditional logic & branching~~ (done — field comparisons, if/else branching, parallel splits) -> ~~Local service integrations (Wasm)~~ (done — Wasm sandbox with memory/CPU limits, plugin registry with CRUD API, 3 built-in plugins, wasm_plugin action type, visual editor integration) -> ~~Auditable execution logs~~ (done — per-node step logging, execution history UI with drill-down).
 
 ### C5: Cross-Sovereign Federation — ~95% complete
 
@@ -266,15 +266,15 @@ Unified real-time dashboard for the entire stack's compliance posture. Transform
 ```
 Super-Pillars (Product Lines)              Cross-Cutting Pillars
 ━━━━━━━━━━━━━━━━━━━━━━━━━━                ━━━━━━━━━━━━━━━━━━━━━
-Documents ████████████████████░  ~95%       C2 (Audit)    ████████████████████ ~98%
-KB        ██████████████████░░  ~92%       C1 (AI)       ███████████████████░ ~95%
-Sheets    ███████████████████░  ~95%       C5 (Federation)███████████████████░ ~95%
-Slides    ███████████████████░  ~95%       C6 (Observe)  ███████████████████░ ~95%
-                                            C4 (Workflows)██████████████████░░ ~90%
-                                            C3 (Erasure)  ██████████████████░░ ~90%
+Documents ████████████████████  ~98%       C1 (AI)       ████████████████████ ~100%
+KB        ████████████████████  ~98%       C2 (Audit)    ████████████████████ ~98%
+Sheets    ████████████████████  ~98%       C3 (Erasure)  ████████████████████ ~100%
+Slides    ████████████████████  ~98%       C4 (Workflows)████████████████████ ~100%
+                                            C5 (Federation)███████████████████░ ~95%
+                                            C6 (Observe)  ███████████████████░ ~95%
 ```
 
-**All super-pillars and cross-cutting pillars are at 90%+ completion.** Remaining work is primarily hardening, offline mode, and Wasm workflow integrations.
+**All super-pillars at 98%, all cross-cutting pillars at 95-100%.** Remaining work is post-1.0 hardening: large document performance, element animations, plugin system.
 
 **Cross-cutting validation:** Each cross-cutting pillar must be validated against all super-pillars, not just Documents. As Sheets and Slides mature, audit/erasure/AI capabilities must cover their content types.
 
