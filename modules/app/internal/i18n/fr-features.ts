@@ -76,6 +76,9 @@ export const featureTranslations: Partial<TranslationKeys> = {
   // Versions
   'versions.title': 'Historique des versions',
   'versions.save': 'Enregistrer la version',
+  'versions.namePrompt': 'Nommer cette version (facultatif)',
+  'versions.namePlaceholder': 'ex. Avant restructuration\u2026',
+  'versions.autoSaveLabel': 'Sauvegarde auto',
   'versions.restore': 'Restaurer',
   'versions.delete': 'Supprimer',
   'versions.current': 'Actuelle',
@@ -86,6 +89,13 @@ export const featureTranslations: Partial<TranslationKeys> = {
   'versions.noVersions': 'Aucune version enregistr\u00e9e',
   'versions.versionNumber': 'Version {n}',
   'versions.close': 'Fermer l\u2019historique',
+
+  // Menu bulle
+  'bubble.bold': 'Gras',
+  'bubble.italic': 'Italique',
+  'bubble.underline': 'Souligner',
+  'bubble.link': 'Lien',
+  'bubble.linkPrompt': 'Entrer l\u2019URL',
 
   // Table des mati\u00e8res
   'toc.title': 'Table des mati\u00e8res',

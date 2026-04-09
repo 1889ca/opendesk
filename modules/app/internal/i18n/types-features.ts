@@ -101,6 +101,9 @@ export interface FeatureTranslationKeys {
   'stats.minRead': string;
   'versions.title': string;
   'versions.save': string;
+  'versions.namePrompt': string;
+  'versions.namePlaceholder': string;
+  'versions.autoSaveLabel': string;
   'versions.restore': string;
   'versions.delete': string;
   'versions.current': string;
@@ -111,6 +114,11 @@ export interface FeatureTranslationKeys {
   'versions.noVersions': string;
   'versions.versionNumber': string;
   'versions.close': string;
+  'bubble.bold': string;
+  'bubble.italic': string;
+  'bubble.underline': string;
+  'bubble.link': string;
+  'bubble.linkPrompt': string;
   'toc.title': string;
   'toc.noHeadings': string;
   'toc.heading': string;

@@ -26,6 +26,8 @@ import { initEntityMentionClicks } from './entity-mentions/index.ts';
 import { getUserIdentity, getDocumentId } from '../shared/identity.ts';
 import { initEditorPage } from './editor-page.ts';
 import { initEditorPanels } from './editor-panels.ts';
+import { startAutoSnapshot } from './version-history.ts';
+import { buildBubbleMenu } from './bubble-menu.ts';
 import {
   registerServiceWorker,
   buildOfflineIndicator,
@@ -135,6 +137,8 @@ function init() {
   });
 
   initEditorPanels({ editor, editorEl, commentStore, documentId, user });
+  startAutoSnapshot(editor);
+  buildBubbleMenu(editor);
 
   function updateUsers() {
     if (!usersEl || !provider.awareness) return;

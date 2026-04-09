@@ -4,6 +4,8 @@ import StarterKit from '@tiptap/starter-kit';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { common, createLowlight } from 'lowlight';
 import Image from '@tiptap/extension-image';
+import Underline from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
 import Collaboration from '@tiptap/extension-collaboration';
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
@@ -48,6 +50,8 @@ export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
       allowBase64: false,
       resize: { enabled: true, minWidth: 100, minHeight: 50 },
     }),
+    Underline,
+    Link.configure({ openOnClick: false, autolink: true }),
     SearchExtension,
     PageBreak,
     CommentMark,
