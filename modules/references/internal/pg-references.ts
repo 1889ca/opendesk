@@ -51,7 +51,7 @@ export async function createReference(
   fields: ReferenceUpdates & { title: string },
 ): Promise<ReferenceRow> {
   const result = await pool.query<ReferenceRow>(
-    `INSERT INTO references (id, workspace_id, type, title, authors, issued_date,
+    `INSERT INTO reference_entries (id, workspace_id, type, title, authors, issued_date,
        container_title, volume, issue, pages, doi, url, isbn, abstract, publisher,
        language, custom_fields, tags, created_by)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
@@ -71,7 +71,7 @@ export async function createReference(
 
 export async function getReference(id: string): Promise<ReferenceRow | null> {
   const result = await pool.query<ReferenceRow>(
-    'SELECT * FROM references WHERE id = $1',
+    'SELECT * FROM reference_entries WHERE id = $1',
     [id],
   );
   return result.rows[0] || null;
@@ -79,7 +79,7 @@ export async function getReference(id: string): Promise<ReferenceRow | null> {
 
 export async function listReferences(workspaceId: string): Promise<ReferenceRow[]> {
   const result = await pool.query<ReferenceRow>(
-    'SELECT * FROM references WHERE workspace_id = $1 ORDER BY created_at DESC',
+    'SELECT * FROM reference_entries WHERE workspace_id = $1 ORDER BY created_at DESC',
     [workspaceId],
   );
   return result.rows;
@@ -126,14 +126,14 @@ export async function updateReference(
   values.push(id);
 
   const result = await pool.query<ReferenceRow>(
-    `UPDATE references SET ${sets.join(', ')} WHERE id = $${idx} RETURNING *`,
+    `UPDATE reference_entries SET ${sets.join(', ')} WHERE id = $${idx} RETURNING *`,
     values,
   );
   return result.rows[0] || null;
 }
 
 export async function deleteReference(id: string): Promise<boolean> {
-  const result = await pool.query('DELETE FROM references WHERE id = $1', [id]);
+  const result = await pool.query('DELETE FROM reference_entries WHERE id = $1', [id]);
   return (result.rowCount ?? 0) > 0;
 }
 
@@ -142,7 +142,7 @@ export async function findByDOI(
   doi: string,
 ): Promise<ReferenceRow | null> {
   const result = await pool.query<ReferenceRow>(
-    'SELECT * FROM references WHERE workspace_id = $1 AND doi = $2',
+    'SELECT * FROM reference_entries WHERE workspace_id = $1 AND doi = $2',
     [workspaceId, doi],
   );
   return result.rows[0] || null;
