@@ -1,0 +1,57 @@
+/* Bubble menu — floating toolbar shown on text selection */
+
+.bubble-menu {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--shadow-heavy, rgba(0, 0, 0, 0.12));
+  z-index: 100;
+  /* position, top, left, visibility are managed by BubbleMenuPlugin */
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  pointer-events: none;
+}
+
+/* Plugin applies style.visibility = "visible" when text is selected */
+.bubble-menu[style*="visibility: visible"],
+.bubble-menu[style*="visibility:visible"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.bubble-menu-btn {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.45rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  min-width: 1.75rem;
+  text-align: center;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  line-height: 1;
+}
+
+.bubble-menu-btn:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.bubble-menu-btn.is-active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.bubble-menu-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
