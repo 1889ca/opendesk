@@ -78,10 +78,22 @@ export function attachContextMenu(
     menu.appendChild(buildMenuItem('Duplicate', callbacks.onDuplicate));
     menu.appendChild(buildMenuItem(isStarred ? 'Unstar' : 'Star', callbacks.onStar));
     menu.appendChild(buildSeparator());
-    menu.appendChild(buildMenuItem('Download (DOCX)', () => {
+    menu.appendChild(buildMenuItem('Download DOCX', () => {
       const a = document.createElement('a');
       a.href = '/api/documents/' + encodeURIComponent(doc.id) + '/export?format=docx';
       a.download = (doc.title || 'document') + '.docx';
+      a.click();
+    }));
+    menu.appendChild(buildMenuItem('Download ODT', () => {
+      const a = document.createElement('a');
+      a.href = '/api/documents/' + encodeURIComponent(doc.id) + '/export?format=odt';
+      a.download = (doc.title || 'document') + '.odt';
+      a.click();
+    }));
+    menu.appendChild(buildMenuItem('Download PDF', () => {
+      const a = document.createElement('a');
+      a.href = '/api/documents/' + encodeURIComponent(doc.id) + '/export?format=pdf';
+      a.download = (doc.title || 'document') + '.pdf';
       a.click();
     }));
     menu.appendChild(buildSeparator());

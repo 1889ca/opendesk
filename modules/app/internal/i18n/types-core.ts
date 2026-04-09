@@ -74,12 +74,15 @@ export interface CoreTranslationKeys {
   'docList.sortCreated': string;
   'docList.sortNameAZ': string;
   'docList.sortNameZA': string;
+  'docList.sortUpdatedAsc': string;
+  'docList.sortCreatedAsc': string;
   'docList.pageOf': string;
   'docList.prevPage': string;
   'docList.nextPage': string;
   'docList.count': string;
   'docList.countFiltered': string;
   'docList.starred': string;
+  'docList.created': string;
   'time.justNow': string;
   'time.secondsAgo': string;
   'time.minuteAgo': string;

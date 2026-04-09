@@ -98,6 +98,13 @@ function buildDocCard(
   time.textContent = t('docList.updated', { time: formatRelativeTime(doc.updated_at) });
   time.title = new Date(doc.updated_at).toLocaleString();
   footer.appendChild(time);
+  if (doc.created_at) {
+    const createdShort = new Date(doc.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const createdEl = document.createElement('span');
+    createdEl.className = 'doc-card-created';
+    createdEl.textContent = t('docList.created', { time: createdShort });
+    footer.appendChild(createdEl);
+  }
 
   const link = document.createElement('a');
   link.className = 'doc-card-link';

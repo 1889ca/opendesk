@@ -19,6 +19,7 @@ export interface DocEntry {
   id: string;
   title: string;
   updated_at: string;
+  created_at?: string;
   document_type?: string;
 }
 
@@ -131,7 +132,12 @@ function buildDocRow(
   titleRow.append(icon, title);
   const time = document.createElement('span');
   time.className = 'doc-row-time';
-  time.textContent = meta.label + ' \u00B7 ' + t('docList.updated', { time: formatRelativeTime(doc.updated_at) });
+  let timeText = meta.label + ' \u00B7 ' + t('docList.updated', { time: formatRelativeTime(doc.updated_at) });
+  if (doc.created_at) {
+    const createdShort = new Date(doc.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    timeText += ' \u00B7 ' + t('docList.created', { time: createdShort });
+  }
+  time.textContent = timeText;
   time.title = new Date(doc.updated_at).toLocaleString();
   info.append(titleRow, time);
   row.appendChild(info);
