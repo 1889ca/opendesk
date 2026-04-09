@@ -21,14 +21,11 @@ import { buildThemeToggle } from '../shared/theme-toggle.ts';
 import { buildNotificationBell } from '../shared/notification-bell.ts';
 import { trackRecentDoc } from '../shared/workspace-sidebar.ts';
 import { apiFetch } from '../shared/api-client.ts';
-import { openEmojiPicker } from './emoji/index.ts';
-import { showLinkPopover } from './link-popover.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
 import { buildEditorExtensions } from './editor-extensions.ts';
 import { initEntityMentionClicks } from './entity-mentions/index.ts';
 import { getUserIdentity, getDocumentId } from '../shared/identity.ts';
 import { ensureNameConfirmed } from '../shared/name-setup.ts';
-import { buildProfileChip } from '../shared/profile-chip.ts';
 import { initEditorPage } from './editor-page.ts';
 import { initEditorPanels } from './editor-panels.ts';
 import { initRuler } from './editor-ruler.ts';
@@ -41,10 +38,9 @@ import {
   buildOfflineIndicator,
   buildUpdateBanner,
   initConnectivityListeners,
-  setConnectionState,
-  flushQueue,
 } from '../offline/index.ts';
 import { mountAppToolbar } from '../shared/app-toolbar.ts';
+import { initEditorCollab } from './editor-collab.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -102,15 +98,6 @@ async function init() {
 
   const provider = new HocuspocusProvider({
     url: wsUrl, name: documentId, document: ydoc, token: 'dev',
-    onConnect() {
-      if (statusEl) { statusEl.textContent = t('status.connected'); statusEl.className = 'status connected'; }
-      setConnectionState('syncing');
-      flushQueue().then(() => setConnectionState('online')).catch(() => {});
-    },
-    onDisconnect() {
-      if (statusEl) { statusEl.textContent = t('status.disconnected'); statusEl.className = 'status disconnected'; }
-      setConnectionState('offline');
-    },
   });
 
   let editor: Editor;
@@ -149,28 +136,6 @@ async function init() {
   buildThemeToggle();
   buildNotificationBell();
 
-  // Profile chip — shows user's display name in the toolbar (issue #170)
-  const toolbarRightEl = document.querySelector('.toolbar-right');
-  if (toolbarRightEl) {
-    const chip = buildProfileChip();
-    toolbarRightEl.appendChild(chip);
-  }
-
-  // Shortcut help button — header location (issue #225)
-  const toolbarRightForShortcut = document.querySelector('.toolbar-right');
-  if (toolbarRightForShortcut) {
-    const sep = document.createElement('span');
-    sep.className = 'toolbar-separator';
-    const helpBtn = document.createElement('button');
-    helpBtn.className = 'btn btn-ghost btn-sm shortcut-help-btn';
-    helpBtn.setAttribute('aria-label', t('a11y.shortcutsLabel'));
-    helpBtn.setAttribute('title', t('shortcuts.showShortcuts'));
-    helpBtn.textContent = '?';
-    helpBtn.addEventListener('click', (e) => { e.preventDefault(); openShortcutDialog(); });
-    toolbarRightForShortcut.appendChild(sep);
-    toolbarRightForShortcut.appendChild(helpBtn);
-  }
-
   // Save indicator — "Saving…" / "Saved" next to doc title
   const toolbarLeft = document.querySelector('.toolbar-left');
   if (toolbarLeft) toolbarLeft.appendChild(buildSaveIndicator(editor));
@@ -184,36 +149,7 @@ async function init() {
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
 
-  document.addEventListener('opendesk:open-emoji', () => {
-    const emojiBtn = document.querySelector('[data-i18n-key="toolbar.emoji"]') as HTMLElement | null;
-    if (emojiBtn) openEmojiPicker(editor, emojiBtn);
-  });
-
-  document.addEventListener('opendesk:open-link-popover', (e) => {
-    const detail = (e as CustomEvent<{ anchor?: HTMLButtonElement }>).detail;
-    let anchor = detail?.anchor as HTMLElement | null | undefined;
-    if (!anchor) {
-      anchor = document.querySelector('[data-i18n-key="toolbar.link"]') as HTMLElement | null;
-    }
-    if (!anchor) {
-      // Fallback: anchor to editor element
-      anchor = editorEl;
-    }
-    showLinkPopover(editor, anchor!);
-  });
-
-  document.addEventListener('keydown', (e) => {
-    const isMod = e.metaKey || e.ctrlKey;
-    if (isMod && e.key === 'k' && !e.shiftKey && !e.altKey) {
-      const sel = editor.state.selection;
-      if (!sel.empty || editor.isActive('link')) {
-        e.preventDefault();
-        const linkBtn = document.querySelector('[data-i18n-key="toolbar.link"]') as HTMLElement | null;
-        const anchor = linkBtn ?? editorEl;
-        showLinkPopover(editor, anchor);
-      }
-    }
-  });
+  initEditorCollab({ editor, editorEl, provider, statusEl, usersEl, user });
 
   initEditorPanels({ editor, editorEl, commentStore, documentId, user });
   initRuler();
@@ -242,28 +178,6 @@ async function init() {
     }, 500);
   }
 
-  function updateUsers() {
-    if (!usersEl || !provider.awareness) return;
-    const usersSection = document.getElementById('users-section');
-    const states = provider.awareness.getStates();
-    const names: string[] = [];
-    states.forEach((state: { user?: { name?: string } }) => {
-      if (state.user?.name) names.push(state.user.name);
-    });
-    // Filter out anonymous/empty entries and the current user's own name
-    const otherNames = names.filter(
-      n => n && n.toLowerCase() !== 'anonymous' && n !== user.name
-    );
-    if (otherNames.length > 0) {
-      usersEl.textContent = otherNames.join(', ');
-      if (usersSection) usersSection.removeAttribute('hidden');
-    } else {
-      usersEl.textContent = '';
-      if (usersSection) usersSection.setAttribute('hidden', '');
-    }
-  }
-  provider.awareness?.on('change', updateUsers);
-  updateUsers();
   Object.assign(window, { editor, provider, ydoc, commentStore });
 }
 

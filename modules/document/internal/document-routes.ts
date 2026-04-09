@@ -20,6 +20,7 @@ function defaultListDocuments(params: ListDocumentsOptions) {
 import type { PermissionsModule } from '../../permissions/index.ts';
 import type { CacheClient } from '../../api/internal/redis.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
+import { registerDocumentMutationRoutes } from './document-mutation-routes.ts';
 
 const ListDocumentsQuery = z.object({
   folderId: z.string().uuid().optional(),
@@ -38,12 +39,6 @@ const CreateDocumentBody = z.object({
 const CreateDocumentQuery = z.object({
   templateId: z.string().uuid().optional(),
 });
-
-const UpdateDocumentBody = z.object({
-  title: z.string().min(1).max(200).optional(),
-  folderId: z.string().uuid().nullable().optional(),
-});
-
 
 type DocRecord = { id: string; [key: string]: unknown };
 
@@ -79,13 +74,16 @@ export type DocumentRoutesOptions = {
 export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   const router = Router();
   const { permissions, cache, storage } = opts;
-  const listDocuments = storage?.listDocuments ?? defaultListDocuments;
-  const createDocument = storage?.createDocument ?? defaultCreateDocument;
-  const getDocument = storage?.getDocument ?? defaultGetDocument;
-  const deleteDocument = storage?.deleteDocument ?? defaultDeleteDocument;
-  const updateDocumentTitle = storage?.updateDocumentTitle ?? defaultUpdateDocumentTitle;
-  const moveDocument = storage?.moveDocument ?? defaultMoveDocument;
-  const getTemplate = storage?.getTemplate ?? defaultGetTemplate;
+  const storageFns: DocumentStorageFns = {
+    listDocuments: storage?.listDocuments ?? defaultListDocuments,
+    createDocument: storage?.createDocument ?? defaultCreateDocument,
+    getDocument: storage?.getDocument ?? defaultGetDocument,
+    deleteDocument: storage?.deleteDocument ?? defaultDeleteDocument,
+    updateDocumentTitle: storage?.updateDocumentTitle ?? defaultUpdateDocumentTitle,
+    moveDocument: storage?.moveDocument ?? defaultMoveDocument,
+    getTemplate: storage?.getTemplate ?? defaultGetTemplate,
+  };
+  const { listDocuments, createDocument, getTemplate } = storageFns;
 
   // List documents — supports ?folderId=, ?page=, ?limit=, ?sort=, ?sortDir=, ?type=
   // Always filters results by principal's grants (see issue #66)
@@ -167,92 +165,7 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
     res.status(201).json({ ...doc, templateContent });
   }));
 
-  // Get current user's effective role on a document — requires read permission.
-  // Called by the editor on load to enforce read-only mode for viewers/commenters.
-  router.get('/:id/my-role', permissions.require('read'), asyncHandler(async (req: Request, res: Response) => {
-    const documentId = String(req.params.id);
-    const principal = req.principal!;
-    const grants = await permissions.grantStore.findByPrincipalAndResource(
-      principal.id,
-      documentId,
-      'document',
-    );
-
-    if (grants.length === 0) {
-      // Permission middleware already verified read access; this is a safety net.
-      res.status(403).json({ error: 'No grant found' });
-      return;
-    }
-
-    // Pick the highest-ranked grant (matches the evaluate() logic).
-    const ROLE_RANK: Record<string, number> = {
-      owner: 4, editor: 3, commenter: 2, viewer: 1,
-    };
-    const best = grants.reduce((a, b) =>
-      (ROLE_RANK[b.role] ?? 0) > (ROLE_RANK[a.role] ?? 0) ? b : a,
-    );
-
-    res.json({
-      role: best.role,
-      canWrite: ['owner', 'editor'].includes(best.role),
-      canComment: ['owner', 'editor', 'commenter'].includes(best.role),
-    });
-  }));
-
-  // Get document — requires read permission
-  router.get('/:id', permissions.require('read'), asyncHandler(async (req: Request, res: Response) => {
-    const doc = await getDocument(String(req.params.id));
-    if (!doc) {
-      res.status(404).json({ error: 'Document not found' });
-      return;
-    }
-    res.json(doc);
-  }));
-
-  // Update document title and/or move to folder — requires write permission
-  router.patch('/:id', permissions.require('write'), asyncHandler(async (req: Request, res: Response) => {
-    const bodyResult = UpdateDocumentBody.safeParse(req.body);
-    if (!bodyResult.success) {
-      res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
-      return;
-    }
-    const { title, folderId } = bodyResult.data;
-    const id = String(req.params.id);
-    if (title !== undefined) {
-      await updateDocumentTitle(id, title);
-    }
-    if (folderId !== undefined) {
-      await moveDocument(id, folderId);
-    }
-    res.json({ ok: true });
-  }));
-
-  // Delete document — removes document, cache, and permission grants
-  router.delete('/:id', permissions.require('delete'), asyncHandler(async (req: Request, res: Response) => {
-    const documentId = String(req.params.id);
-
-    const deleted = await deleteDocument(documentId);
-    if (!deleted) {
-      res.status(404).json({ error: 'Document not found' });
-      return;
-    }
-
-    if (cache) {
-      try {
-        await cache.del(`doc:${documentId}`, `yjs:${documentId}`);
-      } catch {
-        // Cache cleanup is best-effort
-      }
-    }
-
-    await permissions.grantStore.deleteByResource(documentId, 'document');
-
-    res.json({
-      deletedAt: new Date().toISOString(),
-      documentId,
-      scope: 'full',
-    });
-  }));
+  registerDocumentMutationRoutes({ router, permissions, cache, storage: storageFns });
 
   return router;
 }
