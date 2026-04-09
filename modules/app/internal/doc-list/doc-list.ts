@@ -21,6 +21,7 @@ import {
 import { setupOnlineRefresh } from '../offline/doc-list-offline.ts';
 import { type DocListState, loadViewMode } from './doc-list-controls.ts';
 import { type LoaderState, loadDocuments } from './doc-list-loader.ts';
+import { showToast } from '../shared/toast.ts';
 
 const ls: LoaderState = {
   state: { sort: 'updated_at-desc', typeFilter: 'all', page: 1, totalPages: 1, viewMode: loadViewMode() },
@@ -46,6 +47,7 @@ async function createTypedDocument(documentType: string): Promise<void> {
     });
     if (!res.ok) throw new Error('Failed to create document');
     const doc = await res.json();
+    showToast('Document created', 'success');
     window.location.href = meta.editor + '?doc=' + encodeURIComponent(doc.id);
   } catch (err) {
     console.error('Create failed', err);
@@ -85,7 +87,10 @@ async function init() {
   async function handleNewDocument() {
     try {
       const docId = await createDocumentFromTemplate();
-      if (docId) window.location.href = '/editor.html?doc=' + encodeURIComponent(docId);
+      if (docId) {
+        showToast('Document created', 'success');
+        window.location.href = '/editor.html?doc=' + encodeURIComponent(docId);
+      }
     } catch (err) { console.error('Create failed', err); }
   }
 

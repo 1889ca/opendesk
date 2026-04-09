@@ -12,6 +12,9 @@ import { formatRelativeTime } from '../shared/time-format.ts';
 import { getCurrentFolderId } from './folder-list.ts';
 import { showDeleteConfirmDialog } from './delete-confirm-dialog.ts';
 import { getStarred, toggleStar } from './starred-store.ts';
+import { showToast } from '../shared/toast.ts';
+import { attachContextMenu, buildContextCallbacks } from './doc-context-menu.ts';
+import { attachHoverPreview } from './doc-hover-preview.ts';
 
 export interface DocEntry {
   id: string;
@@ -155,7 +158,8 @@ function buildDocRow(
     showDeleteConfirmDialog(docName).then((confirmed) => {
       if (!confirmed) return;
       apiFetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
-        .then(() => onDelete()).catch((err) => { console.error('Delete failed', err); });
+        .then(() => { showToast('Document deleted', 'success'); onDelete(); })
+        .catch((err) => { console.error('Delete failed', err); });
     });
   });
 
