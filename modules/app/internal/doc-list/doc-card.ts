@@ -83,7 +83,7 @@ function buildDocCard(
 
   const icon = document.createElement('span');
   icon.className = 'doc-card-icon';
-  icon.textContent = meta.icon;
+  icon.innerHTML = meta.icon;
 
   const title = document.createElement('span');
   title.className = 'doc-card-title';

@@ -149,7 +149,7 @@ async function init() {
     const sep = document.createElement('span');
     sep.className = 'toolbar-separator';
     const helpBtn = document.createElement('button');
-    helpBtn.className = 'export-btn shortcut-help-btn';
+    helpBtn.className = 'btn btn-ghost btn-sm shortcut-help-btn';
     helpBtn.setAttribute('aria-label', t('a11y.shortcutsLabel'));
     helpBtn.setAttribute('title', t('shortcuts.showShortcuts'));
     helpBtn.textContent = '?';

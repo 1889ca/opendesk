@@ -22,6 +22,35 @@
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.logo-mark {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  display: block;
+}
+
+.logo-mark--sm {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.75;
+  transition: opacity 0.15s;
+}
+
+.logo-link:hover {
+  opacity: 1;
 }
 
 .doc-label,
@@ -211,23 +240,7 @@
   margin-left: auto;
 }
 
-.export-btn {
-  font-family: inherit;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  padding: 0.25rem 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--surface);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: background 0.1s, border-color 0.1s;
-}
-
-.export-btn:hover {
-  background: var(--bg);
-  border-color: var(--text-muted);
-}
+/* export-btn removed — editor toolbar buttons now use .btn .btn-ghost .btn-sm (issue #216) */
 
 /* Export dropdown */
 .export-dropdown {
