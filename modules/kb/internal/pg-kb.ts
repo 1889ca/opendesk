@@ -1,8 +1,7 @@
 /** Contract: contracts/kb/rules.md */
 import type { Pool } from 'pg';
 import { pool as defaultPool } from '../../storage/internal/pool.ts';
-import type { KbEntryStatus } from '../contract.ts';
-import { STATUS_TRANSITIONS } from '../contract.ts';
+import { STATUS_TRANSITIONS, type KbEntryStatus } from '../contract.ts';
 
 type KbLifecycle = KbEntryStatus;
 const VALID_LIFECYCLE_TRANSITIONS = STATUS_TRANSITIONS;

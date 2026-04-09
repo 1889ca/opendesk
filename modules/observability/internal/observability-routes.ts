@@ -3,12 +3,12 @@
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import type { ObservabilityModule } from '../contract.ts';
 import {
   MetricSampleSchema,
   ForensicsQuerySchema,
   SiemFormatSchema,
   MetricNameSchema,
+  type ObservabilityModule,
 } from '../contract.ts';
 import { asyncHandler } from '../../api/index.ts';
 

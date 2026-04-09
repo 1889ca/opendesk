@@ -22,8 +22,8 @@ export function createCanvasRenderer(
 
   let selectedNodeId: string | null = null;
   let dragState: { nodeId: string; offsetX: number; offsetY: number } | null = null;
-  let panX = 0;
-  let panY = 0;
+  const panX = 0;
+  const panY = 0;
 
   function screenToCanvas(clientX: number, clientY: number) {
     const rect = svg.getBoundingClientRect();

@@ -1,11 +1,11 @@
 /** Contract: contracts/ai/rules.md */
-import type {
-  ModelProvider,
-  RagQueryOptions,
-  SemanticSearchResult,
-  SourceType,
+import {
+  RAG_CORPUS_FILTER,
+  type ModelProvider,
+  type RagQueryOptions,
+  type SemanticSearchResult,
+  type SourceType,
 } from '../contract.ts';
-import { RAG_CORPUS_FILTER } from '../contract.ts';
 import { searchSimilar } from './vector-store.ts';
 import type { Pool } from 'pg';
 import { pool as defaultPool } from '../../storage/internal/pool.ts';

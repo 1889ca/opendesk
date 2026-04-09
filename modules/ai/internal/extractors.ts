@@ -1,9 +1,8 @@
 /** Contract: contracts/ai/rules.md */
 import type { TextExtractor, ExtractorType } from '../contract.ts';
-import type { TextDocumentSnapshot } from '../../document/contract/text.ts';
+import type { TextDocumentSnapshot, ProseMirrorNode } from '../../document/contract/text.ts';
 import type { SpreadsheetDocumentSnapshot } from '../../document/contract/spreadsheet.ts';
 import type { PresentationDocumentSnapshot } from '../../document/contract/presentation.ts';
-import type { ProseMirrorNode } from '../../document/contract/text.ts';
 
 // --- Registry ---
 

@@ -6,6 +6,7 @@ import {
   fetchForensics,
   downloadSiemExport,
   fetchSiemConfigs,
+  type ForensicsEvent,
 } from './obs-api.ts';
 import { renderTimeSeriesChart } from './obs-chart.ts';
 import { renderAlertList } from './obs-alerts.ts';
@@ -16,7 +17,6 @@ import {
   exportForensicsJson,
 } from './obs-forensics.ts';
 import { renderSiemConfigs } from './obs-siem.ts';
-import type { ForensicsEvent } from './obs-api.ts';
 
 let currentForensicsEvents: ForensicsEvent[] = [];
 

@@ -1,8 +1,12 @@
 /** Contract: contracts/federation/rules.md */
-import { randomUUID } from 'node:crypto';
-import type { FederatedPermission, FederatedRole, FederatedMessage, Peer } from '../contract.ts';
-import { FederatedPermissionSchema } from '../contract.ts';
-import type { KeyObject } from 'node:crypto';
+import { randomUUID, type KeyObject } from 'node:crypto';
+import {
+  FederatedPermissionSchema,
+  type FederatedPermission,
+  type FederatedRole,
+  type FederatedMessage,
+  type Peer,
+} from '../contract.ts';
 import { signMessage } from './signing.ts';
 
 /** Storage interface for federated permissions. */

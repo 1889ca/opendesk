@@ -1,6 +1,12 @@
 /** Contract: contracts/app/rules.md */
-import type { ModelListItem, ModelConfig } from './api.ts';
-import { pullModel, deleteModel, setActiveModel, deleteCustomModel } from './api.ts';
+import {
+  pullModel,
+  deleteModel,
+  setActiveModel,
+  deleteCustomModel,
+  type ModelListItem,
+  type ModelConfig,
+} from './api.ts';
 
 /** Render the active config display. */
 export function renderConfig(config: ModelConfig, models: ModelListItem[]): void {

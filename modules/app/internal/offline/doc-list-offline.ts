@@ -8,9 +8,12 @@
 
 import { t } from '../i18n/index.ts';
 import { formatRelativeTime } from '../shared/time-format.ts';
-import { cacheDocumentList, getCachedDocumentList } from './offline-storage.ts';
+import {
+  cacheDocumentList,
+  getCachedDocumentList,
+  type CachedDocEntry,
+} from './offline-storage.ts';
 import { getConnectionState, onConnectionStateChange } from './offline-indicator.ts';
-import type { CachedDocEntry } from './offline-storage.ts';
 
 interface DocEntry {
   id: string;

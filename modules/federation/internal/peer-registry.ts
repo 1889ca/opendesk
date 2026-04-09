@@ -1,8 +1,12 @@
 /** Contract: contracts/federation/rules.md */
-import type { Peer, PeerRegistration, PeerStatus } from '../contract.ts';
-import { PeerSchema } from '../contract.ts';
+import {
+  PeerSchema,
+  type Peer,
+  type PeerRegistration,
+  type PeerStatus,
+  type FederatedMessage,
+} from '../contract.ts';
 import { importPublicKey, verifyMessage } from './signing.ts';
-import type { FederatedMessage } from '../contract.ts';
 
 /** Storage interface for peer persistence. */
 export interface PeerStore {

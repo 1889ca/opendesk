@@ -1,8 +1,12 @@
 /** Contract: contracts/app/rules.md */
 
-import type { KbEntryData } from './kb-api.ts';
+import {
+  fetchEntries,
+  fetchEntry,
+  createEntry,
+  type KbEntryData,
+} from './kb-api.ts';
 import type { KbEntryStatus } from '../../../kb/contract.ts';
-import { fetchEntries, fetchEntry, createEntry } from './kb-api.ts';
 import { createStatusBadge } from './status-badge.ts';
 import { renderDetailPanel } from './detail-panel.ts';
 import { formatRelativeTime } from '../shared/time-format.ts';

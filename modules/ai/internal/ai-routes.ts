@@ -1,8 +1,7 @@
 /** Contract: contracts/ai/rules.md */
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
-import { CustomModelSchema } from '../contract.ts';
-import type { AiModule } from '../contract.ts';
+import { CustomModelSchema, type AiModule } from '../contract.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import type { ModelService } from './model-service.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';

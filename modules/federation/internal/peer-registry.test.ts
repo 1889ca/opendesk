@@ -1,8 +1,13 @@
 /** Contract: contracts/federation/rules.md */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { registerPeer, verifyPeerMessage, createInMemoryPeerStore, PeerAlreadyExistsError } from './peer-registry.ts';
+import {
+  registerPeer,
+  verifyPeerMessage,
+  createInMemoryPeerStore,
+  PeerAlreadyExistsError,
+  type PeerStore,
+} from './peer-registry.ts';
 import { generateKeyPair, exportPublicKey, signMessage } from './signing.ts';
-import type { PeerStore } from './peer-registry.ts';
 import type { FederatedMessage } from '../contract.ts';
 
 describe('peer-registry', () => {

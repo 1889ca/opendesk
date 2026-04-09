@@ -1,7 +1,17 @@
 /** Contract: contracts/app/charts.md */
 import * as Y from 'yjs';
-import type { ChartDef, ChartRange, ChartType, ChartPosition, ChartSize } from './chart-types.ts';
-import { createChartId, DEFAULT_CHART_SIZE, DEFAULT_COLORS, chartDefToJSON, jsonToChartDef } from './chart-types.ts';
+import {
+  createChartId,
+  DEFAULT_CHART_SIZE,
+  DEFAULT_COLORS,
+  chartDefToJSON,
+  jsonToChartDef,
+  type ChartDef,
+  type ChartRange,
+  type ChartType,
+  type ChartPosition,
+  type ChartSize,
+} from './chart-types.ts';
 import { extractChartData, extractPieData } from './chart-data.ts';
 import { createChartOverlay } from './chart-overlay.ts';
 import { renderBarChart } from './bar-chart.ts';

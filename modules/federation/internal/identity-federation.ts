@@ -1,7 +1,11 @@
 /** Contract: contracts/federation/rules.md */
 import * as jose from 'jose';
-import type { FederatedIdentity, SAMLAssertionResult, Peer } from '../contract.ts';
-import { FederatedIdentitySchema } from '../contract.ts';
+import {
+  FederatedIdentitySchema,
+  type FederatedIdentity,
+  type SAMLAssertionResult,
+  type Peer,
+} from '../contract.ts';
 import { randomUUID } from 'node:crypto';
 
 /** Storage interface for federated identity mappings. */

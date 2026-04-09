@@ -1,8 +1,11 @@
 /** Contract: contracts/federation/rules.md */
 import { randomUUID } from 'node:crypto';
 import * as Y from 'yjs';
-import type { SplitBrainEvent, SplitBrainType } from '../contract.ts';
-import { SplitBrainEventSchema } from '../contract.ts';
+import {
+  SplitBrainEventSchema,
+  type SplitBrainEvent,
+  type SplitBrainType,
+} from '../contract.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('federation:split-brain');

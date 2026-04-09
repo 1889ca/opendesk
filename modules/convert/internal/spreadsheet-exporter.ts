@@ -10,11 +10,11 @@
 
 import { gridToCsv, type CellGrid } from './csv-parser.ts';
 import { convertFile } from './libreoffice.ts';
-import type { SpreadsheetExportFormat } from './spreadsheet-formats.ts';
 import {
   isValidSpreadsheetExportFormat,
   getSpreadsheetExportMime,
   getSpreadsheetExportExt,
+  type SpreadsheetExportFormat,
 } from './spreadsheet-formats.ts';
 
 export class SpreadsheetExportError extends Error {

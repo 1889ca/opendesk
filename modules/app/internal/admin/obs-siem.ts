@@ -1,7 +1,6 @@
 /** Contract: contracts/observability/rules.md */
 
-import type { SiemConfig } from './obs-api.ts';
-import { deleteSiemConfig } from './obs-api.ts';
+import { deleteSiemConfig, type SiemConfig } from './obs-api.ts';
 
 /** Render SIEM config list. */
 export function renderSiemConfigs(

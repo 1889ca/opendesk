@@ -3,8 +3,7 @@
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import type { EDiscoveryModule } from '../contract.ts';
-import { ExportFormatSchema } from '../contract.ts';
+import { ExportFormatSchema, type EDiscoveryModule } from '../contract.ts';
 import { asyncHandler } from '../../api/index.ts';
 
 export type EDiscoveryRoutesOptions = {

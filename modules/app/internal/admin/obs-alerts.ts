@@ -1,7 +1,6 @@
 /** Contract: contracts/observability/rules.md */
 
-import type { AnomalyAlert } from './obs-api.ts';
-import { acknowledgeAlert } from './obs-api.ts';
+import { acknowledgeAlert, type AnomalyAlert } from './obs-api.ts';
 
 /** Render the alert list into a container. */
 export function renderAlertList(

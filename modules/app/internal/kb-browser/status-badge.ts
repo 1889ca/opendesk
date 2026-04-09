@@ -1,7 +1,6 @@
 /** Contract: contracts/app/rules.md */
 
-import type { KbEntryStatus } from '../../../kb/contract.ts';
-import { STATUS_TRANSITIONS } from '../../../kb/contract.ts';
+import { STATUS_TRANSITIONS, type KbEntryStatus } from '../../../kb/contract.ts';
 
 const STATUS_LABELS: Record<KbEntryStatus, string> = {
   draft: 'Draft',

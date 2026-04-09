@@ -1,8 +1,7 @@
 /** Contract: contracts/audit/yjs-signatures.md */
 
-import { createHash, sign, verify, type KeyObject } from 'node:crypto';
+import { createHash, sign, verify, randomUUID, type KeyObject } from 'node:crypto';
 import type { Pool } from 'pg';
-import { randomUUID } from 'node:crypto';
 import { loadPublicKey, loadAllPublicKeys } from './ed25519-keys.ts';
 
 export type SignedUpdate = {

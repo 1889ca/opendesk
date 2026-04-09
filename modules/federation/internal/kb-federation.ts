@@ -1,7 +1,12 @@
 /** Contract: contracts/federation/rules.md */
 import { randomUUID } from 'node:crypto';
-import type { KBFederationEntry, KBSubscription, KBSyncStatus } from '../contract.ts';
-import { KBFederationEntrySchema, KBSubscriptionSchema } from '../contract.ts';
+import {
+  KBFederationEntrySchema,
+  KBSubscriptionSchema,
+  type KBFederationEntry,
+  type KBSubscription,
+  type KBSyncStatus,
+} from '../contract.ts';
 
 /** Storage interface for KB federation entries. */
 export interface KBFederationStore {

@@ -1,8 +1,11 @@
 /** Contract: contracts/erasure/rules.md */
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
-import type { ErasureModule } from '../contract.ts';
-import { LegalBasisSchema, JurisdictionSchema } from '../contract.ts';
+import {
+  LegalBasisSchema,
+  JurisdictionSchema,
+  type ErasureModule,
+} from '../contract.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
 
