@@ -95,6 +95,24 @@ const builds = [
     minify: true,
     sourcemap: true,
   },
+  // Admin models JS
+  {
+    entryPoints: ['modules/app/internal/admin-models/admin-models.ts'],
+    outfile: `${OUTDIR}/admin-models.bundle.js`,
+    bundle: true,
+    format: 'esm',
+    target: 'es2022',
+    minify: true,
+    sourcemap: true,
+  },
+  // Admin models CSS
+  {
+    entryPoints: ['modules/app/internal/css/admin-models.css'],
+    outfile: `${OUTDIR}/admin-models.bundle.css`,
+    bundle: true,
+    minify: true,
+    sourcemap: true,
+  },
 ];
 
 async function main() {

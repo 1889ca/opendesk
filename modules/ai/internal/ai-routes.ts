@@ -28,7 +28,7 @@ export function createAiRoutes(opts: AiRoutesOpts): Router {
   router.post(
     '/models/:id/pull',
     asyncHandler(async (req: Request, res: Response) => {
-      const { id } = req.params;
+      const id = String(req.params.id);
       const generator = await modelService.pullModel(id);
 
       res.setHeader('Content-Type', 'text/event-stream');
@@ -47,7 +47,7 @@ export function createAiRoutes(opts: AiRoutesOpts): Router {
   router.delete(
     '/models/:id',
     asyncHandler(async (req: Request, res: Response) => {
-      const { id } = req.params;
+      const id = String(req.params.id);
       await modelService.deleteModel(id);
       res.json({ ok: true });
     }),
@@ -57,7 +57,7 @@ export function createAiRoutes(opts: AiRoutesOpts): Router {
   router.get(
     '/models/:id/status',
     asyncHandler(async (req: Request, res: Response) => {
-      const { id } = req.params;
+      const id = String(req.params.id);
       const models = await modelService.listModels();
       const model = models.find((m) => m.id === id);
       if (!model) {
@@ -101,7 +101,7 @@ export function createAiRoutes(opts: AiRoutesOpts): Router {
   router.delete(
     '/models/custom/:id',
     asyncHandler(async (req: Request, res: Response) => {
-      const removed = await modelService.unregisterCustom(req.params.id);
+      const removed = await modelService.unregisterCustom(String(req.params.id));
       if (!removed) {
         res.status(404).json({ error: 'Custom model not found' });
         return;

@@ -1,0 +1,34 @@
+/* Badge styles for model zoo cards */
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badge-license { background: #e8f5e9; color: #2e7d32; }
+.badge-tier-recommended { background: #e3f2fd; color: #1565c0; }
+.badge-tier-lightweight { background: #fff3e0; color: #e65100; }
+.badge-tier-specialized { background: #f3e5f5; color: #7b1fa2; }
+.badge-capability { background: #fce4ec; color: #c62828; }
+.badge-custom { background: #fff9c4; color: #f57f17; }
+.badge-usecase { background: var(--bg-secondary); color: var(--text-muted); }
+.badge-installed { background: #c8e6c9; color: #1b5e20; }
+
+[data-theme="dark"] .badge-license { background: #1b5e20; color: #a5d6a7; }
+[data-theme="dark"] .badge-tier-recommended { background: #0d47a1; color: #90caf9; }
+[data-theme="dark"] .badge-tier-lightweight { background: #bf360c; color: #ffcc80; }
+[data-theme="dark"] .badge-tier-specialized { background: #4a148c; color: #ce93d8; }
+[data-theme="dark"] .badge-capability { background: #b71c1c; color: #ef9a9a; }
+[data-theme="dark"] .badge-custom { background: #f57f17; color: #fff9c4; }
+[data-theme="dark"] .badge-installed { background: #1b5e20; color: #a5d6a7; }

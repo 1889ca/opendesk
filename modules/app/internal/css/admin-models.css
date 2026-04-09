@@ -1,0 +1,8 @@
+/** CSS bundle entry for admin-models.html */
+@import "../public/theme.css";
+@import "../public/styles.css";
+@import "../public/toolbar.css";
+@import "../public/doc-list.css";
+@import "./admin-models-page.css";
+@import "./admin-models-badges.css";
+@import "./admin-models-dialog.css";
