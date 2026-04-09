@@ -50,7 +50,7 @@ if [ -d "$API_DIR" ]; then
     AUTH_FILE=$(echo "$AUTH_HIT" | cut -d: -f1)
     AUTH_LINE=$(echo "$AUTH_HIT" | cut -d: -f2)
     ROUTE_LINES=$(grep -n "app.use\|app.get\|app.post\|app.put\|app.patch\|app.delete" "$AUTH_FILE" \
-      | grep -v "express.json\|express.static\|health\|auth.middleware\|authMiddleware\|idempotency" \
+      | grep -v "express.json\|express.static\|serveHtmlWithNonce\|health\|auth.middleware\|authMiddleware\|idempotency" \
       | head -5)
     EARLY_ROUTES=$(echo "$ROUTE_LINES" | awk -F: -v auth="$AUTH_LINE" '$1 < auth {print}')
     if [ -n "$EARLY_ROUTES" ]; then
