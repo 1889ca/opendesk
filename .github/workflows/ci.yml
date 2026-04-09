@@ -50,9 +50,6 @@ jobs:
 
   test-e2e:
     runs-on: ubuntu-latest
-    # E2E tests are new and still being stabilised — don't block merges.
-    # Remove continue-on-error once all selectors and assertions are tuned.
-    continue-on-error: true
 
     services:
       postgres:

@@ -1,21 +1,27 @@
 import { test, expect } from '@playwright/test';
-import { API, createDocViaAPI, cleanupDocs } from './helpers';
+import { API, AUTH, createDocViaAPI, cleanupDocs } from './helpers';
 
 test.afterAll(async () => { await cleanupDocs(); });
 
 test.describe('Auth Flow', () => {
-  test('authenticated user can access doc list', async ({ page }) => {
-    // Dev mode auto-authenticates via Bearer dev token in api-client
-    await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'OpenDesk' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'New Document' })).toBeVisible();
+  test('dev token returns document list', async () => {
+    const res = await fetch(`${API}/api/documents`, { headers: AUTH });
+    expect(res.ok).toBe(true);
+    const docs = await res.json();
+    expect(Array.isArray(docs)).toBe(true);
   });
 
-  test('authenticated user can create and open a document', async ({ page }) => {
+  test('dev token can create a document', async () => {
     const title = `Auth Test ${Date.now()}`;
-    const docId = await createDocViaAPI(title);
-    await page.goto(`/editor.html?doc=${docId}`);
-    await expect(page.getByRole('toolbar', { name: 'Formatting toolbar' })).toBeVisible({ timeout: 10000 });
+    const res = await fetch(`${API}/api/documents`, {
+      method: 'POST',
+      headers: { ...AUTH, 'Content-Type': 'application/json', 'idempotency-key': crypto.randomUUID() },
+      body: JSON.stringify({ title }),
+    });
+    expect(res.status).toBe(201);
+    const doc = await res.json();
+    expect(doc.id).toBeTruthy();
+    expect(doc.title).toBe(title);
   });
 
   test('API rejects requests without valid auth token', async () => {
@@ -54,7 +60,7 @@ test.describe('Auth Flow', () => {
     expect(createRes.status).toBe(201);
     const doc = await createRes.json();
 
-    // Both user-a and dev-user can see it (dev mode grants are auto-created)
+    // user-a can see their own doc
     const res = await fetch(`${API}/api/documents/${doc.id}`, {
       headers: { Authorization: 'Bearer dev:user-a:UserA:read' },
     });

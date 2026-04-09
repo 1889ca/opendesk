@@ -6,7 +6,11 @@ test.afterAll(async () => { await cleanupDocs(); });
 test.describe('Theme', () => {
   test('toggle persists across pages', async ({ page }) => {
     await page.goto('/');
-    const themeBtn = page.getByRole('button', { name: /Theme/ });
+    // Use the static #theme-toggle button (doc-list page creates two theme
+    // buttons — the static one from HTML and a dynamic one from
+    // buildThemeToggle). Target the static one by ID to avoid strict-mode
+    // violations from matching both.
+    const themeBtn = page.locator('#theme-toggle');
     if (await themeBtn.count() > 0) {
       await themeBtn.click();
       const theme = await page.locator('html').getAttribute('data-theme');
