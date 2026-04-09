@@ -22,6 +22,7 @@ import { setupOnlineRefresh } from '../offline/doc-list-offline.ts';
 import { type DocListState, loadViewMode } from './doc-list-controls.ts';
 import { type LoaderState, loadDocuments } from './doc-list-loader.ts';
 import { showToast } from '../shared/toast.ts';
+import { initStarredCache } from './starred-store.ts';
 
 const ls: LoaderState = {
   state: { sort: 'updated_at-desc', typeFilter: 'all', page: 1, totalPages: 1, viewMode: loadViewMode() },
@@ -95,6 +96,8 @@ async function init() {
 
   const reload = () => loadDocuments(listEl, ls, handleNewDocument, updateState, reload);
   setupOnlineRefresh(reload);
+
+  await initStarredCache();
 
   const searchEl = createGlobalSearch((active) => {
     listEl.style.display = active ? 'none' : '';

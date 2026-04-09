@@ -143,13 +143,13 @@ function buildDocRow(
   starBtn.className = 'btn btn-star' + (isStarred ? ' btn-star--active' : '');
   starBtn.textContent = isStarred ? '\u2605' : '\u2606';
   starBtn.setAttribute('aria-label', isStarred ? 'Unstar document' : 'Star document');
-  starBtn.addEventListener('click', () => { toggleStar(doc.id); onStarToggle(); });
+  starBtn.addEventListener('click', async () => { await toggleStar(doc.id); onStarToggle(); });
 
   wrapper.append(checkLabel, row, starBtn);
 
   attachContextMenu(wrapper, doc, {
     onOpen: () => { window.location.href = meta.editor + '?doc=' + encodeURIComponent(doc.id); },
-    onStar: () => { toggleStar(doc.id); onStarToggle(); },
+    onStar: async () => { await toggleStar(doc.id); onStarToggle(); },
     onRename: () => renameDoc(doc, onDelete),
     onDuplicate: () => duplicateDoc(doc.id, onDelete),
     onDelete: () => confirmAndDelete(doc.id, docName, onDelete),

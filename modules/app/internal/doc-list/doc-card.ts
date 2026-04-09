@@ -122,7 +122,7 @@ function buildDocCard(
   starBtn.className = 'btn btn-star' + (isStarred ? ' btn-star--active' : '');
   starBtn.textContent = isStarred ? '\u2605' : '\u2606';
   starBtn.setAttribute('aria-label', isStarred ? 'Unstar document' : 'Star document');
-  starBtn.addEventListener('click', (e) => { e.preventDefault(); toggleStar(doc.id); onStarToggle(); });
+  starBtn.addEventListener('click', async (e) => { e.preventDefault(); await toggleStar(doc.id); onStarToggle(); });
 
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
@@ -141,7 +141,7 @@ function buildDocCard(
 
   attachContextMenu(card, doc, {
     onOpen: () => { window.location.href = meta.editor + '?doc=' + encodeURIComponent(doc.id); },
-    onStar: () => { toggleStar(doc.id); onStarToggle(); },
+    onStar: async () => { await toggleStar(doc.id); onStarToggle(); },
     onRename: () => cardRename(doc, onDelete),
     onDuplicate: () => cardDuplicate(doc.id, onDelete),
     onDelete: () => cardConfirmDelete(doc.id, docName, onDelete),
