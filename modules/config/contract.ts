@@ -86,6 +86,20 @@ export const AppConfigSchema = z.object({
     instanceId: z.string().default(''),
     privateKey: z.string().default(''),
     publicKey: z.string().default(''),
+    /**
+     * Allow federation peers whose hostname resolves to RFC1918
+     * (10/8, 172.16/12, 192.168/16) or IPv6 ULA addresses. Required
+     * for self-hosted instances on a LAN. Loopback and link-local are
+     * always forbidden regardless. See issue #131.
+     */
+    allowPrivateNetworks: z.coerce.boolean().default(false),
+    /**
+     * Allow http:// and ws:// federation peer URLs (in addition to
+     * https:// and wss://). Off by default; intended for tests and
+     * local development. Production federation traffic must be
+     * encrypted.
+     */
+    allowInsecureSchemes: z.coerce.boolean().default(false),
   }),
 });
 

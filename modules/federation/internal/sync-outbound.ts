@@ -7,22 +7,50 @@ import * as decoding from 'lib0/decoding';
 import type { Peer } from '../contract.ts';
 import type { KeyObject } from 'node:crypto';
 import { signMessage } from './signing.ts';
+import { validatePeerUrl } from './peer-url-validator.ts';
 import type { SyncMetadataStore } from './sync-metadata.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('federation:sync-out');
 const MSG_SYNC = 0;
 
-/** Open a bidirectional Yjs sync channel to a peer instance. */
-export function openSyncChannel(
+export interface SyncChannelOptions {
+  /** Permit RFC1918 / ULA peer addresses (self-hosted LAN). */
+  allowPrivateNetworks?: boolean;
+  /** Permit ws:// (and http://) peers in addition to wss:// (and https://). */
+  allowInsecureSchemes?: boolean;
+}
+
+/**
+ * Open a bidirectional Yjs sync channel to a peer instance.
+ *
+ * Re-validates the peer URL via {@link validatePeerUrl} before
+ * dialing — this is defense-in-depth on top of the registration-time
+ * check (issue #131), in case DNS resolution has changed since the
+ * peer was first registered.
+ *
+ * Returns a promise rather than a synchronous handle because URL
+ * validation requires DNS resolution.
+ */
+export async function openSyncChannel(
   doc: Y.Doc,
   peer: Peer,
   documentId: string,
   localInstanceId: string,
   privateKey: KeyObject,
   metadataStore: SyncMetadataStore,
-): { ws: WebSocket; close: () => void } {
+  opts: SyncChannelOptions = {},
+): Promise<{ ws: WebSocket; close: () => void }> {
   const syncUrl = `${peer.endpoint.replace(/^http/, 'ws')}/federation/sync/${documentId}`;
+
+  // Issue #131: validate the resolved address before opening a socket.
+  // Throws PeerUrlValidationError if the peer URL has been pointed at
+  // internal infrastructure since registration.
+  await validatePeerUrl(syncUrl, {
+    allowPrivateNetworks: opts.allowPrivateNetworks,
+    allowInsecureSchemes: opts.allowInsecureSchemes,
+  });
+
   const ws = new WebSocket(syncUrl);
   ws.binaryType = 'arraybuffer';
 

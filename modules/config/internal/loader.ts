@@ -61,6 +61,8 @@ function readEnv(): unknown {
       instanceId: env.FEDERATION_INSTANCE_ID,
       privateKey: env.FEDERATION_PRIVATE_KEY,
       publicKey: env.FEDERATION_PUBLIC_KEY,
+      allowPrivateNetworks: env.OPENDESK_FEDERATION_ALLOW_PRIVATE,
+      allowInsecureSchemes: env.OPENDESK_FEDERATION_ALLOW_INSECURE_SCHEMES,
     },
     ai: {
       enabled: env.AI_ENABLED,

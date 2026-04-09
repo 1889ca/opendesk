@@ -8,6 +8,17 @@ export const FederationConfigSchema = z.object({
   instanceId: z.string().default(''),
   privateKey: z.string().default(''),
   publicKey: z.string().default(''),
+  /**
+   * Allow peers whose hostname resolves to a private RFC1918 / IPv6 ULA
+   * address. Required for self-hosted instances on a LAN. Loopback and
+   * link-local are always forbidden regardless. See issue #131.
+   */
+  allowPrivateNetworks: z.boolean().default(false),
+  /**
+   * Allow http:// and ws:// peer URLs. Off by default; production
+   * federation traffic must be encrypted.
+   */
+  allowInsecureSchemes: z.boolean().default(false),
 });
 
 export type FederationConfig = z.infer<typeof FederationConfigSchema>;

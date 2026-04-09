@@ -9,6 +9,7 @@ import type {
 import { randomUUID } from 'node:crypto';
 import * as store from './federation-store.ts';
 import * as transferOps from './transfer-ops.ts';
+import { validatePeerUrl } from './peer-url-validator.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('federation');
@@ -29,6 +30,14 @@ export function createFederation(deps: FederationDependencies): FederationModule
   async function registerPeer(
     data: Omit<FederationPeer, 'id' | 'createdAt' | 'lastSeenAt' | 'status'>,
   ): Promise<FederationPeer> {
+    // Issue #131: validate the peer URL is not pointed at internal
+    // infrastructure before persisting it. The same check runs again
+    // at sync-channel open time as defense in depth (DNS can change).
+    await validatePeerUrl(data.endpointUrl, {
+      allowPrivateNetworks: config.allowPrivateNetworks,
+      allowInsecureSchemes: config.allowInsecureSchemes,
+    });
+
     const peer: FederationPeer = {
       ...data,
       id: randomUUID(),
