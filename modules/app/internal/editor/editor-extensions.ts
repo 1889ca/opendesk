@@ -48,7 +48,7 @@ interface ExtensionConfig {
 export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
   const { ydoc, provider, user } = config;
   return [
-    StarterKit.configure({ undoRedo: false, codeBlock: false }),
+    StarterKit.configure({ undoRedo: false, codeBlock: false, link: false, underline: false }),
     CodeBlockLowlight.configure({ lowlight }),
     Table.configure({ resizable: true }),
     TableRow,

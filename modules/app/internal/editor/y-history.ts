@@ -8,7 +8,7 @@
  * with Yjs (StarterKit must be configured with `undoRedo: false`).
  */
 import { Extension } from '@tiptap/core';
-import { yUndoPlugin, undo, redo } from '@tiptap/y-tiptap';
+import { undo, redo } from '@tiptap/y-tiptap';
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -22,9 +22,10 @@ declare module '@tiptap/core' {
 export const YHistory = Extension.create({
   name: 'yHistory',
 
-  addProseMirrorPlugins() {
-    return [yUndoPlugin()];
-  },
+  // NOTE: do NOT call yUndoPlugin() here.
+  // @tiptap/extension-collaboration already registers the y-undo$ plugin.
+  // Adding it again causes: "Adding different instances of a keyed plugin (y-undo$)"
+  // The undo/redo commands below work with the plugin Collaboration registered.
 
   addCommands() {
     return {
