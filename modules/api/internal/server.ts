@@ -26,6 +26,7 @@ import { ensureS3Bucket } from './s3-client.ts'; import { applySecurityMiddlewar
 import { createEventBus } from '../../events/index.ts';
 import { createAudit, createAuditRoutes } from '../../audit/index.ts';
 import { createWorkflow, createWorkflowRoutes } from '../../workflow/index.ts';
+import { createOllamaClient, createModelService, createAiRoutes, ensureAiSchema } from '../../ai/index.ts';
 import { loadConfig } from '../../config/index.ts';
 import { createLogger } from '../../logger/index.ts';
 
@@ -150,6 +151,19 @@ export async function startServer(port = 3000) {
 
   // Admin routes (user data purge)
   app.use('/api/admin', createAdminRoutes({ permissions, cache: redisClient }));
+
+  // AI model management routes
+  try {
+    await ensureAiSchema(pool);
+    const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
+    const ollamaClient = createOllamaClient({ baseUrl: ollamaUrl });
+    const modelService = createModelService({ pool, ollama: ollamaClient });
+    app.use('/api/ai', createAiRoutes({ modelService }));
+    log.info('AI model zoo routes mounted');
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log.warn('AI module init failed — model zoo disabled', { error: msg });
+  }
 
   // Share link routes (create, resolve, revoke) — after auth
   const shareLinkStore = createPgShareLinkStore(pool);
