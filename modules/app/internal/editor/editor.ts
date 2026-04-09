@@ -33,6 +33,7 @@ import { initEditorPanels } from './editor-panels.ts';
 import { initRuler } from './editor-ruler.ts';
 import { initZoomControl } from './zoom-control.ts';
 import { buildSaveIndicator } from './save-indicator.ts';
+import { initPageSetup, showPageSetupDialog } from './page-setup.ts';
 import {
   registerServiceWorker,
   buildOfflineIndicator,
@@ -210,6 +211,21 @@ async function init() {
   initEditorPanels({ editor, editorEl, commentStore, documentId, user });
   initRuler();
   initZoomControl();
+  initPageSetup();
+
+  // Wire up the Page Setup button in the toolbar
+  document.getElementById('page-setup-btn')?.addEventListener('click', showPageSetupDialog);
+
+  // Apply built-in template if one was stored for this doc via sessionStorage
+  const pendingHtml = sessionStorage.getItem(`opendesk-template-${documentId}`);
+  if (pendingHtml) {
+    sessionStorage.removeItem(`opendesk-template-${documentId}`);
+    setTimeout(() => {
+      if (editor.isEmpty) {
+        editor.commands.setContent(pendingHtml);
+      }
+    }, 500);
+  }
 
   function updateUsers() {
     if (!usersEl || !provider.awareness) return;

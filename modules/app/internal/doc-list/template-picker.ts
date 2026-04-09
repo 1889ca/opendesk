@@ -3,6 +3,7 @@
 import { apiFetch } from '../shared/api-client.ts';
 import { t } from '../i18n/index.ts';
 import { showNameDialog } from './name-dialog.ts';
+import { BUILTIN_TEMPLATES } from './builtin-templates.ts';
 
 interface TemplateOption {
   id: string;
@@ -62,9 +63,21 @@ export function showTemplatePicker(): Promise<string | null> {
 }
 
 async function fetchTemplates(): Promise<TemplateOption[]> {
-  const res = await apiFetch('/api/templates');
-  if (!res.ok) throw new Error('Failed to fetch templates');
-  return res.json();
+  const builtins: TemplateOption[] = BUILTIN_TEMPLATES.map(t => ({
+    id: t.id,
+    name: t.name,
+    description: t.description,
+  }));
+  try {
+    const res = await apiFetch('/api/templates');
+    const apiTemplates: TemplateOption[] = res.ok ? await res.json() : [];
+    return [
+      ...builtins,
+      ...apiTemplates.filter(t => t.name.toLowerCase() !== 'blank'),
+    ];
+  } catch {
+    return builtins;
+  }
 }
 
 function renderCards(
@@ -121,9 +134,10 @@ export async function createDocumentFromTemplate(): Promise<string | null> {
   const titleText = await showNameDialog('docList.titlePrompt');
   if (!titleText) return null;
 
-  const url = templateId
-    ? `/api/documents?templateId=${encodeURIComponent(templateId)}`
-    : '/api/documents';
+  const isBuiltin = templateId?.startsWith('builtin:');
+  const url = (!templateId || isBuiltin)
+    ? '/api/documents'
+    : `/api/documents?templateId=${encodeURIComponent(templateId)}`;
 
   const res = await apiFetch(url, {
     method: 'POST',
@@ -133,5 +147,13 @@ export async function createDocumentFromTemplate(): Promise<string | null> {
 
   if (!res.ok) throw new Error('Failed to create document');
   const doc = await res.json();
+
+  if (isBuiltin) {
+    const tpl = BUILTIN_TEMPLATES.find(t => t.id === templateId);
+    if (tpl) {
+      sessionStorage.setItem(`opendesk-template-${doc.id}`, tpl.html);
+    }
+  }
+
   return doc.id;
 }

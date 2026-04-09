@@ -201,6 +201,58 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   opacity: 0.5;
 }
 
+/* Page Setup dialog */
+.page-setup-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg, rgba(0, 0, 0, 0.4));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.page-setup-dialog {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.page-setup-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.page-setup-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.page-setup-select {
+  font-size: 0.875rem;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.page-setup-btns {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
 /* Collaboration cursors */
 .collaboration-cursor__caret {
   border-left: 2px solid;
