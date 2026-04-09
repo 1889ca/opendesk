@@ -75,6 +75,8 @@ export interface CoreTranslationKeys {
   'docList.pageOf': string;
   'docList.prevPage': string;
   'docList.nextPage': string;
+  'docList.count': string;
+  'docList.countFiltered': string;
   'time.justNow': string;
   'time.secondsAgo': string;
   'time.minuteAgo': string;

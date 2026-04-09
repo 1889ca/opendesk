@@ -15,6 +15,7 @@ export interface DocListState {
   typeFilter: TypeFilter;
   page: number;
   totalPages: number;
+  totalCount?: number;
 }
 
 const PAGE_SIZE = 20;
@@ -58,6 +59,17 @@ export function createControlsBar(
 ): HTMLElement {
   const bar = document.createElement('div');
   bar.className = 'doc-list-controls';
+
+  // Document count
+  if (state.totalCount !== undefined) {
+    const countEl = document.createElement('span');
+    countEl.className = 'doc-list-count';
+    const filtered = state.typeFilter !== 'all';
+    countEl.textContent = filtered
+      ? t('docList.countFiltered', { n: String(state.totalCount) })
+      : t('docList.count', { n: String(state.totalCount) });
+    bar.appendChild(countEl);
+  }
 
   // Type filter buttons
   const filterGroup = document.createElement('div');

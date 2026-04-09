@@ -132,6 +132,7 @@ function buildDocRow(
   const time = document.createElement('span');
   time.className = 'doc-row-time';
   time.textContent = meta.label + ' \u00B7 ' + t('docList.updated', { time: formatRelativeTime(doc.updated_at) });
+  time.title = new Date(doc.updated_at).toLocaleString();
   info.append(titleRow, time);
   row.appendChild(info);
 

@@ -90,12 +90,33 @@ function buildToolbarButtons(editor: Editor): ToolbarButton[] {
   ];
 }
 
+const MOD = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl';
+const KB_HINTS: Partial<Record<string, string>> = {
+  'shortcuts.bold':          `${MOD}B`,
+  'shortcuts.italic':        `${MOD}I`,
+  'shortcuts.strikethrough': `${MOD}⇧X`,
+  'shortcuts.code':          `${MOD}E`,
+  'shortcuts.superscript':   `${MOD}.`,
+  'shortcuts.subscript':     `${MOD},`,
+  'shortcuts.heading1':      `${MOD}⌥1`,
+  'shortcuts.heading2':      `${MOD}⌥2`,
+  'shortcuts.heading3':      `${MOD}⌥3`,
+  'shortcuts.bulletList':    `${MOD}⇧8`,
+  'shortcuts.orderedList':   `${MOD}⇧7`,
+  'shortcuts.blockquote':    `${MOD}⇧B`,
+  'shortcuts.codeBlock':     `${MOD}⌥C`,
+  'shortcuts.horizontalRule': `${MOD}⌥H`,
+  'shortcuts.undo':          `${MOD}Z`,
+  'shortcuts.redo':          `${MOD}Y`,
+  'shortcuts.findReplace':   `${MOD}⇧H`,
+  'shortcuts.addComment':    `${MOD}⇧M`,
+};
+
 function buildButtonTitle(btnDef: ToolbarButton): string {
   const { titleKey, ariaKey, key } = btnDef;
-  if (titleKey) return t(titleKey);
-  if (ariaKey) return t(ariaKey);
-  if (key) return t(key);
-  return '';
+  const base = titleKey ? t(titleKey) : ariaKey ? t(ariaKey) : key ? t(key) : '';
+  const hint = titleKey && KB_HINTS[titleKey];
+  return hint ? `${base} (${hint})` : base;
 }
 
 function renderToolbarButtons(

@@ -191,6 +191,13 @@
   margin: 0 auto 0.75rem;
 }
 
+.doc-list-count {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
 .doc-list-filter-group {
   display: flex;
   gap: 0.25rem;

@@ -112,7 +112,8 @@ export async function loadDocuments(
     });
 
     if (pagination) {
-      updateState({ totalPages: pagination.totalPages, page: pagination.page });
+      updateState({ totalPages: pagination.totalPages, page: pagination.page, totalCount: pagination.total });
+      rebuildControls(listEl, ls, onNewDocument, updateState, reload);
       rebuildPagination(listEl, ls, updateState, reload);
     }
   } catch (err) {
