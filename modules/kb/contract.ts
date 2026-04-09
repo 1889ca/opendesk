@@ -172,3 +172,18 @@ export interface ResolvedReference {
   status: KbEntryStatus;
   resolvedAt: string;
 }
+
+// --- Pure URI helpers (browser-safe, no server deps) ---
+
+export function parseKbUri(uri: string): KbVersionRef | null {
+  const match = uri.match(/^kb:\/\/([0-9a-f-]{36})@(v(\d+)|latest)$/);
+  if (!match) return null;
+  const entryId = match[1];
+  if (match[2] === 'latest') return { entryId, version: 'latest' };
+  return { entryId, version: parseInt(match[3], 10) };
+}
+
+export function buildKbUri(ref: KbVersionRef): string {
+  const versionPart = ref.version === 'latest' ? 'latest' : `v${ref.version}`;
+  return `kb://${ref.entryId}@${versionPart}`;
+}
