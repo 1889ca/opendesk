@@ -22,6 +22,7 @@ export {
   getDocument,
   deleteDocument,
   updateDocumentTitle,
+  updateContentPlain,
   saveYjsState,
   loadYjsState,
 } from './internal/pg.ts';

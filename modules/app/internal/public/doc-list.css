@@ -435,6 +435,19 @@
   overflow-wrap: break-word;
 }
 
+.doc-card-preview {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  min-height: 2.1em;
+  position: relative;
+  z-index: 1;
+}
+
 .doc-card-footer {
   margin-top: auto;
   position: relative;

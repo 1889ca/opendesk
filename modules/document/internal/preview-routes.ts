@@ -7,7 +7,7 @@
  */
 
 import { Router, type Request, type Response } from 'express';
-import { getDocument, loadYjsState } from '../../storage/index.ts';
+import { getDocument, loadYjsState, updateContentPlain } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
 
@@ -43,6 +43,9 @@ export function createPreviewRoutes(opts: PreviewRoutesOptions): Router {
     }
     const yjsState = await loadYjsState(documentId);
     const preview = yjsState ? extractPreview(yjsState) : '';
+    if (preview) {
+      updateContentPlain(documentId, preview).catch(() => {});
+    }
     res.json({ preview });
   }));
 

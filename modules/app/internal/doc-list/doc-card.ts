@@ -13,6 +13,7 @@ import { TYPE_META, type DocEntry } from './doc-row.ts';
 import { attachContextMenu } from './doc-context-menu.ts';
 import { attachHoverPreview } from './doc-hover-preview.ts';
 import { confirmAndDelete, renameDoc, duplicateDoc } from './doc-operations.ts';
+import { apiFetch } from '../shared/api-client.ts';
 
 export interface RenderDocumentsGridOptions {
   listEl: HTMLElement;
@@ -106,6 +107,23 @@ function buildDocCard(
     footer.appendChild(createdEl);
   }
 
+  const preview = document.createElement('div');
+  preview.className = 'doc-card-preview';
+  preview.textContent = '';
+
+  const observer = new IntersectionObserver((entries, obs) => {
+    if (entries[0]?.isIntersecting) {
+      obs.disconnect();
+      apiFetch('/api/documents/' + encodeURIComponent(doc.id) + '/preview')
+        .then(res => res.ok ? res.json() : null)
+        .then((data: { preview?: string } | null) => {
+          if (data?.preview) preview.textContent = data.preview.slice(0, 120);
+        })
+        .catch(() => {});
+    }
+  }, { threshold: 0.1 });
+  observer.observe(card);
+
   const link = document.createElement('a');
   link.className = 'doc-card-link';
   link.href = meta.editor + '?doc=' + encodeURIComponent(doc.id);
@@ -141,7 +159,7 @@ function buildDocCard(
   });
 
   overlay.append(checkbox, starBtn);
-  card.append(link, header, footer, overlay);
+  card.append(link, header, preview, footer, overlay);
 
   attachContextMenu(card, doc, {
     onOpen: () => { window.location.href = meta.editor + '?doc=' + encodeURIComponent(doc.id); },
@@ -149,6 +167,7 @@ function buildDocCard(
     onRename: () => renameDoc(doc, onDelete),
     onDuplicate: () => duplicateDoc(doc.id, onDelete),
     onDelete: () => confirmAndDelete(doc.id, docName, onDelete),
+    onMove: onDelete,
   });
 
   attachHoverPreview(card, doc.id);
