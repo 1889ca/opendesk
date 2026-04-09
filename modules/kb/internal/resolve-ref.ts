@@ -1,5 +1,6 @@
 /** Contract: contracts/kb/rules.md */
 import type { ResolvedReference, KbVersionRef } from '../contract.ts';
+export { parseKbUri, buildKbUri } from '../contract.ts';
 import { getEntry } from './pg-entries.ts';
 import { getVersion, getLatestVersion } from './pg-versions.ts';
 
@@ -15,28 +16,6 @@ export interface ResolveSuccess {
 }
 
 export type ResolveResult = ResolveSuccess | ResolveError;
-
-/**
- * Parse a kb:// URI into a version reference.
- * Format: kb://entry-uuid@v7 or kb://entry-uuid@latest
- */
-export function parseKbUri(uri: string): KbVersionRef | null {
-  const match = uri.match(/^kb:\/\/([0-9a-f-]{36})@(v(\d+)|latest)$/);
-  if (!match) return null;
-  const entryId = match[1];
-  if (match[2] === 'latest') {
-    return { entryId, version: 'latest' };
-  }
-  return { entryId, version: parseInt(match[3], 10) };
-}
-
-/**
- * Build a kb:// URI from a version reference.
- */
-export function buildKbUri(ref: KbVersionRef): string {
-  const versionPart = ref.version === 'latest' ? 'latest' : `v${ref.version}`;
-  return `kb://${ref.entryId}@${versionPart}`;
-}
 
 /**
  * Resolve a version reference to its content.

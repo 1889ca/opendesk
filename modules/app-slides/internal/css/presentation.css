@@ -1,5 +1,7 @@
 /** CSS bundle entry for presentation.html */
+@import "../../../app/internal/public/theme.css";
 @import "../../../app/internal/public/styles.css";
+@import "../../../app/internal/public/toolbar.css";
 @import "../../../app/internal/public/presentation.css";
 @import "../interaction.css";
 @import "../element-types.css";

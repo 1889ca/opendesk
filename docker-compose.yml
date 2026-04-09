@@ -80,8 +80,6 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-        condition: service_started
-        condition: service_started
       convert:
         condition: service_started
 
