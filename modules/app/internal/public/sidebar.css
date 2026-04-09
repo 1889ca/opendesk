@@ -2,7 +2,8 @@
 
 .comment-sidebar,
 .suggestion-sidebar,
-.version-sidebar {
+.version-sidebar,
+.workflow-sidebar {
   position: fixed;
   top: 0;
   right: 0;
@@ -11,7 +12,8 @@
   background: var(--surface);
   border-left: 1px solid var(--border);
   transform: translateX(100%);
-  transition: transform 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -19,13 +21,15 @@
 
 .comment-sidebar-open,
 .suggestion-sidebar-open,
-.version-sidebar-open {
+.version-sidebar-open,
+.workflow-sidebar-open {
   transform: translateX(0);
 }
 
 .comment-sidebar-header,
 .suggestion-sidebar-header,
-.version-sidebar-header {
+.version-sidebar-header,
+.workflow-sidebar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -36,14 +40,16 @@
 
 .comment-sidebar-title,
 .suggestion-sidebar-title,
-.version-sidebar-title {
+.version-sidebar-title,
+.workflow-sidebar-title {
   font-size: 0.9375rem;
   font-weight: 600;
 }
 
 .comment-sidebar-close,
 .suggestion-sidebar-close,
-.version-sidebar-close {
+.version-sidebar-close,
+.workflow-sidebar-close {
   background: none;
   border: none;
   font-size: 1.25rem;
@@ -55,7 +61,8 @@
 
 .comment-sidebar-close:hover,
 .suggestion-sidebar-close:hover,
-.version-sidebar-close:hover {
+.version-sidebar-close:hover,
+.workflow-sidebar-close:hover {
   color: var(--text);
 }
 

@@ -18,7 +18,7 @@
 }
 
 .editor-content th {
-  background: var(--bg);
+  background: var(--bg-secondary, var(--bg));
   font-weight: 600;
 }
 

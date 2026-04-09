@@ -14,7 +14,7 @@ import {
   createSuggestModePlugin,
   setupSuggestionClickHandler,
 } from './suggestions/index.ts';
-import { bindShortcutDialogKey } from '../shared/shortcut-dialog.ts';
+import { bindShortcutDialogKey, openShortcutDialog } from '../shared/shortcut-dialog.ts';
 import { initTouchSupport } from '../shared/touch-support.ts';
 import { buildThemeToggle } from '../shared/theme-toggle.ts';
 import { buildNotificationBell } from '../shared/notification-bell.ts';
@@ -28,6 +28,7 @@ import { ensureNameConfirmed } from '../shared/name-setup.ts';
 import { buildProfileChip } from '../shared/profile-chip.ts';
 import { initEditorPage } from './editor-page.ts';
 import { initEditorPanels } from './editor-panels.ts';
+import { buildSaveIndicator } from './save-indicator.ts';
 import {
   registerServiceWorker,
   buildOfflineIndicator,
@@ -88,6 +89,9 @@ async function init() {
   }
   document.body.insertBefore(buildUpdateBanner(), document.body.firstChild);
 
+  // Show connecting state immediately, before the WS handshake completes
+  if (statusEl) { statusEl.textContent = t('status.connecting'); statusEl.className = 'status connecting'; }
+
   const provider = new HocuspocusProvider({
     url: wsUrl, name: documentId, document: ydoc, token: 'dev',
     onConnect() {
@@ -137,6 +141,25 @@ async function init() {
     toolbarRightEl.appendChild(chip);
   }
 
+  // Shortcut help button — header location (issue #225)
+  const toolbarRightForShortcut = document.querySelector('.toolbar-right');
+  if (toolbarRightForShortcut) {
+    const sep = document.createElement('span');
+    sep.className = 'toolbar-separator';
+    const helpBtn = document.createElement('button');
+    helpBtn.className = 'export-btn shortcut-help-btn';
+    helpBtn.setAttribute('aria-label', t('a11y.shortcutsLabel'));
+    helpBtn.setAttribute('title', t('shortcuts.showShortcuts'));
+    helpBtn.textContent = '?';
+    helpBtn.addEventListener('click', (e) => { e.preventDefault(); openShortcutDialog(); });
+    toolbarRightForShortcut.appendChild(sep);
+    toolbarRightForShortcut.appendChild(helpBtn);
+  }
+
+  // Save indicator — "Saving…" / "Saved" next to doc title
+  const toolbarLeft = document.querySelector('.toolbar-left');
+  if (toolbarLeft) toolbarLeft.appendChild(buildSaveIndicator(editor));
+
   trackRecentDoc({ id: documentId, title: 'Document' });
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
@@ -150,12 +173,23 @@ async function init() {
 
   function updateUsers() {
     if (!usersEl || !provider.awareness) return;
+    const usersSection = document.getElementById('users-section');
     const states = provider.awareness.getStates();
     const names: string[] = [];
     states.forEach((state: { user?: { name?: string } }) => {
       if (state.user?.name) names.push(state.user.name);
     });
-    usersEl.textContent = names.join(', ') || '-';
+    // Filter out anonymous/empty entries and the current user's own name
+    const otherNames = names.filter(
+      n => n && n.toLowerCase() !== 'anonymous' && n !== user.name
+    );
+    if (otherNames.length > 0) {
+      usersEl.textContent = otherNames.join(', ');
+      if (usersSection) usersSection.removeAttribute('hidden');
+    } else {
+      usersEl.textContent = '';
+      if (usersSection) usersSection.setAttribute('hidden', '');
+    }
   }
   provider.awareness?.on('change', updateUsers);
   updateUsers();

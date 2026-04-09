@@ -59,4 +59,24 @@ export interface A11yTranslationKeys {
   'shortcuts.undo': string;
   'shortcuts.redo': string;
   'shortcuts.showShortcuts': string;
+  'a11y.undoLabel': string;
+  'a11y.redoLabel': string;
+  'a11y.alignLeftLabel': string;
+  'a11y.alignCenterLabel': string;
+  'a11y.alignRightLabel': string;
+  'a11y.alignJustifyLabel': string;
+  'a11y.indentLabel': string;
+  'a11y.outdentLabel': string;
+  'a11y.superscriptLabel': string;
+  'a11y.subscriptLabel': string;
+  'a11y.highlightLabel': string;
+  'a11y.clearFormattingLabel': string;
+  'shortcuts.underline': string;
+  'shortcuts.superscript': string;
+  'shortcuts.subscript': string;
+  'shortcuts.alignment': string;
+  'shortcuts.alignLeft': string;
+  'shortcuts.alignCenter': string;
+  'shortcuts.alignRight': string;
+  'shortcuts.alignJustify': string;
 }

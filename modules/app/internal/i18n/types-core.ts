@@ -7,6 +7,8 @@ export interface CoreTranslationKeys {
   'toolbar.italic': string;
   'toolbar.strike': string;
   'toolbar.code': string;
+  'toolbar.superscript': string;
+  'toolbar.subscript': string;
   'toolbar.heading1': string;
   'toolbar.heading2': string;
   'toolbar.heading3': string;
@@ -28,6 +30,14 @@ export interface CoreTranslationKeys {
   'toolbar.toc': string;
   'toolbar.theme': string;
   'toolbar.emoji': string;
+  'toolbar.undo': string;
+  'toolbar.redo': string;
+  'toolbar.alignLeft': string;
+  'toolbar.alignCenter': string;
+  'toolbar.alignRight': string;
+  'toolbar.alignJustify': string;
+  'toolbar.indent': string;
+  'toolbar.outdent': string;
   'toolbar.moreOptions': string;
   'status.connected': string;
   'status.disconnected': string;
@@ -77,6 +87,16 @@ export interface CoreTranslationKeys {
   'time.monthsAgo': string;
 
   // Promote to KB
+  'toolbar.fontFamily': string;
+  'a11y.fontFamilyLabel': string;
+  'toolbar.fontSize': string;
+  'a11y.fontSizeLabel': string;
+  'toolbar.lineHeight': string;
+  'a11y.lineHeightLabel': string;
+  'toolbar.textColor': string;
+  'a11y.textColorLabel': string;
+  'toolbar.highlight': string;
+  'toolbar.clearFormatting': string;
   'toolbar.saveToKb': string;
   'promoteKb.title': string;
   'promoteKb.noteTitle': string;
