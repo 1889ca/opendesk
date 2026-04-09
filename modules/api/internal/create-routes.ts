@@ -37,7 +37,6 @@ import {
   type AppContext,
 } from '../../core/manifest/index.ts';
 import { createAiRoutes, createAi } from '../../ai/index.ts';
-import { createErasure, createErasureRoutes } from '../../erasure/index.ts';
 import { createFederation, createFederationRoutes } from '../../federation/index.ts';
 import { idempotencyMiddleware } from './idempotency.ts';
 import { serveHtmlWithNonce } from './csp-nonce.ts';
@@ -172,10 +171,6 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
 
   // Observability metrics routes
   app.use('/api/admin/metrics', createMetricsRoutes({ observability, permissions, pool }));
-
-  // Erasure routes (verifiable data erasure, retention policies)
-  const erasure = createErasure({ pool });
-  app.use('/api/erasure', createErasureRoutes({ erasure, permissions }));
 
   // Federation routes (peer management, document exchange) — gated by config
   if (config.federation.enabled) {

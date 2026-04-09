@@ -2,6 +2,7 @@
 
 import type { OpenDeskManifest } from './contract.ts';
 import { manifest as auditManifest } from '../../audit/manifest.ts';
+import { manifest as erasureManifest } from '../../erasure/manifest.ts';
 import { manifest as notificationsManifest } from '../../notifications/manifest.ts';
 import { manifest as workflowManifest } from '../../workflow/manifest.ts';
 
@@ -21,6 +22,7 @@ import { manifest as workflowManifest } from '../../workflow/manifest.ts';
  */
 export const manifests: OpenDeskManifest[] = [
   auditManifest,
+  erasureManifest,
   notificationsManifest,
   workflowManifest,
 ];
