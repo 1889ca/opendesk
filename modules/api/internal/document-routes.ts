@@ -10,8 +10,8 @@ import {
   deleteDocument as defaultDeleteDocument,
   updateDocumentTitle as defaultUpdateDocumentTitle,
   getTemplate as defaultGetTemplate,
+  type ListDocumentsOptions,
 } from '../../storage/index.ts';
-import type { ListDocumentsOptions } from '../../storage/index.ts';
 
 function defaultListDocuments(params: ListDocumentsOptions) {
   return pgListDocuments(params);
