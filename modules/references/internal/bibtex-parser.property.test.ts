@@ -22,8 +22,10 @@ const bibtexEntryArb = fc
     year: fc.integer({ min: 1900, max: 2030 }).map(String),
   })
   .map(
-    ({ type, key, title, author, year }: { type: string; key: string; title: string; author: [string, string]; year: string }) =>
-      `@${type}{${key},\n  title = {${title}},\n  author = {${author[0]}, ${author[1]}},\n  year = {${year}}\n}`,
+    (entry) => {
+      const { type, key, title, author, year } = entry as { type: string; key: string; title: string; author: [string, string]; year: string };
+      return `@${type}{${key},\n  title = {${title}},\n  author = {${author[0]}, ${author[1]}},\n  year = {${year}}\n}`;
+    },
   );
 
 describe('references/bibtex-parser property tests', () => {
