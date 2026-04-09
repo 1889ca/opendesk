@@ -45,6 +45,10 @@ export function applySecurityMiddleware(app: Express, opts: SecurityMiddlewareOp
   // scripts the server explicitly annotates will execute. The nonce
   // function reads from res.locals, which cspNonceMiddleware set above.
   app.use(helmet({
+    // Disable HSTS in non-production: setting it on a plain-HTTP dev server
+    // causes Safari (which strictly enforces HSTS) to refuse subsequent
+    // resource loads over HTTP, producing TLS errors in the browser.
+    hsts: opts.serverConfig.nodeEnv === 'production',
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
@@ -63,6 +67,10 @@ export function applySecurityMiddleware(app: Express, opts: SecurityMiddlewareOp
         fontSrc: ["'self'"],
         objectSrc: ["'none'"],
         frameAncestors: ["'none'"],
+        // Only upgrade insecure requests when running behind HTTPS (production).
+        // On a plain-HTTP dev server this directive tells Safari to fetch all
+        // subresources over HTTPS, which fails with a TLS error. (#185)
+        ...(opts.serverConfig.nodeEnv === 'production' ? { upgradeInsecureRequests: [] } : { upgradeInsecureRequests: null }),
       },
     },
     crossOriginEmbedderPolicy: false, // allow loading images from S3

@@ -46,9 +46,11 @@ export function serveHtmlWithNonce(publicDir: string) {
   const isProd = process.env.NODE_ENV === 'production';
 
   return async (req: Request, res: Response, next: NextFunction) => {
-    if (extname(req.path) !== '.html') return next();
+    const ext = extname(req.path);
+    if (ext !== '.html' && ext !== '') return next();
 
-    const filePath = resolve(publicDir, req.path.replace(/^\//, ''));
+    const reqPath = req.path === '/' || req.path === '' ? '/index.html' : req.path;
+    const filePath = resolve(publicDir, reqPath.replace(/^\//, ''));
     if (!filePath.startsWith(publicDir)) return next();
 
     try {
