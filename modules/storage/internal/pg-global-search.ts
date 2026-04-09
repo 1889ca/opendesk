@@ -40,16 +40,15 @@ export async function globalSearch(
   }
 
   const useFilter = allowedDocumentIds !== undefined;
+  // NOTE: search_vector is built from title only (no plaintext content column exists).
+  // Generating a ts_headline on title would duplicate the title in the snippet area,
+  // so we return an empty snippet here. The frontend renders the snippet only when
+  // it carries genuine excerpt content distinct from the title. (#291)
   const sql = `SELECT
        id,
        title,
        document_type,
-       ts_headline(
-         'english',
-         coalesce(title, ''),
-         plainto_tsquery('english', $1),
-         'StartSel=<mark>, StopSel=</mark>, MaxWords=35, MinWords=15'
-       ) AS snippet,
+       '' AS snippet,
        ts_rank(search_vector, plainto_tsquery('english', $1)) AS rank,
        updated_at
      FROM documents

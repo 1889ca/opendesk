@@ -70,15 +70,24 @@ function renderCard(result: SearchResultEntry): HTMLAnchorElement {
 
   header.append(iconEl, title, badge);
 
-  const snippet = document.createElement('div');
-  snippet.className = 'search-result-snippet';
-  snippet.innerHTML = sanitizeSnippet(result.snippet);
+  // Strip <mark> tags to get the plain text of the snippet, then skip the
+  // snippet element entirely if it is empty or merely repeats the title (#291).
+  const snippetPlain = result.snippet.replace(/<\/?mark>/gi, '').trim();
+  const titleText = (result.title || t('editor.untitled')).trim();
+  const showSnippet = snippetPlain.length > 0 && snippetPlain !== titleText;
 
   const time = document.createElement('div');
   time.className = 'search-result-time';
   time.textContent = t('docList.updated', { time: formatRelativeTime(result.updated_at) });
 
-  card.append(header, snippet, time);
+  if (showSnippet) {
+    const snippet = document.createElement('div');
+    snippet.className = 'search-result-snippet';
+    snippet.innerHTML = sanitizeSnippet(result.snippet);
+    card.append(header, snippet, time);
+  } else {
+    card.append(header, time);
+  }
   return card;
 }
 
