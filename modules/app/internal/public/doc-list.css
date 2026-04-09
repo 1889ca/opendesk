@@ -36,27 +36,35 @@
   font-size: 0.875rem;
 }
 
-.doc-row {
+/* Wrapper is the visual card — holds the link and delete button as siblings */
+.doc-row-wrapper {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.875rem 1rem;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 6px;
   margin-bottom: 0.5rem;
-  text-decoration: none;
-  color: inherit;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.doc-row:hover {
+.doc-row-wrapper:hover {
   border-color: var(--accent);
   box-shadow: 0 1px 4px var(--accent-shadow);
 }
 
-.doc-row:hover .btn-delete {
+.doc-row-wrapper:hover .btn-delete {
   opacity: 1;
+}
+
+/* The link fills available space; no border/background — the wrapper provides those */
+.doc-row {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
 }
 
 .doc-row-info {

@@ -45,6 +45,13 @@ export function renderDocuments(
 
   for (const doc of docs) {
     const meta = TYPE_META[doc.document_type || 'text'] || TYPE_META.text;
+
+    // Wrapper holds the link + delete button as siblings so the delete button
+    // is never a descendant of the <a>, preventing the nested-interactive bug
+    // (issues #156, #177).
+    const wrapper = document.createElement('div');
+    wrapper.className = 'doc-row-wrapper';
+
     const row = document.createElement('a');
     row.className = 'doc-row';
     row.href = meta.editor + '?doc=' + encodeURIComponent(doc.id);
@@ -72,22 +79,22 @@ export function renderDocuments(
 
     info.appendChild(titleRow);
     info.appendChild(time);
+    row.appendChild(info);
 
+    const docName = doc.title || t('editor.untitled');
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'btn btn-delete';
     deleteBtn.textContent = t('docList.delete');
-    deleteBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const name = doc.title || t('editor.untitled');
-      if (!confirm(t('docList.deleteConfirm', { name }))) return;
+    deleteBtn.setAttribute('aria-label', t('docList.deleteAriaLabel', { name: docName }));
+    deleteBtn.addEventListener('click', () => {
+      if (!confirm(t('docList.deleteConfirm', { name: docName }))) return;
       apiFetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
         .then(() => onDelete())
         .catch((err) => { console.error('Delete failed', err); });
     });
 
-    row.appendChild(info);
-    row.appendChild(deleteBtn);
-    listEl.appendChild(row);
+    wrapper.appendChild(row);
+    wrapper.appendChild(deleteBtn);
+    listEl.appendChild(wrapper);
   }
 }

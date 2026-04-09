@@ -46,9 +46,13 @@ export interface CoreTranslationKeys {
   'docList.noDocumentsSubtitle': string;
   'docList.delete': string;
   'docList.deleteConfirm': string;
+  'docList.deleteAriaLabel': string;
   'docList.updated': string;
   'docList.loadFailed': string;
   'docList.titlePrompt': string;
+  'docList.namePlaceholder': string;
+  'docList.nameCancel': string;
+  'docList.nameCreate': string;
   'time.justNow': string;
   'time.secondsAgo': string;
   'time.minuteAgo': string;
