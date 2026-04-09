@@ -423,6 +423,8 @@
 }
 
 .doc-card-title {
+  flex: 1 1 0;
+  min-width: 0;
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.35;
@@ -430,7 +432,7 @@
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .doc-card-footer {
