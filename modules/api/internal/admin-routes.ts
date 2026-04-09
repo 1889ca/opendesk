@@ -3,6 +3,7 @@
 import { Router, type Request, type Response } from 'express';
 import {
   deleteDocument as defaultDeleteDocument,
+  runAsSystem,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import type { CacheClient } from './redis.ts';
@@ -70,13 +71,19 @@ export function createAdminRoutes(opts: AdminRoutesOptions): Router {
         return;
       }
 
-      const receipt = await purgeUserData(
-        userId,
-        action,
-        transferTo,
-        permissions,
-        cache,
-        { deleteDocument },
+      // GDPR-style purge crosses user boundaries when cleaning up
+      // grants OTHER users may have created on the requester's docs.
+      // Run as system so the RLS policies (issue #126) don't silently
+      // skip those rows.
+      const receipt = await runAsSystem(() =>
+        purgeUserData(
+          userId,
+          action,
+          transferTo,
+          permissions,
+          cache,
+          { deleteDocument },
+        ),
       );
 
       res.json(receipt);

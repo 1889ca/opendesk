@@ -5,6 +5,7 @@ import { GrantRoleSchema, ShareLinkOptionsSchema } from '../contract.ts';
 import type { ShareLinkService } from './share-links.ts';
 import type { GrantStore, Role, PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
+import { runAsSystem } from '../../storage/index.ts';
 import type { PasswordRateLimiter } from './rate-limit.ts';
 import { createLogger } from '../../logger/index.ts';
 
@@ -58,8 +59,18 @@ export function createShareRoutes(opts: ShareRoutesOptions): Router {
     }),
   );
 
-  /** POST /api/share/:token/resolve -- resolve (redeem) a share link */
+  /**
+   * POST /api/share/:token/resolve -- resolve (redeem) a share link.
+   *
+   * Wrapped in runAsSystem because the share-link token IS the access
+   * credential (issue #126). Without this wrapper, store.findByToken
+   * would fail for anonymous traffic since it now uses rls-query and
+   * needs an explicit principal context. The grant insert at the end
+   * also runs as system; the granted_by field carries the original
+   * grantor's id, not the system sentinel.
+   */
   router.post('/api/share/:token/resolve', asyncHandler(async (req, res) => {
+    await runAsSystem(async () => {
     const token = String(req.params.token);
     const password = req.body?.password as string | undefined;
 
@@ -114,6 +125,7 @@ export function createShareRoutes(opts: ShareRoutesOptions): Router {
 
     const { passwordHash: _, ...safeLink } = result.link;
     res.json({ grant: { docId: safeLink.docId, role: safeLink.role }, link: safeLink });
+    });
   }));
 
   /** DELETE /api/share/:token -- revoke a share link (creator or document write permission) */

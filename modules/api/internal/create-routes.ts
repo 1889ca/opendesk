@@ -33,7 +33,7 @@ import { createAiRoutes, createAi } from '../../ai/index.ts';
 import { createErasure, createErasureRoutes } from '../../erasure/index.ts';
 import { createFederation, createFederationRoutes } from '../../federation/index.ts';
 import { idempotencyMiddleware } from './idempotency.ts';
-import { pool } from '../../storage/index.ts';
+import { pool, principalContextMiddleware } from '../../storage/index.ts';
 import type { AppConfig } from '../../config/contract.ts';
 import type { EventBusModule } from '../../events/contract.ts';
 
@@ -77,6 +77,12 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
 
   // Auth middleware on all /api routes (except public paths)
   app.use('/api', auth.middleware);
+
+  // Principal-context middleware (issue #126): runs the rest of the
+  // request inside AsyncLocalStorage so rlsQuery can issue the
+  // SET LOCAL app.principal_id needed for the grants/share_links
+  // RLS policies. Must run after auth (req.principal must be set).
+  app.use('/api', principalContextMiddleware());
 
   // Telemetry middleware — after auth so we have principal info
   if (config.observability.enabled) {

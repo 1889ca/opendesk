@@ -5,6 +5,7 @@ import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { ExportFormatSchema, type EDiscoveryModule } from '../contract.ts';
 import { asyncHandler } from '../../api/index.ts';
+import { runAsSystem } from '../../storage/index.ts';
 
 export type EDiscoveryRoutesOptions = {
   permissions: PermissionsModule;
@@ -42,7 +43,11 @@ export function createEDiscoveryRoutes(opts: EDiscoveryRoutesOptions): Router {
       }
 
       const { userId, format } = parsed.data;
-      const result = await ediscovery.sarExport({ userId });
+      // SAR is admin tooling that crosses user boundaries: an admin
+      // requesting a Subject Access Request for user X needs to read
+      // X's grants. Run as system so RLS (issue #126) doesn't filter
+      // them out.
+      const result = await runAsSystem(() => ediscovery.sarExport({ userId }));
       const bundle = ediscovery.formatExport(result, format, 'sar');
 
       res.setHeader('Content-Type', bundle.contentType);
@@ -79,7 +84,8 @@ export function createEDiscoveryRoutes(opts: EDiscoveryRoutesOptions): Router {
     asyncHandler(async (req: Request, res: Response) => {
       const userId = String(req.params.userId);
       const format = ExportFormatSchema.catch('json').parse(req.query.format);
-      const result = await ediscovery.sarExport({ userId });
+      // SAR crosses user boundaries — see POST /sar handler.
+      const result = await runAsSystem(() => ediscovery.sarExport({ userId }));
 
       if (format === 'json') {
         res.json(result);

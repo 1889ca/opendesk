@@ -3,10 +3,19 @@
 import type { Pool } from 'pg';
 import type { SarRequest, SarExportResult, DocumentSummary } from '../contract.ts';
 import type { AuditEntry } from '../../audit/contract.ts';
+import { rlsQuery } from '../../storage/internal/rls-query.ts';
 
-/** Find all documents a user has access to (via grants). */
+/**
+ * Find all documents a user has access to (via grants).
+ *
+ * Reads the grants table, so the caller must be inside a principal
+ * context (issue #126). SAR exports are admin operations that legitimately
+ * cross user boundaries — the route handler should call runAsSystem() before
+ * invoking this so the RLS bypass takes effect.
+ */
 async function findUserDocuments(pool: Pool, userId: string): Promise<DocumentSummary[]> {
-  const result = await pool.query(
+  const result = await rlsQuery(
+    pool,
     `SELECT d.id, d.title, d.document_type, g.role, d.created_at
      FROM grants g
      JOIN documents d ON d.id = g.resource_id

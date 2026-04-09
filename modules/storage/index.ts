@@ -68,6 +68,17 @@ export { globalSearch } from './internal/pg-global-search.ts';
 export { initSchema } from './internal/schema.ts';
 export { pool, getPool, initPool, getClientWithPrincipal } from './internal/pool.ts';
 
+// RLS principal context (issue #126)
+export {
+  runWithPrincipal,
+  runAsSystem,
+  getCurrentPrincipal,
+  SYSTEM_PRINCIPAL,
+  type PrincipalContext,
+} from './internal/principal-context.ts';
+export { rlsQuery } from './internal/rls-query.ts';
+export { principalContextMiddleware } from './internal/principal-context-middleware.ts';
+
 // Folder storage
 export type { FolderRow } from './internal/folders.ts';
 

@@ -8,6 +8,34 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+
+    # Postgres service for the integration test suite (issue #126/127).
+    # Tests opt in via OPENDESK_TEST_PG=1; without that var the
+    # describeIntegration wrapper skips them, so devs without docker
+    # can still run `npm test` locally.
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_DB: opendesk
+          POSTGRES_USER: opendesk
+          POSTGRES_PASSWORD: opendesk_dev
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U opendesk"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      OPENDESK_TEST_PG: '1'
+      OPENDESK_TEST_PG_HOST: localhost
+      OPENDESK_TEST_PG_PORT: '5433'
+      OPENDESK_TEST_PG_DATABASE: opendesk
+      OPENDESK_TEST_PG_USER: opendesk
+      OPENDESK_TEST_PG_PASSWORD: opendesk_dev
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
