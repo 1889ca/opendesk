@@ -34,6 +34,8 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   outline: none;
   line-height: 1.7;
   font-size: 1rem;
+  columns: var(--editor-columns, 1);
+  column-gap: var(--editor-column-gap, 0);
 }
 
 .editor-content > *:first-child {
@@ -60,6 +62,18 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   font-weight: 600;
   margin: 1rem 0 0.5rem;
   color: var(--text);
+}
+
+/* Prevent headings from breaking mid-column */
+.editor-content h1,
+.editor-content h2,
+.editor-content h3 {
+  break-after: avoid;
+}
+
+.editor-content figure,
+.editor-content table {
+  break-inside: avoid;
 }
 
 .editor-content p {
@@ -277,4 +291,11 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   white-space: nowrap;
   user-select: none;
   pointer-events: none;
+}
+
+@media print {
+  .editor-content {
+    columns: var(--editor-columns, 1);
+    column-gap: var(--editor-column-gap, 2rem);
+  }
 }

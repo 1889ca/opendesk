@@ -11,6 +11,7 @@ import { enableToolbarNavigation, updateRovingTabindex } from './toolbar-nav.ts'
 import { getIcon } from './toolbar-icons.ts';
 import { buildTextColorBtn, buildHighlightBtn } from './toolbar-color-btn.ts';
 import { buildFontFamilySelect, buildFontSizeSelect, buildLineHeightSelect, buildParagraphSpacingSelect, buildStyleSelect } from './toolbar-selects.ts';
+import { buildColumnSelect } from './column-select.ts';
 
 interface ToolbarButton {
   key: TranslationKey | null;
@@ -215,6 +216,9 @@ export function buildFormattingToolbar(editor: Editor): void {
     toolbar.appendChild(colorBtn);
     const highlightBtn = buildHighlightBtn(editor);
     toolbar.appendChild(highlightBtn);
+    // Append column layout select (document-level control, goes last)
+    const columnSelect = buildColumnSelect(editor);
+    toolbar.appendChild(columnSelect);
     updateRovingTabindex(toolbar);
   };
   render();
