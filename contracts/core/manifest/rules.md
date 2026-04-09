@@ -74,7 +74,76 @@ Implemented:
 - [x] Central `registry.ts` listing migrated modules
 
 Post-MVP (deferred):
-- [ ] Migrate remaining feature modules (kb, ai, federation, observability, notifications, references, …) into the registry, removing their hand-mounts from `create-routes.ts` as each is migrated
 - [ ] Migrate restricted-zone modules (auth, sharing, permissions) once a human maintainer signs off
 - [ ] Per-manifest health-check declarations the `/api/health` endpoint can aggregate
 - [ ] Per-manifest schema migration declarations so `initSchema` becomes a registry walk
+
+## How to add a new module
+
+Adding a feature module to the composed application is exactly two steps. There is no need to edit `modules/api/internal/create-routes.ts`, `server.ts`, or `scripts/frontend-bundles.mjs` — those files do not know which feature modules exist.
+
+### Step 1: Write `modules/<name>/manifest.ts`
+
+```ts
+/** Contract: contracts/<name>/rules.md */
+
+import type { OpenDeskManifest } from '../core/manifest/contract.ts';
+import { createFooRoutes } from './internal/foo-routes.ts';
+
+export const manifest: OpenDeskManifest = {
+  name: 'foo',
+  contract: 'contracts/foo/rules.md',
+
+  // Optional: gate the manifest behind a config flag
+  // enabled: (config) => config.foo.enabled,
+
+  apiRoutes: [
+    {
+      mount: '/api/foo',
+      // Optional `order` (default 100). Lower numbers mount earlier;
+      // use this to disambiguate when two manifests share a mount
+      // path (e.g. /api/documents/search must mount before /:id).
+      factory: (ctx) => createFooRoutes({ permissions: ctx.permissions }),
+    },
+  ],
+
+  // Optional: declare frontend bundles the build script should produce
+  // frontend: {
+  //   bundles: [
+  //     { kind: 'js',  entryPoint: 'modules/foo/internal/foo-page.ts', outfile: 'foo.bundle.js' },
+  //     { kind: 'css', entryPoint: 'modules/foo/internal/foo.css',     outfile: 'foo.bundle.css' },
+  //   ],
+  // },
+
+  // Optional: lifecycle hooks for modules with long-lived resources
+  // (e.g. an event consumer that needs startConsumer/stopConsumer).
+  // Use ctx.register/ctx.get to share the started handle with route
+  // factories — see modules/ai/manifest.ts for the canonical example.
+  // lifecycle: {
+  //   onStart: (ctx) => { /* construct + start, return handle */ },
+  //   onShutdown: (handle, ctx) => { /* graceful teardown */ },
+  // },
+};
+```
+
+### Step 2: Add the manifest to the registry
+
+```ts
+// modules/core/manifest/registry.ts
+import { manifest as fooManifest } from '../../foo/manifest.ts';
+
+export const manifests: OpenDeskManifest[] = [
+  // …existing entries, alphabetized…
+  fooManifest,
+];
+```
+
+That is the entire workflow. The composition root iterates `manifests` and wires every entry's routes, bundles, and lifecycle hooks automatically.
+
+### Where route factories should live
+
+Route factories belong inside the owning module's `internal/` directory, not in `modules/api/internal/`. The api module is for api-layer infrastructure (auth middleware, CSP, idempotency, S3 upload helpers, the composition root) — not for domain routes. If you find yourself adding a `*-routes.ts` file under `modules/api/internal/`, ask whether the routes describe a feature that has a home in another module. They almost always do.
+
+### Restricted-zone modules
+
+Per `CONSTITUTION.md`, the auth, sharing, and permissions modules are restricted zones requiring human approval. Their routes are deliberately NOT in the manifest registry; they remain hand-mounted in `modules/api/internal/create-routes.ts` until a human maintainer signs off on migrating them.

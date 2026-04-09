@@ -81,34 +81,55 @@ HTTP boundary layer that exposes REST endpoints for document CRUD, sharing, expo
 - MUST NOT: parse, inspect, or manipulate Yjs binary data -- that is collab's responsibility
 - MUST NOT: hold document state in memory -- all state lives in storage and collab
 
-## Endpoints
+## Endpoints owned by this module
+
+The api module itself owns only the api-layer infrastructure routes
+(admin/upload/file/health). Domain routes that used to live here
+have been migrated to their owning modules under
+`modules/<name>/manifest.ts`; see "Routes contributed by other
+modules" below for the full mapping.
 
 | Method | Path | Description | Auth | Rate Limit |
 |--------|------|-------------|------|------------|
-| GET | `/api/documents` | List documents (paginated) | required | standard |
-| GET | `/api/documents/:id` | Get DocumentSnapshot (supports `If-Match`) | required | standard |
-| POST | `/api/documents` | Create new document | required | write |
-| POST | `/api/documents/:id/intents` | Submit agent intent (OCC) | required | write (agent-strict) |
-| POST | `/api/documents/:id/export` | Request export job | required | write |
-| POST | `/api/documents/:id/import` | Import file | required | write |
-| GET | `/api/events/stream` | SSE event stream (filterable) | required | standard |
-| POST | `/api/documents/:id/share` | Create share link | required | write |
-| POST | `/api/share/:token/resolve` | Resolve (redeem) share link | required | write |
-| DELETE | `/api/share/:token` | Revoke share link | required | write |
-| GET | `/api/templates` | List all templates | required | standard |
-| POST | `/api/templates` | Create template | required | write |
-| GET | `/api/templates/:id` | Get template by ID | required | standard |
-| PUT | `/api/templates/:id` | Update template | required | write |
-| DELETE | `/api/templates/:id` | Delete template | required | write |
+| GET | `/api/health` | Liveness check (DB ping) | none | standard |
 | POST | `/api/upload` | Upload file (image) | none | write |
 | GET | `/api/files/:key(*)` | Serve uploaded file | none | standard |
 | DELETE | `/api/admin/users/:id/data` | Purge user data (self-only) | required | write |
 
+These are declared in `modules/api/manifest.ts` and registered
+through the manifest registry like every other module.
+
+## Routes contributed by other modules
+
+The composition root no longer hand-mounts feature routes. Each
+module declares its routes via `modules/<name>/manifest.ts` and
+the manifest registry walks them all in one shot. The current
+mapping (as of the manifest migration):
+
+| Mount | Owning module | Manifest |
+|-------|---------------|----------|
+| `/api/documents` (CRUD/search/version/export/move) + `/api/folders` + `/api/starred` + `/api/search` | document | `modules/document/manifest.ts` |
+| `/api/templates` | storage | `modules/storage/manifest.ts` |
+| `/api/documents/:id/convert-*` + `/api/sheets/:id/{import,export}` + `/api/presentations/:id/convert-*` | convert | `modules/convert/manifest.ts` |
+| `/api/kb` (full Knowledge Base surface) | kb | `modules/kb/manifest.ts` |
+| `/api/references` (CRUD + BibTeX/RIS import/export) | references | `modules/references/manifest.ts` |
+| `/api/notifications` | notifications | `modules/notifications/manifest.ts` |
+| `/api/audit` | audit | `modules/audit/manifest.ts` |
+| `/api/workflows` + `/api/workflows/plugins` | workflow | `modules/workflow/manifest.ts` |
+| `/api/erasure` | erasure | `modules/erasure/manifest.ts` |
+| `/api/federation` (gated) | federation | `modules/federation/manifest.ts` |
+| `/api/ai` (gated, lifecycle-managed consumer) | ai | `modules/ai/manifest.ts` |
+| `/api/admin/metrics` | observability | `modules/observability/manifest.ts` |
+| `/api/share/*` (still hand-mounted — restricted zone per CONSTITUTION.md) | sharing | (manual) |
+
+The registration system itself is documented in
+`contracts/core/manifest/rules.md`.
+
 ## Sub-Contracts
 
-- `contracts/api/templates.md` — Template CRUD endpoints (GET/POST/PUT/DELETE `/api/templates`)
 - `contracts/api/uploads.md` — File upload and serving endpoints (POST `/api/upload`, GET `/api/files/*`)
 - `contracts/api/admin.md` — User data purge endpoint (DELETE `/api/admin/users/:id/data`)
+- `contracts/api/templates.md` — Template CRUD endpoints (now owned by storage; sub-contract retained for the wire format)
 
 ## Verification
 
