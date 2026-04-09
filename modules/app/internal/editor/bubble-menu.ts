@@ -3,6 +3,7 @@ import type { Editor } from '@tiptap/core';
 import { BubbleMenuPlugin } from '@tiptap/extension-bubble-menu';
 import { t } from '../i18n/index.ts';
 import { getIcon } from './toolbar-icons.ts';
+import { showLinkPopover } from './link-popover.ts';
 
 interface BubbleAction {
   label: () => string;
@@ -10,10 +11,6 @@ interface BubbleAction {
   icon: string;
   isActive: () => boolean;
   run: () => void;
-}
-
-function promptLink(): string | null {
-  return prompt(t('bubble.linkPrompt'));
 }
 
 function buildActions(editor: Editor): BubbleAction[] {
@@ -51,14 +48,7 @@ function buildActions(editor: Editor): BubbleAction[] {
       ariaLabel: () => t('bubble.link'),
       icon: 'link',
       isActive: () => editor.isActive('link'),
-      run: () => {
-        if (editor.isActive('link')) {
-          editor.chain().focus().unsetLink().run();
-        } else {
-          const url = promptLink();
-          if (url) editor.chain().focus().setLink({ href: url }).run();
-        }
-      },
+      run: () => { /* handled via showLinkPopover in the button loop */ },
     },
   ];
 }
@@ -86,12 +76,19 @@ export function buildBubbleMenu(editor: Editor): void {
     btn.setAttribute('aria-label', action.ariaLabel());
     btn.setAttribute('title', action.ariaLabel());
     btn.setAttribute('aria-pressed', String(action.isActive()));
-    btn.addEventListener('mousedown', (e) => {
-      // prevent editor losing focus before the click fires
-      e.preventDefault();
-      action.run();
-      syncButtons();
-    });
+    if (action.icon === 'link') {
+      btn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        showLinkPopover(editor, btn);
+      });
+    } else {
+      btn.addEventListener('mousedown', (e) => {
+        // prevent editor losing focus before the click fires
+        e.preventDefault();
+        action.run();
+        syncButtons();
+      });
+    }
     menu.appendChild(btn);
     buttons.push(btn);
   }
