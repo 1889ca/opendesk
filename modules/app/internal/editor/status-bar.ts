@@ -15,13 +15,10 @@ function renderText(editor: Editor): string {
     });
   }
 
-  const readingTime = doc.readingTime
-    ? t('stats.readingTime', { time: doc.readingTime })
-    : t('stats.minRead');
-
   return [
     t(doc.words === 1 ? 'stats.word' : 'stats.words', { count: String(doc.words) }),
-    readingTime,
+    t(doc.characters === 1 ? 'stats.character' : 'stats.characters', { count: String(doc.characters) }),
+    t(doc.paragraphs === 1 ? 'stats.paragraph' : 'stats.paragraphs', { count: String(doc.paragraphs) }),
   ].join('  \u00b7  ');
 }
 

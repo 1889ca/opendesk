@@ -168,6 +168,12 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   border-radius: 2px;
 }
 
+/* Dark mode: keep paper white with dark text (like Google Docs / Word) */
+[data-theme="dark"] #editor {
+  --text: #1a1a1a;
+  color: #1a1a1a;
+}
+
 /* Collaboration cursors */
 .collaboration-cursor__caret {
   border-left: 2px solid;
