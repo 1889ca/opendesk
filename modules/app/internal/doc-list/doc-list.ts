@@ -16,6 +16,17 @@ import { buildNotificationBell } from '../shared/notification-bell.ts';
 import { buildWorkspaceSidebar } from '../shared/workspace-sidebar.ts';
 import { createGlobalSearch } from '../editor/global-search.ts';
 import { renderDocuments, TYPE_META } from './doc-list-render.ts';
+import {
+  registerServiceWorker,
+  buildOfflineIndicator,
+  buildUpdateBanner,
+  initConnectivityListeners,
+} from '../offline/index.ts';
+import {
+  cacheDocListResponse,
+  renderCachedDocuments,
+  setupOnlineRefresh,
+} from '../offline/doc-list-offline.ts';
 
 async function loadAll(listEl: HTMLElement) {
   const folderId = getCurrentFolderId();
@@ -40,16 +51,20 @@ async function loadAll(listEl: HTMLElement) {
     if (!res.ok) throw new Error(`API returned ${res.status}`);
     const data = await res.json();
     const docs = Array.isArray(data) ? data : [];
+    cacheDocListResponse(docs);
     renderDocuments(listEl, docs, () => loadAll(listEl));
   } catch (err) {
     console.error('Failed to load documents', err);
-    const errDiv = document.createElement('div');
-    errDiv.className = 'doc-list-empty';
-    const errP = document.createElement('p');
-    errP.className = 'empty-title';
-    errP.textContent = t('docList.loadFailed');
-    errDiv.appendChild(errP);
-    listEl.replaceChildren(errDiv);
+    const cached = await renderCachedDocuments(listEl);
+    if (!cached) {
+      const errDiv = document.createElement('div');
+      errDiv.className = 'doc-list-empty';
+      const errP = document.createElement('p');
+      errP.className = 'empty-title';
+      errP.textContent = t('docList.loadFailed');
+      errDiv.appendChild(errP);
+      listEl.replaceChildren(errDiv);
+    }
   }
 }
 
@@ -73,6 +88,8 @@ async function createTypedDocument(documentType: string): Promise<void> {
 
 function init() {
   initTheme();
+  initConnectivityListeners();
+  registerServiceWorker();
 
   const sidebarSlot = document.getElementById('workspace-sidebar');
   if (sidebarSlot) sidebarSlot.replaceWith(buildWorkspaceSidebar());
@@ -85,7 +102,12 @@ function init() {
   const toolbarRight = document.querySelector('.toolbar-right');
   if (!listEl || !newBtn) return;
 
-  if (toolbarRight) createNewFolderButton(toolbarRight as HTMLElement);
+  if (toolbarRight) {
+    toolbarRight.prepend(buildOfflineIndicator());
+    createNewFolderButton(toolbarRight as HTMLElement);
+  }
+  document.body.insertBefore(buildUpdateBanner(), document.body.firstChild);
+  setupOnlineRefresh(() => loadAll(listEl));
 
   const searchEl = createGlobalSearch((active) => {
     listEl.style.display = active ? 'none' : '';

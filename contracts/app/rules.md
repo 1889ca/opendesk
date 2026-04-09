@@ -137,6 +137,7 @@ modules/app/
 - `contracts/app/theming.md` — Light/dark/system mode, accent color picker, settings dropdown
 - `contracts/app/workspace-sidebar.md` — Left nav panel with recent, starred, folders, quick search
 - `contracts/app/notifications.md` — Notification bell, dropdown panel, polling, mark-read actions
+- `contracts/app/offline.md` — Service worker caching, IndexedDB persistence, offline editing, background sync
 
 ## MVP Scope
 
@@ -165,6 +166,7 @@ Implemented:
 - [x] Tables support (table toolbar)
 - [x] Image upload and handling
 - [x] Keyboard shortcut dialog
+- [x] Offline mode: service worker, IndexedDB cache, background sync (see `contracts/app/offline.md`)
 
 - [x] Theming: light/dark/system mode with settings dropdown, accent color presets + custom picker, localStorage persistence, CSS custom property driven
 - [x] Workspace sidebar: collapsible left panel with recent docs, starred docs (API-backed), folder tree, quick search filter

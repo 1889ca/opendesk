@@ -166,4 +166,12 @@ export interface FeatureTranslationKeys {
   'notifications.documentShared': string;
   'notifications.workflowTriggered': string;
   'notifications.kbUpdated': string;
+  'offline.offline': string;
+  'offline.syncing': string;
+  'offline.synced': string;
+  'offline.updateAvailable': string;
+  'offline.updateAction': string;
+  'offline.cachedDocs': string;
+  'offline.queuedChanges': string;
+  'offline.badge': string;
 }

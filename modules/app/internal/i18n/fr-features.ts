@@ -144,19 +144,19 @@ export const featureTranslations: Partial<TranslationKeys> = {
   'emoji.objects': 'Objets',
   'emoji.symbols': 'Symboles',
 
-  // Param\u00e8tres du th\u00e8me
+  // Paramètres du thème
   'theme.mode': 'Apparence',
   'theme.accentColor': 'Couleur d\u2019accent',
-  'theme.custom': 'Personnalis\u00e9',
+  'theme.custom': 'Personnalisé',
 
-  // Barre lat\u00e9rale
+  // Barre latérale
   'sidebar.workspace': 'Espace de travail',
-  'sidebar.recent': 'R\u00e9cents',
+  'sidebar.recent': 'Récents',
   'sidebar.starred': 'Favoris',
   'sidebar.folders': 'Dossiers',
-  'sidebar.collapse': 'R\u00e9duire la barre lat\u00e9rale',
-  'sidebar.expand': '\u00c9tendre la barre lat\u00e9rale',
-  'sidebar.noRecent': 'Aucun document r\u00e9cent',
+  'sidebar.collapse': 'Réduire la barre latérale',
+  'sidebar.expand': 'Étendre la barre latérale',
+  'sidebar.noRecent': 'Aucun document récent',
   'sidebar.noStarred': 'Aucun document favori',
   'sidebar.quickSearch': 'Rechercher...',
   'sidebar.unstar': 'Retirer des favoris',
@@ -169,7 +169,17 @@ export const featureTranslations: Partial<TranslationKeys> = {
   'notifications.markRead': 'Marquer comme lu',
   'notifications.dismiss': 'Ignorer',
   'notifications.commentAdded': 'Nouveau commentaire sur \u00ab {title} \u00bb',
-  'notifications.documentShared': 'Document partag\u00e9 avec vous',
-  'notifications.workflowTriggered': 'Flux de travail d\u00e9clench\u00e9',
-  'notifications.kbUpdated': 'Article de la base de connaissances mis \u00e0 jour',
+  'notifications.documentShared': 'Document partagé avec vous',
+  'notifications.workflowTriggered': 'Flux de travail déclenché',
+  'notifications.kbUpdated': 'Article de la base de connaissances mis à jour',
+
+  // Hors ligne
+  'offline.offline': 'Hors ligne',
+  'offline.syncing': 'Synchronisation...',
+  'offline.synced': 'Synchronisé',
+  'offline.updateAvailable': 'Une nouvelle version est disponible.',
+  'offline.updateAction': 'Mettre à jour',
+  'offline.cachedDocs': 'Documents en cache affichés',
+  'offline.queuedChanges': '{count} modification(s) en attente',
+  'offline.badge': 'hors ligne',
 };
