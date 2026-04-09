@@ -1,82 +1,88 @@
 /** Contract: contracts/storage/rules.md */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { randomUUID } from 'node:crypto';
 import { globalSearch } from './pg-global-search.ts';
-import type { Pool } from 'pg';
+import { APPLY_SEARCH_SCHEMA } from './pg-search.ts';
+import { describeIntegration } from '../../../tests/integration/test-pg.ts';
 
-const mockQuery = vi.fn();
-const mockPool = { query: mockQuery } as unknown as Pool;
+// Issue #127: this test used to mock pg.Pool with vi.fn(). The
+// integration version inserts documents of each type and verifies
+// the content_type mapping against real query results.
 
-describe('globalSearch', () => {
-  beforeEach(() => {
-    mockQuery.mockReset();
-  });
-  it('returns results with content_type mapped from document_type', async () => {
-    mockQuery.mockResolvedValueOnce({
-      rows: [
-        {
-          id: 'doc-1',
-          title: 'Budget Report',
-          document_type: 'text',
-          snippet: '<mark>Budget</mark> Report',
-          rank: 0.9,
-          updated_at: new Date('2026-01-01'),
-        },
-        {
-          id: 'sheet-1',
-          title: 'Budget Sheet',
-          document_type: 'spreadsheet',
-          snippet: '<mark>Budget</mark> Sheet',
-          rank: 0.7,
-          updated_at: new Date('2026-01-02'),
-        },
-      ],
-    });
+const TEST_PREFIX = 'TestGlobalSearch_';
 
-    const results = await globalSearch('budget', undefined, mockPool);
-    expect(results).toHaveLength(2);
-    expect(results[0].content_type).toBe('document');
-    expect(results[1].content_type).toBe('spreadsheet');
+async function insert(
+  pool: import('pg').Pool,
+  id: string,
+  title: string,
+  documentType: 'text' | 'spreadsheet' | 'presentation',
+): Promise<void> {
+  await pool.query(
+    `INSERT INTO documents (id, title, document_type, created_at, updated_at)
+     VALUES ($1, $2, $3, NOW(), NOW())`,
+    [id, title, documentType],
+  );
+}
+
+describeIntegration('globalSearch (integration)', (ctx) => {
+  beforeEach(async () => {
+    if (!ctx.pool) return;
+    await ctx.pool.query(APPLY_SEARCH_SCHEMA);
+    await ctx.pool.query(
+      `DELETE FROM documents WHERE title LIKE $1`,
+      [`${TEST_PREFIX}%`],
+    );
   });
 
   it('returns empty array when allowedDocumentIds is empty', async () => {
-    const results = await globalSearch('test', [], mockPool);
+    if (!ctx.pool) return;
+    const results = await globalSearch('anything', [], ctx.pool);
     expect(results).toEqual([]);
-    expect(mockQuery).not.toHaveBeenCalled();
   });
 
-  it('passes allowedDocumentIds filter when provided', async () => {
-    mockQuery.mockResolvedValueOnce({ rows: [] });
-    await globalSearch('test', ['id-1', 'id-2'], mockPool);
-    expect(mockQuery).toHaveBeenCalledWith(
-      expect.stringContaining('AND id = ANY($2)'),
-      ['test', ['id-1', 'id-2']],
-    );
+  it('maps text document_type to content_type "document"', async () => {
+    if (!ctx.pool) return;
+    const id = randomUUID();
+    await insert(ctx.pool, id, `${TEST_PREFIX}TextDoc`, 'text');
+
+    const results = await globalSearch('TextDoc', undefined, ctx.pool);
+    const ours = results.find((r) => r.id === id);
+    expect(ours).toBeDefined();
+    expect(ours?.content_type).toBe('document');
   });
 
-  it('omits filter in dev mode (no allowedIds)', async () => {
-    mockQuery.mockResolvedValueOnce({ rows: [] });
-    await globalSearch('test', undefined, mockPool);
-    expect(mockQuery).toHaveBeenCalledWith(
-      expect.not.stringContaining('AND id = ANY'),
-      ['test'],
-    );
+  it('maps spreadsheet document_type to content_type "spreadsheet"', async () => {
+    if (!ctx.pool) return;
+    const id = randomUUID();
+    await insert(ctx.pool, id, `${TEST_PREFIX}SheetDoc`, 'spreadsheet');
+
+    const results = await globalSearch('SheetDoc', undefined, ctx.pool);
+    const ours = results.find((r) => r.id === id);
+    expect(ours).toBeDefined();
+    expect(ours?.content_type).toBe('spreadsheet');
   });
 
-  it('maps presentation document_type correctly', async () => {
-    mockQuery.mockResolvedValueOnce({
-      rows: [
-        {
-          id: 'pres-1',
-          title: 'Slides',
-          document_type: 'presentation',
-          snippet: 'Slides',
-          rank: 0.5,
-          updated_at: new Date(),
-        },
-      ],
-    });
+  it('maps presentation document_type to content_type "presentation"', async () => {
+    if (!ctx.pool) return;
+    const id = randomUUID();
+    await insert(ctx.pool, id, `${TEST_PREFIX}SlideDoc`, 'presentation');
 
-    const results = await globalSearch('slides', undefined, mockPool);
-    expect(results[0].content_type).toBe('presentation');
+    const results = await globalSearch('SlideDoc', undefined, ctx.pool);
+    const ours = results.find((r) => r.id === id);
+    expect(ours).toBeDefined();
+    expect(ours?.content_type).toBe('presentation');
+  });
+
+  it('filters results by allowedDocumentIds when provided', async () => {
+    if (!ctx.pool) return;
+    const allowedId = randomUUID();
+    const otherId = randomUUID();
+    await insert(ctx.pool, allowedId, `${TEST_PREFIX}FilterMe`, 'text');
+    await insert(ctx.pool, otherId, `${TEST_PREFIX}FilterMe`, 'text');
+
+    const results = await globalSearch('FilterMe', [allowedId], ctx.pool);
+    const ids = results.map((r) => r.id);
+    expect(ids).toContain(allowedId);
+    expect(ids).not.toContain(otherId);
   });
 });

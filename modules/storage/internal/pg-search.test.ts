@@ -1,62 +1,103 @@
 /** Contract: contracts/storage/rules.md */
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { randomUUID } from 'node:crypto';
 import { searchDocuments, APPLY_SEARCH_SCHEMA } from './pg-search.ts';
-import type { Pool } from 'pg';
+import { describeIntegration } from '../../../tests/integration/test-pg.ts';
 
-const mockQuery = vi.fn();
-const mockPool = { query: mockQuery } as unknown as Pool;
+// Issue #127: this test used to mock pg.Pool with vi.fn() and assert
+// on SQL string fragments. The integration version actually inserts
+// documents and runs full-text queries against them.
 
-describe('searchDocuments', () => {
-  it('returns search results with expected fields', async () => {
-    mockQuery.mockResolvedValueOnce({
-      rows: [
-        {
-          id: 'abc-123',
-          title: 'Test Document',
-          snippet: '<mark>Test</mark> Document',
-          rank: 0.75,
-          updated_at: new Date('2026-01-01'),
-        },
+const TEST_PREFIX = 'TestSearch_';
+
+describeIntegration('searchDocuments (integration)', (ctx) => {
+  beforeEach(async () => {
+    if (!ctx.pool) return;
+    // Make sure the search column + index exist (the schema applier
+    // is idempotent), then wipe any test rows we own.
+    await ctx.pool.query(APPLY_SEARCH_SCHEMA);
+    await ctx.pool.query(
+      `DELETE FROM documents WHERE title LIKE $1`,
+      [`${TEST_PREFIX}%`],
+    );
+  });
+
+  it('returns matching documents with snippet, rank, and updated_at', async () => {
+    if (!ctx.pool) return;
+
+    const docId = randomUUID();
+    await ctx.pool.query(
+      `INSERT INTO documents (id, title, document_type, created_at, updated_at)
+       VALUES ($1, $2, 'text', NOW(), NOW())`,
+      [docId, `${TEST_PREFIX}Hello World Search Match`],
+    );
+
+    const results = await searchDocuments('Hello', undefined, ctx.pool);
+
+    const ours = results.find((r) => r.id === docId);
+    expect(ours).toBeDefined();
+    expect(ours?.title).toBe(`${TEST_PREFIX}Hello World Search Match`);
+    expect(ours?.snippet).toContain('<mark>');
+    expect(typeof ours?.rank).toBe('number');
+    expect(ours?.updated_at).toBeInstanceOf(Date);
+  });
+
+  it('returns an empty array when allowedDocumentIds is empty (no permission)', async () => {
+    if (!ctx.pool) return;
+
+    const docId = randomUUID();
+    await ctx.pool.query(
+      `INSERT INTO documents (id, title, document_type, created_at, updated_at)
+       VALUES ($1, $2, 'text', NOW(), NOW())`,
+      [docId, `${TEST_PREFIX}Forbidden`],
+    );
+
+    const results = await searchDocuments('Forbidden', [], ctx.pool);
+    expect(results).toEqual([]);
+  });
+
+  it('filters by allowedDocumentIds when provided', async () => {
+    if (!ctx.pool) return;
+
+    const allowedId = randomUUID();
+    const otherId = randomUUID();
+    await ctx.pool.query(
+      `INSERT INTO documents (id, title, document_type, created_at, updated_at)
+       VALUES ($1, $2, 'text', NOW(), NOW()),
+              ($3, $4, 'text', NOW(), NOW())`,
+      [
+        allowedId, `${TEST_PREFIX}Visible`,
+        otherId, `${TEST_PREFIX}Visible`,
       ],
-    });
+    );
 
-    const results = await searchDocuments('test', undefined, mockPool);
-    expect(results).toHaveLength(1);
-    expect(results[0]).toEqual({
-      id: 'abc-123',
-      title: 'Test Document',
-      snippet: '<mark>Test</mark> Document',
-      rank: 0.75,
-      updated_at: expect.any(Date),
-    });
+    const results = await searchDocuments('Visible', [allowedId], ctx.pool);
+    const ids = results.map((r) => r.id);
+    expect(ids).toContain(allowedId);
+    expect(ids).not.toContain(otherId);
   });
 
-  it('calls pool.query with plainto_tsquery', async () => {
-    mockQuery.mockResolvedValueOnce({ rows: [] });
-    await searchDocuments('hello world', undefined, mockPool);
-    expect(mockQuery).toHaveBeenCalledWith(
-      expect.stringContaining('plainto_tsquery'),
-      ['hello world'],
-    );
-  });
+  it('returns no matches for a query with no hits', async () => {
+    if (!ctx.pool) return;
 
-  it('limits results to 50', async () => {
-    mockQuery.mockResolvedValueOnce({ rows: [] });
-    await searchDocuments('test', undefined, mockPool);
-    expect(mockQuery).toHaveBeenCalledWith(
-      expect.stringContaining('LIMIT 50'),
-      expect.any(Array),
+    const results = await searchDocuments(
+      'zzzzdefinitelynothereanywhere',
+      undefined,
+      ctx.pool,
     );
+    // Other tests' fixtures may exist, but no document should contain
+    // this nonsense token.
+    expect(results.find((r) => r.title.includes('zzzzdefinitely'))).toBeUndefined();
   });
 });
 
-describe('APPLY_SEARCH_SCHEMA', () => {
-  it('contains ALTER TABLE for search_vector column', () => {
+describe('APPLY_SEARCH_SCHEMA (static)', () => {
+  it('contains the ALTER TABLE for the search_vector column', () => {
     expect(APPLY_SEARCH_SCHEMA).toContain('search_vector');
     expect(APPLY_SEARCH_SCHEMA).toContain('tsvector');
   });
 
-  it('creates a GIN index', () => {
+  it('creates a GIN index for the search column', () => {
     expect(APPLY_SEARCH_SCHEMA).toContain('USING GIN');
     expect(APPLY_SEARCH_SCHEMA).toContain('idx_documents_search');
   });

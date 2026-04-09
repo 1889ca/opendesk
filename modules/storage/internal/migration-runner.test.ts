@@ -1,153 +1,103 @@
 /** Contract: contracts/storage/rules.md */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { runMigrations } from './migration-runner.ts';
-import type pg from 'pg';
+import { describeIntegration, truncate } from '../../../tests/integration/test-pg.ts';
 
-/**
- * Build a fake pg.Pool that records all queries and returns canned results.
- * The applied set simulates which migrations have already run.
- */
-function createFakePool(alreadyApplied: string[] = []) {
-  const queries: { sql: string; params?: unknown[] }[] = [];
-  const committed = false;
-  const rolledBack = false;
+// Issue #127: this test used to mock pg.Pool with a hand-built fake
+// that recorded SQL strings. That tested the SHAPE of the queries
+// but never the BEHAVIOR of running migrations against a real
+// Postgres. Now it hits a real PG via the integration runner and
+// asserts on actual schema state.
 
-  const fakeClient = {
-    query: async (sql: string, params?: unknown[]) => {
-      queries.push({ sql, params });
-      return { rows: [], rowCount: 0 };
-    },
-    release: () => {},
-  };
-
-  const pool = {
-    query: async (sql: string, params?: unknown[]) => {
-      queries.push({ sql, params });
-      // Return applied migrations when asked
-      if (sql.includes('SELECT filename FROM schema_migrations')) {
-        return {
-          rows: alreadyApplied.map((f) => ({ filename: f })),
-        };
-      }
-      return { rows: [], rowCount: 0 };
-    },
-    connect: async () => fakeClient,
-    queries,
-    get committed() { return committed; },
-    get rolledBack() { return rolledBack; },
-  };
-
-  return pool;
-}
-
-describe('runMigrations', () => {
-  it('creates the schema_migrations tracking table', async () => {
-    const pool = createFakePool();
-    await runMigrations(pool as unknown as pg.Pool);
-
-    const createTableQuery = pool.queries.find((q) =>
-      q.sql.includes('CREATE TABLE IF NOT EXISTS schema_migrations'),
-    );
-    expect(createTableQuery).toBeDefined();
+describeIntegration('runMigrations (integration)', (ctx) => {
+  beforeEach(async () => {
+    if (!ctx.pool) return;
+    // Wipe the tracking table so each test runs migrations from
+    // scratch. The actual schema tables are left intact (other tests
+    // depend on them).
+    await ctx.pool.query('DROP TABLE IF EXISTS schema_migrations');
   });
 
-  it('queries for already-applied migrations', async () => {
-    const pool = createFakePool();
-    await runMigrations(pool as unknown as pg.Pool);
+  it('creates the schema_migrations tracking table on first run', async () => {
+    if (!ctx.pool) return;
 
-    const selectQuery = pool.queries.find((q) =>
-      q.sql.includes('SELECT filename FROM schema_migrations'),
+    await runMigrations(ctx.pool);
+
+    const { rows } = await ctx.pool.query<{ exists: boolean }>(
+      `SELECT EXISTS (
+         SELECT 1 FROM information_schema.tables
+         WHERE table_name = 'schema_migrations'
+       ) AS exists`,
     );
-    expect(selectQuery).toBeDefined();
+    expect(rows[0].exists).toBe(true);
   });
 
-  it('runs pending migrations with BEGIN/COMMIT', async () => {
-    const pool = createFakePool();
-    await runMigrations(pool as unknown as pg.Pool);
+  it('records every applied migration in schema_migrations', async () => {
+    if (!ctx.pool) return;
 
-    // Should have at least one BEGIN and COMMIT pair (for the first migration)
-    const begins = pool.queries.filter((q) => q.sql === 'BEGIN');
-    const commits = pool.queries.filter((q) => q.sql === 'COMMIT');
-    expect(begins.length).toBeGreaterThan(0);
-    expect(commits.length).toBe(begins.length);
+    await runMigrations(ctx.pool);
+
+    const { rows } = await ctx.pool.query<{ filename: string }>(
+      'SELECT filename FROM schema_migrations ORDER BY filename',
+    );
+    const filenames = rows.map((r) => r.filename);
+
+    // The migrations directory is checked in to the repo; the runner
+    // should have applied at least the foundational ones. Asserting
+    // on a known prefix is enough — we don't want to lock the test
+    // to the current full set.
+    expect(filenames).toContain('000_initial_schema.sql');
+    expect(filenames.length).toBeGreaterThan(5);
   });
 
-  it('inserts migration filename into tracking table', async () => {
-    const pool = createFakePool();
-    await runMigrations(pool as unknown as pg.Pool);
+  it('is idempotent: running twice does not re-apply migrations', async () => {
+    if (!ctx.pool) return;
 
-    const insertQueries = pool.queries.filter((q) =>
-      q.sql.includes('INSERT INTO schema_migrations'),
+    await runMigrations(ctx.pool);
+
+    const { rows: firstRun } = await ctx.pool.query<{ filename: string; applied_at: Date }>(
+      'SELECT filename, applied_at FROM schema_migrations ORDER BY filename',
     );
-    expect(insertQueries.length).toBeGreaterThan(0);
-    // First migration file should be 000_initial_schema.sql
-    expect(insertQueries[0].params).toEqual(['000_initial_schema.sql']);
-  });
 
-  it('skips already-applied migrations', async () => {
-    const pool = createFakePool([
-      '000_initial_schema.sql',
-      '001_add_document_type.sql',
-    ]);
-    await runMigrations(pool as unknown as pg.Pool);
+    await runMigrations(ctx.pool);
 
-    const insertQueries = pool.queries.filter((q) =>
-      q.sql.includes('INSERT INTO schema_migrations'),
+    const { rows: secondRun } = await ctx.pool.query<{ filename: string; applied_at: Date }>(
+      'SELECT filename, applied_at FROM schema_migrations ORDER BY filename',
     );
-    // Should not re-insert the two already-applied files
-    const insertedFiles = insertQueries.map((q) => q.params?.[0]);
-    expect(insertedFiles).not.toContain('000_initial_schema.sql');
-    expect(insertedFiles).not.toContain('001_add_document_type.sql');
-  });
 
-  it('applies migrations in sorted filename order', async () => {
-    const pool = createFakePool();
-    await runMigrations(pool as unknown as pg.Pool);
-
-    const insertQueries = pool.queries.filter((q) =>
-      q.sql.includes('INSERT INTO schema_migrations'),
-    );
-    const filenames = insertQueries.map((q) => q.params?.[0] as string);
-
-    // Verify sorted order
-    for (let i = 1; i < filenames.length; i++) {
-      expect(filenames[i] > filenames[i - 1]).toBe(true);
+    expect(secondRun.length).toBe(firstRun.length);
+    // applied_at timestamps must be unchanged — proof that the second
+    // run skipped the existing rows instead of re-inserting.
+    for (let i = 0; i < firstRun.length; i++) {
+      expect(secondRun[i].filename).toBe(firstRun[i].filename);
+      expect(secondRun[i].applied_at.getTime()).toBe(firstRun[i].applied_at.getTime());
     }
   });
 
-  it('rolls back on query failure', async () => {
-    const queries: string[] = [];
-    let failOnSql = false;
+  it('applies migrations in sorted filename order', async () => {
+    if (!ctx.pool) return;
 
-    const fakeClient = {
-      query: async (sql: string) => {
-        queries.push(sql);
-        if (failOnSql && sql !== 'BEGIN' && sql !== 'ROLLBACK') {
-          failOnSql = false;
-          throw new Error('syntax error in migration');
-        }
-        return { rows: [], rowCount: 0 };
-      },
-      release: () => {},
-    };
+    await runMigrations(ctx.pool);
 
-    const pool = {
-      query: async (sql: string) => {
-        if (sql.includes('SELECT filename FROM schema_migrations')) {
-          return { rows: [] };
-        }
-        return { rows: [], rowCount: 0 };
-      },
-      connect: async () => {
-        failOnSql = true;
-        return fakeClient;
-      },
-    };
+    const { rows } = await ctx.pool.query<{ filename: string; id: number }>(
+      'SELECT filename, id FROM schema_migrations ORDER BY id',
+    );
 
-    await expect(
-      runMigrations(pool as unknown as pg.Pool),
-    ).rejects.toThrow('Migration 000_initial_schema.sql failed');
-
-    expect(queries).toContain('ROLLBACK');
+    // schema_migrations.id is a SERIAL, so insertion order is monotonic.
+    // The runner sorts files alphabetically before applying, so the
+    // recorded filenames should also be sorted.
+    for (let i = 1; i < rows.length; i++) {
+      expect(rows[i].filename > rows[i - 1].filename).toBe(true);
+    }
   });
+
+  // NOTE: the rollback-on-error path is not covered here because the
+  // runner reads SQL files from the on-disk migrations/ directory and
+  // there's no clean way to inject a malformed file in an integration
+  // test. The previous unit test mocked pg.Pool entirely to fake an
+  // exception, which is exactly the pattern issue #127 forbids. If
+  // rollback regression coverage matters, the right move is to
+  // refactor runMigrations to accept a SQL provider (defaulting to
+  // the filesystem reader) so a test can supply a bad SQL string.
+  // Tracked as a follow-up on #127.
 });

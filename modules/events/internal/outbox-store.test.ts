@@ -1,95 +1,201 @@
 /** Contract: contracts/events/rules.md */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { randomUUID } from 'node:crypto';
 import type { DomainEvent } from '../contract.ts';
+import {
+  insertOutboxEntry,
+  findUnpublished,
+  markPublished,
+  pruneOlderThan,
+} from './outbox-store.ts';
+import { describeIntegration } from '../../../tests/integration/test-pg.ts';
 
-const mockQuery = vi.fn();
-const mockPool = { query: mockQuery } as unknown as import('pg').Pool;
-const mockClient = { query: mockQuery } as unknown as import('pg').PoolClient;
+// Issue #127: this test used to mock pg.Pool with a vi.fn() query
+// recorder. The integration version exercises the real event_outbox
+// table from migration 003.
 
-import { insertOutboxEntry, findUnpublished, markPublished, pruneOlderThan } from './outbox-store.ts';
+// The EventType enum at the contract layer is closed to production
+// types; the event_outbox table doesn't constrain the type column at
+// the schema level, so we cast a test-only string and clean it up by
+// prefix between tests.
+const T_OUTBOX_TEST = 'TestOutbox/DocumentUpdated' as DomainEvent['type'];
 
-describe('outbox-store', () => {
-  beforeEach(() => {
-    mockQuery.mockReset();
-  });
-
-  const event: DomainEvent = {
-    id: '550e8400-e29b-41d4-a716-446655440000',
-    type: 'DocumentUpdated',
-    aggregateId: 'doc-123',
+function makeEvent(overrides: Partial<DomainEvent> = {}): DomainEvent {
+  return {
+    id: randomUUID(),
+    type: T_OUTBOX_TEST,
+    aggregateId: `doc-${randomUUID()}`,
     actorId: 'user-1',
     actorType: 'human',
-    occurredAt: '2026-04-07T12:00:00.000Z',
+    occurredAt: new Date().toISOString(),
+    ...overrides,
   };
+}
+
+describeIntegration('outbox-store (integration)', (ctx) => {
+  beforeEach(async () => {
+    if (!ctx.pool) return;
+    // Each test starts from an empty outbox for our test event type.
+    // Other tests in the suite may have pushed real events; only
+    // wipe rows we own.
+    await ctx.pool.query(
+      "DELETE FROM event_outbox WHERE type LIKE 'TestOutbox/%'",
+    );
+  });
 
   describe('insertOutboxEntry', () => {
-    it('inserts event into outbox table', async () => {
-      mockQuery.mockResolvedValueOnce({ rowCount: 1 });
-      await insertOutboxEntry(mockClient, event);
+    it('inserts an event into event_outbox via a transaction client', async () => {
+      if (!ctx.pool) return;
 
-      expect(mockQuery).toHaveBeenCalledTimes(1);
-      const [sql, params] = mockQuery.mock.calls[0];
-      expect(sql).toContain('INSERT INTO event_outbox');
-      expect(params[0]).toBe(event.id);
-      expect(params[1]).toBe('DocumentUpdated');
-      expect(params[2]).toBe('doc-123');
+      const event = makeEvent();
+      const client = await ctx.pool.connect();
+      try {
+        await client.query('BEGIN');
+        await insertOutboxEntry(client, event);
+        await client.query('COMMIT');
+      } finally {
+        client.release();
+      }
+
+      const { rows } = await ctx.pool.query<{ id: string; type: string; aggregate_id: string }>(
+        'SELECT id, type, aggregate_id FROM event_outbox WHERE id = $1',
+        [event.id],
+      );
+      expect(rows).toHaveLength(1);
+      expect(rows[0].type).toBe(event.type);
+      expect(rows[0].aggregate_id).toBe(event.aggregateId);
     });
 
-    it('passes null for missing revisionId', async () => {
-      mockQuery.mockResolvedValueOnce({ rowCount: 1 });
-      await insertOutboxEntry(mockClient, event);
+    it('persists null when revisionId is missing', async () => {
+      if (!ctx.pool) return;
 
-      const params = mockQuery.mock.calls[0][1];
-      expect(params[3]).toBeNull(); // revisionId
+      const event = makeEvent();
+      const client = await ctx.pool.connect();
+      try {
+        await client.query('BEGIN');
+        await insertOutboxEntry(client, event);
+        await client.query('COMMIT');
+      } finally {
+        client.release();
+      }
+
+      const { rows } = await ctx.pool.query<{ revision_id: string | null }>(
+        'SELECT revision_id FROM event_outbox WHERE id = $1',
+        [event.id],
+      );
+      expect(rows[0].revision_id).toBeNull();
     });
   });
 
   describe('findUnpublished', () => {
-    it('returns formatted entries', async () => {
-      mockQuery.mockResolvedValueOnce({
-        rows: [{
-          id: event.id,
-          type: 'DocumentUpdated',
-          aggregateId: 'doc-123',
-          revisionId: null,
-          actorId: 'user-1',
-          actorType: 'human',
-          occurredAt: new Date('2026-04-07T12:00:00.000Z'),
-          publishedAt: null,
-        }],
-      });
+    it('returns unpublished entries with ISO date strings', async () => {
+      if (!ctx.pool) return;
 
-      const entries = await findUnpublished(mockPool, 10);
-      expect(entries).toHaveLength(1);
-      expect(entries[0].publishedAt).toBeNull();
-      expect(typeof entries[0].occurredAt).toBe('string');
+      const event = makeEvent();
+      const client = await ctx.pool.connect();
+      try {
+        await client.query('BEGIN');
+        await insertOutboxEntry(client, event);
+        await client.query('COMMIT');
+      } finally {
+        client.release();
+      }
+
+      const all = await findUnpublished(ctx.pool, 100);
+      const ours = all.find((e) => e.id === event.id);
+      expect(ours).toBeDefined();
+      expect(ours?.publishedAt).toBeNull();
+      expect(typeof ours?.occurredAt).toBe('string');
+    });
+
+    it('does not return entries that have already been published', async () => {
+      if (!ctx.pool) return;
+
+      const event = makeEvent();
+      const client = await ctx.pool.connect();
+      try {
+        await client.query('BEGIN');
+        await insertOutboxEntry(client, event);
+        await client.query('COMMIT');
+      } finally {
+        client.release();
+      }
+
+      await markPublished(ctx.pool, [event.id]);
+
+      const all = await findUnpublished(ctx.pool, 100);
+      expect(all.find((e) => e.id === event.id)).toBeUndefined();
     });
   });
 
   describe('markPublished', () => {
-    it('skips when no ids provided', async () => {
-      await markPublished(mockPool, []);
-      expect(mockQuery).not.toHaveBeenCalled();
+    it('is a no-op when no ids are provided', async () => {
+      if (!ctx.pool) return;
+      // Should not throw, should not affect any rows.
+      await expect(markPublished(ctx.pool, [])).resolves.not.toThrow();
     });
 
-    it('updates published_at for given ids', async () => {
-      mockQuery.mockResolvedValueOnce({ rowCount: 2 });
-      await markPublished(mockPool, ['id-1', 'id-2']);
+    it('sets published_at on the matching rows', async () => {
+      if (!ctx.pool) return;
 
-      const [sql, params] = mockQuery.mock.calls[0];
-      expect(sql).toContain('UPDATE event_outbox SET published_at');
-      expect(params).toEqual(['id-1', 'id-2']);
+      const a = makeEvent();
+      const b = makeEvent();
+      const client = await ctx.pool.connect();
+      try {
+        await client.query('BEGIN');
+        await insertOutboxEntry(client, a);
+        await insertOutboxEntry(client, b);
+        await client.query('COMMIT');
+      } finally {
+        client.release();
+      }
+
+      await markPublished(ctx.pool, [a.id, b.id]);
+
+      const { rows } = await ctx.pool.query<{ id: string; published_at: Date | null }>(
+        'SELECT id, published_at FROM event_outbox WHERE id = ANY($1::uuid[])',
+        [[a.id, b.id]],
+      );
+      expect(rows).toHaveLength(2);
+      for (const row of rows) {
+        expect(row.published_at).not.toBeNull();
+      }
     });
   });
 
   describe('pruneOlderThan', () => {
-    it('deletes old entries and returns count', async () => {
-      mockQuery.mockResolvedValueOnce({ rowCount: 5 });
-      const count = await pruneOlderThan(mockPool, 7);
-      expect(count).toBe(5);
+    it('deletes only rows older than the cutoff and reports the count', async () => {
+      if (!ctx.pool) return;
 
-      const params = mockQuery.mock.calls[0][1];
-      expect(params[0]).toBe('7 days');
+      const old = makeEvent({
+        occurredAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      });
+      const recent = makeEvent();
+
+      const client = await ctx.pool.connect();
+      try {
+        await client.query('BEGIN');
+        await insertOutboxEntry(client, old);
+        await insertOutboxEntry(client, recent);
+        await client.query('COMMIT');
+      } finally {
+        client.release();
+      }
+
+      const deleted = await pruneOlderThan(ctx.pool, 7);
+      expect(deleted).toBeGreaterThanOrEqual(1);
+
+      const { rows } = await ctx.pool.query<{ id: string }>(
+        'SELECT id FROM event_outbox WHERE id = $1',
+        [old.id],
+      );
+      expect(rows).toHaveLength(0);
+
+      const { rows: stillThere } = await ctx.pool.query<{ id: string }>(
+        'SELECT id FROM event_outbox WHERE id = $1',
+        [recent.id],
+      );
+      expect(stillThere).toHaveLength(1);
     });
   });
 });
