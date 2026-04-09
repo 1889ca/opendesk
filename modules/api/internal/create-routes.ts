@@ -8,7 +8,7 @@ import type { AuditModule } from '../../audit/contract.ts';
 import type { WorkflowModule } from '../../workflow/contract.ts';
 import type { ObservabilityModule } from '../../observability/contract.ts';
 import type { ShareLinkService } from '../../sharing/internal/share-links.ts';
-import type { PasswordRateLimiter } from '../../sharing/internal/rate-limit.ts';
+import type { PasswordRateLimiter, ShareResolveRateLimiter } from '../../sharing/internal/rate-limit.ts';
 import { createConvertRoutes } from './convert-routes.ts';
 import { createDocumentRoutes } from './document-routes.ts';
 import { createExportRoutes } from './export-routes.ts';
@@ -53,6 +53,7 @@ export interface RouteDependencies {
   observability: ObservabilityModule;
   shareLinkService: ShareLinkService;
   shareRateLimiter: PasswordRateLimiter;
+  shareResolveRateLimiter: ShareResolveRateLimiter;
   publicDir: string;
 }
 
@@ -64,7 +65,7 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
   const {
     app, auth, permissions, hocuspocus, redisClient,
     config, eventBus, audit, workflow, observability,
-    shareLinkService, shareRateLimiter, publicDir,
+    shareLinkService, shareRateLimiter, shareResolveRateLimiter, publicDir,
   } = deps;
 
   app.use(express.json({ limit: '100kb' }));
@@ -180,6 +181,7 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
     grantStore: permissions.grantStore,
     permissions,
     rateLimiter: shareRateLimiter,
+    resolveRateLimiter: shareResolveRateLimiter,
   }));
 
   // File upload and serving routes — after auth, with permission checks

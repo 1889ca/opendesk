@@ -7,7 +7,12 @@ import { createCollabServer } from '../../collab/index.ts';
 import { getRedisClient, setRedisConfig, disconnectRedis } from './redis.ts';
 import { createAuth, createAuthRateLimiter } from '../../auth/index.ts';
 import { createPermissions, createPgGrantStore } from '../../permissions/index.ts';
-import { createShareLinkService, createPgShareLinkStore, createPasswordRateLimiter } from '../../sharing/index.ts';
+import {
+  createShareLinkService,
+  createPgShareLinkStore,
+  createPasswordRateLimiter,
+  createShareResolveRateLimiter,
+} from '../../sharing/index.ts';
 import { initPool, initSchema } from '../../storage/index.ts';
 // Composition root: pool comes from storage/internal/pool.ts because
 // the public storage surface no longer re-exports it (#134). Only
@@ -108,13 +113,17 @@ export async function startServer(port = 3000) {
   const shareLinkStore = createPgShareLinkStore(pool);
   const shareLinkService = createShareLinkService(shareLinkStore);
   const shareRateLimiter = createPasswordRateLimiter(redisClient);
+  // Issue #135: per-IP cap on POST /api/share/:token/resolve to slow
+  // blind token enumeration. Separate from shareRateLimiter, which is
+  // keyed by token (and so doesn't help against random-token guessing).
+  const shareResolveRateLimiter = createShareResolveRateLimiter(redisClient);
 
   // Mount all API routes
   const publicDir = resolve(__dirname, '../../app/internal/public');
   const { ai } = mountRoutes({
     app, auth, permissions, hocuspocus, redisClient,
     config, eventBus, audit, workflow, observability,
-    shareLinkService, shareRateLimiter, publicDir,
+    shareLinkService, shareRateLimiter, shareResolveRateLimiter, publicDir,
   });
 
   // SPA catch-all: serve spa.html for any non-API, non-static route

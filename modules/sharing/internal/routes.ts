@@ -6,7 +6,7 @@ import type { ShareLinkService } from './share-links.ts';
 import type { GrantStore, Role, PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
 import { runAsSystem } from '../../storage/index.ts';
-import type { PasswordRateLimiter } from './rate-limit.ts';
+import type { PasswordRateLimiter, ShareResolveRateLimiter } from './rate-limit.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('sharing:routes');
@@ -15,7 +15,16 @@ export type ShareRoutesOptions = {
   service: ShareLinkService;
   grantStore?: GrantStore;
   permissions: PermissionsModule;
+  /** Per-token password attempt limiter (existing behavior). */
   rateLimiter: PasswordRateLimiter;
+  /**
+   * Per-IP resolve attempt limiter (issue #135). The password
+   * limiter is keyed by token, so token enumeration bypasses it.
+   * This second limiter caps total resolve attempts per source IP.
+   * Optional for backward compatibility — when omitted, only the
+   * password limiter applies.
+   */
+  resolveRateLimiter?: ShareResolveRateLimiter;
 };
 
 /**
@@ -23,7 +32,7 @@ export type ShareRoutesOptions = {
  * Mounts on the parent router; does not create its own app.
  */
 export function createShareRoutes(opts: ShareRoutesOptions): Router {
-  const { service, grantStore, permissions, rateLimiter } = opts;
+  const { service, grantStore, permissions, rateLimiter, resolveRateLimiter } = opts;
   const router = Router();
 
   /** POST /api/documents/:id/share -- create a share link (requires write permission) */
@@ -70,6 +79,23 @@ export function createShareRoutes(opts: ShareRoutesOptions): Router {
    * grantor's id, not the system sentinel.
    */
   router.post('/api/share/:token/resolve', asyncHandler(async (req, res) => {
+    // Issue #135: rate-limit anonymous resolve attempts by source IP
+    // BEFORE any other work. Token enumeration (random tokens) bypasses
+    // the per-token password limiter because each guess is a different
+    // key; this per-IP cap slows blind enumeration regardless of which
+    // token is being tried. INCR-on-attempt: every resolve costs a hit
+    // even on success, but the threshold (20/min) is generous enough
+    // for legitimate use.
+    if (resolveRateLimiter) {
+      const ip = req.ip ?? req.socket.remoteAddress ?? 'unknown';
+      const allowed = await resolveRateLimiter.check(ip);
+      if (!allowed) {
+        res.status(429).json({ error: 'too_many_attempts', retryAfterSeconds: 60 });
+        return;
+      }
+      await resolveRateLimiter.record(ip);
+    }
+
     await runAsSystem(async () => {
     const token = String(req.params.token);
     const password = req.body?.password as string | undefined;
