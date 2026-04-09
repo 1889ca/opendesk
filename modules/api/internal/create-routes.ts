@@ -18,8 +18,6 @@ import { createTemplateRoutes } from './template-routes.ts';
 import { createVersionRoutes } from './version-routes.ts';
 import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts';
 import { createSearchRoutes } from './search-routes.ts';
-import { createReferenceRoutes } from './reference-routes.ts';
-import { createImportExportRoutes } from './reference-import-routes.ts';
 import { createShareRoutes } from '../../sharing/index.ts';
 import { createMetricsRoutes, createTelemetryMiddleware } from '../../observability/index.ts';
 import {
@@ -127,8 +125,6 @@ export async function mountRoutes(deps: RouteDependencies): Promise<{ shutdown: 
   app.use('/api/folders', createFolderRoutes({ permissions }));
   app.use('/api/documents', createExportRoutes({ permissions }));
   app.use('/api/templates', createTemplateRoutes({ permissions, authMode }));
-  app.use('/api/references', createReferenceRoutes({ permissions }));
-  app.use('/api/references', createImportExportRoutes({ permissions }));
 
   // Manifest-driven routes: every module that has been migrated to
   // modules/<name>/manifest.ts is mounted here in one shot. The

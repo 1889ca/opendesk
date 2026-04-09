@@ -1,9 +1,9 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/references/rules.md */
 
 import { Router, type Request, type Response } from 'express';
 import { randomUUID } from 'node:crypto';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import { asyncHandler } from './async-handler.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
 import {
   createReference,
   listReferences,
@@ -16,7 +16,7 @@ import {
   type ReferenceRow,
   type Reference,
   type Author,
-} from '../../references/index.ts';
+} from '../index.ts';
 
 /** Convert a DB row to the Reference shape expected by serializers. */
 function rowToReference(row: ReferenceRow): Reference {

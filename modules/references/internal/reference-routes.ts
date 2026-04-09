@@ -1,10 +1,10 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/references/rules.md */
 
 import { Router, type Request, type Response } from 'express';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import { asyncHandler } from './async-handler.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
 import {
   createReference,
   getReference as defaultGetReference,
@@ -15,7 +15,7 @@ import {
   lookupISBN,
   ensureLibraryGrant,
   checkLibraryAccess,
-} from '../../references/index.ts';
+} from '../index.ts';
 
 /**
  * Minimal injectable surface for the references store. Defaults to the
