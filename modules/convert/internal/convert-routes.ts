@@ -1,7 +1,7 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/convert/rules.md */
 
 /**
- * API routes for document import/export via Collabora.
+ * REST surface for document import/export via Collabora.
  * Mounted at /api/documents/:id/convert-*.
  */
 
@@ -15,10 +15,10 @@ import {
   getExportExtension,
   CollaboraError,
   ImportError,
-} from '../../convert/index.ts';
+} from '../index.ts';
 import { getDocument } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import { asyncHandler } from './async-handler.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('api:convert');

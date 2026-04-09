@@ -9,7 +9,6 @@ import type { WorkflowModule } from '../../workflow/contract.ts';
 import type { ObservabilityModule } from '../../observability/contract.ts';
 import type { ShareLinkService } from '../../sharing/internal/share-links.ts';
 import type { PasswordRateLimiter, ShareResolveRateLimiter } from '../../sharing/internal/rate-limit.ts';
-import { createConvertRoutes } from './convert-routes.ts';
 import { createDocumentRoutes } from './document-routes.ts';
 import { createExportRoutes } from './export-routes.ts';
 import { createAdminRoutes } from './admin-routes.ts';
@@ -114,9 +113,6 @@ export async function mountRoutes(deps: RouteDependencies): Promise<{ shutdown: 
     type: ['application/x-bibtex', 'application/x-ris'],
     limit: '1mb',
   }));
-
-  // Collabora convert routes (import/export binary formats) — after auth
-  app.use(createConvertRoutes({ permissions }));
 
   // Health check (public, skipped by auth middleware)
   app.get('/api/health', async (_req, res) => {
