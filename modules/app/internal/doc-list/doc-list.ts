@@ -32,6 +32,8 @@ const ls: LoaderState = {
   paginationEl: null,
   bulkBar: null,
   _escHandler: null,
+  _observer: null,
+  _loading: false,
 };
 
 function updateState(next: Partial<DocListState>): void {
@@ -106,7 +108,8 @@ async function init() {
     const breadcrumbs = document.getElementById('folder-breadcrumbs');
     if (breadcrumbs) breadcrumbs.style.display = active ? 'none' : '';
     if (ls.controlsEl) ls.controlsEl.style.display = active ? 'none' : '';
-    if (ls.paginationEl) ls.paginationEl.style.display = active ? 'none' : '';
+    const sentinel = listEl.parentElement?.querySelector('.doc-list-sentinel') as HTMLElement | null;
+    if (sentinel) sentinel.style.display = active ? 'none' : '';
   });
   listEl.parentElement?.insertBefore(searchEl, listEl);
 

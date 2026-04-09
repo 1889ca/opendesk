@@ -20,8 +20,12 @@ import {
   type DocListState,
   buildApiUrl,
   createControlsBar,
-  createPaginationBar,
 } from './doc-list-controls.ts';
+import {
+  attachSentinel,
+  removeSentinel,
+  setSentinelState,
+} from './doc-list-sentinel.ts';
 import type { createBulkActionBar } from './bulk-actions.ts';
 
 export interface LoaderState {
@@ -32,6 +36,8 @@ export interface LoaderState {
   paginationEl: HTMLElement | null;
   bulkBar: ReturnType<typeof createBulkActionBar> | null;
   _escHandler: ((e: KeyboardEvent) => void) | null;
+  _observer: IntersectionObserver | null;
+  _loading: boolean;
 }
 
 export function rebuildControls(
@@ -57,20 +63,6 @@ export function rebuildControls(
   }
 }
 
-export function rebuildPagination(
-  listEl: HTMLElement,
-  ls: LoaderState,
-  updateState: (next: Partial<DocListState>) => void,
-  reload: () => void,
-): void {
-  const parent = listEl.parentElement;
-  if (!parent) return;
-  if (ls.paginationEl) ls.paginationEl.remove();
-  if (ls.state.totalPages <= 1) return;
-  ls.paginationEl = createPaginationBar(ls.state, (next) => { updateState(next); reload(); });
-  parent.insertBefore(ls.paginationEl, listEl.nextSibling);
-}
-
 export async function loadDocuments(
   listEl: HTMLElement,
   ls: LoaderState,
@@ -78,11 +70,19 @@ export async function loadDocuments(
   updateState: (next: Partial<DocListState>) => void,
   reload: () => void,
 ): Promise<void> {
+  const isFirstPage = ls.state.page === 1;
   const folderId = getCurrentFolderId();
-  listEl.innerHTML = '';
-  ls.selectedIds = new Set();
-  ls.docIds = [];
-  ls.bulkBar?.update(ls.selectedIds);
+
+  if (isFirstPage) {
+    listEl.innerHTML = '';
+    ls.selectedIds = new Set();
+    ls.docIds = [];
+    ls.bulkBar?.update(ls.selectedIds);
+    removeSentinel(listEl, ls);
+  }
+
+  ls._loading = true;
+  if (!isFirstPage) setSentinelState(listEl, true);
 
   const handleSelectionChange = (ids: Set<string>): void => {
     ls.selectedIds = ids;
@@ -90,8 +90,7 @@ export async function loadDocuments(
     rebuildControls(listEl, ls, onNewDocument, updateState, reload, handleSelectionChange);
   };
 
-  // Escape key clears multi-select when not typing in an input/textarea.
-  // Register only once per loader; subsequent reloads reuse the same handler via closure over ls.
+  // Register Escape key handler once per loader lifecycle
   if (!ls._escHandler) {
     ls._escHandler = (e: KeyboardEvent): void => {
       if (e.key !== 'Escape') return;
@@ -105,18 +104,22 @@ export async function loadDocuments(
     document.addEventListener('keydown', ls._escHandler);
   }
 
-  let breadcrumbEl = document.getElementById('folder-breadcrumbs');
-  if (!breadcrumbEl) {
-    breadcrumbEl = document.createElement('nav');
-    breadcrumbEl.id = 'folder-breadcrumbs';
-    listEl.parentElement?.insertBefore(breadcrumbEl, listEl);
+  if (isFirstPage) {
+    let breadcrumbEl = document.getElementById('folder-breadcrumbs');
+    if (!breadcrumbEl) {
+      breadcrumbEl = document.createElement('nav');
+      breadcrumbEl.id = 'folder-breadcrumbs';
+      listEl.parentElement?.insertBefore(breadcrumbEl, listEl);
+    }
+    renderBreadcrumbs(breadcrumbEl);
+    rebuildControls(listEl, ls, onNewDocument, updateState, reload, handleSelectionChange);
   }
-  renderBreadcrumbs(breadcrumbEl);
-  rebuildControls(listEl, ls, onNewDocument, updateState, reload, handleSelectionChange);
 
   try {
-    const folders = await loadFolders(folderId);
-    renderFolders(listEl, folders);
+    if (isFirstPage) {
+      const folders = await loadFolders(folderId);
+      renderFolders(listEl, folders);
+    }
 
     const baseUrl = folderId
       ? '/api/documents?folderId=' + encodeURIComponent(folderId)
@@ -129,43 +132,64 @@ export async function loadDocuments(
     const docs = Array.isArray(json) ? json : (json.data ?? []);
     const pagination = json.pagination ?? null;
 
-    ls.docIds = docs.map((d: { id: string }) => d.id);
+    const newIds = docs.map((d: { id: string }) => d.id);
+    ls.docIds = isFirstPage ? newIds : [...ls.docIds, ...newIds];
     cacheDocListResponse(docs);
+
     if (ls.state.viewMode === 'grid') {
       renderDocumentsGrid({
-        listEl,
-        docs,
-        onDelete: reload,
+        listEl, docs, onDelete: reload,
         selectedIds: ls.selectedIds,
         onSelectionChange: handleSelectionChange,
+        append: !isFirstPage,
       });
     } else {
       renderDocuments({
-        listEl,
-        docs,
-        onDelete: reload,
-        onNewDocument,
+        listEl, docs, onDelete: reload, onNewDocument,
         selectedIds: ls.selectedIds,
         onSelectionChange: handleSelectionChange,
+        append: !isFirstPage,
       });
     }
 
     if (pagination) {
       updateState({ totalPages: pagination.totalPages, page: pagination.page, totalCount: pagination.total });
-      rebuildControls(listEl, ls, onNewDocument, updateState, reload, handleSelectionChange);
-      rebuildPagination(listEl, ls, updateState, reload);
+      if (isFirstPage) {
+        rebuildControls(listEl, ls, onNewDocument, updateState, reload, handleSelectionChange);
+      }
+
+      const allLoaded = ls.state.page >= ls.state.totalPages;
+      if (allLoaded) {
+        removeSentinel(listEl, ls);
+      } else {
+        const loadNextPage = async (): Promise<void> => {
+          if (ls._loading) return;
+          updateState({ page: ls.state.page + 1 });
+          await loadDocuments(listEl, ls, onNewDocument, updateState, reload);
+        };
+        if (isFirstPage) {
+          attachSentinel(listEl, ls, loadNextPage);
+        } else {
+          setSentinelState(listEl, false);
+        }
+      }
     }
   } catch (err) {
     console.error('Failed to load documents', err);
-    const cached = await renderCachedDocuments(listEl);
-    if (!cached) {
-      const errDiv = document.createElement('div');
-      errDiv.className = 'doc-list-empty';
-      const errP = document.createElement('p');
-      errP.className = 'empty-title';
-      errP.textContent = t('docList.loadFailed');
-      errDiv.appendChild(errP);
-      listEl.replaceChildren(errDiv);
+    if (isFirstPage) {
+      const cached = await renderCachedDocuments(listEl);
+      if (!cached) {
+        const errDiv = document.createElement('div');
+        errDiv.className = 'doc-list-empty';
+        const errP = document.createElement('p');
+        errP.className = 'empty-title';
+        errP.textContent = t('docList.loadFailed');
+        errDiv.appendChild(errP);
+        listEl.replaceChildren(errDiv);
+      }
     }
+    removeSentinel(listEl, ls);
+  } finally {
+    ls._loading = false;
   }
 }
