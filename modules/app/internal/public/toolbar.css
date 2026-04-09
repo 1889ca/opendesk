@@ -274,6 +274,24 @@
   flex-shrink: 0;
 }
 
+/* Save indicator — "Saving…" / "Saved" */
+.save-indicator {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: transparent; /* invisible when empty */
+  transition: color 0.2s;
+  white-space: nowrap;
+  min-width: 4rem;
+}
+
+.save-indicator[data-state="saving"] {
+  color: var(--text-muted);
+}
+
+.save-indicator[data-state="saved"] {
+  color: var(--connected, #4caf50);
+}
+
 /* Language Switcher */
 .lang-select {
   font-family: inherit;

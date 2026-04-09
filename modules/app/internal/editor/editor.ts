@@ -28,6 +28,7 @@ import { ensureNameConfirmed } from '../shared/name-setup.ts';
 import { buildProfileChip } from '../shared/profile-chip.ts';
 import { initEditorPage } from './editor-page.ts';
 import { initEditorPanels } from './editor-panels.ts';
+import { buildSaveIndicator } from './save-indicator.ts';
 import {
   registerServiceWorker,
   buildOfflineIndicator,
@@ -136,6 +137,10 @@ async function init() {
     const chip = buildProfileChip();
     toolbarRightEl.appendChild(chip);
   }
+
+  // Save indicator — "Saving…" / "Saved" next to doc title
+  const toolbarLeft = document.querySelector('.toolbar-left');
+  if (toolbarLeft) toolbarLeft.appendChild(buildSaveIndicator(editor));
 
   trackRecentDoc({ id: documentId, title: 'Document' });
   setupImageHandlers(editor, editorEl);
