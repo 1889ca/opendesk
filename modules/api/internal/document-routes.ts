@@ -4,19 +4,29 @@ import { Router, type Request, type Response } from 'express';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import {
-  listDocuments as defaultListDocuments,
+  listDocuments as pgListDocuments,
   createDocument as defaultCreateDocument,
   getDocument as defaultGetDocument,
   deleteDocument as defaultDeleteDocument,
   updateDocumentTitle as defaultUpdateDocumentTitle,
   getTemplate as defaultGetTemplate,
 } from '../../storage/index.ts';
+import type { ListDocumentsOptions } from '../../storage/index.ts';
+
+function defaultListDocuments(params: ListDocumentsOptions) {
+  return pgListDocuments(params);
+}
 import type { PermissionsModule } from '../../permissions/index.ts';
 import type { CacheClient } from './redis.ts';
 import { asyncHandler } from './async-handler.ts';
 
 const ListDocumentsQuery = z.object({
   folderId: z.string().uuid().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  sort: z.enum(['updated_at', 'created_at', 'title']).default('updated_at'),
+  sortDir: z.enum(['asc', 'desc']).default('desc'),
+  type: z.enum(['text', 'spreadsheet', 'presentation']).optional(),
 });
 
 const CreateDocumentBody = z.object({
@@ -35,8 +45,17 @@ const UpdateDocumentBody = z.object({
 
 type DocRecord = { id: string; [key: string]: unknown };
 
+export type ListDocumentsParams = {
+  folderId?: string | null;
+  type?: string | null;
+  sort?: 'updated_at' | 'created_at' | 'title';
+  sortDir?: 'asc' | 'desc';
+  limit?: number;
+  offset?: number;
+};
+
 export type DocumentStorageFns = {
-  listDocuments: (folderId: string | null) => Promise<DocRecord[]>;
+  listDocuments: (params: ListDocumentsParams) => Promise<{ rows: DocRecord[]; total: number }>;
   createDocument: (id: string, title: string, documentType: string) => Promise<DocRecord>;
   getDocument: (id: string) => Promise<DocRecord | null>;
   deleteDocument: (id: string) => Promise<boolean>;
@@ -64,7 +83,7 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
   const updateDocumentTitle = storage?.updateDocumentTitle ?? defaultUpdateDocumentTitle;
   const getTemplate = storage?.getTemplate ?? defaultGetTemplate;
 
-  // List documents — accepts optional ?folderId= to filter by folder
+  // List documents — supports ?folderId=, ?page=, ?limit=, ?sort=, ?sortDir=, ?type=
   // Always filters results by principal's grants (see issue #66)
   router.get('/', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     const queryResult = ListDocumentsQuery.safeParse(req.query);
@@ -72,14 +91,34 @@ export function createDocumentRoutes(opts: DocumentRoutesOptions): Router {
       res.status(400).json({ error: 'Validation failed', issues: queryResult.error.issues });
       return;
     }
-    const docs = await listDocuments(queryResult.data.folderId ?? null);
+    const { folderId, page, limit, sort, sortDir, type } = queryResult.data;
+    const offset = (page - 1) * limit;
 
     const principal = req.principal!;
     const grants = await permissions.grantStore.findByPrincipal(principal.id);
     const allowedIds = new Set(
       grants.filter((g) => g.resourceType === 'document').map((g) => g.resourceId),
     );
-    res.json(docs.filter((doc) => allowedIds.has(doc.id)));
+
+    // Fetch all matching docs (without pagination) to filter by grants, then paginate
+    const allResult = await listDocuments({
+      folderId: folderId ?? null,
+      type: type ?? null,
+      sort,
+      sortDir,
+      limit: 10000,
+      offset: 0,
+    });
+
+    const filtered = allResult.rows.filter((doc) => allowedIds.has(doc.id));
+    const total = filtered.length;
+    const paginated = filtered.slice(offset, offset + limit);
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
+    res.json({
+      data: paginated,
+      pagination: { page, limit, total, totalPages },
+    });
   }));
 
   // Create document — requires auth, auto-grants owner role to creator

@@ -53,6 +53,18 @@ export interface CoreTranslationKeys {
   'docList.namePlaceholder': string;
   'docList.nameCancel': string;
   'docList.nameCreate': string;
+  'docList.filterAll': string;
+  'docList.filterDocuments': string;
+  'docList.filterSpreadsheets': string;
+  'docList.filterPresentations': string;
+  'docList.sortLabel': string;
+  'docList.sortUpdated': string;
+  'docList.sortCreated': string;
+  'docList.sortNameAZ': string;
+  'docList.sortNameZA': string;
+  'docList.pageOf': string;
+  'docList.prevPage': string;
+  'docList.nextPage': string;
   'time.justNow': string;
   'time.secondsAgo': string;
   'time.minuteAgo': string;

@@ -19,7 +19,7 @@ import type { Principal } from '../../auth/contract.ts';
 function createTestDocStorage(docs: Record<string, { id: string; title: string }> = {}): DocumentStorageFns {
   const map = new Map(Object.entries(docs));
   return {
-    listDocuments: async () => [...map.values()],
+    listDocuments: async () => ({ rows: [...map.values()], total: map.size }),
     createDocument: async (id, title) => {
       const doc = { id, title };
       map.set(id, doc);

@@ -12,7 +12,7 @@ function createInMemoryDocStorage(): DocumentStorageFns & {
   const docs = new Map<string, { id: string; title: string }>();
   return {
     docs,
-    listDocuments: async () => [...docs.values()],
+    listDocuments: async () => ({ rows: [...docs.values()], total: docs.size }),
     createDocument: async (id: string, title: string) => {
       const doc = { id, title, created_at: new Date(), updated_at: new Date() };
       docs.set(id, doc);
