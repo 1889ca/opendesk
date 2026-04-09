@@ -5,7 +5,21 @@
  * and exposes helpers to truncate tables between suites so each test
  * starts from a known state.
  *
- * Env vars (with defaults that match docker-compose.yml):
+ * Two pools are exposed:
+ *
+ * - `pool` (the unprivileged "rls" pool): connects as a NOSUPERUSER
+ *   role so the RLS policies on grants and share_links actually
+ *   take effect. Postgres superusers always bypass RLS regardless of
+ *   FORCE ROW LEVEL SECURITY, which is exactly the bug RLS testing
+ *   is trying to catch. Use this pool for everything by default.
+ *
+ * - `adminPool`: connects as the migration user (superuser by default
+ *   on the docker-compose / CI postgres image). Use this for fixture
+ *   setup that legitimately needs to ignore RLS — e.g. seeding rows
+ *   that don't belong to the current principal so the test can verify
+ *   the principal can't see them.
+ *
+ * Env vars (defaults match docker-compose.yml):
  *
  *   OPENDESK_TEST_PG_HOST     = localhost
  *   OPENDESK_TEST_PG_PORT     = 5433
@@ -16,13 +30,12 @@
  * Tests opt in to the integration runner via:
  *
  *   import { describeIntegration } from '../../../tests/integration/test-pg.ts';
- *   describeIntegration('my suite', ({ pool }) => { ... });
+ *   describeIntegration('my suite', ({ pool, adminPool }) => { ... });
  *
- * The describeIntegration helper auto-skips when no PG is reachable
- * (CI without a postgres service, dev machines without docker), so
- * the integration tests don't fail the suite when the dependency is
- * absent. CI runs them by setting up a postgres service container
- * (see .github/workflows/ci.yml).
+ * The describeIntegration helper auto-skips when OPENDESK_TEST_PG=1
+ * is not set, so dev machines without docker can still run
+ * `npm test` cleanly. CI runs them by setting up a postgres service
+ * container — see .github/workflows/ci.yml.
  */
 
 import pg from 'pg';
@@ -30,14 +43,31 @@ import { describe, beforeAll, afterAll } from 'vitest';
 import { runMigrations } from '../../modules/storage/internal/migration-runner.ts';
 
 export type IntegrationContext = {
+  /**
+   * Unprivileged pool for test queries — connects as a NOSUPERUSER /
+   * NOBYPASSRLS role so the RLS policies actually apply. Use this
+   * for everything by default.
+   */
   pool: pg.Pool;
+  /**
+   * Privileged pool for fixture setup that legitimately needs to
+   * ignore RLS (e.g. seeding rows that don't belong to the current
+   * principal). Avoid leaking this into production code paths under
+   * test.
+   */
+  adminPool: pg.Pool;
 };
 
-let cachedPool: pg.Pool | null = null;
-let connectionAttempted = false;
-let connectionAvailable = false;
+const RLS_ROLE = 'opendesk_rls';
+const RLS_PASSWORD = 'opendesk_rls_test';
 
-function buildConfig(): pg.PoolConfig {
+let cachedAdminPool: pg.Pool | null = null;
+let cachedRlsPool: pg.Pool | null = null;
+let initialized = false;
+let initAttempted = false;
+let initSucceeded = false;
+
+function buildAdminConfig(): pg.PoolConfig {
   return {
     host: process.env.OPENDESK_TEST_PG_HOST ?? 'localhost',
     port: Number(process.env.OPENDESK_TEST_PG_PORT ?? 5433),
@@ -45,55 +75,103 @@ function buildConfig(): pg.PoolConfig {
     user: process.env.OPENDESK_TEST_PG_USER ?? 'opendesk',
     password: process.env.OPENDESK_TEST_PG_PASSWORD ?? 'opendesk_dev',
     max: 4,
-    // Fail fast in tests — don't sit on a connection that won't open.
     connectionTimeoutMillis: 2000,
   };
 }
 
-/**
- * Probe the configured Postgres. Returns true if a connection can be
- * established, false otherwise. Caches the result so the probe only
- * runs once per test process.
- */
-async function probeConnection(): Promise<boolean> {
-  if (connectionAttempted) return connectionAvailable;
-  connectionAttempted = true;
-
-  const probe = new pg.Pool(buildConfig());
-  try {
-    await probe.query('SELECT 1');
-    connectionAvailable = true;
-  } catch {
-    connectionAvailable = false;
-  } finally {
-    await probe.end().catch(() => undefined);
-  }
-  return connectionAvailable;
+function buildRlsConfig(): pg.PoolConfig {
+  return {
+    ...buildAdminConfig(),
+    user: RLS_ROLE,
+    password: RLS_PASSWORD,
+  };
 }
 
 /**
- * Get a (lazily-created, schema-initialized) pool for integration
- * tests. Throws if no PG is reachable — call probeConnection first
- * if you need a soft check.
+ * Ensure an unprivileged role exists with the right grants on the
+ * RLS-protected tables. Idempotent.
  */
-export async function getTestPool(): Promise<pg.Pool> {
-  if (cachedPool) return cachedPool;
+async function ensureRlsRole(adminPool: pg.Pool): Promise<void> {
+  // CREATE ROLE is not idempotent in vanilla SQL — wrap in DO so we
+  // skip if it already exists.
+  await adminPool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '${RLS_ROLE}') THEN
+        CREATE ROLE ${RLS_ROLE}
+          LOGIN
+          PASSWORD '${RLS_PASSWORD}'
+          NOSUPERUSER
+          NOBYPASSRLS
+          NOINHERIT;
+      END IF;
+    END $$;
+  `);
 
-  const ok = await probeConnection();
-  if (!ok) {
+  // Grant the role enough permission to exercise the production code
+  // paths the tests cover. We deliberately do NOT grant ownership —
+  // RLS should still apply. TRUNCATE is included so per-test cleanup
+  // works without an extra admin trip; DROP / CREATE remain
+  // owner-only and use the adminPool when needed.
+  await adminPool.query(`
+    GRANT USAGE ON SCHEMA public TO ${RLS_ROLE};
+    GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public TO ${RLS_ROLE};
+    GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO ${RLS_ROLE};
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public
+      GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO ${RLS_ROLE};
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public
+      GRANT USAGE, SELECT ON SEQUENCES TO ${RLS_ROLE};
+  `);
+}
+
+/**
+ * Initialize both pools, run migrations, and provision the RLS role.
+ * Cached after the first successful run.
+ */
+async function initPools(): Promise<void> {
+  if (initialized) return;
+  if (initAttempted) {
+    // Already tried and failed — re-throw a synthetic error so the
+    // calling beforeAll bails out clearly.
+    throw new Error('test-pg init previously failed; check earlier logs.');
+  }
+  initAttempted = true;
+
+  const admin = new pg.Pool(buildAdminConfig());
+  try {
+    await admin.query('SELECT 1');
+  } catch (err) {
+    await admin.end().catch(() => undefined);
     throw new Error(
-      'No test Postgres reachable. Start docker-compose or set OPENDESK_TEST_PG_*.',
+      `Cannot reach test Postgres: ${(err as Error).message}. ` +
+      'Start docker-compose or set OPENDESK_TEST_PG_*.',
     );
   }
 
-  cachedPool = new pg.Pool(buildConfig());
-  await runMigrations(cachedPool);
-  return cachedPool;
+  await runMigrations(admin);
+  await ensureRlsRole(admin);
+
+  const rls = new pg.Pool(buildRlsConfig());
+  try {
+    await rls.query('SELECT 1');
+  } catch (err) {
+    await admin.end().catch(() => undefined);
+    await rls.end().catch(() => undefined);
+    throw new Error(
+      `Cannot connect as RLS test role '${RLS_ROLE}': ${(err as Error).message}`,
+    );
+  }
+
+  cachedAdminPool = admin;
+  cachedRlsPool = rls;
+  initialized = true;
+  initSucceeded = true;
 }
 
 /**
  * Truncate the tables a test cares about so each suite starts clean.
  * RESTART IDENTITY resets sequences; CASCADE drops dependent rows.
+ * Always uses the admin pool so RLS doesn't filter the truncate.
  */
 export async function truncate(pool: pg.Pool, ...tables: string[]): Promise<void> {
   if (tables.length === 0) return;
@@ -111,31 +189,43 @@ const INTEGRATION_OPT_IN = process.env.OPENDESK_TEST_PG === '1';
 
 /**
  * describe() wrapper that runs only when OPENDESK_TEST_PG=1. Provides
- * a fresh, schema-initialized pool to the inner suite.
+ * the unprivileged RLS pool plus an admin pool for fixture seeding.
  */
 export function describeIntegration(
   name: string,
   fn: (ctx: IntegrationContext) => void,
 ): void {
   describe.skipIf(!INTEGRATION_OPT_IN)(name, () => {
-    const ctx: IntegrationContext = { pool: null as unknown as pg.Pool };
+    const ctx: IntegrationContext = {
+      pool: null as unknown as pg.Pool,
+      adminPool: null as unknown as pg.Pool,
+    };
 
     beforeAll(async () => {
-      ctx.pool = await getTestPool();
+      await initPools();
+      ctx.pool = cachedRlsPool!;
+      ctx.adminPool = cachedAdminPool!;
     });
 
     afterAll(async () => {
-      // Pool is shared across suites; don't close it here.
+      // Pools are shared across suites; don't close them here.
     });
 
     fn(ctx);
   });
 }
 
-/** Close the cached pool. Call from a global teardown if needed. */
+/** Close cached pools. Call from a global teardown if needed. */
 export async function closeTestPool(): Promise<void> {
-  if (cachedPool) {
-    await cachedPool.end();
-    cachedPool = null;
+  if (cachedRlsPool) {
+    await cachedRlsPool.end();
+    cachedRlsPool = null;
   }
+  if (cachedAdminPool) {
+    await cachedAdminPool.end();
+    cachedAdminPool = null;
+  }
+  initialized = false;
+  initAttempted = false;
+  initSucceeded = false;
 }

@@ -33,8 +33,10 @@ const DOC_BOB = 'rls-test-doc-bob';
 describeIntegration('RLS enforcement on grants (issue #126)', (ctx) => {
   beforeEach(async () => {
     if (!ctx.pool) return;
-    // Each test starts from a clean grants table.
-    await truncate(ctx.pool, 'grants');
+    // Truncate via the admin pool because TRUNCATE is not covered by
+    // a standard GRANT SELECT/INSERT/UPDATE/DELETE; the unprivileged
+    // RLS role doesn't have it.
+    await truncate(ctx.adminPool, 'grants');
   });
 
   it('rlsQuery throws when called outside any principal context', async () => {

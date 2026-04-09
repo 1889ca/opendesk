@@ -13,10 +13,12 @@ const TEST_PREFIX = 'TestSearch_';
 describeIntegration('searchDocuments (integration)', (ctx) => {
   beforeEach(async () => {
     if (!ctx.pool) return;
-    // Make sure the search column + index exist (the schema applier
-    // is idempotent), then wipe any test rows we own.
-    await ctx.pool.query(APPLY_SEARCH_SCHEMA);
-    await ctx.pool.query(
+    // ALTER TABLE / CREATE INDEX in APPLY_SEARCH_SCHEMA require DDL
+    // privileges — use the admin pool. The actual searchDocuments
+    // calls below run on the unprivileged ctx.pool to exercise the
+    // production code path.
+    await ctx.adminPool.query(APPLY_SEARCH_SCHEMA);
+    await ctx.adminPool.query(
       `DELETE FROM documents WHERE title LIKE $1`,
       [`${TEST_PREFIX}%`],
     );

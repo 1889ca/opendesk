@@ -1,7 +1,7 @@
 /** Contract: contracts/storage/rules.md */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { it, expect, beforeEach } from 'vitest';
 import { runMigrations } from './migration-runner.ts';
-import { describeIntegration, truncate } from '../../../tests/integration/test-pg.ts';
+import { describeIntegration } from '../../../tests/integration/test-pg.ts';
 
 // Issue #127: this test used to mock pg.Pool with a hand-built fake
 // that recorded SQL strings. That tested the SHAPE of the queries
@@ -11,19 +11,19 @@ import { describeIntegration, truncate } from '../../../tests/integration/test-p
 
 describeIntegration('runMigrations (integration)', (ctx) => {
   beforeEach(async () => {
-    if (!ctx.pool) return;
+    if (!ctx.adminPool) return;
     // Wipe the tracking table so each test runs migrations from
     // scratch. The actual schema tables are left intact (other tests
     // depend on them).
-    await ctx.pool.query('DROP TABLE IF EXISTS schema_migrations');
+    await ctx.adminPool.query('DROP TABLE IF EXISTS schema_migrations');
   });
 
   it('creates the schema_migrations tracking table on first run', async () => {
-    if (!ctx.pool) return;
+    if (!ctx.adminPool) return;
 
-    await runMigrations(ctx.pool);
+    await runMigrations(ctx.adminPool);
 
-    const { rows } = await ctx.pool.query<{ exists: boolean }>(
+    const { rows } = await ctx.adminPool.query<{ exists: boolean }>(
       `SELECT EXISTS (
          SELECT 1 FROM information_schema.tables
          WHERE table_name = 'schema_migrations'
@@ -33,11 +33,11 @@ describeIntegration('runMigrations (integration)', (ctx) => {
   });
 
   it('records every applied migration in schema_migrations', async () => {
-    if (!ctx.pool) return;
+    if (!ctx.adminPool) return;
 
-    await runMigrations(ctx.pool);
+    await runMigrations(ctx.adminPool);
 
-    const { rows } = await ctx.pool.query<{ filename: string }>(
+    const { rows } = await ctx.adminPool.query<{ filename: string }>(
       'SELECT filename FROM schema_migrations ORDER BY filename',
     );
     const filenames = rows.map((r) => r.filename);
@@ -51,17 +51,17 @@ describeIntegration('runMigrations (integration)', (ctx) => {
   });
 
   it('is idempotent: running twice does not re-apply migrations', async () => {
-    if (!ctx.pool) return;
+    if (!ctx.adminPool) return;
 
-    await runMigrations(ctx.pool);
+    await runMigrations(ctx.adminPool);
 
-    const { rows: firstRun } = await ctx.pool.query<{ filename: string; applied_at: Date }>(
+    const { rows: firstRun } = await ctx.adminPool.query<{ filename: string; applied_at: Date }>(
       'SELECT filename, applied_at FROM schema_migrations ORDER BY filename',
     );
 
-    await runMigrations(ctx.pool);
+    await runMigrations(ctx.adminPool);
 
-    const { rows: secondRun } = await ctx.pool.query<{ filename: string; applied_at: Date }>(
+    const { rows: secondRun } = await ctx.adminPool.query<{ filename: string; applied_at: Date }>(
       'SELECT filename, applied_at FROM schema_migrations ORDER BY filename',
     );
 
@@ -75,11 +75,11 @@ describeIntegration('runMigrations (integration)', (ctx) => {
   });
 
   it('applies migrations in sorted filename order', async () => {
-    if (!ctx.pool) return;
+    if (!ctx.adminPool) return;
 
-    await runMigrations(ctx.pool);
+    await runMigrations(ctx.adminPool);
 
-    const { rows } = await ctx.pool.query<{ filename: string; id: number }>(
+    const { rows } = await ctx.adminPool.query<{ filename: string; id: number }>(
       'SELECT filename, id FROM schema_migrations ORDER BY id',
     );
 

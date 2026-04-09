@@ -27,8 +27,11 @@ async function insert(
 describeIntegration('globalSearch (integration)', (ctx) => {
   beforeEach(async () => {
     if (!ctx.pool) return;
-    await ctx.pool.query(APPLY_SEARCH_SCHEMA);
-    await ctx.pool.query(
+    // ALTER TABLE / CREATE INDEX in APPLY_SEARCH_SCHEMA require DDL
+    // privileges — use the admin pool. The actual globalSearch calls
+    // run on the unprivileged ctx.pool.
+    await ctx.adminPool.query(APPLY_SEARCH_SCHEMA);
+    await ctx.adminPool.query(
       `DELETE FROM documents WHERE title LIKE $1`,
       [`${TEST_PREFIX}%`],
     );
