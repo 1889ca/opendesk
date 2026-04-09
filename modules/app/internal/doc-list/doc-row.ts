@@ -7,16 +7,13 @@
  * and hover preview (issue #231).
  */
 
-import { apiFetch } from '../shared/api-client.ts';
 import { t } from '../i18n/index.ts';
 import { formatRelativeTime } from '../shared/time-format.ts';
-import { showDeleteConfirmDialog } from './delete-confirm-dialog.ts';
-import { showNameDialog } from './name-dialog.ts';
 import { getStarred, toggleStar } from './starred-store.ts';
-import { showToast } from '../shared/toast.ts';
 import { attachContextMenu } from './doc-context-menu.ts';
 import { attachHoverPreview } from './doc-hover-preview.ts';
 import { renderEmptyState } from './doc-empty-state.ts';
+import { confirmAndDelete, renameDoc, duplicateDoc } from './doc-operations.ts';
 
 export interface DocEntry {
   id: string;
@@ -160,35 +157,3 @@ function buildDocRow(
   return wrapper;
 }
 
-async function confirmAndDelete(id: string, name: string, onDelete: () => void): Promise<void> {
-  if (!await showDeleteConfirmDialog(name)) return;
-  try {
-    await apiFetch('/api/documents/' + encodeURIComponent(id), { method: 'DELETE' });
-    showToast('Document deleted', 'success');
-    onDelete();
-  } catch (err) { console.error('Delete failed', err); }
-}
-
-async function renameDoc(doc: DocEntry, onRefresh: () => void): Promise<void> {
-  const newTitle = await showNameDialog('docList.titlePrompt', doc.title || '');
-  if (!newTitle) return;
-  try {
-    await apiFetch('/api/documents/' + encodeURIComponent(doc.id), {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newTitle }),
-    });
-    onRefresh();
-  } catch (err) {
-    console.error('Rename failed', err);
-  }
-}
-
-async function duplicateDoc(id: string, onRefresh: () => void): Promise<void> {
-  try {
-    const res = await apiFetch('/api/documents/' + encodeURIComponent(id) + '/duplicate', { method: 'POST' });
-    if (res.ok) { onRefresh(); } else { console.warn('Duplicate not available (status', res.status, ')'); }
-  } catch (err) {
-    console.warn('Duplicate not available', err);
-  }
-}
