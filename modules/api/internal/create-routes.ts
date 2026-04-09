@@ -25,6 +25,10 @@ import { createEntityRoutes } from './entity-routes.ts';
 import { createKBEntryRoutes } from './kb-entry-routes.ts';
 import { createKBDatasetRoutes } from './kb-dataset-routes.ts';
 import { createKBSnapshotRoutes } from './kb-snapshot-routes.ts';
+import { createKbRoutes } from './kb-routes.ts';
+import { createKbVersionRoutes } from './kb-version-routes.ts';
+import { createNotificationRoutes } from './notification-routes.ts';
+import { createPgNotificationStore } from '../../notifications/index.ts';
 import { createShareRoutes } from '../../sharing/index.ts';
 import { createMetricsRoutes, createTelemetryMiddleware } from '../../observability/index.ts';
 import {
@@ -134,6 +138,10 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
   app.use('/api/references', createReferenceRoutes({ permissions }));
   app.use('/api/references', createImportExportRoutes({ permissions }));
 
+  // KB browser routes (CRUD + lifecycle — used by kb.html)
+  app.use('/api/kb', createKbRoutes({ permissions }));
+  app.use('/api/kb', createKbVersionRoutes({ permissions }));
+
   // KB entry routes (generalized knowledge base entries + relationships)
   app.use('/api/kb/entries', createKBEntryRoutes({ permissions }));
 
@@ -145,6 +153,12 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
 
   // KB entity directory routes
   app.use('/api/kb/entities', createEntityRoutes({ permissions }));
+
+  // Notification routes (in-app notifications bell)
+  app.use('/api/notifications', createNotificationRoutes({
+    permissions,
+    notificationStore: createPgNotificationStore(pool),
+  }));
 
   // Manifest-driven routes: every module that has been migrated to
   // modules/<name>/manifest.ts is mounted here in one shot. The
