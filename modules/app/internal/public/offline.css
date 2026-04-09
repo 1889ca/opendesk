@@ -1,0 +1,81 @@
+/* Offline indicator and update banner styles */
+
+/* --- Offline indicator in toolbar --- */
+
+.offline-indicator {
+  display: none;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  border-radius: 1rem;
+  white-space: nowrap;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.offline-indicator--offline {
+  display: inline-flex;
+  background: var(--status-disconnected-bg);
+  color: var(--status-disconnected);
+}
+
+.offline-indicator--syncing {
+  display: inline-flex;
+  background: #fef3c7;
+  color: #b45309;
+}
+
+[data-theme="dark"] .offline-indicator--syncing {
+  background: #422006;
+  color: #fbbf24;
+}
+
+/* --- Update available banner --- */
+
+.update-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: var(--accent-color);
+  color: #fff;
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.update-banner[hidden] {
+  display: none;
+}
+
+.update-banner-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.update-banner-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* --- Offline badge on cached documents --- */
+
+.doc-row-offline-badge {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  margin-left: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
