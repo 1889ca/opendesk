@@ -37,7 +37,6 @@ import {
   type AppContext,
 } from '../../core/manifest/index.ts';
 import { createAiRoutes, createAi } from '../../ai/index.ts';
-import { createFederation, createFederationRoutes } from '../../federation/index.ts';
 import { idempotencyMiddleware } from './idempotency.ts';
 import { serveHtmlWithNonce } from './csp-nonce.ts';
 import { principalContextMiddleware } from '../../storage/index.ts';
@@ -171,16 +170,6 @@ export function mountRoutes(deps: RouteDependencies): { ai: ReturnType<typeof cr
 
   // Observability metrics routes
   app.use('/api/admin/metrics', createMetricsRoutes({ observability, permissions, pool }));
-
-  // Federation routes (peer management, document exchange) — gated by config
-  if (config.federation.enabled) {
-    const federation = createFederation({
-      pool,
-      config: config.federation,
-      hmacSecret: config.audit.hmacSecret,
-    });
-    app.use('/api/federation', createFederationRoutes({ federation, permissions }));
-  }
 
   // AI routes (semantic search, RAG assistant, embedding) — gated by config
   let ai: ReturnType<typeof createAi> | null = null;
