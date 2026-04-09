@@ -57,8 +57,18 @@ export function createUploadRoutes(opts: UploadRoutesOptions): Router {
 
   router.post(
     '/upload',
+    // requireAuth runs BEFORE multer (issue #130) so unauthenticated
+    // requests are rejected with 401 before the multipart parser
+    // buffers up to MAX_SIZE bytes per request. Without this ordering,
+    // any unauthenticated client can drive memory pressure on the API
+    // process by streaming garbage payloads.
+    permissions.requireAuth,
     upload.single('file'),
     asyncHandler(async (req, res) => {
+      // requireAuth guarantees req.principal is set; assert for the
+      // type narrowing below.
+      const principal = req.principal!;
+
       const file = req.file;
       if (!file) {
         res.status(400).json({ error: 'No file provided' });
@@ -71,12 +81,6 @@ export function createUploadRoutes(opts: UploadRoutesOptions): Router {
         return;
       }
       const { documentId } = bodyResult.data;
-
-      const principal = req.principal;
-      if (!principal) {
-        res.status(401).json({ error: 'Authentication required' });
-        return;
-      }
 
       if (documentId === 'general') {
         // General bucket: authenticated users may upload, but log for audit trail
