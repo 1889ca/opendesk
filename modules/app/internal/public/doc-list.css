@@ -150,3 +150,50 @@
 .btn-delete:hover {
   background: var(--status-disconnected-bg);
 }
+
+/* Danger button — used in delete confirmation modal */
+.btn-danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+/* Delete confirmation modal (issue #163) */
+.delete-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg, rgba(0, 0, 0, 0.45));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.delete-confirm-modal {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 22rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.delete-confirm-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.delete-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

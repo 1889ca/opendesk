@@ -2,6 +2,7 @@
 import { apiFetch } from '../shared/api-client.ts';
 import { t } from '../i18n/index.ts';
 import { formatRelativeTime } from '../shared/time-format.ts';
+import { showDeleteConfirmDialog } from './delete-confirm-dialog.ts';
 
 interface DocEntry {
   id: string;
@@ -67,10 +68,12 @@ export function renderDocuments(
       e.preventDefault();
       e.stopPropagation();
       const name = doc.title || t('editor.untitled');
-      if (!confirm(t('docList.deleteConfirm', { name }))) return;
-      apiFetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
-        .then(onDelete)
-        .catch((err) => console.error('Delete failed', err));
+      showDeleteConfirmDialog(name).then((confirmed) => {
+        if (!confirmed) return;
+        apiFetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
+          .then(onDelete)
+          .catch((err) => console.error('Delete failed', err));
+      });
     });
 
     row.append(info, deleteBtn);

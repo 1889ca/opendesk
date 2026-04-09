@@ -9,6 +9,7 @@ import { apiFetch } from '../shared/api-client.ts';
 import { t } from '../i18n/index.ts';
 import { formatRelativeTime } from '../shared/time-format.ts';
 import { getCurrentFolderId } from './folder-list.ts';
+import { showDeleteConfirmDialog } from './delete-confirm-dialog.ts';
 
 export interface DocEntry {
   id: string;
@@ -87,10 +88,12 @@ export function renderDocuments(
     deleteBtn.textContent = t('docList.delete');
     deleteBtn.setAttribute('aria-label', t('docList.deleteAriaLabel', { name: docName }));
     deleteBtn.addEventListener('click', () => {
-      if (!confirm(t('docList.deleteConfirm', { name: docName }))) return;
-      apiFetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
-        .then(() => onDelete())
-        .catch((err) => { console.error('Delete failed', err); });
+      showDeleteConfirmDialog(docName).then((confirmed) => {
+        if (!confirmed) return;
+        apiFetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
+          .then(() => onDelete())
+          .catch((err) => { console.error('Delete failed', err); });
+      });
     });
 
     wrapper.appendChild(row);
