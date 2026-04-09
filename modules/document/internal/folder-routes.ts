@@ -1,4 +1,4 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/document/rules.md */
 
 import { Router, type Request, type Response } from 'express';
 import { randomUUID } from 'node:crypto';
@@ -12,7 +12,7 @@ import {
   getFolder,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import { asyncHandler } from './async-handler.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
 
 const CreateFolderBody = z.object({
   name: z.string().min(1).max(200),

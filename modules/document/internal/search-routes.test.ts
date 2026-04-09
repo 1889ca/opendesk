@@ -1,4 +1,4 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/document/rules.md */
 import { describe, it, expect } from 'vitest';
 import { createSearchRoutes, type SearchFn } from './search-routes.ts';
 import { createPermissions } from '../../permissions/index.ts';

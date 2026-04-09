@@ -9,15 +9,10 @@ import type { WorkflowModule } from '../../workflow/contract.ts';
 import type { ObservabilityModule } from '../../observability/contract.ts';
 import type { ShareLinkService } from '../../sharing/internal/share-links.ts';
 import type { PasswordRateLimiter, ShareResolveRateLimiter } from '../../sharing/internal/rate-limit.ts';
-import { createDocumentRoutes } from './document-routes.ts';
-import { createExportRoutes } from './export-routes.ts';
 import { createAdminRoutes } from './admin-routes.ts';
 import { createUploadRoutes } from './upload-routes.ts';
 import { createFileRoutes } from './file-routes.ts';
 import { createTemplateRoutes } from './template-routes.ts';
-import { createVersionRoutes } from './version-routes.ts';
-import { createFolderRoutes, createMoveDocumentRoute } from './folder-routes.ts';
-import { createSearchRoutes } from './search-routes.ts';
 import { createShareRoutes } from '../../sharing/index.ts';
 import { createMetricsRoutes, createTelemetryMiddleware } from '../../observability/index.ts';
 import {
@@ -116,14 +111,7 @@ export async function mountRoutes(deps: RouteDependencies): Promise<{ shutdown: 
     }
   });
 
-  // Search must be mounted before document CRUD so /search is matched before /:id
   const authMode = config.auth.mode;
-  app.use('/api/documents', createSearchRoutes({ permissions }));
-  app.use('/api/documents', createDocumentRoutes({ permissions, cache: redisClient }));
-  app.use('/api/documents/:id/versions', createVersionRoutes({ permissions, hocuspocus }));
-  app.use('/api/documents', createMoveDocumentRoute({ permissions }));
-  app.use('/api/folders', createFolderRoutes({ permissions }));
-  app.use('/api/documents', createExportRoutes({ permissions }));
   app.use('/api/templates', createTemplateRoutes({ permissions, authMode }));
 
   // Manifest-driven routes: every module that has been migrated to

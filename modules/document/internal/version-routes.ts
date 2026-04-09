@@ -1,4 +1,4 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/document/rules.md */
 
 import { Router, type Request, type Response } from 'express';
 import { randomUUID } from 'node:crypto';
@@ -14,7 +14,7 @@ import {
   saveYjsState,
 } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import { asyncHandler } from './async-handler.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
 
 const CreateVersionBody = z.object({
   name: z.string().max(200).optional(),

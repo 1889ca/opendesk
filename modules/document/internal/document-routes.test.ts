@@ -1,9 +1,9 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/document/rules.md */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createDocumentRoutes, type DocumentStorageFns } from './document-routes.ts';
 import { createPermissions } from '../../permissions/index.ts';
 import { createInMemoryGrantStore } from '../../permissions/internal/grant-store.ts';
-import { InMemoryCache } from './test-helpers.ts';
+import { InMemoryCache } from '../../api/internal/test-helpers.ts';
 
 /** In-memory document store implementing the storage functions document routes need. */
 function createInMemoryDocStorage(): DocumentStorageFns & {

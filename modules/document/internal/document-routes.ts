@@ -1,4 +1,4 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/document/rules.md */
 
 import { Router, type Request, type Response } from 'express';
 import { randomUUID } from 'node:crypto';
@@ -17,8 +17,8 @@ function defaultListDocuments(params: ListDocumentsOptions) {
   return pgListDocuments(params);
 }
 import type { PermissionsModule } from '../../permissions/index.ts';
-import type { CacheClient } from './redis.ts';
-import { asyncHandler } from './async-handler.ts';
+import type { CacheClient } from '../../api/internal/redis.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
 
 const ListDocumentsQuery = z.object({
   folderId: z.string().uuid().optional(),

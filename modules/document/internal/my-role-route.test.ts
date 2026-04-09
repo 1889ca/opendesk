@@ -1,4 +1,4 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/document/rules.md */
 
 /**
  * Tests for GET /api/documents/:id/my-role — issue #154.

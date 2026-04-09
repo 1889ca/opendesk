@@ -4,6 +4,7 @@ import type { OpenDeskManifest } from './contract.ts';
 import { manifest as aiManifest } from '../../ai/manifest.ts';
 import { manifest as auditManifest } from '../../audit/manifest.ts';
 import { manifest as convertManifest } from '../../convert/manifest.ts';
+import { manifest as documentManifest } from '../../document/manifest.ts';
 import { manifest as erasureManifest } from '../../erasure/manifest.ts';
 import { manifest as federationManifest } from '../../federation/manifest.ts';
 import { manifest as kbManifest } from '../../kb/manifest.ts';
@@ -29,6 +30,7 @@ export const manifests: OpenDeskManifest[] = [
   aiManifest,
   auditManifest,
   convertManifest,
+  documentManifest,
   erasureManifest,
   federationManifest,
   kbManifest,

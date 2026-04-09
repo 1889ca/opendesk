@@ -1,10 +1,10 @@
-/** Contract: contracts/api/rules.md */
+/** Contract: contracts/document/rules.md */
 
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { searchDocuments as defaultSearchDocuments, type SearchResult } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
-import { asyncHandler } from './async-handler.ts';
+import { asyncHandler } from '../../api/internal/async-handler.ts';
 
 const SearchQuery = z.object({
   q: z.string().min(2).max(200),
