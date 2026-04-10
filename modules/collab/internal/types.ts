@@ -3,6 +3,7 @@
 import type { TokenVerifier } from '../../auth/contract.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import type { EventBus } from '../../events/index.ts';
+import type { DocumentRepository } from '../../storage/contract.ts';
 
 /**
  * External dependencies injected into the collab module.
@@ -20,7 +21,13 @@ export type CollabDependencies = {
   /**
    * Event bus — used to subscribe to GrantRevoked events so that
    * the collab server can disconnect revoked users (issue #307).
-   * Optional: when omitted, grant-revoked disconnection is disabled.
+   * Optional: when omitted, grant-revoked disconnection and
+   * materializer event emission are disabled.
    */
   eventBus?: EventBus;
+  /**
+   * Document repository — used by the materializer to persist snapshots.
+   * Optional: when omitted, snapshot materialisation is disabled.
+   */
+  repo?: DocumentRepository;
 };

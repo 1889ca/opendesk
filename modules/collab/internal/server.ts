@@ -10,6 +10,7 @@ import { createOnAuthenticate } from './authenticate.ts';
 import type { CollabConfig } from '../contract.ts';
 import type { CollabDependencies } from './types.ts';
 import { HocuspocusConnectionFinder, subscribeGrantRevoked } from './grant-revoked-handler.ts';
+import { createDocumentMaterializer, type DocumentMaterializer } from './document-materializer.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('collab');
@@ -30,6 +31,14 @@ export function createCollabServer(
 
   const onAuthenticate = createOnAuthenticate(deps.tokenVerifier, deps.permissions);
 
+  const materializer: DocumentMaterializer | null = deps.repo
+    ? createDocumentMaterializer({
+        repo: deps.repo,
+        eventBus: deps.eventBus,
+        debounceMs: config?.materializer?.debounceIntervalMs ?? 2000,
+      })
+    : null;
+
   const hocuspocus = new Hocuspocus({
     name: config?.hocuspocus?.name ?? 'opendesk-collab',
     timeout: 30000,
@@ -45,6 +54,10 @@ export function createCollabServer(
         Y.applyUpdate(document, state);
       }
       return document;
+    },
+
+    async onChange({ documentName, document }) {
+      materializer?.schedule(documentName, document);
     },
 
     async onStoreDocument({ documentName, document }) {
@@ -86,5 +99,20 @@ export function createCollabServer(
     });
   }
 
-  return { hocuspocus, handleUpgrade, compactionManager };
+  /**
+   * Immediately flush (materialise) the current Yjs state for a document.
+   * Useful for on-demand export or version saving — bypasses the debounce window.
+   * No-op when no repo was provided to the server.
+   */
+  async function flushDocument(docId: string): Promise<void> {
+    if (!materializer) return;
+    const ydoc = hocuspocus.documents.get(docId);
+    if (!ydoc) {
+      log.warn('flushDocument: document not found in memory', { docId });
+      return;
+    }
+    await materializer.flush(docId, ydoc as unknown as Y.Doc);
+  }
+
+  return { hocuspocus, handleUpgrade, compactionManager, flushDocument };
 }
