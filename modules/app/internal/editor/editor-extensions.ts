@@ -1,11 +1,11 @@
 /** Contract: contracts/app/rules.md */
-import type { AnyExtension } from '@tiptap/core';
+import { mergeAttributes, type AnyExtension } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { common, createLowlight } from 'lowlight';
-import Image from '@tiptap/extension-image';
+import Image, { type ImageOptions } from '@tiptap/extension-image';
 import Collaboration from '@tiptap/extension-collaboration';
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
@@ -39,8 +39,32 @@ import { SmartPunctuation } from './smart-punctuation.ts';
 import { FootnoteNode } from './footnote.ts';
 import { DrawingExtension } from './drawing/index.ts';
 import { Placeholder } from './placeholder.ts';
+import { SlashCommandExtension } from './slash-commands/index.ts';
 
 const lowlight = createLowlight(common);
+
+/** Image extension with caption and float/alignment class support (issue #456). */
+const CustomImage = Image.extend<ImageOptions>({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      caption: { default: '' },
+      imageClass: { default: '' },
+    };
+  },
+  renderHTML({ HTMLAttributes }) {
+    const { caption, imageClass, class: classAttr, ...imgAttrs } = HTMLAttributes;
+    const resolvedClass = imageClass || classAttr || '';
+    if (caption) {
+      return [
+        'figure', { class: 'editor-figure' },
+        ['img', mergeAttributes(imgAttrs, { class: resolvedClass })],
+        ['figcaption', {}, caption],
+      ];
+    }
+    return ['img', mergeAttributes(imgAttrs, { class: resolvedClass })];
+  },
+});
 
 interface ExtensionConfig {
   ydoc: Y.Doc;
@@ -58,7 +82,7 @@ export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
     TableRow,
     TableCell,
     TableHeader,
-    Image.configure({
+    CustomImage.configure({
       inline: false,
       allowBase64: false,
       resize: { enabled: true, minWidth: 100, minHeight: 50 },
@@ -92,6 +116,7 @@ export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
     FootnoteNode,
     DrawingExtension,
     Placeholder,
+    SlashCommandExtension,
     Underline,
     Link.configure({ openOnClick: false, autolink: true }),
   ];
