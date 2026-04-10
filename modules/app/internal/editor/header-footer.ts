@@ -59,6 +59,20 @@ export function insertHeaderFooter(docId: string): { headerZone: HTMLElement; fo
   return { headerZone, footerZone };
 }
 
+export function setupHeaderFooterClicks(headerZone: HTMLElement, footerZone: HTMLElement): void {
+  const wrapper = document.querySelector('.editor-wrapper');
+  if (!wrapper) return;
+  wrapper.addEventListener('click', (e: Event) => {
+    const target = e.target as HTMLElement;
+    if (target !== wrapper) return;
+    const editorRect = document.getElementById('editor')?.getBoundingClientRect();
+    if (!editorRect) return;
+    const mouseY = (e as MouseEvent).clientY;
+    if (mouseY < editorRect.top) { activateZone(headerZone); headerZone.focus(); }
+    else if (mouseY > editorRect.bottom) { activateZone(footerZone); footerZone.focus(); }
+  });
+}
+
 export function insertPageNumber(zone: HTMLElement): void {
   const marker = document.createElement('span');
   marker.className = 'page-num-marker';
