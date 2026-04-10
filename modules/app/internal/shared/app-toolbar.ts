@@ -67,7 +67,8 @@ function buildLeft(): HTMLElement {
   titleInput.id = 'doc-title';
   titleInput.className = 'doc-title-input';
   titleInput.type = 'text';
-  titleInput.value = 'Loading...';
+  titleInput.value = '';
+  titleInput.placeholder = 'Loading...';
   titleInput.spellcheck = false;
 
   left.append(logoLink, backBtn, breadcrumb, titleInput);
