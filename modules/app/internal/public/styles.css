@@ -45,11 +45,14 @@ body {
 #editor {
   width: 100%;
   max-width: 48rem;
-  background: var(--surface);
+  /* Paper stays white in all themes (#338 / #372) */
+  background: #ffffff;
+  color: #1a1a1a;
+  color-scheme: light;
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  min-height: 60vh;
+  min-height: calc(100vh - 8rem);
 }
 
 .editor-content {
@@ -57,6 +60,8 @@ body {
   outline: none;
   line-height: 1.7;
   font-size: 1rem;
+  /* Fill #editor height so entire canvas is clickable (#335 / #351) */
+  min-height: calc(100vh - 14rem);
 }
 
 .editor-content > *:first-child {
