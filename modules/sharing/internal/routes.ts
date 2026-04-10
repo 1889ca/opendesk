@@ -3,7 +3,7 @@
 import { Router } from 'express';
 import { GrantRoleSchema, ShareLinkOptionsSchema } from '../contract.ts';
 import type { ShareLinkService } from './share-links.ts';
-import type { GrantStore, Role, PermissionsModule } from '../../permissions/index.ts';
+import { ROLE_RANK, type GrantStore, type Role, type PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
 import { runAsSystem } from '../../storage/index.ts';
 import type { PasswordRateLimiter, ShareResolveRateLimiter } from './rate-limit.ts';
@@ -54,6 +54,16 @@ export function createShareRoutes(opts: ShareRoutesOptions): Router {
       }
 
       const grantorId = req.principal!.id;
+
+      // Invariant: a principal cannot grant a role higher than their own.
+      if (grantStore) {
+        const grantorGrants = await grantStore.findByPrincipalAndResource(grantorId, String(docId), 'document');
+        const bestRank = grantorGrants.reduce((max, g) => Math.max(max, ROLE_RANK[g.role as Role] ?? 0), 0);
+        if (bestRank < (ROLE_RANK[roleResult.data as Role] ?? 0)) {
+          res.status(403).json({ error: 'cannot_grant_higher_than_own_role' });
+          return;
+        }
+      }
 
       const link = await service.create({
         docId: String(docId),

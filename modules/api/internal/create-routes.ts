@@ -1,7 +1,7 @@
 /** Contract: contracts/api/rules.md */
 import express, { type Express } from 'express';
 import type { AuthModule } from '../../auth/index.ts';
-import type { PermissionsModule } from '../../permissions/index.ts';
+import { withGrantEvents, type PermissionsModule } from '../../permissions/index.ts';
 import type { Hocuspocus } from '@hocuspocus/server';
 import type { CacheClient } from './redis.ts';
 import type { AuditModule } from '../../audit/contract.ts';
@@ -135,7 +135,7 @@ export async function mountRoutes(deps: RouteDependencies): Promise<{ shutdown: 
   // hand-mounted here until a human maintainer signs off.
   app.use(createShareRoutes({
     service: shareLinkService,
-    grantStore: permissions.grantStore,
+    grantStore: withGrantEvents(permissions.grantStore, eventBus),
     permissions,
     rateLimiter: shareRateLimiter,
     resolveRateLimiter: shareResolveRateLimiter,

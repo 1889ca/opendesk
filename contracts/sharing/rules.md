@@ -123,8 +123,8 @@ Implemented:
 - [x] Share routes mounted in Express server with auth middleware
 
 Post-MVP (deferred):
-- [ ] "Cannot grant higher than own role" enforcement — requires auth wiring to look up grantor's role
-- [ ] `GrantCreated` event emission — events module is now fully implemented; ready to wire via `createEventBus().emit()`
-- [ ] `GrantRevoked` event emission — events module is now fully implemented; ready to wire via `createEventBus().emit()`
+- [x] "Cannot grant higher than own role" enforcement — ceiling check in routes.ts; test suite in routes-role-ceiling.test.ts
+- [x] `GrantCreated` event emission — wired via `withGrantEvents` wrapper in api/create-routes.ts
+- [x] `GrantRevoked` event emission — wired via `withGrantEvents` wrapper in api/create-routes.ts
 - [ ] Invite-by-email workflow (pending grants that activate on authentication)
 - [ ] `updateGrant` role change support
