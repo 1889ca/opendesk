@@ -1,7 +1,7 @@
 /** Contract: contracts/app-sheets/rules.md */
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
-import { getUserIdentity, getDocumentId, setupTitleSync, mountAppToolbar } from '@opendesk/app';
+import { getUserIdentity, getDocumentId, setupTitleSync, mountAppToolbar, setupShareDialog } from '@opendesk/app';
 import { createFormatToolbar } from './format/toolbar.ts';
 import { getFormatMap } from './format/store.ts';
 import { attachFormatShortcuts } from './format/shortcuts.ts';
@@ -13,6 +13,7 @@ import { createClipboardManager } from './clipboard.ts';
 import { createColRowResize } from './col-row-resize.ts';
 import { createHeaderContextMenu } from './header-context-menu.ts';
 import { insertRow, deleteRow, insertColumn, deleteColumn } from './col-row-ops.ts';
+import { buildCellMenuCallbacks } from './cell-menu-ops.ts';
 import { sortByColumn } from './sort-engine.ts';
 import { createFilterManager } from './filter-manager.ts';
 import { getRules, addRule, observeRules } from './cond-format-rules.ts';
@@ -57,6 +58,7 @@ function init() {
 
   const documentId = getDocumentId();
   setupTitleSync(documentId, 'OpenDesk Spreadsheet');
+  setupShareDialog(documentId);
   const user = getUserIdentity();
   const ydoc = new Y.Doc();
 
@@ -95,6 +97,7 @@ function init() {
   }
 
   // --- Context Menu ---
+  const cellMenu = buildCellMenuCallbacks(ydoc, () => activeSheetId, getActiveSheet, doRender);
   const ctxMenu = createHeaderContextMenu(gridEl, {
     insertRowAbove(row) { insertRow(ydoc, activeSheetId, row); },
     insertRowBelow(row) { insertRow(ydoc, activeSheetId, row); },
@@ -103,6 +106,7 @@ function init() {
     insertColumnRight(col) { insertColumn(ydoc, activeSheetId, col); },
     deleteColumn(col) { deleteColumn(ydoc, activeSheetId, col); },
     sortColumn(col, direction) { doSort(col, direction); },
+    cellMenu,
   });
 
   // --- Filter System ---
@@ -123,6 +127,7 @@ function init() {
       gridEl, ydoc, ysheet: getActiveSheet(),
       cols: DEFAULT_COLS, rows: DEFAULT_ROWS,
       cellRefEl, formulaInput, formatToolbar,
+      store, activeSheetId,
       onCellFocus(r, c) { activeRow = r; activeCol = c; },
     });
     resizeMgr.applyWidths(gridEl, DEFAULT_COLS);
