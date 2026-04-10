@@ -15,7 +15,7 @@ import {
   createSuggestModePlugin,
   setupSuggestionClickHandler,
 } from './suggestions/index.ts';
-import { bindShortcutDialogKey, openShortcutDialog } from '../shared/shortcut-dialog.ts';
+import { bindShortcutDialogKey } from '../shared/shortcut-dialog.ts';
 import { initTouchSupport } from '../shared/touch-support.ts';
 import { buildThemeToggle } from '../shared/theme-toggle.ts';
 import { buildNotificationBell } from '../shared/notification-bell.ts';
@@ -32,7 +32,7 @@ import { initRuler } from './editor-ruler.ts';
 import { initZoomControl } from './zoom-control.ts';
 import { buildSaveIndicator } from './save-indicator.ts';
 import { initPageSetup, showPageSetupDialog } from './page-setup.ts';
-import { insertHeaderFooter, insertPageNumber, activateZone } from './header-footer.ts';
+import { insertHeaderFooter, insertPageNumber, activateZone, setupHeaderFooterClicks } from './header-footer.ts';
 import {
   registerServiceWorker,
   buildOfflineIndicator,
@@ -43,7 +43,7 @@ import { mountAppToolbar } from '../shared/app-toolbar.ts';
 import { initEditorCollab } from './editor-collab.ts';
 import { initAiAssist } from './ai-assist.ts';
 import { initSpellCheckCycle } from './spell-check.ts';
-import { toggleFocusMode } from './focus-mode.ts';
+import { initFocusModeButton } from './focus-mode.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -180,27 +180,7 @@ async function init() {
   // Header / footer zones — inserted above and below the editor paper; hidden until activated (#442)
   const { headerZone, footerZone } = insertHeaderFooter(documentId);
 
-  // Clicking the top margin area (above the editor paper) activates the header zone
-  // Clicking the bottom margin area (below the editor paper) activates the footer zone
-  const wrapper = document.querySelector('.editor-wrapper');
-  if (wrapper) {
-    wrapper.addEventListener('click', (e: Event) => {
-      const target = e.target as HTMLElement;
-      if (target === wrapper) {
-        const editorRect = document.getElementById('editor')?.getBoundingClientRect();
-        if (editorRect) {
-          const mouseY = (e as MouseEvent).clientY;
-          if (mouseY < editorRect.top) {
-            activateZone(headerZone);
-            headerZone.focus();
-          } else if (mouseY > editorRect.bottom) {
-            activateZone(footerZone);
-            footerZone.focus();
-          }
-        }
-      }
-    });
-  }
+  setupHeaderFooterClicks(headerZone, footerZone);
 
   // Wire up "Insert Page Number" button — activates footer zone if not already active
   document.getElementById('insert-page-number')?.addEventListener('click', () => {
@@ -222,27 +202,7 @@ async function init() {
   // Spell check — cycle through words, leveraging browser native spellcheck.
   initSpellCheckCycle(editorEl);
 
-  // Focus mode button in toolbar-right
-  const toolbarRightForFocus = document.querySelector('.toolbar-right');
-  if (toolbarRightForFocus) {
-    const focusBtn = document.createElement('button');
-    focusBtn.id = 'focus-mode-btn';
-    focusBtn.className = 'btn btn-ghost btn-sm';
-    focusBtn.setAttribute('aria-pressed', 'false');
-    focusBtn.setAttribute('title', 'Focus mode (\u2318\u21e7F)');
-    focusBtn.textContent = 'Focus';
-    focusBtn.addEventListener('click', () => toggleFocusMode());
-    toolbarRightForFocus.appendChild(focusBtn);
-  }
-
-  // Keyboard shortcut: Cmd/Ctrl+Shift+F → focus mode
-  document.addEventListener('keydown', (e) => {
-    const isMod = e.metaKey || e.ctrlKey;
-    if (isMod && e.shiftKey && e.key === 'F') {
-      e.preventDefault();
-      toggleFocusMode();
-    }
-  });
+  initFocusModeButton();
 
   Object.assign(window, { editor, provider, ydoc, commentStore });
 }
