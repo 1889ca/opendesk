@@ -41,6 +41,7 @@ import {
 } from '../offline/index.ts';
 import { mountAppToolbar } from '../shared/app-toolbar.ts';
 import { initEditorCollab } from './editor-collab.ts';
+import { fetchMyRole, applyRoleRestrictions } from './editor-permissions.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -116,6 +117,11 @@ async function init() {
     return;
   }
 
+  // Handle read-only mode dispatched by applyRoleRestrictions
+  document.addEventListener('opendesk:set-readonly', () => {
+    editor.setEditable(false);
+  }, { once: true });
+
   setSuggestUser(() => user);
   editor.registerPlugin(createSuggestModePlugin(editor));
   setupSuggestionClickHandler(editor);
@@ -146,6 +152,9 @@ async function init() {
       if (doc) trackRecentDoc({ id: documentId, title: doc.title || 'Untitled', document_type: doc.document_type });
     })
     .catch(() => {});
+
+  // Fetch the principal's role and apply UI restrictions (issue #316)
+  fetchMyRole(documentId).then(applyRoleRestrictions).catch(() => {});
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
 
