@@ -14,6 +14,14 @@ function loadContent(docId: string, part: 'header' | 'footer'): string {
   return localStorage.getItem(storageKey(docId, part)) || '';
 }
 
+export function activateZone(zone: HTMLElement): void {
+  zone.classList.add('is-active');
+}
+
+export function deactivateZone(zone: HTMLElement): void {
+  zone.classList.remove('is-active');
+}
+
 function createZone(part: 'header' | 'footer', docId: string): HTMLElement {
   const zone = document.createElement('div');
   zone.className = `doc-${part}-zone`;
@@ -21,10 +29,12 @@ function createZone(part: 'header' | 'footer', docId: string): HTMLElement {
   zone.spellcheck = true;
   zone.setAttribute('role', 'region');
   zone.setAttribute('aria-label', part === 'header' ? 'Document header' : 'Document footer');
-  zone.setAttribute('data-placeholder', part === 'header' ? 'Header…' : 'Footer…');
 
   const saved = loadContent(docId, part);
-  if (saved) zone.innerHTML = saved;
+  if (saved) {
+    zone.innerHTML = saved;
+    activateZone(zone);
+  }
 
   zone.addEventListener('input', () => {
     saveContent(docId, part, zone.innerHTML);
