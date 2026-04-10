@@ -28,6 +28,8 @@ export interface GridRenderContext {
   store: SheetStore;
   activeSheetId: string;
   onCellFocus: (row: number, col: number) => void;
+  frozenRows?: number;
+  frozenCols?: number;
 }
 
 export function ensureGrid(ydoc: Y.Doc, ysheet: Y.Array<Y.Array<string>>, rows: number, cols: number): void {
@@ -56,17 +58,22 @@ function focusCell(gridEl: HTMLElement, row: number, col: number, cols: number, 
 
 export function renderFormattedGrid(ctx: GridRenderContext): void {
   const { gridEl, ydoc, ysheet, cols, rows, cellRefEl, formulaInput, formatToolbar, store, activeSheetId, onCellFocus } = ctx;
+  const frozenRows = ctx.frozenRows ?? 0;
+  const frozenCols = ctx.frozenCols ?? 0;
+
   ensureGrid(ydoc, ysheet, rows, cols);
   gridEl.innerHTML = '';
   gridEl.style.gridTemplateColumns = `3rem repeat(${cols}, minmax(5rem, 1fr))`;
 
+  // Corner cell (frozen both axes)
   const corner = document.createElement('div');
-  corner.className = 'cell header';
+  corner.className = 'cell header frozen-corner';
   gridEl.appendChild(corner);
 
   for (let c = 0; c < cols; c++) {
     const hdr = document.createElement('div');
     hdr.className = 'cell header';
+    if (c < frozenCols) hdr.classList.add('frozen-col-header');
     hdr.textContent = colLabel(c);
     hdr.dataset.colHeader = String(c);
     gridEl.appendChild(hdr);
@@ -75,6 +82,7 @@ export function renderFormattedGrid(ctx: GridRenderContext): void {
   for (let r = 0; r < Math.min(ysheet.length, rows); r++) {
     const rh = document.createElement('div');
     rh.className = 'cell row-header';
+    if (r < frozenRows) rh.classList.add('frozen-row-header');
     rh.textContent = String(r + 1);
     rh.dataset.rowHeader = String(r);
     gridEl.appendChild(rh);
@@ -86,6 +94,9 @@ export function renderFormattedGrid(ctx: GridRenderContext): void {
 
       const cell = document.createElement('div');
       cell.className = 'cell';
+      if (r < frozenRows && c < frozenCols) cell.classList.add('frozen-cell-corner');
+      else if (r < frozenRows) cell.classList.add('frozen-row');
+      else if (c < frozenCols) cell.classList.add('frozen-col');
       cell.contentEditable = 'true';
       // Display evaluated value (resolves formulas); show raw in formula bar on focus
       const displayValue = rawValue.startsWith('=')

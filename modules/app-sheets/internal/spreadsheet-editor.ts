@@ -11,9 +11,7 @@ import { TabBar } from './tab-bar.ts';
 import { createRangeSelection } from './range-selection.ts';
 import { createClipboardManager } from './clipboard.ts';
 import { createColRowResize } from './col-row-resize.ts';
-import { createHeaderContextMenu } from './header-context-menu.ts';
-import { insertRow, deleteRow, insertColumn, deleteColumn } from './col-row-ops.ts';
-import { buildCellMenuCallbacks } from './cell-menu-ops.ts';
+import { buildContextMenu } from './freeze-panes.ts';
 import { sortByColumn } from './sort-engine.ts';
 import { createFilterManager } from './filter-manager.ts';
 import { getRules, addRule, observeRules } from './cond-format-rules.ts';
@@ -120,17 +118,13 @@ function init() {
     doRender();
   }
 
-  // --- Context Menu ---
-  const cellMenu = buildCellMenuCallbacks(ydoc, () => activeSheetId, getActiveSheet, doRender);
-  const ctxMenu = createHeaderContextMenu(gridEl, {
-    insertRowAbove(row) { insertRow(ydoc, activeSheetId, row); },
-    insertRowBelow(row) { insertRow(ydoc, activeSheetId, row); },
-    deleteRow(row) { deleteRow(ydoc, activeSheetId, row); },
-    insertColumnLeft(col) { insertColumn(ydoc, activeSheetId, col); },
-    insertColumnRight(col) { insertColumn(ydoc, activeSheetId, col); },
-    deleteColumn(col) { deleteColumn(ydoc, activeSheetId, col); },
-    sortColumn(col, direction) { doSort(col, direction); },
-    cellMenu,
+  // --- Context Menu (includes freeze pane callbacks) ---
+  const ctxMenu = buildContextMenu({
+    gridEl, ydoc, store,
+    getActiveSheetId: () => activeSheetId,
+    getActiveSheet,
+    doRender,
+    doSort,
   });
 
   // --- Filter System ---
@@ -145,27 +139,11 @@ function init() {
     cols: DEFAULT_COLS,
   });
 
-  // --- Insert menu: Named Ranges ---
-  if (insertNamedRangesBtn) {
-    insertNamedRangesBtn.addEventListener('click', () => {
-      openNamedRangeDialog(ydoc, store.getSheets(), activeSheetId);
-    });
-  }
-
-  // --- Insert menu: Pivot Table ---
-  if (insertPivotBtn) {
-    insertPivotBtn.addEventListener('click', () => {
-      openPivotDialog({
-        ydoc,
-        store,
-        activeSheetId,
-        onCreated(newSheetId) {
-          tabBar?.render();
-          switchSheet(newSheetId);
-        },
-      });
-    });
-  }
+  insertNamedRangesBtn?.addEventListener('click', () => openNamedRangeDialog(ydoc, store.getSheets(), activeSheetId));
+  insertPivotBtn?.addEventListener('click', () => openPivotDialog({
+    ydoc, store, activeSheetId,
+    onCreated(newSheetId) { tabBar?.render(); switchSheet(newSheetId); },
+  }));
 
   function doRender() {
     const currentRange = rangeSelection.getRange();
@@ -174,6 +152,8 @@ function init() {
       cols: DEFAULT_COLS, rows: DEFAULT_ROWS,
       cellRefEl, formulaInput, formatToolbar,
       store, activeSheetId,
+      frozenRows: store.getFrozenRows(activeSheetId),
+      frozenCols: store.getFrozenCols(activeSheetId),
       onCellFocus(r, c) {
         activeRow = r;
         activeCol = c;
@@ -206,34 +186,7 @@ function init() {
 
   function onSheetChange() { doRender(); }
 
-  // --- Tab Bar ---
-  let tabBar: TabBar | null = null;
-  if (tabContainer) {
-    tabBar = new TabBar(tabContainer, store, {
-      onSwitch: switchSheet,
-      onAdd() {
-        const meta = store.addSheet();
-        tabBar!.render();
-        switchSheet(meta.id);
-      },
-      onRename(sheetId, newName) {
-        store.renameSheet(sheetId, newName);
-        tabBar!.render();
-      },
-      onDelete(sheetId) {
-        if (store.getSheets().length <= 1) return;
-        if (!store.deleteSheet(sheetId)) return;
-        tabBar!.render();
-        if (activeSheetId === sheetId) switchSheet(store.getSheets()[0].id);
-      },
-      onDuplicate(sheetId) {
-        const meta = store.duplicateSheet(sheetId);
-        if (!meta) return;
-        tabBar!.render();
-        switchSheet(meta.id);
-      },
-    }, activeSheetId);
-  }
+  const tabBar = setupTabBar(tabContainer, store, switchSheet, activeSheetId);
 
   store.observe(() => tabBar?.render());
   doRender();
@@ -245,6 +198,39 @@ function init() {
   setupPresence(provider, user, usersEl);
   observeNamedRanges(ydoc, () => doRender());
   Object.assign(window, { ydoc, provider, store });
+}
+
+function setupTabBar(
+  container: HTMLElement | null, store: SheetStore,
+  switchSheet: (id: string) => void, activeSheetId: string,
+): TabBar | null {
+  if (!container) return null;
+  let tabBar: TabBar;
+  tabBar = new TabBar(container, store, {
+    onSwitch: switchSheet,
+    onAdd() {
+      const meta = store.addSheet();
+      tabBar.render();
+      switchSheet(meta.id);
+    },
+    onRename(sheetId, newName) {
+      store.renameSheet(sheetId, newName);
+      tabBar.render();
+    },
+    onDelete(sheetId) {
+      if (store.getSheets().length <= 1) return;
+      if (!store.deleteSheet(sheetId)) return;
+      tabBar.render();
+      if (activeSheetId === sheetId) switchSheet(store.getSheets()[0].id);
+    },
+    onDuplicate(sheetId) {
+      const meta = store.duplicateSheet(sheetId);
+      if (!meta) return;
+      tabBar.render();
+      switchSheet(meta.id);
+    },
+  }, activeSheetId);
+  return tabBar;
 }
 
 document.addEventListener('DOMContentLoaded', init);
