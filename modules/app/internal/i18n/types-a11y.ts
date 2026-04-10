@@ -84,4 +84,8 @@ export interface A11yTranslationKeys {
   'shortcuts.alignCenter': string;
   'shortcuts.alignRight': string;
   'shortcuts.alignJustify': string;
+
+  // Drawing & spell check
+  'a11y.drawingLabel': string;
+  'a11y.spellcheckLabel': string;
 }

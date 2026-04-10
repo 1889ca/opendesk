@@ -42,6 +42,7 @@ import {
 import { mountAppToolbar } from '../shared/app-toolbar.ts';
 import { initEditorCollab } from './editor-collab.ts';
 import { initAiAssist } from './ai-assist.ts';
+import { initSpellCheckCycle } from './spell-check.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -182,50 +183,8 @@ async function init() {
     }, 500);
   }
 
-  // Spell check — cycle through misspelled words on 'opendesk:spellcheck-cycle'
-  // Uses the browser's built-in spellcheck (spellcheck="true" on the editor element).
-  // Finds text nodes with browser-marked spelling errors and scrolls/focuses each one.
-  let _spellPos = 0;
-  document.addEventListener('opendesk:spellcheck-cycle', () => {
-    const editorContent = editorEl.querySelector('.editor-content') ?? editorEl;
-    // Collect all text nodes in document order
-    const walker = document.createTreeWalker(editorContent, NodeFilter.SHOW_TEXT);
-    const textNodes: Text[] = [];
-    let n: Node | null;
-    while ((n = walker.nextNode())) textNodes.push(n as Text);
-    if (textNodes.length === 0) return;
-
-    // Wrap each text node in a Range, query spelling errors via execCommand workaround.
-    // The most reliable cross-browser approach is to move selection to the next word
-    // that the browser marks as misspelled, using Selection API + execCommand.
-    // We iterate words: move caret, then check if the browser auto-selects a red-underline word.
-    const sel = window.getSelection();
-    if (!sel) return;
-
-    // Find words in all text nodes starting from _spellPos offset
-    const words: { node: Text; start: number; end: number }[] = [];
-    for (const node of textNodes) {
-      const text = node.textContent ?? '';
-      const regex = /\b\w+\b/g;
-      let m: RegExpExecArray | null;
-      while ((m = regex.exec(text)) !== null) {
-        words.push({ node, start: m.index, end: m.index + m[0].length });
-      }
-    }
-    if (words.length === 0) return;
-
-    const idx = _spellPos % words.length;
-    _spellPos = idx + 1;
-    const { node, start, end } = words[idx];
-
-    const range = document.createRange();
-    range.setStart(node, start);
-    range.setEnd(node, end);
-    sel.removeAllRanges();
-    sel.addRange(range);
-    node.parentElement?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    editorEl.focus();
-  });
+  // Spell check — cycle through words, leveraging browser native spellcheck.
+  initSpellCheckCycle(editorEl);
 
   Object.assign(window, { editor, provider, ydoc, commentStore });
 }
