@@ -10,6 +10,9 @@ import {
 import { computeRevisionId } from './revision.ts';
 import { migrateToLatest } from './migrations.ts';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnySnapshot = any;
+
 // --- Arbitraries ---
 
 /** Generate a valid UUIDv4 string */
@@ -49,7 +52,7 @@ const textSnapshotArb = fc.record({
 describe('TextDocumentSnapshotSchema property tests', () => {
   it('generated snapshots satisfy TextDocumentSnapshotSchema', () => {
     fc.assert(
-      fc.property(textSnapshotArb, (snapshot) => {
+      fc.property(textSnapshotArb, (snapshot: AnySnapshot) => {
         const result = TextDocumentSnapshotSchema.safeParse(snapshot);
         if (!result.success) {
           // Surface the validation error for debugging
@@ -63,7 +66,7 @@ describe('TextDocumentSnapshotSchema property tests', () => {
 
   it('generated snapshots satisfy the unified DocumentSnapshotSchema', () => {
     fc.assert(
-      fc.property(textSnapshotArb, (snapshot) => {
+      fc.property(textSnapshotArb, (snapshot: AnySnapshot) => {
         const result = DocumentSnapshotSchema.safeParse(snapshot);
         return result.success;
       }),
@@ -89,8 +92,8 @@ describe('Block ID uniqueness invariants', () => {
             { minLength: 10, maxLength: 50 }
           ),
         }),
-        (proseMirrorDoc) => {
-          const blockIds = proseMirrorDoc.content.map((node) => node.attrs.blockId);
+        (proseMirrorDoc: AnySnapshot) => {
+          const blockIds = proseMirrorDoc.content.map((node: AnySnapshot) => node.attrs.blockId);
           const uniqueIds = new Set(blockIds);
           return uniqueIds.size === blockIds.length;
         }
@@ -125,7 +128,7 @@ describe('Block ID uniqueness invariants', () => {
 describe('computeRevisionId property tests', () => {
   it('produces identical output for identical input', () => {
     fc.assert(
-      fc.property(fc.uint8Array({ minLength: 1, maxLength: 256 }), (stateVector) => {
+      fc.property(fc.uint8Array({ minLength: 1, maxLength: 256 }), (stateVector: Uint8Array) => {
         const a = computeRevisionId(stateVector);
         const b = computeRevisionId(stateVector);
         return a === b;
@@ -136,7 +139,7 @@ describe('computeRevisionId property tests', () => {
 
   it('output is always a valid SHA-256 hex string (64 chars, lowercase hex)', () => {
     fc.assert(
-      fc.property(fc.uint8Array({ minLength: 1, maxLength: 256 }), (stateVector) => {
+      fc.property(fc.uint8Array({ minLength: 1, maxLength: 256 }), (stateVector: Uint8Array) => {
         const revisionId = computeRevisionId(stateVector);
         return RevisionIdSchema.safeParse(revisionId).success;
       }),
@@ -149,9 +152,9 @@ describe('computeRevisionId property tests', () => {
       fc.property(
         fc.uint8Array({ minLength: 1, maxLength: 64 }),
         fc.uint8Array({ minLength: 1, maxLength: 64 }),
-        (a, b) => {
+        (a: Uint8Array, b: Uint8Array) => {
           // Only assert when inputs differ
-          fc.pre(a.length !== b.length || a.some((byte, i) => byte !== b[i]));
+          fc.pre(a.length !== b.length || a.some((byte: number, i: number) => byte !== b[i]));
           return computeRevisionId(a) !== computeRevisionId(b);
         }
       ),
@@ -165,7 +168,7 @@ describe('computeRevisionId property tests', () => {
 describe('migrateToLatest property tests', () => {
   it('is idempotent: migrating twice equals migrating once', () => {
     fc.assert(
-      fc.property(textSnapshotArb, (snapshot) => {
+      fc.property(textSnapshotArb, (snapshot: AnySnapshot) => {
         const once = migrateToLatest(snapshot);
         const twice = migrateToLatest(once);
         return JSON.stringify(once) === JSON.stringify(twice);
@@ -176,7 +179,7 @@ describe('migrateToLatest property tests', () => {
 
   it('output always satisfies DocumentSnapshotSchema', () => {
     fc.assert(
-      fc.property(textSnapshotArb, (snapshot) => {
+      fc.property(textSnapshotArb, (snapshot: AnySnapshot) => {
         const migrated = migrateToLatest(snapshot);
         return DocumentSnapshotSchema.safeParse(migrated).success;
       }),
@@ -212,7 +215,7 @@ function describeDocumentType(snapshot: import('../contract/index.ts').DocumentS
 describe('DocumentSnapshot exhaustiveness', () => {
   it('switch on documentType handles all variants without reaching default', () => {
     fc.assert(
-      fc.property(textSnapshotArb, (raw) => {
+      fc.property(textSnapshotArb, (raw: AnySnapshot) => {
         const parsed = DocumentSnapshotSchema.parse(raw);
         const description = describeDocumentType(parsed);
         return description.startsWith('text@');
