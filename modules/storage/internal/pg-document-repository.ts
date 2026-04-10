@@ -104,9 +104,7 @@ export function createDocumentRepository(cold?: ColdStorageAdapter): DocumentRep
         };
       }
 
-      // Cold tier: fetch from S3, trigger async warm-up, return with staleSeconds.
-      const { warmFromCold, archiveToCold } = cold;
-      void archiveToCold; // unused here — referenced via adapter methods below
+      // Cold tier: warm up from S3 then re-read from PG, returning staleSeconds.
       await cold.warmFromCold(docId).catch(console.error);
 
       // Re-read from PG after warm-up attempt.

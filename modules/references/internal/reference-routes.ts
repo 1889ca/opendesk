@@ -81,7 +81,6 @@ const DEFAULT_WORKSPACE_ID = '00000000-0000-0000-0000-000000000000';
 export function createReferenceRoutes(opts: ReferenceRoutesOptions): Router {
   const { permissions } = opts;
   const referencesStore = opts.referencesStore;
-  const citationsStore = opts.citationsStore;
   const getReference = opts.store?.getReference
     ?? ((id: string) => referencesStore!.getReference(id));
   const router = Router();

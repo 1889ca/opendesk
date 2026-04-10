@@ -74,8 +74,11 @@ Implemented:
 - [x] DOI uniqueness constraint per workspace
 - [x] findByDOI lookup
 
-Post-MVP (deferred):
-- [ ] BibTeX/CSL-JSON import/export
-- [ ] Bibliography rendering (style-dependent formatting)
-- [ ] Full-text search across reference fields
-- [ ] Batch operations (bulk import, bulk delete)
+Post-MVP (implemented in #315):
+- [x] BibTeX/CSL-JSON/RIS import/export (GET /export?format=bibtex|ris|csl, POST /import)
+- [x] Full-text search across reference fields (GET /search?q=...)
+- [x] Batch operations (bulk delete: DELETE / with { ids: string[] })
+- [x] Bibliography rendering endpoint (GET /api/documents/:docId/bibliography)
+
+Still deferred:
+- [ ] Style-dependent bibliography formatting (CSL processor integration)

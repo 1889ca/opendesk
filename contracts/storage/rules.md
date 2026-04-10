@@ -70,9 +70,9 @@ Implemented:
 
 Post-MVP (deferred):
 - [x] `DocumentRepository` interface abstraction — `createDocumentRepository()` in `pg-document-repository.ts`
-- [ ] S3-compatible cold storage tier — all documents remain in PG hot tier
-- [ ] Hot/cold tiering lifecycle policy (archiveToCold / warmFromCold)
-- [ ] `staleSeconds` indicator on cold-tier reads — no cold tier exists yet
+- [x] S3-compatible cold storage tier — `cold-storage.ts` + migration 016
+- [x] Hot/cold tiering lifecycle policy (archiveToCold / warmFromCold) — `archiveStaleDocuments` in `cold-storage.ts`
+- [x] `staleSeconds` indicator on cold-tier reads — returned by `getSnapshot` when tier='cold'
 - [x] Atomic snapshot + state vector co-persistence in a single PG transaction — `saveSnapshot` wraps both in `BEGIN/COMMIT` (#014 migration)
 - [x] State vector pruning for clients offline > 30 days — `pruneStateVector` in `pg-document-repository.ts`
 - [x] Remove direct `pool`/`getPool` exports from `storage/index.ts` (#134, partial)
