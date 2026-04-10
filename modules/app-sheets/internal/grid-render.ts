@@ -89,7 +89,7 @@ export function renderFormattedGrid(ctx: GridRenderContext): void {
       cell.contentEditable = 'true';
       // Display evaluated value (resolves formulas); show raw in formula bar on focus
       const displayValue = rawValue.startsWith('=')
-        ? evaluateCellValue(rawValue, store, activeSheetId)
+        ? evaluateCellValue(rawValue, store, activeSheetId, ydoc)
         : getDisplayValue(rawValue, fmt);
       cell.textContent = displayValue;
       cell.dataset.row = String(r);
@@ -118,7 +118,7 @@ export function renderFormattedGrid(ctx: GridRenderContext): void {
         }
         // Restore display value after editing
         cell.textContent = val.startsWith('=')
-          ? evaluateCellValue(val, store, activeSheetId)
+          ? evaluateCellValue(val, store, activeSheetId, ydoc)
           : getDisplayValue(val, getCellFormat(ydoc, r, c));
       });
 

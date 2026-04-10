@@ -8,3 +8,5 @@
 @import "./sheets-col-row.css";
 @import "./sheets-filter.css";
 @import "./sheets-cond-format.css";
+@import "./sheets-named-ranges.css";
+@import "./sheets-pivot.css";

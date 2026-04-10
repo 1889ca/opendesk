@@ -20,6 +20,10 @@ import { getRules, addRule, observeRules } from './cond-format-rules.ts';
 import { applyCondFormatting } from './cond-format-renderer.ts';
 import { openCondFormatDialog } from './cond-format-dialog.ts';
 import { setupPresence } from './presence.ts';
+import { createNameBox } from './name-box.ts';
+import { openNamedRangeDialog } from './named-range-dialog.ts';
+import { observeNamedRanges } from './named-ranges.ts';
+import { openPivotDialog } from './pivot/pivot-dialog.ts';
 
 const DEFAULT_COLS = 26;
 const DEFAULT_ROWS = 50;
@@ -52,8 +56,11 @@ function init() {
   const usersEl = document.getElementById('users');
   const cellRefEl = document.getElementById('cell-ref');
   const formulaInput = document.getElementById('formula-input') as HTMLInputElement | null;
+  const nameBoxEl = document.getElementById('name-box') as HTMLInputElement | null;
   const formatBarContainer = document.getElementById('format-bar-container');
   const tabContainer = document.getElementById('sheet-tab-container');
+  const insertNamedRangesBtn = document.getElementById('insert-named-ranges');
+  const insertPivotBtn = document.getElementById('insert-pivot');
   if (!gridEl) return;
 
   const documentId = getDocumentId();
@@ -87,6 +94,23 @@ function init() {
   attachFormatShortcuts(ydoc, fmtCb);
 
   const rangeSelection = createRangeSelection(gridEl);
+
+  // --- Name Box ---
+  const nameBox = nameBoxEl
+    ? createNameBox({
+        ydoc,
+        element: nameBoxEl,
+        getActiveSheetId: () => activeSheetId,
+        getSelectedRange: () => rangeSelection.getRange(),
+        navigateTo(row, col) {
+          const target = gridEl.querySelector<HTMLElement>(
+            `[data-row="${row}"][data-col="${col}"]`,
+          );
+          target?.focus();
+        },
+        getCurrentCell: () => ({ row: activeRow, col: activeCol }),
+      })
+    : null;
   const clipboardMgr = createClipboardManager(gridEl, rangeSelection, store, { ydoc, ysheet: () => getActiveSheet() });
   const resizeMgr = createColRowResize(gridEl, ydoc);
 
@@ -121,6 +145,28 @@ function init() {
     cols: DEFAULT_COLS,
   });
 
+  // --- Insert menu: Named Ranges ---
+  if (insertNamedRangesBtn) {
+    insertNamedRangesBtn.addEventListener('click', () => {
+      openNamedRangeDialog(ydoc, store.getSheets(), activeSheetId);
+    });
+  }
+
+  // --- Insert menu: Pivot Table ---
+  if (insertPivotBtn) {
+    insertPivotBtn.addEventListener('click', () => {
+      openPivotDialog({
+        ydoc,
+        store,
+        activeSheetId,
+        onCreated(newSheetId) {
+          tabBar?.render();
+          switchSheet(newSheetId);
+        },
+      });
+    });
+  }
+
   function doRender() {
     const currentRange = rangeSelection.getRange();
     renderFormattedGrid({
@@ -128,7 +174,11 @@ function init() {
       cols: DEFAULT_COLS, rows: DEFAULT_ROWS,
       cellRefEl, formulaInput, formatToolbar,
       store, activeSheetId,
-      onCellFocus(r, c) { activeRow = r; activeCol = c; },
+      onCellFocus(r, c) {
+        activeRow = r;
+        activeCol = c;
+        nameBox?.update(r, c);
+      },
     });
     resizeMgr.applyWidths(gridEl, DEFAULT_COLS);
     applyCondFormatting(gridEl, getRules(ydoc), (r, c) => {
@@ -193,6 +243,7 @@ function init() {
 
   if (formulaInput) setupFormulaBar(formulaInput, ydoc, getActiveSheet, () => activeRow, () => activeCol, doRender);
   setupPresence(provider, user, usersEl);
+  observeNamedRanges(ydoc, () => doRender());
   Object.assign(window, { ydoc, provider, store });
 }
 
