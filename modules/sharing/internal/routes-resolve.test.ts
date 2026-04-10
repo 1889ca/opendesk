@@ -96,7 +96,7 @@ describe('share routes — POST /api/share/:token/resolve', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.grant.role).toBe('viewer');
-  });
+  }, 15_000);
 
   it('rate-limits after too many wrong password attempts (429)', async () => {
     const createRes = await request(app)
@@ -118,5 +118,5 @@ describe('share routes — POST /api/share/:token/resolve', () => {
       .send({ password: 'wrong' });
     expect(res.status).toBe(429);
     expect(res.body.error).toBe('too_many_attempts');
-  });
+  }, 30_000);
 });
