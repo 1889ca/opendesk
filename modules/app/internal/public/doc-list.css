@@ -450,6 +450,16 @@
   z-index: 1;
 }
 
+/* ── Grid card preview placeholder (#331) ─────────────────────────── */
+
+/* Show a subtle tinted placeholder when no preview text is available yet */
+.doc-card-preview:empty {
+  background: linear-gradient(135deg, var(--bg-secondary, var(--surface)) 0%, var(--bg-primary, var(--bg)) 100%);
+  opacity: 0.45;
+  border-radius: 4px;
+  min-height: 2.1em;
+}
+
 .doc-card-footer {
   margin-top: auto;
   position: relative;
@@ -502,10 +512,24 @@
   outline-offset: -2px;
 }
 
-/* New document group */
+/* ── New document group (#324) ────────────────────────────────────── */
 .new-doc-group {
   display: flex;
   gap: 0.375rem;
+  align-items: center;
+}
+
+/* Secondary "new type" buttons match the primary size but are visually subordinate */
+.new-doc-group .btn-secondary {
+  border-radius: 20px;
+  font-size: 0.8125rem;
+  padding: 0.4rem 0.875rem;
+}
+
+.new-doc-group .btn-primary {
+  border-radius: 20px;
+  font-size: 0.8125rem;
+  padding: 0.4rem 0.875rem;
 }
 
 /* Buttons — base system lives in styles.css (shared); doc-list-specific variants below */

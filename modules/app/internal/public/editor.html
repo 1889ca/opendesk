@@ -29,7 +29,7 @@
         </div>
       </div>
       <span class="toolbar-separator"></span>
-      <button id="ruler-toggle" class="btn btn-ghost btn-sm" title="Show or hide the document ruler" aria-pressed="true">Hide Ruler</button>
+      <button id="ruler-toggle" class="btn btn-ghost btn-sm ruler-toggle-btn" title="Hide ruler" aria-label="Hide ruler" aria-pressed="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="8" width="20" height="8" rx="2"/><line x1="6" y1="8" x2="6" y2="12"/><line x1="10" y1="8" x2="10" y2="14"/><line x1="14" y1="8" x2="14" y2="12"/><line x1="18" y1="8" x2="18" y2="14"/></svg></button>
       <span class="toolbar-separator"></span>
       <div class="zoom-control" id="zoom-control">
         <button class="btn btn-ghost btn-sm zoom-btn" id="zoom-out" title="Zoom out (−)">−</button>
@@ -96,6 +96,14 @@
           <input id="share-url" class="share-url" readonly>
           <button id="share-copy" class="share-copy-btn">Copy link</button>
         </div>
+        <div class="share-divider" aria-hidden="true"></div>
+        <button
+          class="share-email-btn"
+          disabled
+          title="Email invite coming soon"
+          aria-describedby="share-email-hint"
+        >✉ Invite by email</button>
+        <span id="share-email-hint" class="share-email-hint">Coming soon</span>
       </div>
     </div>
   </div>

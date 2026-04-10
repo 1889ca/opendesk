@@ -81,6 +81,14 @@ export function renderFolders(
   container: HTMLElement,
   folders: FolderEntry[],
 ): void {
+  if (folders.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'folder-empty-state';
+    empty.innerHTML = '<span class="folder-empty-icon" aria-hidden="true">📁</span><span>No folders yet</span>';
+    container.appendChild(empty);
+    return;
+  }
+
   for (const folder of folders) {
     const row = document.createElement('div');
     row.className = 'folder-row';
