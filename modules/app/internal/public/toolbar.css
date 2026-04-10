@@ -167,6 +167,15 @@
   background: var(--border);
 }
 
+.formatting-toolbar .toolbar-separator {
+  width: 1px;
+  height: 1.25rem;
+  background: var(--border);
+  margin: 0 0.375rem;
+  flex-shrink: 0;
+  align-self: center;
+}
+
 /* Transparent wrapper — lets toolbar-right's flex layout apply directly to slot children */
 .toolbar-actions-slot {
   display: contents;

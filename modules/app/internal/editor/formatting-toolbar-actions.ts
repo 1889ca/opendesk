@@ -111,28 +111,31 @@ export function buildToolbarButtons(editor: Editor): ToolbarButton[] {
   ];
 }
 
-const MOD = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl';
+const _isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+const MOD   = _isMac ? '⌘' : 'Ctrl';
+const ALT   = _isMac ? '⌥' : 'Alt';
+const SHIFT = _isMac ? '⇧' : 'Shift';
 export const KB_HINTS: Partial<Record<string, string>> = {
-  'shortcuts.bold':          `${MOD}B`,
-  'shortcuts.italic':        `${MOD}I`,
-  'shortcuts.underline':     `${MOD}U`,
-  'shortcuts.link':          `${MOD}K`,
-  'shortcuts.strikethrough': `${MOD}⇧X`,
-  'shortcuts.code':          `${MOD}E`,
-  'shortcuts.superscript':   `${MOD}.`,
-  'shortcuts.subscript':     `${MOD},`,
-  'shortcuts.heading1':      `${MOD}⌥1`,
-  'shortcuts.heading2':      `${MOD}⌥2`,
-  'shortcuts.heading3':      `${MOD}⌥3`,
-  'shortcuts.bulletList':    `${MOD}⇧8`,
-  'shortcuts.orderedList':   `${MOD}⇧7`,
-  'shortcuts.blockquote':    `${MOD}⇧B`,
-  'shortcuts.codeBlock':     `${MOD}⌥C`,
-  'shortcuts.horizontalRule': `${MOD}⌥H`,
-  'shortcuts.undo':          `${MOD}Z`,
-  'shortcuts.redo':          `${MOD}Y`,
-  'shortcuts.findReplace':   `${MOD}⇧H`,
-  'shortcuts.addComment':    `${MOD}⇧M`,
+  'shortcuts.bold':           `${MOD}B`,
+  'shortcuts.italic':         `${MOD}I`,
+  'shortcuts.underline':      `${MOD}U`,
+  'shortcuts.link':           `${MOD}K`,
+  'shortcuts.strikethrough':  `${MOD}${SHIFT}X`,
+  'shortcuts.code':           `${MOD}E`,
+  'shortcuts.superscript':    `${MOD}.`,
+  'shortcuts.subscript':      `${MOD},`,
+  'shortcuts.heading1':       `${MOD}${ALT}1`,
+  'shortcuts.heading2':       `${MOD}${ALT}2`,
+  'shortcuts.heading3':       `${MOD}${ALT}3`,
+  'shortcuts.bulletList':     `${MOD}${SHIFT}8`,
+  'shortcuts.orderedList':    `${MOD}${SHIFT}7`,
+  'shortcuts.blockquote':     `${MOD}${SHIFT}B`,
+  'shortcuts.codeBlock':      `${MOD}${ALT}C`,
+  'shortcuts.horizontalRule': `${MOD}${ALT}H`,
+  'shortcuts.undo':           `${MOD}Z`,
+  'shortcuts.redo':           `${MOD}${SHIFT}Z`,
+  'shortcuts.findReplace':    `${MOD}${SHIFT}H`,
+  'shortcuts.addComment':     `${MOD}${SHIFT}M`,
 };
 
 export function buildButtonTitle(btnDef: ToolbarButton): string {
