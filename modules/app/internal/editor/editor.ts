@@ -20,7 +20,7 @@ import { initTouchSupport } from '../shared/touch-support.ts';
 import { buildThemeToggle } from '../shared/theme-toggle.ts';
 import { buildNotificationBell } from '../shared/notification-bell.ts';
 import { trackRecentDoc } from '../shared/workspace-sidebar.ts';
-import { apiFetch } from '../shared/api-client.ts';
+import { apiFetch, getAuthToken } from '../shared/api-client.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
 import { buildEditorExtensions } from './editor-extensions.ts';
 import { initEntityMentionClicks } from './entity-mentions/index.ts';
@@ -97,7 +97,9 @@ async function init() {
   if (statusEl) { statusEl.textContent = t('status.connecting'); statusEl.className = 'status connecting'; }
 
   const provider = new HocuspocusProvider({
-    url: wsUrl, name: documentId, document: ydoc, token: 'dev',
+    url: wsUrl, name: documentId, document: ydoc,
+    // Use the real auth token — 'dev' sentinel is rejected by the collab server (#340)
+    token: getAuthToken(),
   });
 
   let editor: Editor;
