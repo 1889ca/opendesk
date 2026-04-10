@@ -37,6 +37,7 @@ import { TabIndent } from './tab-indent.ts';
 import { Superscript, Subscript } from './super-sub.ts';
 import { SmartPunctuation } from './smart-punctuation.ts';
 import { FootnoteNode } from './footnote.ts';
+import { Placeholder } from './editor-placeholder.ts';
 
 const lowlight = createLowlight(common);
 
@@ -88,6 +89,7 @@ export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
     YHistory,
     SmartPunctuation,
     FootnoteNode,
+    Placeholder.configure({ placeholder: 'Start writing, or press / for commands...' }),
     Underline,
     Link.configure({ openOnClick: false, autolink: true }),
   ];

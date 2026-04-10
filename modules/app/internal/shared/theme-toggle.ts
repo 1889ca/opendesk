@@ -38,6 +38,13 @@ function getLabel(mode: ThemeMode): string {
   return labelMap[mode];
 }
 
+/** Get the tooltip for the current mode, describing what clicking will do. */
+function getTooltip(mode: ThemeMode): string {
+  const next = nextMode(mode);
+  const nextLabel = { light: t('theme.light'), dark: t('theme.dark'), system: t('theme.system') }[next];
+  return `${t('toolbar.theme')}: ${getLabel(mode)} — click for ${nextLabel}`;
+}
+
 /** Get the icon for the current mode. */
 function getIcon(mode: ThemeMode): string {
   const iconMap: Record<ThemeMode, string> = {
@@ -70,9 +77,7 @@ export function buildThemeToggle(): void {
   function updateLabel(): void {
     btn.textContent = `${getIcon(currentMode)} ${getLabel(currentMode)}`;
     btn.setAttribute('aria-label', `${t('toolbar.theme')}: ${getLabel(currentMode)}`);
-    btn.title = currentMode === 'system'
-      ? "Follow your system's light/dark preference"
-      : t('toolbar.theme');
+    btn.title = getTooltip(currentMode);
   }
 
   updateLabel();
@@ -125,7 +130,8 @@ export function initTheme(): void {
   if (existingBtn) {
     function updateExistingBtn(): void {
       existingBtn!.textContent = `${getIcon(currentMode)} ${getLabel(currentMode)}`;
-      existingBtn!.setAttribute('aria-label', `Theme: ${getLabel(currentMode)}`);
+      existingBtn!.setAttribute('aria-label', `${t('toolbar.theme')}: ${getLabel(currentMode)}`);
+      existingBtn!.title = getTooltip(currentMode);
     }
 
     updateExistingBtn();

@@ -134,10 +134,16 @@
   font-weight: 500;
 }
 
-.toolbar-separator {
+.toolbar-separator,
+.toolbar-divider {
+  display: inline-block;
   width: 1px;
   height: 1.25rem;
   background: var(--border);
+  margin: 0 0.25rem;
+  vertical-align: middle;
+  opacity: 0.5;
+  flex-shrink: 0;
 }
 
 /* Transparent wrapper — lets toolbar-right's flex layout apply directly to slot children */

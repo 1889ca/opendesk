@@ -151,8 +151,9 @@ export function initRuler(): void {
     state.visible = v;
     container.hidden = !v;
     if (toggleBtn) {
-      toggleBtn.textContent = v ? 'Hide Ruler' : 'Show Ruler';
       toggleBtn.setAttribute('aria-pressed', String(v));
+      toggleBtn.title = v ? 'Hide ruler' : 'Show ruler';
+      toggleBtn.setAttribute('aria-label', v ? 'Hide ruler' : 'Show ruler');
     }
     saveState(state);
   }
