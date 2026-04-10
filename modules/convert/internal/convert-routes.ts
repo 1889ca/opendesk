@@ -18,6 +18,7 @@ import {
 } from '../index.ts';
 import { getDocument } from '../../storage/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
+import type { EventBus } from '../../events/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
 import { createLogger } from '../../logger/index.ts';
 
@@ -26,11 +27,12 @@ const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50 MB
 
 export type ConvertRoutesOptions = {
   permissions: PermissionsModule;
+  eventBus?: EventBus;
 };
 
 export function createConvertRoutes(opts: ConvertRoutesOptions): Router {
   const router = Router();
-  const { permissions } = opts;
+  const { permissions, eventBus } = opts;
 
   router.post(
     '/api/documents/:id/convert-import',
@@ -39,7 +41,9 @@ export function createConvertRoutes(opts: ConvertRoutesOptions): Router {
     asyncHandler(handleImport)
   );
 
-  router.post('/api/documents/:id/convert-export', permissions.require('read'), asyncHandler(handleExport));
+  router.post('/api/documents/:id/convert-export', permissions.require('read'), asyncHandler(
+    (req: Request, res: Response) => handleExport(req, res, eventBus)
+  ));
 
   return router;
 }
@@ -88,7 +92,7 @@ async function handleImport(req: Request, res: Response): Promise<void> {
   }
 }
 
-async function handleExport(req: Request, res: Response): Promise<void> {
+async function handleExport(req: Request, res: Response, eventBus?: EventBus): Promise<void> {
   const documentId = String(req.params.id);
   const { format, content, requestedBy } = (req.body || {}) as Record<string, string>;
 
@@ -112,7 +116,7 @@ async function handleExport(req: Request, res: Response): Promise<void> {
 
   try {
     const result = await convertViaCollabora(
-      content, format, documentId, requestedBy || 'anonymous'
+      content, format, documentId, requestedBy || 'anonymous', eventBus
     );
     const title = doc.title || 'document';
     const ext = getExportExtension(format);

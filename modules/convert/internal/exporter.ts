@@ -82,7 +82,16 @@ export async function exportDocument(
   return result;
 }
 
-/** Emit ConversionRequested and wait for StateFlushed */
+/** Subscribe to StateFlushed first, then emit ConversionRequested.
+ *
+ * Ordering matters: the collab module may call back synchronously
+ * (or very quickly) with StateFlushed after receiving
+ * ConversionRequested. Subscribing before emitting guarantees the
+ * handler is registered before any flush response can arrive.
+ *
+ * Returns true if stale (flush timed out or subscribe failed),
+ * false if StateFlushed was received within the timeout window.
+ */
 async function flushAndWait(
   documentId: string,
   _format: ExportFormat,
@@ -90,27 +99,35 @@ async function flushAndWait(
   eventBus: EventBus,
   flushTimeoutMs: number
 ): Promise<boolean> {
-  const conversionEvent: DomainEvent = {
-    id: randomUUID(),
-    type: EventType.ConversionRequested,
-    aggregateId: documentId,
-    actorId: requestedBy,
-    actorType: 'system',
-    occurredAt: new Date().toISOString(),
-  };
-  await eventBus.emit(conversionEvent, null);
+  const group = `convert-flush-${documentId}-${Date.now()}`;
 
   return new Promise<boolean>((resolve) => {
     const timeout = setTimeout(() => resolve(true), flushTimeoutMs);
 
-    const group = `convert-flush-${documentId}-${Date.now()}`;
-    eventBus.subscribe(group, [EventType.StateFlushed], async () => {
-      clearTimeout(timeout);
-      resolve(false);
-    }).catch(() => {
-      clearTimeout(timeout);
-      resolve(true);
-    });
+    // Register subscriber BEFORE emitting so no StateFlushed event
+    // can slip past before the handler is wired up.
+    eventBus
+      .subscribe(group, [EventType.StateFlushed], async (event) => {
+        // Only react to the flush for this specific document
+        if (event.aggregateId !== documentId) return;
+        clearTimeout(timeout);
+        resolve(false);
+      })
+      .then(() => {
+        const conversionEvent: DomainEvent = {
+          id: randomUUID(),
+          type: EventType.ConversionRequested,
+          aggregateId: documentId,
+          actorId: requestedBy,
+          actorType: 'system',
+          occurredAt: new Date().toISOString(),
+        };
+        return eventBus.emit(conversionEvent, null);
+      })
+      .catch(() => {
+        clearTimeout(timeout);
+        resolve(true);
+      });
   });
 }
 

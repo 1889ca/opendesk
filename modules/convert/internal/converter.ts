@@ -6,6 +6,7 @@
  */
 
 import type { ExportFormat, ImportFormat } from '../contract.ts';
+import type { EventBus } from '../../events/index.ts';
 import { importFile, buildSnapshot } from './importer.ts';
 import {
   exportDocument,
@@ -42,15 +43,21 @@ export async function getDocumentForExport(
 /**
  * Convert HTML content to a binary format via Collabora.
  * This is the main export path used by the API.
+ *
+ * When an eventBus is provided the full flush-before-export pipeline
+ * runs: ConversionRequested is emitted to trigger collab to flush its
+ * Yjs state, the exporter waits for StateFlushed (or times out and
+ * marks stale=true), and ExportReady is emitted on completion.
  */
 export async function convertViaCollabora(
   html: string,
   targetFormat: ExportFormat,
   documentId: string,
-  requestedBy: string = 'system'
+  requestedBy: string = 'system',
+  eventBus?: EventBus,
 ): Promise<ExportResult> {
   const wrappedHtml = contentToHtml(html);
-  return exportDocument(documentId, targetFormat, requestedBy, wrappedHtml);
+  return exportDocument(documentId, targetFormat, requestedBy, wrappedHtml, eventBus);
 }
 
 /**

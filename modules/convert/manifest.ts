@@ -1,6 +1,7 @@
 /** Contract: contracts/convert/rules.md */
 
 import type { OpenDeskManifest } from '../core/manifest/contract.ts';
+import { EventType } from '../events/index.ts';
 import { createConvertRoutes } from './internal/convert-routes.ts';
 import { createPresentationConvertRoutes } from './internal/presentation-convert-routes.ts';
 import { createSheetConvertRoutes } from './internal/sheet-convert-routes.ts';
@@ -19,15 +20,29 @@ import { createSheetConvertRoutes } from './internal/sheet-convert-routes.ts';
  * code in modules/app/internal/{slides,sheets} fetches their
  * endpoints and was silently 404ing. Wiring them via the manifest
  * fixes the omission.
+ *
+ * The lifecycle.onStart hook registers ConversionRequested and
+ * ExportReady in the event schema registry (contract requirement:
+ * "Register ConversionRequested and ExportReady in the events
+ * schema registry at startup").
  */
 export const manifest: OpenDeskManifest = {
   name: 'convert',
   contract: 'contracts/convert/rules.md',
+
+  lifecycle: {
+    onStart: async (ctx) => {
+      await ctx.eventBus.registerEventType(EventType.ConversionRequested, 'convert');
+      await ctx.eventBus.registerEventType(EventType.ExportReady, 'convert');
+    },
+  },
+
   apiRoutes: [
     {
       mount: '/',
       order: 10,
-      factory: (ctx) => createConvertRoutes({ permissions: ctx.permissions }),
+      factory: (ctx) =>
+        createConvertRoutes({ permissions: ctx.permissions, eventBus: ctx.eventBus }),
     },
     {
       mount: '/',
