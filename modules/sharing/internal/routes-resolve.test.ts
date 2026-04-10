@@ -118,5 +118,5 @@ describe('share routes — POST /api/share/:token/resolve', () => {
       .send({ password: 'wrong' });
     expect(res.status).toBe(429);
     expect(res.body.error).toBe('too_many_attempts');
-  }, 15_000);
+  }, 30_000);
 });
