@@ -73,6 +73,32 @@
   overflow-y: auto;
 }
 
+/* Scrollbar — sidebar panels */
+.comment-sidebar-list::-webkit-scrollbar,
+.suggestion-sidebar-list::-webkit-scrollbar,
+.version-sidebar-list::-webkit-scrollbar { width: 8px; }
+.comment-sidebar-list::-webkit-scrollbar-track,
+.suggestion-sidebar-list::-webkit-scrollbar-track,
+.version-sidebar-list::-webkit-scrollbar-track { background: transparent; }
+.comment-sidebar-list::-webkit-scrollbar-thumb,
+.suggestion-sidebar-list::-webkit-scrollbar-thumb,
+.version-sidebar-list::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, rgba(0, 0, 0, 0.2));
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.comment-sidebar-list::-webkit-scrollbar-thumb:hover,
+.suggestion-sidebar-list::-webkit-scrollbar-thumb:hover,
+.version-sidebar-list::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, rgba(0, 0, 0, 0.35));
+  background-clip: content-box;
+}
+/* Firefox */
+.comment-sidebar-list,
+.suggestion-sidebar-list,
+.version-sidebar-list { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb, rgba(0, 0, 0, 0.2)) transparent; }
+
 .comment-sidebar-empty,
 .suggestion-sidebar-empty,
 .version-sidebar-empty {

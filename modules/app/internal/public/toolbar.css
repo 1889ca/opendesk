@@ -167,6 +167,15 @@
   background: var(--border);
 }
 
+.formatting-toolbar .toolbar-separator {
+  width: 1px;
+  height: 1.25rem;
+  background: var(--border);
+  margin: 0 0.375rem;
+  flex-shrink: 0;
+  align-self: center;
+}
+
 /* Transparent wrapper — lets toolbar-right's flex layout apply directly to slot children */
 .toolbar-actions-slot {
   display: contents;
@@ -361,7 +370,8 @@
   padding: 0.25rem 0.5rem;
   outline: none;
   min-width: 8rem;
-  max-width: 20rem;
+  max-width: min(30rem, 40vw);
+  width: auto;
   transition: border-color 0.15s, background 0.15s;
 }
 
@@ -506,8 +516,8 @@
 }
 
 .color-swatch {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   border: 1px solid rgba(0,0,0,0.15);
   cursor: pointer;
@@ -519,9 +529,11 @@
   transition: transform 0.1s, box-shadow 0.1s;
 }
 
-.color-swatch:hover {
+.color-swatch:hover,
+.color-swatch:focus {
   transform: scale(1.2);
   box-shadow: 0 0 0 2px var(--accent);
+  outline: none;
 }
 
 .color-swatch--default {
