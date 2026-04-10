@@ -176,3 +176,116 @@
   text-decoration: underline;
 }
 
+/* --- Import/Export --- */
+
+.kb-export-menu {
+  display: inline-flex;
+}
+
+/* --- KB Settings panel --- */
+
+.kb-settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+
+.kb-settings-overlay[hidden] {
+  display: none;
+}
+
+.kb-settings-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  min-width: 26rem;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 0.18);
+}
+
+.kb-settings-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.kb-settings-panel__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.kb-settings-panel__close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 0.25rem;
+  line-height: 1;
+}
+
+.kb-settings-panel__close:hover {
+  color: var(--text);
+}
+
+.kb-settings-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.kb-settings-toggle-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.kb-settings-toggle {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.kb-settings-toggle-label {
+  font-size: 0.9rem;
+  color: var(--text);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.kb-public-url-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.kb-public-url-label {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.kb-public-url-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.kb-public-url-input {
+  flex: 1;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+

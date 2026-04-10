@@ -11,6 +11,8 @@ import { renderEntryList, buildViewToggle, buildPagination, type ViewMode } from
 import { buildDetailPanel, openDetail } from './entry-detail.ts';
 import { buildEntryForm, openCreateForm, openEditForm } from './entry-form.ts';
 import { createQuickNote } from './quick-note.ts';
+import { buildExportButton, buildImportButton } from './kb-import-export-ui.ts';
+import { buildShareButton, buildPublicSettingsPanel, openPublicSettings } from './kb-public-ui.ts';
 
 let containerEl: HTMLElement | null = null;
 let listEl: HTMLElement | null = null;
@@ -106,7 +108,18 @@ export async function mount(container: HTMLElement, _params: Record<string, stri
     if (formOverlay) openCreateForm(formOverlay);
   });
 
+  const shareBtn = buildShareButton();
+  const settingsBtn = document.createElement('button');
+  settingsBtn.className = 'btn btn-secondary';
+  settingsBtn.textContent = 'Settings';
+  settingsBtn.setAttribute('aria-label', 'KB settings');
+  settingsBtn.addEventListener('click', () => openPublicSettings());
+
   headerActions.appendChild(viewToggle);
+  headerActions.appendChild(buildImportButton());
+  headerActions.appendChild(buildExportButton());
+  headerActions.appendChild(shareBtn);
+  headerActions.appendChild(settingsBtn);
   headerActions.appendChild(newBtn);
   header.appendChild(titleEl);
   header.appendChild(headerActions);
@@ -145,11 +158,18 @@ export async function mount(container: HTMLElement, _params: Record<string, stri
   // Entry form overlay
   formOverlay = buildEntryForm(() => loadEntries());
 
+  // Public settings panel
+  const settingsPanel = buildPublicSettingsPanel(() => {});
+
+  // Refresh list after import
+  document.addEventListener('kb:import-complete', () => loadEntries());
+
   wrapper.appendChild(header);
   wrapper.appendChild(filterBar);
   wrapper.appendChild(quickNoteEl);
   wrapper.appendChild(contentArea);
   wrapper.appendChild(formOverlay);
+  wrapper.appendChild(settingsPanel);
   container.appendChild(wrapper);
 
   await loadEntries();

@@ -7,6 +7,8 @@ import { createKBEntryRoutes } from './internal/kb-entry-routes.ts';
 import { createKBDatasetRoutes } from './internal/kb-dataset-routes.ts';
 import { createKBSnapshotRoutes } from './internal/kb-snapshot-routes.ts';
 import { createEntityRoutes } from './internal/entity-routes.ts';
+import { createKBImportExportRoutes } from './internal/kb-import-export-routes.ts';
+import { createKBPublicRoutes } from './internal/kb-public-routes.ts';
 
 /**
  * KB module manifest.
@@ -54,6 +56,16 @@ export const manifest: OpenDeskManifest = {
       mount: '/api/kb/entities',
       order: 50,
       factory: (ctx) => createEntityRoutes({ permissions: ctx.permissions }),
+    },
+    {
+      mount: '/api/kb/entries',
+      order: 60,
+      factory: (ctx) => createKBImportExportRoutes({ permissions: ctx.permissions }),
+    },
+    {
+      mount: '/api/kb',
+      order: 70,
+      factory: (ctx) => createKBPublicRoutes({ permissions: ctx.permissions }),
     },
     {
       mount: '/api/kb',
