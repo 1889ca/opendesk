@@ -126,5 +126,5 @@ Post-MVP (deferred):
 - [x] "Cannot grant higher than own role" enforcement — ceiling check in routes.ts; test suite in routes-role-ceiling.test.ts
 - [x] `GrantCreated` event emission — wired via `withGrantEvents` wrapper in api/create-routes.ts
 - [x] `GrantRevoked` event emission — wired via `withGrantEvents` wrapper in api/create-routes.ts
-- [ ] Invite-by-email workflow (pending grants that activate on authentication)
+- [x] Invite-by-email workflow (pending grants that activate on authentication)
 - [ ] `updateGrant` role change support

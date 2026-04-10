@@ -12,6 +12,7 @@ import {
   createPgShareLinkStore,
   createPasswordRateLimiter,
   createShareResolveRateLimiter,
+  createPgPendingGrantStore,
 } from '../../sharing/index.ts';
 import { initPool, initSchema } from '../../storage/index.ts';
 // Composition root: pool comes from storage/internal/pool.ts because
@@ -119,13 +120,16 @@ export async function startServer(port = 3000) {
   // blind token enumeration. Separate from shareRateLimiter, which is
   // keyed by token (and so doesn't help against random-token guessing).
   const shareResolveRateLimiter = createShareResolveRateLimiter(redisClient);
+  // Issue #311: pending grants for invite-by-email workflow
+  const pendingGrantStore = createPgPendingGrantStore(pool);
 
   // Mount all API routes
   const publicDir = resolve(__dirname, '../../app/internal/public');
   const { shutdown: manifestShutdown } = await mountRoutes({
     app, auth, permissions, hocuspocus, redisClient,
     config, eventBus, audit, workflow, observability,
-    shareLinkService, shareRateLimiter, shareResolveRateLimiter, publicDir,
+    shareLinkService, shareRateLimiter, shareResolveRateLimiter,
+    pendingGrantStore, publicDir,
   });
 
   // SPA catch-all: serve spa.html for any non-API, non-static route

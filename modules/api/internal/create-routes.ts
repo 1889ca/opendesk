@@ -1,5 +1,5 @@
 /** Contract: contracts/api/rules.md */
-import express, { type Express } from 'express';
+import express, { type Express, type Request, type Response, type NextFunction } from 'express';
 import type { AuthModule } from '../../auth/index.ts';
 import { withGrantEvents, type PermissionsModule } from '../../permissions/index.ts';
 import type { Hocuspocus } from '@hocuspocus/server';
@@ -10,6 +10,9 @@ import type { ObservabilityModule } from '../../observability/contract.ts';
 import type { ShareLinkService } from '../../sharing/internal/share-links.ts';
 import type { PasswordRateLimiter, ShareResolveRateLimiter } from '../../sharing/internal/rate-limit.ts';
 import { createShareRoutes } from '../../sharing/index.ts';
+import { addInviteRoute } from '../../sharing/internal/routes-invite.ts';
+import { activatePendingGrants } from '../../sharing/internal/activate-pending-grants.ts';
+import type { PendingGrantStore } from '../../sharing/internal/pending-grant-store.ts';
 import { createTelemetryMiddleware } from '../../observability/index.ts';
 import {
   manifests,
@@ -43,6 +46,7 @@ export interface RouteDependencies {
   shareLinkService: ShareLinkService;
   shareRateLimiter: PasswordRateLimiter;
   shareResolveRateLimiter: ShareResolveRateLimiter;
+  pendingGrantStore: PendingGrantStore;
   publicDir: string;
 }
 
@@ -59,7 +63,8 @@ export async function mountRoutes(deps: RouteDependencies): Promise<{ shutdown: 
   const {
     app, auth, permissions, hocuspocus, redisClient,
     config, eventBus, audit, workflow, observability,
-    shareLinkService, shareRateLimiter, shareResolveRateLimiter, publicDir,
+    shareLinkService, shareRateLimiter, shareResolveRateLimiter,
+    pendingGrantStore, publicDir,
   } = deps;
 
   app.use(express.json({ limit: '100kb' }));
@@ -82,6 +87,23 @@ export async function mountRoutes(deps: RouteDependencies): Promise<{ shutdown: 
   // SET LOCAL app.principal_id needed for the grants/share_links
   // RLS policies. Must run after auth (req.principal must be set).
   app.use('/api', principalContextMiddleware());
+
+  // Pending-grant activation (#311): after a user authenticates, activate any
+  // email-invite grants waiting for them. Fire-and-forget so a failure
+  // does not block the request; errors are logged inside activatePendingGrants.
+  const grantStoreWithEvents = withGrantEvents(permissions.grantStore, eventBus);
+  app.use('/api', (req: Request, _res: Response, next: NextFunction) => {
+    const principal = req.principal;
+    if (principal?.email) {
+      activatePendingGrants(
+        principal.id,
+        principal.email,
+        pendingGrantStore,
+        grantStoreWithEvents,
+      ).catch(() => { /* logged inside activatePendingGrants */ });
+    }
+    next();
+  });
 
   // Telemetry middleware — after auth so we have principal info
   if (config.observability.enabled) {
@@ -133,13 +155,23 @@ export async function mountRoutes(deps: RouteDependencies): Promise<{ shutdown: 
   // The sharing module is deliberately NOT in the manifest registry
   // (it touches grants/principals/RLS policies) and stays
   // hand-mounted here until a human maintainer signs off.
-  app.use(createShareRoutes({
+  const shareRouter = createShareRoutes({
     service: shareLinkService,
-    grantStore: withGrantEvents(permissions.grantStore, eventBus),
+    grantStore: grantStoreWithEvents,
     permissions,
     rateLimiter: shareRateLimiter,
     resolveRateLimiter: shareResolveRateLimiter,
-  }));
+  });
+
+  // Invite-by-email route (#311) — mounted on the same share router.
+  addInviteRoute(shareRouter, {
+    pendingGrantStore,
+    grantStore: grantStoreWithEvents,
+    permissions,
+    eventBus,
+  });
+
+  app.use(shareRouter);
 
   return {
     shutdown: () => runManifestShutdownHooks(ctx, manifestHandles),

@@ -55,3 +55,15 @@ export {
 
 // Routes
 export { createShareRoutes, type ShareRoutesOptions } from './internal/routes.ts';
+export { addInviteRoute, type InviteRoutesOptions } from './internal/routes-invite.ts';
+
+// Pending grant store
+export {
+  createInMemoryPendingGrantStore,
+  type PendingGrant,
+  type PendingGrantStore,
+} from './internal/pending-grant-store.ts';
+export { createPgPendingGrantStore } from './internal/pg-pending-grant-store.ts';
+
+// Pending grant activation
+export { activatePendingGrants } from './internal/activate-pending-grants.ts';
