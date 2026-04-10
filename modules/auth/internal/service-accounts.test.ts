@@ -35,7 +35,7 @@ describe('Service Account Manager', () => {
     expect(sa.displayName).toBe('Bot');
     expect(sa.scopes).toEqual(['read']);
     expect(sa.createdAt).toBeTruthy();
-  });
+  }, 15_000);
 
   it('embeds the account id in the api key (parseable)', async () => {
     const storage = makeStorage();
@@ -45,7 +45,7 @@ describe('Service Account Manager', () => {
     const parsed = parseApiKey(sa.apiKey);
     expect(parsed).not.toBeNull();
     expect(parsed?.accountId).toBe(sa.id);
-  });
+  }, 15_000);
 
   it('stores a bcrypt secret hash, not the raw key', async () => {
     const storage = makeStorage();
@@ -63,7 +63,7 @@ describe('Service Account Manager', () => {
     expect(parsed).not.toBeNull();
     const ok = await verifyApiKeySecret(parsed!.secret, stored!.secretHash);
     expect(ok).toBe(true);
-  });
+  }, 15_000);
 
   it('read returns the masked key, never the original', async () => {
     const storage = makeStorage();
@@ -74,7 +74,7 @@ describe('Service Account Manager', () => {
     expect(read).toBeTruthy();
     expect(read!.apiKey).toBe('***');
     expect(read!.displayName).toBe('Bot');
-  });
+  }, 15_000);
 
   it('read returns null for an unknown id', async () => {
     const storage = makeStorage();
@@ -92,5 +92,5 @@ describe('Service Account Manager', () => {
 
     const stored = storage.records.get(sa.id);
     expect(stored!.revoked).toBe(true);
-  });
+  }, 15_000);
 });

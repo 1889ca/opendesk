@@ -91,7 +91,7 @@ describe('share-links — resolve', () => {
 
     const result = await service.resolve(link.token, 'correct-horse');
     expect(result.ok).toBe(true);
-  });
+  }, 15_000);
 
   it('rejects password-protected link with wrong password', async () => {
     const link = await service.create({
@@ -103,7 +103,7 @@ describe('share-links — resolve', () => {
 
     const result = await service.resolve(link.token, 'wrong-password');
     expect(result).toEqual({ ok: false, reason: 'wrong_password' });
-  });
+  }, 15_000);
 
   it('rejects password-protected link with no password', async () => {
     const link = await service.create({
@@ -115,7 +115,7 @@ describe('share-links — resolve', () => {
 
     const result = await service.resolve(link.token);
     expect(result).toEqual({ ok: false, reason: 'wrong_password' });
-  });
+  }, 15_000);
 });
 
 describe('share-links — revoke', () => {

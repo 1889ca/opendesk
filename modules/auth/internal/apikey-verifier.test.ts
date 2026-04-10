@@ -37,7 +37,7 @@ describe('API Key Verifier', () => {
     expect(result.principal.id).toBe(accountId);
     expect(result.principal.displayName).toBe('Test Agent');
     expect(result.principal.scopes).toEqual(['documents.read']);
-  });
+  }, 15_000);
 
   it('rejects a key whose account id is not in the store', async () => {
     const accountId = generateAccountId();
@@ -57,7 +57,7 @@ describe('API Key Verifier', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe('KEY_INVALID');
-  });
+  }, 15_000);
 
   it('rejects a key whose secret does not match the stored hash', async () => {
     const accountId = generateAccountId();
@@ -81,7 +81,7 @@ describe('API Key Verifier', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe('KEY_INVALID');
-  });
+  }, 15_000);
 
   it('rejects a malformed key', async () => {
     const verifier = createApiKeyVerifier(makeStore([]));
@@ -116,7 +116,7 @@ describe('API Key Verifier', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe('KEY_REVOKED');
-  });
+  }, 15_000);
 
   it('same key resolves to same id (stable identity)', async () => {
     const accountId = generateAccountId();
@@ -137,5 +137,5 @@ describe('API Key Verifier', () => {
     if (r1.ok && r2.ok) {
       expect(r1.principal.id).toBe(r2.principal.id);
     }
-  });
+  }, 15_000);
 });

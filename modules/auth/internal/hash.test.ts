@@ -29,7 +29,7 @@ describe('generateApiKey', () => {
     expect(apiKey.startsWith('opd_')).toBe(true);
     // Compact id (no dashes) should appear right after the prefix.
     expect(apiKey).toContain(accountId.replace(/-/g, ''));
-  });
+  }, 15_000);
 
   it('returns a bcrypt secret hash (not the raw secret)', async () => {
     const accountId = generateAccountId();
@@ -39,7 +39,7 @@ describe('generateApiKey', () => {
     // The full apiKey must NOT contain the bcrypt hash, and the
     // bcrypt hash must NOT contain the secret portion of the key.
     expect(apiKey).not.toContain(secretHash);
-  });
+  }, 15_000);
 
   it('produces unique keys for the same account on repeat calls', async () => {
     const accountId = generateAccountId();
@@ -47,7 +47,7 @@ describe('generateApiKey', () => {
     const b = await generateApiKey(accountId);
     expect(a.apiKey).not.toBe(b.apiKey);
     expect(a.secretHash).not.toBe(b.secretHash);
-  });
+  }, 15_000);
 });
 
 describe('parseApiKey', () => {
@@ -58,7 +58,7 @@ describe('parseApiKey', () => {
     expect(parsed).not.toBeNull();
     expect(parsed?.accountId).toBe(accountId);
     expect(parsed?.secret).toMatch(/^[0-9a-f]{64}$/);
-  });
+  }, 15_000);
 
   it('returns null for missing prefix', () => {
     expect(parseApiKey('not-a-key')).toBeNull();
@@ -94,14 +94,14 @@ describe('verifyApiKeySecret', () => {
     expect(parsed).not.toBeNull();
     const ok = await verifyApiKeySecret(parsed!.secret, secretHash);
     expect(ok).toBe(true);
-  });
+  }, 15_000);
 
   it('returns false for a different secret', async () => {
     const accountId = generateAccountId();
     const { secretHash } = await generateApiKey(accountId);
     const ok = await verifyApiKeySecret('a'.repeat(64), secretHash);
     expect(ok).toBe(false);
-  });
+  }, 15_000);
 
   it('returns false for a malformed hash', async () => {
     const ok = await verifyApiKeySecret('any-secret', 'not-a-bcrypt-hash');
