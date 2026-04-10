@@ -9,6 +9,7 @@ import { createExportRoutes } from './internal/export-routes.ts';
 import { createPreviewRoutes } from './internal/preview-routes.ts';
 import { createStarredRoutes } from './internal/starred-routes.ts';
 import { createGlobalSearchRoutes } from './internal/global-search-routes.ts';
+import { createIntentRoutes } from './internal/intent-routes.ts';
 
 /**
  * Document module manifest.
@@ -90,6 +91,18 @@ export const manifest: OpenDeskManifest = {
       order: 80,
       factory: (ctx) =>
         createGlobalSearchRoutes({ permissions: ctx.permissions }),
+    },
+    {
+      // POST /api/documents/:id/intents — agent intent submission (#309)
+      // Must mount after /:id routes (order 20) but the path is specific
+      // enough that Express won't confuse it with a plain document fetch.
+      mount: '/api/documents/:id/intents',
+      order: 90,
+      factory: (ctx) =>
+        createIntentRoutes({
+          permissions: ctx.permissions,
+          hocuspocus: ctx.hocuspocus,
+        }),
     },
   ],
 };
