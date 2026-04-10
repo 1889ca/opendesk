@@ -1,6 +1,7 @@
 /** Contract: contracts/app-kb/rules.md */
 
 import { createEntryApi } from './kb-api.ts';
+import { attachKbLinkSuggestion } from './kb-link-suggestion.ts';
 
 /**
  * Lightweight inline form for creating notes quickly.
@@ -49,6 +50,9 @@ export function createQuickNote(onCreated: () => void): HTMLElement {
       handleSave(titleInput, bodyArea, saveBtn, onCreated);
     }
   });
+
+  // Attach [[ KB inline link suggestion
+  attachKbLinkSuggestion(bodyArea);
 
   return wrapper;
 }

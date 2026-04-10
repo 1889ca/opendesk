@@ -60,6 +60,18 @@ function buildSearchRegex(search: SearchState): RegExp | null {
   }
 }
 
+/** Returns true if the current search state has a valid or non-regex query. */
+export function isSearchQueryValid(search: SearchState): boolean {
+  if (!search.searchTerm || !search.useRegex) return true;
+  if (hasNestedQuantifiers(search.searchTerm)) return false;
+  try {
+    new RegExp(search.searchTerm);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Find all text matches in the document.
  * Walks through each text node and applies the regex.

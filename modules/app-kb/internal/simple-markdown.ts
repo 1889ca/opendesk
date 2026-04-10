@@ -43,11 +43,16 @@ function processHeadings(html: string): string {
     .replace(/^# (.+)$/gm, '<h3>$1</h3>');
 }
 
-/** Convert inline formatting: bold, italic, code, links. */
+/** Convert inline formatting: bold, italic, code, links, and KB internal links. */
 function processInline(html: string): string {
   return html
     // inline code (before bold/italic to avoid conflicts)
     .replace(/`([^`]+)`/g, '<code>$1</code>')
+    // KB internal links [[title|id]] — must come before external links
+    .replace(
+      /\[\[([^\]|]+)\|([^\]]+)\]\]/g,
+      '<a class="kb-internal-link" data-kb-entry-id="$2" href="#kb-entry-$2">$1</a>',
+    )
     // bold
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     // italic (single asterisk, not inside bold)

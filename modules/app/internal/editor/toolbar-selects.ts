@@ -54,6 +54,7 @@ export function buildFontFamilySelect(editor: Editor): HTMLElement {
 export function buildFontSizeSelect(editor: Editor): HTMLElement {
   const wrapper = document.createElement('span');
   wrapper.style.position = 'relative';
+  wrapper.setAttribute('data-i18n-key', 'toolbar.fontSize');
 
   const datalist = document.createElement('datalist');
   datalist.id = 'font-size-options';

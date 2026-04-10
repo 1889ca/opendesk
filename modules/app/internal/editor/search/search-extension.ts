@@ -7,6 +7,7 @@ import {
   createInitialState,
   findMatches,
   clampIndex,
+  isSearchQueryValid,
 } from './search-state.ts';
 import { buildSearchCommands } from './search-commands.ts';
 
@@ -105,6 +106,11 @@ export const SearchExtension = Extension.create({
   onTransaction({ editor }) {
     const state = searchPluginKey.getState(editor.state) as SearchState;
     if (!state?.searchTerm) return;
+
+    if (!isSearchQueryValid(state)) {
+      document.dispatchEvent(new CustomEvent('opendesk:search-invalid-regex'));
+      return;
+    }
 
     const matches = findMatches(editor.state.doc, state);
     const clamped = clampIndex(state.currentMatchIndex, matches.length);
