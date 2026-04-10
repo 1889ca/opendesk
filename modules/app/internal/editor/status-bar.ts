@@ -15,16 +15,11 @@ function renderText(editor: Editor): string {
     });
   }
 
-  const readingTime = doc.readingTime
-    ? t('stats.readingTime', { time: doc.readingTime })
-    : t('stats.minRead');
-
   return [
     t(doc.words === 1 ? 'stats.word' : 'stats.words', { count: String(doc.words) }),
     t(doc.characters === 1 ? 'stats.character' : 'stats.characters', { count: String(doc.characters) }),
     t(doc.paragraphs === 1 ? 'stats.paragraph' : 'stats.paragraphs', { count: String(doc.paragraphs) }),
-    readingTime,
-  ].join(' \u00b7 ');
+  ].join('  \u00b7  ');
 }
 
 export function buildStatusBar(editor: Editor): HTMLElement {
@@ -33,10 +28,17 @@ export function buildStatusBar(editor: Editor): HTMLElement {
   bar.setAttribute('role', 'status');
   bar.setAttribute('aria-live', 'polite');
 
+  const statsSpan = document.createElement('span');
+  statsSpan.className = 'status-bar__stats';
+  bar.appendChild(statsSpan);
+
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   function update(): void {
-    bar.textContent = renderText(editor);
+    const text = renderText(editor);
+    const { selection } = calculateStats(editor);
+    statsSpan.textContent = text;
+    statsSpan.classList.toggle('status-bar__stats--selection', selection !== null);
   }
 
   function scheduleUpdate(): void {

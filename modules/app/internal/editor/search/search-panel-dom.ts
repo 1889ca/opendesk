@@ -55,6 +55,13 @@ function createActionBtn(label: string, titleKey: string): HTMLButtonElement {
   return btn;
 }
 
+function createLabel(text: string): HTMLSpanElement {
+  const label = document.createElement('span');
+  label.className = 'search-panel__label';
+  label.textContent = text;
+  return label;
+}
+
 export function mountPanelInputs(panel: HTMLDivElement): PanelElements {
   const searchRow = document.createElement('div');
   searchRow.className = 'search-panel__row';
@@ -74,6 +81,7 @@ export function mountPanelInputs(panel: HTMLDivElement): PanelElements {
   closeBtn.className = 'search-panel__close';
 
   searchRow.append(
+    createLabel(t('search.findLabel')),
     searchInput, caseToggle, regexToggle, counter, prevBtn, nextBtn, closeBtn,
   );
 
@@ -90,7 +98,10 @@ export function mountPanelInputs(panel: HTMLDivElement): PanelElements {
   );
   replaceAllBtn.className = 'search-panel__btn search-panel__btn--label';
 
-  replaceRow.append(replaceInput, replaceBtn, replaceAllBtn);
+  replaceRow.append(
+    createLabel(t('search.replaceLabel')),
+    replaceInput, replaceBtn, replaceAllBtn,
+  );
   panel.append(searchRow, replaceRow);
 
   return {

@@ -1,5 +1,14 @@
 /* Spreadsheet editor styles */
 
+/* Constrain body to viewport so only .spreadsheet-wrapper scrolls.
+   The global body style uses min-height (correct for doc-list), but
+   the spreadsheet needs a true fixed height so the flex-column layout
+   keeps the toolbar and tab bar pinned. */
+body {
+  height: 100vh;
+  overflow: hidden;
+}
+
 /* --- Format Toolbar --- */
 
 .format-toolbar {

@@ -8,35 +8,40 @@ import { buildTableToolbar } from './table-toolbar.ts';
 import { setupImageHandlers } from './image-handlers.ts';
 import { buildSearchPanel } from './search/search-panel.ts';
 import { buildFormattingToolbar } from './formatting-toolbar.ts';
+import { buildBubbleMenu } from './bubble-menu.ts';
 import { CommentStore } from './comments/index.ts';
 import {
   setSuggestUser,
   createSuggestModePlugin,
   setupSuggestionClickHandler,
 } from './suggestions/index.ts';
-import { bindShortcutDialogKey } from '../shared/shortcut-dialog.ts';
+import { bindShortcutDialogKey, openShortcutDialog } from '../shared/shortcut-dialog.ts';
 import { initTouchSupport } from '../shared/touch-support.ts';
 import { buildThemeToggle } from '../shared/theme-toggle.ts';
 import { buildNotificationBell } from '../shared/notification-bell.ts';
 import { trackRecentDoc } from '../shared/workspace-sidebar.ts';
-import { openEmojiPicker } from './emoji/index.ts';
+import { apiFetch } from '../shared/api-client.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
 import { buildEditorExtensions } from './editor-extensions.ts';
 import { initEntityMentionClicks } from './entity-mentions/index.ts';
 import { getUserIdentity, getDocumentId } from '../shared/identity.ts';
 import { getAuthToken } from '../shared/api-client.ts';
 import { ensureNameConfirmed } from '../shared/name-setup.ts';
-import { buildProfileChip } from '../shared/profile-chip.ts';
 import { initEditorPage } from './editor-page.ts';
 import { initEditorPanels } from './editor-panels.ts';
+import { initRuler } from './editor-ruler.ts';
+import { initZoomControl } from './zoom-control.ts';
+import { buildSaveIndicator } from './save-indicator.ts';
+import { initPageSetup, showPageSetupDialog } from './page-setup.ts';
+import { insertHeaderFooter, insertPageNumber } from './header-footer.ts';
 import {
   registerServiceWorker,
   buildOfflineIndicator,
   buildUpdateBanner,
   initConnectivityListeners,
-  setConnectionState,
-  flushQueue,
 } from '../offline/index.ts';
+import { mountAppToolbar } from '../shared/app-toolbar.ts';
+import { initEditorCollab } from './editor-collab.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -89,6 +94,9 @@ async function init() {
   }
   document.body.insertBefore(buildUpdateBanner(), document.body.firstChild);
 
+  // Show connecting state immediately, before the WS handshake completes
+  if (statusEl) { statusEl.textContent = t('status.connecting'); statusEl.className = 'status connecting'; }
+
   const provider = new HocuspocusProvider({
     url: wsUrl, name: documentId, document: ydoc,
     // Use the real auth token — 'dev' sentinel is rejected by the collab server (#340)
@@ -109,7 +117,7 @@ async function init() {
     editor = new Editor({
       element: editorEl,
       extensions: buildEditorExtensions({ ydoc, provider, user }),
-      editorProps: { attributes: { class: 'editor-content' } },
+      editorProps: { attributes: { class: 'editor-content', spellcheck: 'true' } },
     });
   } catch (err) {
     console.error('Editor initialization failed:', err);
@@ -124,48 +132,69 @@ async function init() {
   editor.registerPlugin(createSuggestModePlugin(editor));
   setupSuggestionClickHandler(editor);
 
+  // Allow native context menu — prevent any TipTap extension or parent listener
+  // from suppressing right-click (issue #255)
+  editorEl.addEventListener('contextmenu', (e) => {
+    e.stopPropagation();
+  }, { capture: true });
+
   setupCodeBlockUI(editor);
   initEntityMentionClicks(editorEl);
   buildFormattingToolbar(editor);
+  buildBubbleMenu(editor);
   buildTableToolbar(editor);
   buildSearchPanel(editor);
   buildLanguageSwitcher();
   buildThemeToggle();
   buildNotificationBell();
 
-  // Profile chip — shows user's display name in the toolbar (issue #170)
-  const toolbarRightEl = document.querySelector('.toolbar-right');
-  if (toolbarRightEl) {
-    const chip = buildProfileChip();
-    toolbarRightEl.appendChild(chip);
-  }
+  // Save indicator — "Saving…" / "Saved" next to doc title
+  const toolbarLeft = document.querySelector('.toolbar-left');
+  if (toolbarLeft) toolbarLeft.appendChild(buildSaveIndicator(editor));
 
-  trackRecentDoc({ id: documentId, title: 'Document' });
+  apiFetch(`/api/documents/${encodeURIComponent(documentId)}`)
+    .then((res: Response) => (res.ok ? res.json() : null))
+    .then((doc: { title?: string; document_type?: string } | null) => {
+      if (doc) trackRecentDoc({ id: documentId, title: doc.title || 'Untitled', document_type: doc.document_type });
+    })
+    .catch(() => {});
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
 
-  document.addEventListener('opendesk:open-emoji', () => {
-    const emojiBtn = document.querySelector('[data-i18n-key="toolbar.emoji"]') as HTMLElement | null;
-    if (emojiBtn) openEmojiPicker(editor, emojiBtn);
-  });
+  initEditorCollab({ editor, editorEl, provider, statusEl, usersEl, user });
 
   initEditorPanels({ editor, editorEl, commentStore, documentId, user });
+  initRuler();
+  initZoomControl();
+  initPageSetup();
 
-  function updateUsers() {
-    if (!usersEl || !provider.awareness) return;
-    const states = provider.awareness.getStates();
-    const names: string[] = [];
-    states.forEach((state: { user?: { name?: string } }) => {
-      if (state.user?.name) names.push(state.user.name);
-    });
-    usersEl.textContent = names.join(', ') || '-';
+  // Wire up the Page Setup button in the toolbar
+  document.getElementById('page-setup-btn')?.addEventListener('click', showPageSetupDialog);
+
+  // Header / footer zones — inserted above and below the editor paper
+  const { footerZone } = insertHeaderFooter(documentId);
+
+  // Wire up "Insert Page Number" button
+  document.getElementById('insert-page-number')?.addEventListener('click', () => {
+    insertPageNumber(footerZone);
+  });
+
+  // Apply built-in template if one was stored for this doc via sessionStorage
+  const pendingHtml = sessionStorage.getItem(`opendesk-template-${documentId}`);
+  if (pendingHtml) {
+    sessionStorage.removeItem(`opendesk-template-${documentId}`);
+    setTimeout(() => {
+      if (editor.isEmpty) {
+        editor.commands.setContent(pendingHtml);
+      }
+    }, 500);
   }
-  provider.awareness?.on('change', updateUsers);
-  updateUsers();
+
   Object.assign(window, { editor, provider, ydoc, commentStore });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  mountAppToolbar({ usersHidden: true });
   initEditorPage();
   init();
 });

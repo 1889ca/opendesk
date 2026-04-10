@@ -7,6 +7,7 @@
 
 import { apiFetch } from '../shared/api-client.ts';
 import { showDeleteConfirmDialog } from './delete-confirm-dialog.ts';
+import { showFolderPickerDialog } from './folder-picker-dialog.ts';
 
 export interface BulkActionBar {
   el: HTMLElement;
@@ -27,11 +28,15 @@ export function createBulkActionBar(onComplete: () => void): BulkActionBar {
   const countEl = document.createElement('span');
   countEl.className = 'bulk-action-count';
 
+  const moveBtn = document.createElement('button');
+  moveBtn.className = 'btn btn-secondary bulk-move-btn';
+  moveBtn.textContent = 'Move to Folder';
+
   const deleteBtn = document.createElement('button');
   deleteBtn.className = 'btn btn-danger bulk-delete-btn';
   deleteBtn.textContent = 'Delete selected';
 
-  bar.append(countEl, deleteBtn);
+  bar.append(countEl, moveBtn, deleteBtn);
 
   let currentIds: Set<string> = new Set();
 
@@ -41,6 +46,23 @@ export function createBulkActionBar(onComplete: () => void): BulkActionBar {
     bar.hidden = n === 0;
     countEl.textContent = n === 1 ? '1 selected —' : `${n} selected —`;
   }
+
+  moveBtn.addEventListener('click', async () => {
+    if (currentIds.size === 0) return;
+    const folderId = await showFolderPickerDialog();
+    if (folderId === undefined) return;
+    const ids = Array.from(currentIds);
+    await Promise.all(
+      ids.map((id) =>
+        apiFetch('/api/documents/' + encodeURIComponent(id), {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ folderId }),
+        }).catch((err) => { console.error('Bulk move failed for', id, err); }),
+      ),
+    );
+    onComplete();
+  });
 
   deleteBtn.addEventListener('click', async () => {
     const n = currentIds.size;

@@ -23,3 +23,5 @@ export { setupTitleSync } from './internal/shared/title-sync.ts';
 export { uploadImage, validateImageFile, extractImageFiles } from './internal/editor/image-upload.ts';
 export type { UploadResult } from './internal/editor/image-upload.ts';
 export { initTheme } from './internal/shared/theme-toggle.ts';
+export { mountAppToolbar } from './internal/shared/app-toolbar.ts';
+export type { AppToolbarConfig, AppToolbarRefs } from './internal/shared/app-toolbar.ts';

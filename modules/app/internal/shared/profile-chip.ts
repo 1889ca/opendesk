@@ -13,6 +13,7 @@
  */
 
 import { showNameChangeModal } from './name-change.ts';
+import { getLocale, setLocale, persistLocale, type Locale } from '../i18n/index.ts';
 
 const LS_USER_NAME = 'opendesk:userName';
 
@@ -59,6 +60,34 @@ export function buildProfileChip(): HTMLElement {
   changeBtn.setAttribute('role', 'menuitem');
   changeBtn.textContent = 'Change name';
   popover.appendChild(changeBtn);
+
+  // Language preference
+  const langRow = document.createElement('div');
+  langRow.className = 'profile-popover-lang-row';
+  const langLabel = document.createElement('label');
+  langLabel.className = 'profile-popover-lang-label';
+  langLabel.textContent = 'Language';
+  const langSelect = document.createElement('select');
+  langSelect.className = 'profile-popover-lang-select';
+  const locales: { value: Locale; label: string }[] = [
+    { value: 'en', label: 'English' },
+    { value: 'fr', label: 'Français' },
+  ];
+  for (const { value, label } of locales) {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = label;
+    opt.selected = value === getLocale();
+    langSelect.appendChild(opt);
+  }
+  langSelect.addEventListener('change', () => {
+    const next = langSelect.value as Locale;
+    setLocale(next);
+    persistLocale(next);
+  });
+  langLabel.appendChild(langSelect);
+  langRow.appendChild(langLabel);
+  popover.appendChild(langRow);
 
   chip.appendChild(popover);
 

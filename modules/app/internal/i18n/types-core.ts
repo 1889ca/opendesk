@@ -5,8 +5,11 @@
 export interface CoreTranslationKeys {
   'toolbar.bold': string;
   'toolbar.italic': string;
+  'toolbar.underline': string;
   'toolbar.strike': string;
   'toolbar.code': string;
+  'toolbar.superscript': string;
+  'toolbar.subscript': string;
   'toolbar.heading1': string;
   'toolbar.heading2': string;
   'toolbar.heading3': string;
@@ -15,6 +18,7 @@ export interface CoreTranslationKeys {
   'toolbar.blockquote': string;
   'toolbar.codeBlock': string;
   'toolbar.horizontalRule': string;
+  'toolbar.link': string;
   'toolbar.image': string;
   'toolbar.find': string;
   'toolbar.comment': string;
@@ -28,6 +32,14 @@ export interface CoreTranslationKeys {
   'toolbar.toc': string;
   'toolbar.theme': string;
   'toolbar.emoji': string;
+  'toolbar.undo': string;
+  'toolbar.redo': string;
+  'toolbar.alignLeft': string;
+  'toolbar.alignCenter': string;
+  'toolbar.alignRight': string;
+  'toolbar.alignJustify': string;
+  'toolbar.indent': string;
+  'toolbar.outdent': string;
   'toolbar.moreOptions': string;
   'status.connected': string;
   'status.disconnected': string;
@@ -62,9 +74,15 @@ export interface CoreTranslationKeys {
   'docList.sortCreated': string;
   'docList.sortNameAZ': string;
   'docList.sortNameZA': string;
+  'docList.sortUpdatedAsc': string;
+  'docList.sortCreatedAsc': string;
   'docList.pageOf': string;
   'docList.prevPage': string;
   'docList.nextPage': string;
+  'docList.count': string;
+  'docList.countFiltered': string;
+  'docList.starred': string;
+  'docList.created': string;
   'time.justNow': string;
   'time.secondsAgo': string;
   'time.minuteAgo': string;
@@ -77,6 +95,16 @@ export interface CoreTranslationKeys {
   'time.monthsAgo': string;
 
   // Promote to KB
+  'toolbar.fontFamily': string;
+  'a11y.fontFamilyLabel': string;
+  'toolbar.fontSize': string;
+  'a11y.fontSizeLabel': string;
+  'toolbar.lineHeight': string;
+  'a11y.lineHeightLabel': string;
+  'toolbar.textColor': string;
+  'a11y.textColorLabel': string;
+  'toolbar.highlight': string;
+  'toolbar.clearFormatting': string;
   'toolbar.saveToKb': string;
   'promoteKb.title': string;
   'promoteKb.noteTitle': string;
@@ -95,6 +123,7 @@ export interface CoreTranslationKeys {
   'bubble.underline': string;
   'bubble.link': string;
   'bubble.linkPrompt': string;
+  'bubble.menuLabel': string;
 
   // Version name dialog
   'versions.namePrompt': string;
@@ -105,4 +134,7 @@ export interface CoreTranslationKeys {
   'nav.knowledgeBase': string;
   'nav.newDocument': string;
   'nav.recent': string;
+
+  // Footnotes
+  'toolbar.footnote': string;
 }

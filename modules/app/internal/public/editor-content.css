@@ -6,8 +6,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem 1rem;
+  padding: 2.5rem 1.5rem;
+  background: var(--canvas);
   transition: margin-right 0.2s ease;
+  scroll-behavior: smooth;
 }
 
 body:has(.comment-sidebar-open) .editor-wrapper {
@@ -16,24 +18,29 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 
 #editor {
   width: 100%;
-  max-width: 860px;
+  max-width: 56rem;
   /* Paper stays white in all themes (#338 / #372) */
   background: #ffffff;
   color: #1a1a1a;
   color-scheme: light;
   border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 1px 3px var(--shadow-color);
-  min-height: calc(100vh - 8rem);
+  box-shadow: 0 2px 8px var(--shadow-color), 0 8px 32px var(--shadow-medium);
+  min-height: calc(100vh - 120px);
+  padding: 4rem 5rem;
+  transform: scale(var(--editor-zoom, 1));
+  transform-origin: top center;
 }
 
 .editor-content {
-  padding: 2rem;
+  padding: 0;
   outline: none;
   line-height: 1.7;
   font-size: 1rem;
   /* Fill #editor height so entire canvas is clickable (#335 / #351) */
   min-height: calc(100vh - 14rem);
+  columns: var(--editor-columns, 1);
+  column-gap: var(--editor-column-gap, 0);
 }
 
 .editor-content > *:first-child {
@@ -41,26 +48,41 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 }
 
 .editor-content h1 {
-  font-size: 1.75rem;
+  font-size: 2em;
   font-weight: 700;
   margin: 1.5rem 0 0.75rem;
   letter-spacing: -0.02em;
+  color: var(--text);
 }
 
 .editor-content h2 {
-  font-size: 1.375rem;
+  font-size: 1.5em;
   font-weight: 600;
   margin: 1.25rem 0 0.5rem;
+  color: var(--text);
 }
 
 .editor-content h3 {
-  font-size: 1.125rem;
+  font-size: 1.25em;
   font-weight: 600;
   margin: 1rem 0 0.5rem;
+  color: var(--text);
+}
+
+/* Prevent headings from breaking mid-column */
+.editor-content h1,
+.editor-content h2,
+.editor-content h3 {
+  break-after: avoid;
+}
+
+.editor-content figure,
+.editor-content table {
+  break-inside: avoid;
 }
 
 .editor-content p {
-  margin: 0.5rem 0;
+  margin: var(--editor-para-spacing, 0.5rem) 0;
 }
 
 .editor-content ul,
@@ -71,6 +93,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 
 .editor-content li {
   margin: 0.25rem 0;
+  outline: none;
 }
 
 .editor-content blockquote {
@@ -109,6 +132,17 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   margin: 1.5rem 0;
 }
 
+.editor-content a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: opacity 0.15s;
+}
+
+.editor-content a:hover {
+  opacity: 0.8;
+}
+
 /* Images in editor */
 .editor-content img {
   max-width: 100%;
@@ -139,6 +173,105 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   position: relative;
 }
 
+/* Text selection highlight */
+.editor-content ::selection {
+  background: var(--selection-bg, rgba(66, 133, 244, 0.2));
+}
+
+/* Focus ring — visible for keyboard users, suppressed for pointer */
+.editor-content .ProseMirror:focus {
+  outline: none;
+}
+
+.editor-content .ProseMirror:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Dark mode: keep paper white with dark text (like Google Docs / Word) */
+[data-theme="dark"] #editor {
+  --text: #1a1a1a;
+  color: #1a1a1a;
+}
+
+/* Canvas document title — displayed above the editor paper, Google Docs style */
+.editor-canvas-title-wrap {
+  width: 100%;
+  max-width: 56rem;
+  margin-bottom: 0.5rem;
+}
+
+.editor-canvas-title {
+  width: 100%;
+  font-size: 2rem;
+  font-weight: 700;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  padding: 0.5rem 5rem;
+  letter-spacing: -0.02em;
+  box-sizing: border-box;
+}
+
+.editor-canvas-title::placeholder {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+/* Page Setup dialog */
+.page-setup-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg, rgba(0, 0, 0, 0.4));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.page-setup-dialog {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.page-setup-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.page-setup-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.page-setup-select {
+  font-size: 0.875rem;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.page-setup-btns {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
 /* Collaboration cursors */
 .collaboration-cursor__caret {
   border-left: 2px solid;
@@ -163,4 +296,134 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   white-space: nowrap;
   user-select: none;
   pointer-events: none;
+}
+
+@media print {
+  .editor-content {
+    columns: var(--editor-columns, 1);
+    column-gap: var(--editor-column-gap, 2rem);
+  }
+}
+
+/* Header / footer zones — contenteditable areas above/below the paper */
+.doc-header-zone,
+.doc-footer-zone {
+  width: 100%;
+  max-width: 56rem;
+  background: var(--editor-paper-bg, #ffffff);
+  border: 1px solid var(--border);
+  padding: 0.5rem 5rem;
+  min-height: 2.5rem;
+  outline: none;
+  font-size: 0.875rem;
+  color: var(--text);
+  position: relative;
+  transform: scale(var(--editor-zoom, 1));
+  transform-origin: top center;
+}
+
+.doc-header-zone {
+  border-bottom: 1px dashed var(--border);
+  border-radius: 8px 8px 0 0;
+  margin-bottom: -1px;
+}
+
+.doc-footer-zone {
+  border-top: 1px dashed var(--border);
+  border-radius: 0 0 8px 8px;
+  margin-top: -1px;
+}
+
+/* Placeholder text when empty */
+.doc-header-zone:empty::before,
+.doc-footer-zone:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  opacity: 0.5;
+  pointer-events: none;
+  position: absolute;
+}
+
+/* Remove top/bottom border-radius from #editor when header/footer zones are present */
+.doc-header-zone + #editor {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+#editor:has(+ .doc-footer-zone) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Page number marker */
+.page-num-marker {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border: 1px dashed var(--border);
+  border-radius: 3px;
+  padding: 0 0.25rem;
+}
+
+/* Print styles — header/footer appear on every page */
+@media print {
+  .doc-header-zone {
+    position: running(header);
+  }
+  .doc-footer-zone {
+    position: running(footer);
+  }
+  @page {
+    margin-top: 3cm;
+    margin-bottom: 3cm;
+    @top-center { content: element(header); }
+    @bottom-center { content: element(footer); }
+  }
+  .page-num-marker::before {
+    content: counter(page);
+  }
+}
+
+/* Footnotes */
+.footnote-ref {
+  font-size: 0.6em;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: none;
+  vertical-align: super;
+  padding: 0 1px;
+}
+
+.footnote-ref:hover {
+  text-decoration: underline;
+}
+
+.footnote-panel {
+  width: 100%;
+  max-width: 56rem;
+  border-top: 1px solid var(--border);
+  padding: 1rem 5rem;
+  margin-top: 0.5rem;
+  background: var(--editor-paper-bg, #ffffff);
+  border-radius: 0 0 8px 8px;
+}
+
+.footnote-panel-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.5rem;
+}
+
+.footnote-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.footnote-item {
+  margin-bottom: 0.25rem;
+  line-height: 1.5;
 }

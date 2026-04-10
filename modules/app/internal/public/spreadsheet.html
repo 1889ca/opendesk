@@ -4,40 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenDesk Spreadsheet</title>
+  <script src="theme-init.js"></script>
   <link rel="stylesheet" href="spreadsheet.bundle.css">
 </head>
 <body>
-  <header class="toolbar">
-    <div class="toolbar-left">
-      <a href="/" class="back-link">Back to documents</a>
-      <span class="toolbar-separator"></span>
-      <input
-        id="doc-title"
-        class="doc-title-input"
-        type="text"
-        value="Loading..."
-        spellcheck="false"
-      />
-    </div>
-    <div class="toolbar-center" id="chart-toolbar-mount"></div>
-    <div class="toolbar-right">
+  <header class="toolbar" id="app-toolbar">
+    <!-- Shared chrome (logo, title, status, users) injected by mountAppToolbar() in spreadsheet-editor.ts -->
+    <div class="toolbar-actions-slot">
       <div class="export-group">
-        <button id="sheet-import" class="export-btn" title="Import .xlsx, .ods, or .csv">Import</button>
+        <button id="sheet-import" class="btn btn-ghost btn-sm" title="Import .xlsx, .ods, or .csv">Import</button>
         <span class="toolbar-separator"></span>
-        <button id="sheet-export-csv" class="export-btn" title="Export as CSV">CSV</button>
-        <button id="sheet-export-xlsx" class="export-btn" title="Export as Excel">XLSX</button>
-        <button id="sheet-export-ods" class="export-btn" title="Export as OpenDocument">ODS</button>
+        <button id="sheet-export-csv" class="btn btn-ghost btn-sm" title="Export as CSV">CSV</button>
+        <button id="sheet-export-xlsx" class="btn btn-ghost btn-sm" title="Export as Excel">XLSX</button>
+        <button id="sheet-export-ods" class="btn btn-ghost btn-sm" title="Export as OpenDocument">ODS</button>
       </div>
       <span class="toolbar-separator"></span>
       <div class="dataset-group">
-        <button id="dataset-link-btn" class="export-btn" title="Link KB Dataset">Dataset</button>
+        <button id="dataset-link-btn" class="btn btn-ghost btn-sm" title="Link KB Dataset">Dataset</button>
         <span id="dataset-indicator" class="dataset-indicator" hidden></span>
       </div>
-      <span class="toolbar-separator"></span>
-      <span id="status" class="status disconnected">Connecting...</span>
-      <span class="users-label">Editors:</span>
-      <span id="users" class="users">-</span>
     </div>
+    <div class="toolbar-center" id="chart-toolbar-mount"></div>
   </header>
   <div id="format-bar-container"></div>
   <div id="formula-bar" class="formula-bar">

@@ -17,6 +17,7 @@
 :root {
   --bg: var(--bg-primary);
   --surface: var(--bg-surface);
+  --canvas: var(--editor-canvas-bg, var(--bg-secondary));
   --border: var(--border-color);
   --text: var(--text-primary);
   --text-muted: var(--text-secondary);
@@ -38,25 +39,31 @@ body {
 .editor-wrapper {
   flex: 1;
   display: flex;
-  justify-content: center;
-  padding: 2rem 1rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2.5rem 1.5rem;
+  /* Reserve space for fixed status bar at bottom */
+  padding-bottom: calc(2.5rem + 2rem);
+  background: var(--canvas);
 }
 
 #editor {
   width: 100%;
-  max-width: 48rem;
+  max-width: 56rem;
   /* Paper stays white in all themes (#338 / #372) */
   background: #ffffff;
   color: #1a1a1a;
   color-scheme: light;
   border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  min-height: calc(100vh - 8rem);
+  box-shadow: 0 2px 8px var(--shadow-color), 0 8px 32px var(--shadow-medium);
+  min-height: calc(100vh - 120px);
+  padding: 4rem 5rem;
 }
 
 .editor-content {
-  padding: 2rem;
+  padding: 0;
   outline: none;
   line-height: 1.7;
   font-size: 1rem;
@@ -146,4 +153,72 @@ body {
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 4px 16px var(--shadow-heavy);
+}
+
+/* ── Shared button system (issue #216) ───────────────────────────── */
+/* Used by both editor and doc-list. Variants: primary, secondary,   */
+/* ghost (transparent + border), danger, sm (compact sizing).        */
+
+.btn {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover {
+  background: var(--bg);
+  border-color: var(--text-muted);
+}
+
+/* Ghost: transparent background, subtle border — for toolbars */
+.btn-ghost {
+  background: none;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover {
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: #fff;
+}
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+/* Compact size for dense toolbars */
+.btn-sm {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
 }

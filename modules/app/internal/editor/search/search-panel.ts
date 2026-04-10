@@ -23,10 +23,9 @@ export function buildSearchPanel(editor: Editor): void {
 function openPanel(
   panel: HTMLDivElement,
   els: PanelElements,
-  showReplace: boolean,
 ): void {
   panel.style.display = 'flex';
-  els.replaceRow.style.display = showReplace ? 'flex' : 'none';
+  els.replaceRow.style.display = 'flex';
   els.searchInput.focus();
   els.searchInput.select();
 }
@@ -42,10 +41,8 @@ function bindPanelEvents(
   panel: HTMLDivElement,
   els: PanelElements,
 ): void {
-  document.addEventListener('opendesk:open-search', ((
-    e: CustomEvent<{ showReplace?: boolean } | undefined>,
-  ) => {
-    openPanel(panel, els, e.detail?.showReplace ?? false);
+  document.addEventListener('opendesk:open-search', (() => {
+    openPanel(panel, els);
   }) as EventListener);
 
   els.searchInput.addEventListener('input', () => {

@@ -1,7 +1,7 @@
 /** Contract: contracts/app-sheets/rules.md */
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
-import { getUserIdentity, getDocumentId, setupTitleSync } from '@opendesk/app';
+import { getUserIdentity, getDocumentId, setupTitleSync, mountAppToolbar } from '@opendesk/app';
 import { createFormatToolbar } from './format/toolbar.ts';
 import { getFormatMap } from './format/store.ts';
 import { attachFormatShortcuts } from './format/shortcuts.ts';
@@ -45,6 +45,7 @@ function appendCondFormatButton(container: HTMLElement, ydoc: Y.Doc, getCol: () 
 }
 
 function init() {
+  mountAppToolbar();
   const gridEl = document.getElementById('spreadsheet')!;
   const statusEl = document.getElementById('status');
   const usersEl = document.getElementById('users');

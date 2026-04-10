@@ -1,5 +1,12 @@
 /* Presentation editor styles */
 
+/* Constrain body to viewport so the header stays pinned and
+   .presentation-wrapper fills the remaining height exactly. */
+body {
+  height: 100vh;
+  overflow: hidden;
+}
+
 .presentation-wrapper {
   flex: 1;
   display: flex;
