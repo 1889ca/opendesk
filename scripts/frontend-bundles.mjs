@@ -39,6 +39,17 @@ const OUTDIR = 'modules/app/internal/public';
 // their own modules/<name>/manifest.ts.
 /** @type {BundleEntry[]} */
 const legacyBundles = [
+  // SPA shell (spa.html)
+  {
+    kind: 'js',
+    entryPoint: 'modules/app/internal/shell/main.ts',
+    outfile: `${OUTDIR}/shell.bundle.js`,
+    alias: {
+      '@opendesk/app': './modules/app/index.ts',
+      '@opendesk/app-kb': './modules/app-kb/index.ts',
+    },
+  },
+
   // Editor
   {
     kind: 'js',
