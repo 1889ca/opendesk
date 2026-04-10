@@ -69,11 +69,11 @@ Implemented:
 - [x] Functions exported directly (saveSnapshot, getSnapshot, getYjsBinary, etc.)
 
 Post-MVP (deferred):
-- [ ] `DocumentRepository` interface abstraction — functions are exported directly for now; interface wrapper deferred
+- [x] `DocumentRepository` interface abstraction — `createDocumentRepository()` in `pg-document-repository.ts`
 - [ ] S3-compatible cold storage tier — all documents remain in PG hot tier
 - [ ] Hot/cold tiering lifecycle policy (archiveToCold / warmFromCold)
 - [ ] `staleSeconds` indicator on cold-tier reads — no cold tier exists yet
-- [ ] Atomic snapshot + state vector co-persistence in a single PG transaction — snapshots and state vectors are saved but not yet in the same transaction
-- [ ] State vector pruning for clients offline > 30 days
+- [x] Atomic snapshot + state vector co-persistence in a single PG transaction — `saveSnapshot` wraps both in `BEGIN/COMMIT` (#014 migration)
+- [x] State vector pruning for clients offline > 30 days — `pruneStateVector` in `pg-document-repository.ts`
 - [x] Remove direct `pool`/`getPool` exports from `storage/index.ts` (#134, partial)
 - [ ] Convert pg-* stores in `modules/kb/`, `modules/references/`, and `modules/ai/` from module-scope `pool` imports to factory + DI so the cross-module-internal access goes away (#134 follow-up)
