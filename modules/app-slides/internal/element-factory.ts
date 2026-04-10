@@ -1,5 +1,6 @@
 /** Contract: contracts/app-slides/rules.md */
 
+import * as Y from 'yjs';
 import type { ShapeType, TableData, TextAlign } from './types.ts';
 import { createDefaultTableData } from './render-table.ts';
 import { TEXT_DEFAULTS } from './tiptap-mini-editor.ts';
@@ -118,4 +119,27 @@ export function createTableElement(rows: number, cols: number): NewTableElement 
     content: '',
     tableData: createDefaultTableData(rows, cols),
   };
+}
+
+/**
+ * If the yslides array is empty, insert a single blank slide with a title
+ * placeholder element so the editor never starts with nothing to render.
+ */
+export function ensureDefaultSlide(ydoc: Y.Doc, yslides: Y.Array<Y.Map<unknown>>): void {
+  if (yslides.length > 0) return;
+  ydoc.transact(() => {
+    const slide = new Y.Map<unknown>();
+    slide.set('layout', 'blank');
+    const elements = new Y.Array<Y.Map<unknown>>();
+    const titleEl = new Y.Map<unknown>();
+    const defaults: Record<string, unknown> = {
+      id: crypto.randomUUID(), type: 'text', x: 10, y: 10, width: 80, height: 20,
+      rotation: 0, content: '<p>Click to add title</p>',
+      fontSize: 36, fontColor: '#000000', textAlign: 'center',
+    };
+    for (const [k, v] of Object.entries(defaults)) titleEl.set(k, v);
+    elements.insert(0, [titleEl]);
+    slide.set('elements', elements);
+    yslides.insert(0, [slide]);
+  });
 }

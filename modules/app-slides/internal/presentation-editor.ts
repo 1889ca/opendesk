@@ -3,12 +3,12 @@ import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
 import { getUserIdentity, getDocumentId, setupTitleSync, mountAppToolbar } from '@opendesk/app';
 import { createInteractionController, type InteractionController } from './element-interaction.ts';
-import type { SlideElement } from './types.ts';
+import type { SlideElement, SlidesElements, SlidesCleanup } from './types.ts';
 import { renderElement } from './element-renderer.ts';
 import { createInsertToolbar, type InsertAction } from './insert-toolbar.ts';
 import { insertElement, updateTableCell } from './yjs-element-insert.ts';
 import { applyFieldUpdate } from './yjs-mutations.ts';
-import { createTextElement, createImageElement, createShapeElement, createTableElement } from './element-factory.ts';
+import { createTextElement, createImageElement, createShapeElement, createTableElement, ensureDefaultSlide } from './element-factory.ts';
 import { openSlideImagePicker, setupSlideDragDrop } from './slide-image-upload.ts';
 import { parseSlideElements } from './parse-elements.ts';
 import { initLayoutAndTheme } from './layout-theme-init.ts';
@@ -16,17 +16,13 @@ import { createSpeakerNotes } from './speaker-notes.ts';
 import { launchPresenterMode } from './presenter-mode.ts';
 import { initToolbarExtras } from './toolbar-extras.ts';
 
-function init() {
-  mountAppToolbar();
-  const slideListEl = document.getElementById('slide-list')!;
-  const viewportEl = document.getElementById('slide-viewport')!;
-  const statusEl = document.getElementById('status');
-  const usersEl = document.getElementById('users');
-  const addSlideBtn = document.getElementById('add-slide-btn');
-  const toolbarRight = document.querySelector('.toolbar-right');
-  if (!slideListEl || !viewportEl) return;
+/**
+ * Initialise the presentation editor with a given document ID and DOM elements.
+ * Returns a cleanup function to destroy collab resources on unmount.
+ */
+export function initSlides(documentId: string, els: SlidesElements): SlidesCleanup {
+  const { slideListEl, viewportEl, canvasEl, statusEl, usersEl, addSlideBtn, toolbarRight } = els;
 
-  const documentId = getDocumentId();
   setupTitleSync(documentId, 'OpenDesk Presentation');
   const user = getUserIdentity();
   const ydoc = new Y.Doc();
@@ -42,25 +38,6 @@ function init() {
 
   const yslides = ydoc.getArray<Y.Map<unknown>>('slides');
   let activeSlideIndex = 0;
-
-  function ensureSlides() {
-    if (yslides.length > 0) return;
-    ydoc.transact(() => {
-      const slide = new Y.Map<unknown>();
-      slide.set('layout', 'blank');
-      const elements = new Y.Array<Y.Map<unknown>>();
-      const titleEl = new Y.Map<unknown>();
-      const defaults: Record<string, unknown> = {
-        id: crypto.randomUUID(), type: 'text', x: 10, y: 10, width: 80, height: 20,
-        rotation: 0, content: '<p>Click to add title</p>',
-        fontSize: 36, fontColor: '#000000', textAlign: 'center',
-      };
-      for (const [k, v] of Object.entries(defaults)) titleEl.set(k, v);
-      elements.insert(0, [titleEl]);
-      slide.set('elements', elements);
-      yslides.insert(0, [slide]);
-    });
-  }
 
   function getActiveYElements(): Y.Array<Y.Map<unknown>> {
     const slide = yslides.get(activeSlideIndex);
@@ -80,10 +57,7 @@ function init() {
     ydoc.transact(() => {
       for (let i = 0; i < yElements.length; i++) {
         const yel = yElements.get(i);
-        if (yel.get('id') === elementId) {
-          yel.set('content', content);
-          break;
-        }
+        if (yel.get('id') === elementId) { yel.set('content', content); break; }
       }
     });
   }
@@ -96,8 +70,11 @@ function init() {
     updateTableCell(ydoc, getActiveYElements(), elementId, row, col, value);
   }
 
+  const notesPanel = createSpeakerNotes({ ydoc, yslides });
+  if (canvasEl) canvasEl.appendChild(notesPanel.element);
+
   function renderSlideList() {
-    ensureSlides();
+    ensureDefaultSlide(ydoc, yslides);
     slideListEl.innerHTML = '';
     for (let i = 0; i < yslides.length; i++) {
       const thumb = document.createElement('div');
@@ -118,36 +95,25 @@ function init() {
 
   function renderActiveSlide() {
     viewportEl.innerHTML = '';
-    const elements = getSlideElements(activeSlideIndex);
-    for (const el of elements) {
+    for (const el of getSlideElements(activeSlideIndex)) {
       const result = renderElement(el, handleContentUpdate, handleStyleUpdate, handleCellUpdate);
       viewportEl.appendChild(result.dom);
     }
   }
 
-  // Speaker notes panel — below viewport
-  const canvasEl = document.getElementById('slide-canvas');
-  const notesPanel = createSpeakerNotes({ ydoc, yslides });
-  canvasEl?.appendChild(notesPanel.element);
-
   renderSlideList();
   renderActiveSlide();
   notesPanel.update(activeSlideIndex);
 
-  // Interaction controller
-  let interactionCtrl: InteractionController | null = null;
-  function initInteraction() {
-    if (interactionCtrl) interactionCtrl.destroy();
-    interactionCtrl = createInteractionController({
-      ydoc,
-      viewport: viewportEl,
-      getActiveSlideElements() {
-        return { yElements: getActiveYElements(), elements: getSlideElements(activeSlideIndex) };
-      },
-      onStyleUpdate: handleStyleUpdate,
-    });
-  }
-  initInteraction();
+  let interactionCtrl: InteractionController | null = createInteractionController({
+    ydoc,
+    viewport: viewportEl,
+    getActiveSlideElements() {
+      return { yElements: getActiveYElements(), elements: getSlideElements(activeSlideIndex) };
+    },
+    onStyleUpdate: handleStyleUpdate,
+  });
+
   const insertToolbar = createInsertToolbar((action: InsertAction) => {
     const yEls = getActiveYElements();
     const creators: Record<string, () => void> = {
@@ -159,8 +125,9 @@ function init() {
     creators[action.type]?.();
   });
   if (toolbarRight) toolbarRight.insertBefore(insertToolbar, toolbarRight.firstChild);
+
   setupSlideDragDrop(viewportEl, documentId, (url) => insertElement(ydoc, getActiveYElements(), createImageElement(url)));
-  // Layout picker + theme picker
+
   initLayoutAndTheme({
     ydoc, yslides, viewportEl, toolbarRight, addSlideBtn,
     onSlideAdded(index) {
@@ -170,12 +137,10 @@ function init() {
     },
   });
 
-  // Present button
   const presentBtn = Object.assign(document.createElement('button'), { className: 'slide-present-btn', textContent: 'Present' });
   presentBtn.addEventListener('click', () => launchPresenterMode({ yslides, getSlideElements, totalSlides: () => yslides.length }, activeSlideIndex));
   if (toolbarRight) toolbarRight.appendChild(presentBtn);
 
-  // Transition picker + slide sorter (drag-reorder, duplicate, delete)
   const extras = initToolbarExtras({
     ydoc, yslides, toolbarRight, slideListEl,
     getActiveIndex: () => activeSlideIndex,
@@ -185,7 +150,6 @@ function init() {
 
   yslides.observeDeep(() => { renderSlideList(); renderActiveSlide(); notesPanel.update(activeSlideIndex); extras.updateTransitionPicker(); });
 
-  // Presence
   provider.awareness?.setLocalStateField('user', user);
   const showUsers = () => {
     if (!usersEl || !provider.awareness) return;
@@ -195,6 +159,32 @@ function init() {
   };
   provider.awareness?.on('change', showUsers);
   showUsers();
+
+  return {
+    destroy() {
+      interactionCtrl?.destroy();
+      interactionCtrl = null;
+      provider.destroy();
+      ydoc.destroy();
+    },
+  };
+}
+
+/** Page-level entry point: read doc ID from URL, build from existing HTML. */
+function init() {
+  const refs = mountAppToolbar();
+  const slideListEl = document.getElementById('slide-list');
+  const viewportEl = document.getElementById('slide-viewport');
+  if (!slideListEl || !viewportEl) return;
+  initSlides(getDocumentId(), {
+    slideListEl,
+    viewportEl,
+    canvasEl: document.getElementById('slide-canvas'),
+    statusEl: refs.statusEl,
+    usersEl: refs.usersEl,
+    addSlideBtn: document.getElementById('add-slide-btn'),
+    toolbarRight: refs.toolbarRightEl,
+  });
 }
 
 document.addEventListener('DOMContentLoaded', init);
