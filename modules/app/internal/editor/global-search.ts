@@ -157,6 +157,38 @@ export function createGlobalSearch(
       cancelRequest();
       onSearchActive(false);
       input.blur();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const first = results.querySelector<HTMLElement>('.search-result-card');
+      first?.focus();
+    }
+  });
+
+  results.addEventListener('keydown', (e) => {
+    const cards = Array.from(
+      results.querySelectorAll<HTMLElement>('.search-result-card'),
+    );
+    const active = document.activeElement as HTMLElement | null;
+    const idx = active ? cards.indexOf(active) : -1;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (idx < cards.length - 1) cards[idx + 1].focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (idx <= 0) {
+        input.focus();
+      } else {
+        cards[idx - 1].focus();
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      input.value = '';
+      results.innerHTML = '';
+      clearDebounce();
+      cancelRequest();
+      onSearchActive(false);
+      input.focus();
     }
   });
 

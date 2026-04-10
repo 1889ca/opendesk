@@ -35,6 +35,8 @@ import { TextColor } from './text-color.ts';
 import { TextHighlight } from './text-highlight.ts';
 import { TabIndent } from './tab-indent.ts';
 import { Superscript, Subscript } from './super-sub.ts';
+import { SmartPunctuation } from './smart-punctuation.ts';
+import { FootnoteNode } from './footnote.ts';
 
 const lowlight = createLowlight(common);
 
@@ -84,6 +86,8 @@ export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
     Superscript,
     Subscript,
     YHistory,
+    SmartPunctuation,
+    FootnoteNode,
     Underline,
     Link.configure({ openOnClick: false, autolink: true }),
   ];

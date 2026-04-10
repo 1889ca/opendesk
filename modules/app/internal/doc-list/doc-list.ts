@@ -19,15 +19,21 @@ import {
   initConnectivityListeners,
 } from '../offline/index.ts';
 import { setupOnlineRefresh } from '../offline/doc-list-offline.ts';
-import { type DocListState } from './doc-list-controls.ts';
+import { type DocListState, loadViewMode } from './doc-list-controls.ts';
 import { type LoaderState, loadDocuments } from './doc-list-loader.ts';
+import { showToast } from '../shared/toast.ts';
+import { initStarredCache } from './starred-store.ts';
 
 const ls: LoaderState = {
-  state: { sort: 'updated_at-desc', typeFilter: 'all', page: 1, totalPages: 1 },
+  state: { sort: 'updated_at-desc', typeFilter: 'all', page: 1, totalPages: 1, viewMode: loadViewMode() },
   selectedIds: new Set<string>(),
+  docIds: [],
   controlsEl: null,
   paginationEl: null,
   bulkBar: null,
+  _escHandler: null,
+  _observer: null,
+  _loading: false,
 };
 
 function updateState(next: Partial<DocListState>): void {
@@ -46,6 +52,7 @@ async function createTypedDocument(documentType: string): Promise<void> {
     });
     if (!res.ok) throw new Error('Failed to create document');
     const doc = await res.json();
+    showToast('Document created', 'success');
     window.location.href = meta.editor + '?doc=' + encodeURIComponent(doc.id);
   } catch (err) {
     console.error('Create failed', err);
@@ -67,7 +74,6 @@ async function init() {
 
   const sidebarSlot = document.getElementById('workspace-sidebar');
   if (sidebarSlot) sidebarSlot.replaceWith(buildWorkspaceSidebar());
-  buildThemeToggle();
   buildNotificationBell();
 
   const listEl = document.getElementById('doc-list');
@@ -85,19 +91,25 @@ async function init() {
   async function handleNewDocument() {
     try {
       const docId = await createDocumentFromTemplate();
-      if (docId) window.location.href = '/editor.html?doc=' + encodeURIComponent(docId);
+      if (docId) {
+        showToast('Document created', 'success');
+        window.location.href = '/editor.html?doc=' + encodeURIComponent(docId);
+      }
     } catch (err) { console.error('Create failed', err); }
   }
 
   const reload = () => loadDocuments(listEl, ls, handleNewDocument, updateState, reload);
   setupOnlineRefresh(reload);
 
+  await initStarredCache();
+
   const searchEl = createGlobalSearch((active) => {
     listEl.style.display = active ? 'none' : '';
     const breadcrumbs = document.getElementById('folder-breadcrumbs');
     if (breadcrumbs) breadcrumbs.style.display = active ? 'none' : '';
     if (ls.controlsEl) ls.controlsEl.style.display = active ? 'none' : '';
-    if (ls.paginationEl) ls.paginationEl.style.display = active ? 'none' : '';
+    const sentinel = listEl.parentElement?.querySelector('.doc-list-sentinel') as HTMLElement | null;
+    if (sentinel) sentinel.style.display = active ? 'none' : '';
   });
   listEl.parentElement?.insertBefore(searchEl, listEl);
 

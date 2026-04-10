@@ -7,21 +7,36 @@
 
 import { t, type TranslationKey } from '../i18n/index.ts';
 
-export type SortOption = 'updated_at-desc' | 'created_at-desc' | 'title-asc' | 'title-desc';
+export type SortOption = 'updated_at-desc' | 'updated_at-asc' | 'created_at-desc' | 'created_at-asc' | 'title-asc' | 'title-desc';
 export type TypeFilter = 'all' | 'text' | 'spreadsheet' | 'presentation';
+export type ViewMode = 'list' | 'grid';
+
+const VIEW_MODE_KEY = 'opendesk-doc-view';
+
+export function loadViewMode(): ViewMode {
+  return (localStorage.getItem(VIEW_MODE_KEY) as ViewMode) ?? 'list';
+}
+
+function saveViewMode(mode: ViewMode): void {
+  localStorage.setItem(VIEW_MODE_KEY, mode);
+}
 
 export interface DocListState {
   sort: SortOption;
   typeFilter: TypeFilter;
   page: number;
   totalPages: number;
+  totalCount?: number;
+  viewMode: ViewMode;
 }
 
 const PAGE_SIZE = 20;
 
 const SORT_OPTIONS: { value: SortOption; labelKey: TranslationKey }[] = [
   { value: 'updated_at-desc', labelKey: 'docList.sortUpdated' },
+  { value: 'updated_at-asc', labelKey: 'docList.sortUpdatedAsc' },
   { value: 'created_at-desc', labelKey: 'docList.sortCreated' },
+  { value: 'created_at-asc', labelKey: 'docList.sortCreatedAsc' },
   { value: 'title-asc', labelKey: 'docList.sortNameAZ' },
   { value: 'title-desc', labelKey: 'docList.sortNameZA' },
 ];
@@ -55,9 +70,45 @@ export function buildApiUrl(
 export function createControlsBar(
   state: DocListState,
   onChange: (next: Partial<DocListState>) => void,
+  selectAllOptions?: {
+    docIds: string[];
+    selectedIds: Set<string>;
+    onSelectionChange: (ids: Set<string>) => void;
+  },
 ): HTMLElement {
   const bar = document.createElement('div');
   bar.className = 'doc-list-controls';
+
+  // Select-all checkbox
+  if (selectAllOptions && selectAllOptions.docIds.length > 0) {
+    const { docIds, selectedIds, onSelectionChange } = selectAllOptions;
+    const label = document.createElement('label');
+    label.className = 'doc-list-select-all';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'doc-list-select-all-checkbox';
+    const allSelected = docIds.length > 0 && docIds.every(id => selectedIds.has(id));
+    const someSelected = !allSelected && docIds.some(id => selectedIds.has(id));
+    checkbox.checked = allSelected;
+    checkbox.indeterminate = someSelected;
+    checkbox.setAttribute('aria-label', 'Select all documents');
+    checkbox.addEventListener('change', () => {
+      onSelectionChange(checkbox.checked ? new Set(docIds) : new Set());
+    });
+    label.appendChild(checkbox);
+    bar.appendChild(label);
+  }
+
+  // Document count
+  if (state.totalCount !== undefined) {
+    const countEl = document.createElement('span');
+    countEl.className = 'doc-list-count';
+    const filtered = state.typeFilter !== 'all';
+    countEl.textContent = filtered
+      ? t('docList.countFiltered', { n: String(state.totalCount) })
+      : t('docList.count', { n: String(state.totalCount) });
+    bar.appendChild(countEl);
+  }
 
   // Type filter buttons
   const filterGroup = document.createElement('div');
@@ -95,7 +146,30 @@ export function createControlsBar(
   });
 
   sortLabel.appendChild(sortSelect);
+  // View toggle (list / grid)
+  const viewToggle = document.createElement('div');
+  viewToggle.className = 'doc-list-view-toggle';
+  viewToggle.setAttribute('role', 'group');
+  viewToggle.setAttribute('aria-label', 'View mode');
+
+  for (const mode of ['list', 'grid'] as const) {
+    const btn = document.createElement('button');
+    btn.className = 'doc-list-view-btn' + (state.viewMode === mode ? ' active' : '');
+    btn.dataset.view = mode;
+    btn.setAttribute('aria-pressed', String(state.viewMode === mode));
+    btn.setAttribute('aria-label', mode === 'list' ? 'List view' : 'Grid view');
+    btn.innerHTML = mode === 'list'
+      ? '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="1" y="2" width="14" height="2.5" rx="1"/><rect x="1" y="6.75" width="14" height="2.5" rx="1"/><rect x="1" y="11.5" width="14" height="2.5" rx="1"/></svg>'
+      : '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>';
+    btn.addEventListener('click', () => {
+      saveViewMode(mode);
+      onChange({ viewMode: mode });
+    });
+    viewToggle.appendChild(btn);
+  }
+
   bar.appendChild(filterGroup);
+  bar.appendChild(viewToggle);
   bar.appendChild(sortLabel);
 
   return bar;

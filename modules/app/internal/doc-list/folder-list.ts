@@ -2,6 +2,9 @@
 
 import { apiFetch } from '../shared/api-client.ts';
 import { t } from '../i18n/index.ts';
+import { showNameDialog } from './name-dialog.ts';
+import { showDeleteConfirmDialog } from './delete-confirm-dialog.ts';
+import { showToast } from '../shared/toast.ts';
 
 interface FolderEntry {
   id: string;
@@ -114,9 +117,9 @@ function createFolderActions(folder: FolderEntry): HTMLElement {
   const renameBtn = document.createElement('button');
   renameBtn.className = 'btn btn-small';
   renameBtn.textContent = t('folders.rename');
-  renameBtn.addEventListener('click', (e) => {
+  renameBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
-    const newName = prompt(t('folders.renamePrompt'), folder.name);
+    const newName = await showNameDialog('folders.renamePrompt', folder.name);
     if (!newName || newName === folder.name) return;
     apiFetch('/api/folders/' + encodeURIComponent(folder.id), {
       method: 'PUT',
@@ -129,16 +132,16 @@ function createFolderActions(folder: FolderEntry): HTMLElement {
       })
       .catch((err) => {
         console.error('[opendesk] folder rename error:', err);
-        alert(t('folders.renameFailed'));
+        showToast(t('folders.renameFailed'));
       });
   });
 
   const deleteBtn = document.createElement('button');
   deleteBtn.className = 'btn btn-small btn-delete-folder';
   deleteBtn.textContent = t('folders.delete');
-  deleteBtn.addEventListener('click', (e) => {
+  deleteBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
-    if (!confirm(t('folders.deleteConfirm', { name: folder.name }))) return;
+    if (!await showDeleteConfirmDialog(folder.name)) return;
     apiFetch('/api/folders/' + encodeURIComponent(folder.id), {
       method: 'DELETE',
     })
@@ -148,7 +151,7 @@ function createFolderActions(folder: FolderEntry): HTMLElement {
       })
       .catch((err) => {
         console.error('[opendesk] folder delete error:', err);
-        alert(t('folders.deleteFailed'));
+        showToast(t('folders.deleteFailed'));
       });
   });
 
@@ -172,8 +175,8 @@ export function createNewFolderButton(container: HTMLElement): void {
   btn.className = 'btn btn-secondary';
   btn.id = 'new-folder-btn';
   btn.textContent = t('folders.new');
-  btn.addEventListener('click', () => {
-    const name = prompt(t('folders.namePrompt'));
+  btn.addEventListener('click', async () => {
+    const name = await showNameDialog('folders.namePrompt');
     if (!name) return;
     apiFetch('/api/folders', {
       method: 'POST',

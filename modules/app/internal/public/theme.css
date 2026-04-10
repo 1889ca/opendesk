@@ -89,7 +89,7 @@
   --status-disconnected-bg: rgba(239, 68, 68, 0.15);
 
   /* Editor-specific */
-  --editor-paper-bg: #1c2038;
+  --editor-paper-bg: #ffffff;
   --code-bg: #1a1a2e;
   --code-block-bg: #0f0f1a;
   --code-block-text: #d4d4d4;

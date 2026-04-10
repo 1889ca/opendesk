@@ -4,28 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenDesk Presentation</title>
+  <script src="theme-init.js"></script>
   <link rel="stylesheet" href="presentation.bundle.css">
 </head>
 <body>
-  <header class="toolbar">
-    <div class="toolbar-left">
-      <a href="/" class="back-link">Back to documents</a>
-      <span class="toolbar-separator"></span>
-      <input
-        id="doc-title"
-        class="doc-title-input"
-        type="text"
-        value="Loading..."
-        spellcheck="false"
-      />
-    </div>
-    <div class="toolbar-right">
-      <!-- Import/Export and KB buttons are injected by presentation-editor.ts -->
-      <button id="add-slide-btn" class="btn btn-secondary">Add Slide</button>
-      <span class="toolbar-separator"></span>
-      <span id="status" class="status disconnected">Connecting...</span>
-      <span class="users-label">Editors:</span>
-      <span id="users" class="users">-</span>
+  <header class="toolbar" id="app-toolbar">
+    <!-- Shared chrome (logo, title, status, users) injected by mountAppToolbar() in presentation-editor.ts -->
+    <!-- Remaining buttons (import/export, layout, theme, present) injected by presentation-editor.ts -->
+    <div class="toolbar-actions-slot">
+      <button id="add-slide-btn" class="btn btn-ghost btn-sm">Add Slide</button>
     </div>
   </header>
   <main class="presentation-wrapper">

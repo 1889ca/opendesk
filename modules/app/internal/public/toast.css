@@ -1,0 +1,104 @@
+/* ==========================================================================
+   Toast notification system
+   Slide-in from the right, stack vertically bottom-right, auto-dismiss.
+   ========================================================================== */
+
+.toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+  width: 20rem;
+  max-width: calc(100vw - 3rem);
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: 0 4px 16px var(--shadow-heavy);
+  pointer-events: all;
+  animation: toast-slide-in 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.toast--dismissing {
+  animation: toast-fade-out 0.3s ease forwards;
+}
+
+.toast--success {
+  border-left: 4px solid var(--status-connected);
+}
+
+.toast--error {
+  border-left: 4px solid var(--status-disconnected);
+}
+
+.toast--info {
+  border-left: 4px solid var(--accent-color);
+}
+
+.toast-message {
+  flex: 1;
+}
+
+.toast-dismiss {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+  line-height: 1;
+  padding: 0 0.125rem;
+  border-radius: 3px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.toast-dismiss:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.toast-dismiss:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes toast-fade-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+    max-height: 6rem;
+    margin-bottom: 0;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(30%);
+    max-height: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}

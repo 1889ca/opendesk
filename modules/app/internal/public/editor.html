@@ -6,36 +6,20 @@
   <title>OpenDesk</title>
   <link rel="stylesheet" href="editor.bundle.css">
   <link rel="stylesheet" href="entity-mentions.css">
-  <script>
-    // Apply stored theme immediately to prevent flash of wrong theme
-    (function() {
-      var stored = localStorage.getItem('opendesk-theme');
-      var theme = stored === 'dark' ? 'dark'
-        : stored === 'light' ? 'light'
-        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      document.documentElement.setAttribute('data-theme', theme);
-    })();
-  </script>
+  <script src="theme-init.js"></script>
 </head>
 <body>
-  <header class="toolbar" role="banner">
-    <div class="toolbar-left">
-      <a href="/" class="back-link">Back to documents</a>
-      <span class="breadcrumb-sep" aria-hidden="true">›</span>
-      <input
-        id="doc-title"
-        class="doc-title-input"
-        type="text"
-        value="Loading..."
-        spellcheck="false"
-      />
-    </div>
-    <div class="toolbar-right">
+  <div class="editor-top-chrome">
+  <header class="toolbar" id="app-toolbar">
+    <!-- Shared chrome (logo, title, status, users) injected by mountAppToolbar() in editor.ts -->
+    <div class="toolbar-actions-slot">
+      <button id="page-setup-btn" class="btn btn-ghost btn-sm" title="Page setup (paper size, orientation)">Page Setup</button>
+      <span class="toolbar-separator"></span>
       <div class="export-group">
-        <button id="import-file" class="export-btn" title="Import .docx, .odt, or .pdf">Import</button>
+        <button id="import-file" class="btn btn-ghost btn-sm" title="Import .docx, .odt, or .pdf">Import</button>
         <span class="toolbar-separator"></span>
         <div class="export-dropdown">
-          <button class="export-btn export-dropdown-toggle" aria-haspopup="true" aria-expanded="false" title="Export document">Export &#9660;</button>
+          <button class="btn btn-ghost btn-sm export-dropdown-toggle" aria-haspopup="true" aria-expanded="false" title="Export document">Export &#9660;</button>
           <div class="export-dropdown-menu" hidden>
             <button id="export-html" class="export-dropdown-item" title="Export as HTML">HTML</button>
             <button id="export-text" class="export-dropdown-item" title="Export as plain text">Text</button>
@@ -45,19 +29,26 @@
         </div>
       </div>
       <span class="toolbar-separator"></span>
-      <button id="share-btn" class="export-btn share-btn" title="Share this document">Share</button>
+      <button id="ruler-toggle" class="btn btn-ghost btn-sm" title="Show or hide the document ruler" aria-pressed="true">Hide Ruler</button>
       <span class="toolbar-separator"></span>
-      <span id="status" class="status disconnected">Connecting...</span>
-      <span class="users-section" id="users-section" hidden>
-        <span class="users-label">Editors:</span>
-        <span id="users" class="users"></span>
-      </span>
+      <div class="zoom-control" id="zoom-control">
+        <button class="btn btn-ghost btn-sm zoom-btn" id="zoom-out" title="Zoom out (−)">−</button>
+        <span id="zoom-level" class="zoom-level">100%</span>
+        <button class="btn btn-ghost btn-sm zoom-btn" id="zoom-in" title="Zoom in (+)">+</button>
+      </div>
       <span class="toolbar-separator"></span>
-      <span id="lang-switcher"></span>
+      <button id="insert-page-number" class="btn btn-ghost btn-sm" title="Insert page number into footer">Page #</button>
+      <span class="toolbar-separator"></span>
+      <button id="share-btn" class="btn btn-ghost btn-sm share-btn" title="Share this document">Share</button>
     </div>
   </header>
   <div id="formatting-toolbar" class="formatting-toolbar"></div>
+  <div id="ruler-h" class="ruler-h" aria-hidden="true"></div>
+  </div><!-- /.editor-top-chrome -->
   <main class="editor-wrapper" role="main" aria-label="Document editor">
+    <div class="editor-canvas-title-wrap">
+      <input type="text" id="canvas-doc-title" class="editor-canvas-title" placeholder="Untitled document" aria-label="Document title" spellcheck="false">
+    </div>
     <div id="editor"></div>
   </main>
 

@@ -28,6 +28,16 @@ export const APPLY_SEARCH_SCHEMA = `
 
   CREATE INDEX IF NOT EXISTS idx_documents_search
     ON documents USING GIN (search_vector);
+
+  DO $$
+  BEGIN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = 'documents' AND column_name = 'content_plain'
+    ) THEN
+      ALTER TABLE documents ADD COLUMN content_plain TEXT;
+    END IF;
+  END $$;
 `;
 
 /**

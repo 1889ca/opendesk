@@ -5,6 +5,7 @@
 export interface CoreTranslationKeys {
   'toolbar.bold': string;
   'toolbar.italic': string;
+  'toolbar.underline': string;
   'toolbar.strike': string;
   'toolbar.code': string;
   'toolbar.superscript': string;
@@ -17,6 +18,7 @@ export interface CoreTranslationKeys {
   'toolbar.blockquote': string;
   'toolbar.codeBlock': string;
   'toolbar.horizontalRule': string;
+  'toolbar.link': string;
   'toolbar.image': string;
   'toolbar.find': string;
   'toolbar.comment': string;
@@ -72,9 +74,15 @@ export interface CoreTranslationKeys {
   'docList.sortCreated': string;
   'docList.sortNameAZ': string;
   'docList.sortNameZA': string;
+  'docList.sortUpdatedAsc': string;
+  'docList.sortCreatedAsc': string;
   'docList.pageOf': string;
   'docList.prevPage': string;
   'docList.nextPage': string;
+  'docList.count': string;
+  'docList.countFiltered': string;
+  'docList.starred': string;
+  'docList.created': string;
   'time.justNow': string;
   'time.secondsAgo': string;
   'time.minuteAgo': string;
@@ -125,4 +133,7 @@ export interface CoreTranslationKeys {
   'nav.knowledgeBase': string;
   'nav.newDocument': string;
   'nav.recent': string;
+
+  // Footnotes
+  'toolbar.footnote': string;
 }
