@@ -22,23 +22,12 @@ export {
   REFERENCE_TYPES,
 } from './contract.ts';
 
-// Reference CRUD
-export {
-  createReference,
-  getReference,
-  listReferences,
-  updateReference,
-  deleteReference,
-  findByDOI,
-} from './internal/pg-references.ts';
+// Store factories (DI-friendly) — callers pass pool and get a store object
+export { createReferencesStore } from './internal/pg-references.ts';
+export type { ReferencesStore } from './internal/pg-references.ts';
 
-// Citation tracking
-export {
-  linkCitation,
-  unlinkCitation,
-  listCitationsForDocument,
-  listDocumentsForReference,
-} from './internal/pg-citations.ts';
+export { createCitationsStore } from './internal/pg-citations.ts';
+export type { CitationsStore } from './internal/pg-citations.ts';
 
 // BibTeX import/export
 export { parseBibTeX } from './internal/bibtex-parser.ts';

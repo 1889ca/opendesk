@@ -8,7 +8,6 @@ import {
 } from '../contract.ts';
 import { searchSimilar } from './vector-store.ts';
 import type { Pool } from 'pg';
-import { pool as defaultPool } from '../../storage/internal/pool.ts';
 
 /**
  * Get source IDs of published KB entries in allowed corpus partitions.
@@ -16,7 +15,7 @@ import { pool as defaultPool } from '../../storage/internal/pool.ts';
  */
 async function getEligibleKbSourceIds(
   workspaceId: string,
-  pg: Pool = defaultPool,
+  pg: Pool,
 ): Promise<string[]> {
   const result = await pg.query<{ id: string }>(
     `SELECT id FROM kb_entries
@@ -35,7 +34,7 @@ async function getEligibleKbSourceIds(
 export async function ragQuery(
   provider: ModelProvider,
   options: RagQueryOptions,
-  pg: Pool = defaultPool,
+  pg: Pool,
 ): Promise<SemanticSearchResult[]> {
   const {
     workspaceId,
@@ -103,7 +102,7 @@ export async function ragQuery(
 export async function ragAnswer(
   provider: ModelProvider,
   options: RagQueryOptions,
-  pg: Pool = defaultPool,
+  pg: Pool,
 ): Promise<{ answer: string; sources: SemanticSearchResult[] }> {
   const sources = await ragQuery(provider, options, pg);
 

@@ -4,12 +4,7 @@ import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
-import {
-  createSnapshot,
-  getSnapshot,
-  listSnapshots,
-  getSnapshotEntries,
-} from '../index.ts';
+import type { KbSnapshotStore } from './pg-snapshots.ts';
 
 const WORKSPACE_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -24,11 +19,12 @@ const ListQuerySchema = z.object({
 
 export type KBSnapshotRoutesOptions = {
   permissions: PermissionsModule;
+  snapshotStore: KbSnapshotStore;
 };
 
 /** Mount KB snapshot routes for immutable entry-version captures. */
 export function createKBSnapshotRoutes(opts: KBSnapshotRoutesOptions): Router {
-  const { permissions } = opts;
+  const { permissions, snapshotStore } = opts;
   const router = Router();
 
   // Create a snapshot
@@ -42,7 +38,7 @@ export function createKBSnapshotRoutes(opts: KBSnapshotRoutesOptions): Router {
         res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
         return;
       }
-      const snapshot = await createSnapshot(WORKSPACE_ID, bodyResult.data.purpose, principal.id);
+      const snapshot = await snapshotStore.createSnapshot(WORKSPACE_ID, bodyResult.data.purpose, principal.id);
       res.status(201).json(snapshot);
     }),
   );
@@ -57,7 +53,7 @@ export function createKBSnapshotRoutes(opts: KBSnapshotRoutesOptions): Router {
         res.status(400).json({ error: 'Validation failed', issues: qr.error.issues });
         return;
       }
-      const snapshots = await listSnapshots(WORKSPACE_ID, qr.data);
+      const snapshots = await snapshotStore.listSnapshots(WORKSPACE_ID, qr.data);
       res.json(snapshots);
     }),
   );
@@ -67,7 +63,7 @@ export function createKBSnapshotRoutes(opts: KBSnapshotRoutesOptions): Router {
     '/:id',
     permissions.requireAuth,
     asyncHandler(async (req: Request, res: Response) => {
-      const snapshot = await getSnapshot(WORKSPACE_ID, String(req.params.id));
+      const snapshot = await snapshotStore.getSnapshot(WORKSPACE_ID, String(req.params.id));
       if (!snapshot) {
         res.status(404).json({ error: 'Snapshot not found' });
         return;
@@ -81,12 +77,12 @@ export function createKBSnapshotRoutes(opts: KBSnapshotRoutesOptions): Router {
     '/:id/entries',
     permissions.requireAuth,
     asyncHandler(async (req: Request, res: Response) => {
-      const snapshot = await getSnapshot(WORKSPACE_ID, String(req.params.id));
+      const snapshot = await snapshotStore.getSnapshot(WORKSPACE_ID, String(req.params.id));
       if (!snapshot) {
         res.status(404).json({ error: 'Snapshot not found' });
         return;
       }
-      const entries = await getSnapshotEntries(WORKSPACE_ID, snapshot.id);
+      const entries = await snapshotStore.getSnapshotEntries(WORKSPACE_ID, snapshot.id);
       res.json(entries);
     }),
   );

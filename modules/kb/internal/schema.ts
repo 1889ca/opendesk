@@ -1,5 +1,5 @@
 /** Contract: contracts/kb/rules.md */
-import { pool } from '../../storage/internal/pool.ts';
+import type { Pool } from 'pg';
 
 export const CREATE_KB_ENTRIES_TABLE = `
   CREATE TABLE IF NOT EXISTS kb_entries (
@@ -128,7 +128,7 @@ export const APPLY_KB_SEARCH_SCHEMA = `
 `;
 
 /** Initialize KB database tables. Safe to call multiple times. */
-export async function initKBSchema(): Promise<void> {
+export async function initKBSchema(pool: Pool): Promise<void> {
   await pool.query(CREATE_KB_ENTRIES_TABLE);
   await pool.query(CREATE_KB_ENTRIES_INDEXES);
   await pool.query(CREATE_KB_RELATIONSHIPS_TABLE);

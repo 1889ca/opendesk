@@ -4,16 +4,14 @@ import { Router, type Request, type Response } from 'express';
 import { randomUUID } from 'node:crypto';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
+import type { ReferencesStore, ReferenceRow } from './pg-references.ts';
 import {
-  createReference,
-  listReferences,
   parseBibTeX,
   serializeBibTeX,
   parseRIS,
   serializeRIS,
   ensureLibraryGrant,
   checkLibraryAccess,
-  type ReferenceRow,
   type Reference,
   type Author,
 } from '../index.ts';
@@ -47,13 +45,14 @@ function rowToReference(row: ReferenceRow): Reference {
 
 export type ImportExportRoutesOptions = {
   permissions: PermissionsModule;
+  referencesStore: ReferencesStore;
 };
 
 /**
  * Mount reference import/export routes onto a router.
  */
 export function createImportExportRoutes(opts: ImportExportRoutesOptions): Router {
-  const { permissions } = opts;
+  const { permissions, referencesStore } = opts;
   const router = Router();
 
   // Import references from BibTeX or RIS
@@ -108,7 +107,7 @@ export function createImportExportRoutes(opts: ImportExportRoutesOptions): Route
     const created = [];
     for (const input of parsed) {
       const id = randomUUID();
-      const row = await createReference(id, workspaceId, principal.id, {
+      const row = await referencesStore.createReference(id, workspaceId, principal.id, {
         title: input.title,
         authors: input.authors,
         type: input.type,
@@ -148,7 +147,7 @@ export function createImportExportRoutes(opts: ImportExportRoutesOptions): Route
       res.status(403).json({ error: 'No read access to reference library' });
       return;
     }
-    const rows = await listReferences(workspaceId);
+    const rows = await referencesStore.listReferences(workspaceId);
     const refs = rows.map(rowToReference);
 
     if (format === 'bibtex') {

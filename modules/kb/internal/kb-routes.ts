@@ -5,15 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
-import {
-  createEntry,
-  getEntry,
-  listEntries,
-  listPublishedEntries,
-  updateEntry,
-  deleteEntry,
-  transitionStatus,
-} from './pg-entries.ts';
+import type { KbEntryStore } from './pg-entries.ts';
 import { validateTransition } from './lifecycle.ts';
 import { KbEntryStatusSchema } from '../contract.ts';
 import { CreateEntryInputSchema as KbEntryCreateInputSchema, UpdateEntryInputSchema as KbEntryUpdateInputSchema } from './schemas.ts';
@@ -29,13 +21,14 @@ const ListQuery = z.object({
 
 export type KbRoutesOptions = {
   permissions: PermissionsModule;
+  entryStore: KbEntryStore;
 };
 
 /**
  * Mount KB entry CRUD + lifecycle routes onto a router.
  */
 export function createKbRoutes(opts: KbRoutesOptions): Router {
-  const { permissions } = opts;
+  const { permissions, entryStore } = opts;
   const router = Router();
 
   // List KB entries
@@ -49,12 +42,12 @@ export function createKbRoutes(opts: KbRoutesOptions): Router {
     const { status, publishedOnly } = queryResult.data;
 
     if (publishedOnly) {
-      const entries = await listPublishedEntries(workspaceId);
+      const entries = await entryStore.listPublishedEntries(workspaceId);
       res.json(entries);
       return;
     }
 
-    const entries = await listEntries(workspaceId, status);
+    const entries = await entryStore.listEntries(workspaceId, status);
     res.json(entries);
   }));
 
@@ -68,13 +61,13 @@ export function createKbRoutes(opts: KbRoutesOptions): Router {
     const id = randomUUID();
     const principal = req.principal!;
     const workspaceId = '00000000-0000-0000-0000-000000000000';
-    const entry = await createEntry(id, workspaceId, principal.id, bodyResult.data);
+    const entry = await entryStore.createEntry(id, workspaceId, principal.id, bodyResult.data);
     res.status(201).json(entry);
   }));
 
   // Get single KB entry
   router.get('/:id', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
-    const entry = await getEntry(String(req.params.id));
+    const entry = await entryStore.getEntry(String(req.params.id));
     if (!entry) {
       res.status(404).json({ error: 'KB entry not found' });
       return;
@@ -90,7 +83,7 @@ export function createKbRoutes(opts: KbRoutesOptions): Router {
       return;
     }
     const principal = req.principal!;
-    const updated = await updateEntry(String(req.params.id), principal.id, bodyResult.data);
+    const updated = await entryStore.updateEntry(String(req.params.id), principal.id, bodyResult.data);
     if (!updated) {
       res.status(404).json({ error: 'KB entry not found' });
       return;
@@ -106,7 +99,7 @@ export function createKbRoutes(opts: KbRoutesOptions): Router {
       return;
     }
 
-    const entry = await getEntry(String(req.params.id));
+    const entry = await entryStore.getEntry(String(req.params.id));
     if (!entry) {
       res.status(404).json({ error: 'KB entry not found' });
       return;
@@ -118,13 +111,13 @@ export function createKbRoutes(opts: KbRoutesOptions): Router {
       return;
     }
 
-    const updated = await transitionStatus(entry.id, bodyResult.data.to);
+    const updated = await entryStore.transitionStatus(entry.id, bodyResult.data.to);
     res.json({ ok: true, entry: updated, previousStatus: entry.status });
   }));
 
   // Delete KB entry
   router.delete('/:id', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
-    const deleted = await deleteEntry(String(req.params.id));
+    const deleted = await entryStore.deleteEntry(String(req.params.id));
     if (!deleted) {
       res.status(404).json({ error: 'KB entry not found' });
       return;

@@ -1,5 +1,5 @@
 /** Contract: contracts/kb/rules.md */
-import { pool } from '../../storage/internal/pool.ts';
+import type { Pool } from 'pg';
 import type { KBEntry } from './types.ts';
 
 interface EntryRow {
@@ -34,33 +34,45 @@ function rowToEntry(row: EntryRow): KBEntry {
   };
 }
 
-/**
- * Find all entries that reference a given entry via relationships.
- * Returns entries that have an outgoing relationship targeting the given entryId.
- */
-export async function getReverseDependencies(
-  workspaceId: string,
-  entryId: string,
-  relationType?: string,
-): Promise<KBEntry[]> {
-  const params: unknown[] = [workspaceId, entryId];
-  let typeFilter = '';
+export interface KbReverseDepsStore {
+  getReverseDependencies(
+    workspaceId: string,
+    entryId: string,
+    relationType?: string,
+  ): Promise<KBEntry[]>;
+}
 
-  if (relationType) {
-    typeFilter = 'AND r.relation_type = $3';
-    params.push(relationType);
+export function createKbReverseDepsStore(pool: Pool): KbReverseDepsStore {
+  /**
+   * Find all entries that reference a given entry via relationships.
+   * Returns entries that have an outgoing relationship targeting the given entryId.
+   */
+  async function getReverseDependencies(
+    workspaceId: string,
+    entryId: string,
+    relationType?: string,
+  ): Promise<KBEntry[]> {
+    const params: unknown[] = [workspaceId, entryId];
+    let typeFilter = '';
+
+    if (relationType) {
+      typeFilter = 'AND r.relation_type = $3';
+      params.push(relationType);
+    }
+
+    const sql = `
+      SELECT DISTINCT e.*
+      FROM kb_entries e
+      JOIN kb_relationships r ON r.source_id = e.id
+      WHERE e.workspace_id = $1
+        AND r.target_id = $2
+        ${typeFilter}
+      ORDER BY e.updated_at DESC
+    `;
+
+    const result = await pool.query<EntryRow>(sql, params);
+    return result.rows.map(rowToEntry);
   }
 
-  const sql = `
-    SELECT DISTINCT e.*
-    FROM kb_entries e
-    JOIN kb_relationships r ON r.source_id = e.id
-    WHERE e.workspace_id = $1
-      AND r.target_id = $2
-      ${typeFilter}
-    ORDER BY e.updated_at DESC
-  `;
-
-  const result = await pool.query<EntryRow>(sql, params);
-  return result.rows.map(rowToEntry);
+  return { getReverseDependencies };
 }

@@ -4,7 +4,8 @@ import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
-import { listVersions as listEntryVersions, getVersion as getEntryVersion } from './pg-versions.ts';
+import type { KbEntryStore } from './pg-entries.ts';
+import type { KbVersionStore } from './pg-versions.ts';
 import { resolveReference, parseKbUri } from './resolve-ref.ts';
 
 const ResolveBody = z.object({
@@ -18,6 +19,8 @@ const ResolveBody = z.object({
 
 export type KbVersionRoutesOptions = {
   permissions: PermissionsModule;
+  entryStore: KbEntryStore;
+  versionStore: KbVersionStore;
 };
 
 /**
@@ -25,12 +28,12 @@ export type KbVersionRoutesOptions = {
  * Mounted under /api/kb/:id/versions and /api/kb/resolve.
  */
 export function createKbVersionRoutes(opts: KbVersionRoutesOptions): Router {
-  const { permissions } = opts;
+  const { permissions, entryStore, versionStore } = opts;
   const router = Router({ mergeParams: true });
 
   // List versions for a KB entry
   router.get('/:id/versions', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
-    const versions = await listEntryVersions(String(req.params.id));
+    const versions = await versionStore.listVersions(String(req.params.id));
     res.json(versions);
   }));
 
@@ -41,7 +44,7 @@ export function createKbVersionRoutes(opts: KbVersionRoutesOptions): Router {
       res.status(400).json({ error: 'Invalid version number' });
       return;
     }
-    const ver = await getEntryVersion(String(req.params.id), version);
+    const ver = await versionStore.getVersion(String(req.params.id), version);
     if (!ver) {
       res.status(404).json({ error: 'Version not found' });
       return;
@@ -70,7 +73,7 @@ export function createKbVersionRoutes(opts: KbVersionRoutesOptions): Router {
       ref = { entryId: entryId!, version: version! };
     }
 
-    const result = await resolveReference(ref);
+    const result = await resolveReference(ref, entryStore, versionStore);
     if (!result.ok) {
       const status = result.code === 'ENTRY_NOT_FOUND' || result.code === 'VERSION_NOT_FOUND' ? 404 : 422;
       res.status(status).json({ error: result.message, code: result.code });

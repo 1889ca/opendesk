@@ -5,12 +5,8 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
+import type { ReferencesStore, ReferenceRow, ReferenceUpdates } from './pg-references.ts';
 import {
-  createReference,
-  getReference as defaultGetReference,
-  listReferences,
-  updateReference,
-  deleteReference,
   lookupDOI,
   lookupISBN,
   ensureLibraryGrant,
@@ -23,7 +19,7 @@ import {
  * mocking pg or coupling route tests to the database layer.
  */
 export type ReferenceLookupFns = {
-  getReference: typeof defaultGetReference;
+  getReference: (id: string) => Promise<ReferenceRow | null>;
 };
 
 const CreateReferenceBody = z.object({
@@ -63,6 +59,12 @@ const ListReferencesQuery = z.object({
 export type ReferenceRoutesOptions = {
   permissions: PermissionsModule;
   /**
+   * The pg-backed references store. Required in production.
+   * Tests that only exercise auth/permission gates may omit this
+   * and inject a stub via `store` instead.
+   */
+  referencesStore?: ReferencesStore;
+  /**
    * Optional override for the references store lookup functions.
    * Production wires the pg-backed defaults; tests inject in-memory
    * functions so the route's auth/permission gates can be exercised
@@ -78,7 +80,9 @@ const DEFAULT_WORKSPACE_ID = '00000000-0000-0000-0000-000000000000';
  */
 export function createReferenceRoutes(opts: ReferenceRoutesOptions): Router {
   const { permissions } = opts;
-  const getReference = opts.store?.getReference ?? defaultGetReference;
+  const referencesStore = opts.referencesStore;
+  const getReference = opts.store?.getReference
+    ?? ((id: string) => referencesStore!.getReference(id));
   const router = Router();
 
   /**
@@ -113,7 +117,7 @@ export function createReferenceRoutes(opts: ReferenceRoutesOptions): Router {
       return;
     }
     if (!await gateLibrary(req, res, 'read', /* ensureGrant */ true)) return;
-    const refs = await listReferences(queryResult.data.documentId ?? DEFAULT_WORKSPACE_ID);
+    const refs = await referencesStore!.listReferences(queryResult.data.documentId ?? DEFAULT_WORKSPACE_ID);
     res.json(refs);
   }));
 
@@ -127,7 +131,7 @@ export function createReferenceRoutes(opts: ReferenceRoutesOptions): Router {
     if (!await gateLibrary(req, res, 'write', /* ensureGrant */ true)) return;
     const id = randomUUID();
     const principal = req.principal!;
-    const ref = await createReference(id, DEFAULT_WORKSPACE_ID, principal.id, bodyResult.data);
+    const ref = await referencesStore!.createReference(id, DEFAULT_WORKSPACE_ID, principal.id, bodyResult.data as ReferenceUpdates & { title: string });
     res.status(201).json(ref);
   }));
 
@@ -154,8 +158,6 @@ export function createReferenceRoutes(opts: ReferenceRoutesOptions): Router {
   }));
 
   // Get single reference — gated on workspace read access (issue #129).
-  // Without this gate, any authenticated user could fetch any reference
-  // by UUID, bypassing the workspace/library grant system.
   router.get('/:id', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     if (!await gateLibrary(req, res, 'read')) return;
     const ref = await getReference(String(req.params.id));
@@ -174,7 +176,7 @@ export function createReferenceRoutes(opts: ReferenceRoutesOptions): Router {
       return;
     }
     if (!await gateLibrary(req, res, 'write')) return;
-    const updated = await updateReference(String(req.params.id), bodyResult.data);
+    const updated = await referencesStore!.updateReference(String(req.params.id), bodyResult.data);
     if (!updated) {
       res.status(404).json({ error: 'Reference not found' });
       return;
@@ -185,7 +187,7 @@ export function createReferenceRoutes(opts: ReferenceRoutesOptions): Router {
   // Delete reference
   router.delete('/:id', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     if (!await gateLibrary(req, res, 'delete')) return;
-    const deleted = await deleteReference(String(req.params.id));
+    const deleted = await referencesStore!.deleteReference(String(req.params.id));
     if (!deleted) {
       res.status(404).json({ error: 'Reference not found' });
       return;

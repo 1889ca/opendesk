@@ -1,5 +1,5 @@
 /** Contract: contracts/kb/rules.md */
-import { pool } from '../../storage/internal/pool.ts';
+import type { Pool } from 'pg';
 import type { KBEntry, KBSearchResult } from './types.ts';
 
 interface SearchRow {
@@ -40,60 +40,78 @@ function rowToSearchResult(row: SearchRow): KBSearchResult {
   };
 }
 
-/**
- * Full-text search across KB entries within a workspace.
- * Searches title and metadata using PostgreSQL tsvector.
- */
-export async function searchEntries(
-  workspaceId: string,
-  query: string,
-  options: { entryType?: string; corpus?: string; jurisdiction?: string; limit?: number; offset?: number } = {},
-): Promise<KBSearchResult[]> {
-  if (!query.trim()) return [];
+export interface KbSearchStore {
+  searchEntries(
+    workspaceId: string,
+    query: string,
+    options?: {
+      entryType?: string;
+      corpus?: string;
+      jurisdiction?: string;
+      limit?: number;
+      offset?: number;
+    },
+  ): Promise<KBSearchResult[]>;
+}
 
-  const params: unknown[] = [workspaceId, query];
-  const conditions: string[] = [
-    'workspace_id = $1',
-    "search_vector @@ plainto_tsquery('english', $2)",
-  ];
-  let paramIdx = 3;
+export function createKbSearchStore(pool: Pool): KbSearchStore {
+  /**
+   * Full-text search across KB entries within a workspace.
+   * Searches title and metadata using PostgreSQL tsvector.
+   */
+  async function searchEntries(
+    workspaceId: string,
+    query: string,
+    options: { entryType?: string; corpus?: string; jurisdiction?: string; limit?: number; offset?: number } = {},
+  ): Promise<KBSearchResult[]> {
+    if (!query.trim()) return [];
 
-  if (options.entryType) {
-    conditions.push(`entry_type = $${paramIdx}`);
-    params.push(options.entryType);
-    paramIdx++;
+    const params: unknown[] = [workspaceId, query];
+    const conditions: string[] = [
+      'workspace_id = $1',
+      "search_vector @@ plainto_tsquery('english', $2)",
+    ];
+    let paramIdx = 3;
+
+    if (options.entryType) {
+      conditions.push(`entry_type = $${paramIdx}`);
+      params.push(options.entryType);
+      paramIdx++;
+    }
+
+    if (options.corpus) {
+      conditions.push(`corpus = $${paramIdx}`);
+      params.push(options.corpus);
+      paramIdx++;
+    }
+
+    if (options.jurisdiction) {
+      conditions.push(`jurisdiction = $${paramIdx}`);
+      params.push(options.jurisdiction);
+      paramIdx++;
+    }
+
+    const limit = options.limit ?? 50;
+    const offset = options.offset ?? 0;
+
+    const sql = `SELECT *,
+      ts_rank(search_vector, plainto_tsquery('english', $2)) AS rank,
+      ts_headline(
+        'english',
+        coalesce(title, '') || ' ' || coalesce(metadata::text, ''),
+        plainto_tsquery('english', $2),
+        'StartSel=<mark>, StopSel=</mark>, MaxWords=35, MinWords=15'
+      ) AS snippet
+    FROM kb_entries
+    WHERE ${conditions.join(' AND ')}
+    ORDER BY rank DESC, updated_at DESC
+    LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
+
+    params.push(limit, offset);
+
+    const result = await pool.query<SearchRow>(sql, params);
+    return result.rows.map(rowToSearchResult);
   }
 
-  if (options.corpus) {
-    conditions.push(`corpus = $${paramIdx}`);
-    params.push(options.corpus);
-    paramIdx++;
-  }
-
-  if (options.jurisdiction) {
-    conditions.push(`jurisdiction = $${paramIdx}`);
-    params.push(options.jurisdiction);
-    paramIdx++;
-  }
-
-  const limit = options.limit ?? 50;
-  const offset = options.offset ?? 0;
-
-  const sql = `SELECT *,
-    ts_rank(search_vector, plainto_tsquery('english', $2)) AS rank,
-    ts_headline(
-      'english',
-      coalesce(title, '') || ' ' || coalesce(metadata::text, ''),
-      plainto_tsquery('english', $2),
-      'StartSel=<mark>, StopSel=</mark>, MaxWords=35, MinWords=15'
-    ) AS snippet
-  FROM kb_entries
-  WHERE ${conditions.join(' AND ')}
-  ORDER BY rank DESC, updated_at DESC
-  LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
-
-  params.push(limit, offset);
-
-  const result = await pool.query<SearchRow>(sql, params);
-  return result.rows.map(rowToSearchResult);
+  return { searchEntries };
 }

@@ -1,8 +1,8 @@
 /** Contract: contracts/kb/rules.md */
 import type { ResolvedReference, KbVersionRef } from '../contract.ts';
 export { parseKbUri, buildKbUri } from '../contract.ts';
-import { getEntry } from './pg-entries.ts';
-import { getVersion, getLatestVersion } from './pg-versions.ts';
+import type { KbEntryStore } from './pg-entries.ts';
+import type { KbVersionStore } from './pg-versions.ts';
 
 export interface ResolveError {
   ok: false;
@@ -25,8 +25,12 @@ export type ResolveResult = ResolveSuccess | ResolveError;
  * For "latest" resolution, the entry must be published.
  * For pinned resolution, any status is allowed (historical data).
  */
-export async function resolveReference(ref: KbVersionRef): Promise<ResolveResult> {
-  const entry = await getEntry(ref.entryId);
+export async function resolveReference(
+  ref: KbVersionRef,
+  entryStore: KbEntryStore,
+  versionStore: KbVersionStore,
+): Promise<ResolveResult> {
+  const entry = await entryStore.getEntry(ref.entryId);
   if (!entry) {
     return { ok: false, code: 'ENTRY_NOT_FOUND', message: 'KB entry not found' };
   }
@@ -35,7 +39,7 @@ export async function resolveReference(ref: KbVersionRef): Promise<ResolveResult
     if (entry.status !== 'published') {
       return { ok: false, code: 'NOT_PUBLISHED', message: 'Entry is not published' };
     }
-    const ver = await getLatestVersion(ref.entryId);
+    const ver = await versionStore.getLatestVersion(ref.entryId);
     if (!ver) {
       return { ok: false, code: 'VERSION_NOT_FOUND', message: 'No versions found' };
     }
@@ -53,7 +57,7 @@ export async function resolveReference(ref: KbVersionRef): Promise<ResolveResult
   }
 
   // Pinned version -- resolve regardless of current status
-  const ver = await getVersion(ref.entryId, ref.version);
+  const ver = await versionStore.getVersion(ref.entryId, ref.version);
   if (!ver) {
     return { ok: false, code: 'VERSION_NOT_FOUND', message: `Version ${ref.version} not found` };
   }

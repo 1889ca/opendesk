@@ -40,46 +40,38 @@ export type {
   LegacyReference,
 } from './contract.ts';
 
-// Public API — entry operations
-export {
-  createEntry,
-  getEntry,
-  updateEntry,
-  deleteEntry,
-  listEntries,
-  getVersionHistory,
-} from './internal/entries-store.ts';
+// Store factories (DI-friendly) — callers pass pool and get a store object
+export { createKbEntriesStore } from './internal/entries-store.ts';
+export type { KbEntriesStore } from './internal/entries-store.ts';
 
-// Public API — relationship operations
-export {
-  createRelationship,
-  deleteRelationship,
-  getRelationships,
-  getRelationshipById,
-} from './internal/relationships-store.ts';
+export { createKbRelationshipStore } from './internal/relationships-store.ts';
+export type { KbRelationshipStore } from './internal/relationships-store.ts';
 
-// Public API — search
-export { searchEntries } from './internal/search.ts';
+export { createKbSearchStore } from './internal/search.ts';
+export type { KbSearchStore } from './internal/search.ts';
 
-// Public API — reverse dependencies
-export { getReverseDependencies } from './internal/reverse-deps.ts';
+export { createKbReverseDepsStore } from './internal/reverse-deps.ts';
+export type { KbReverseDepsStore } from './internal/reverse-deps.ts';
 
-// Public API — lifecycle (pg-entries status + versions)
-export {
-  listPublishedEntries,
-  transitionStatus,
-} from './internal/pg-entries.ts';
+export { createKbEntryStore } from './internal/pg-entries.ts';
+export type { KbEntryStore } from './internal/pg-entries.ts';
+
+export { createKbVersionStore } from './internal/pg-versions.ts';
+export type { KbVersionStore } from './internal/pg-versions.ts';
+
+export { createKbEntityStore } from './internal/pg-entities.ts';
+export type { KbEntityStore } from './internal/pg-entities.ts';
+
+export { createKbDatasetStore } from './internal/pg-datasets.ts';
+export type { KbDatasetStore } from './internal/pg-datasets.ts';
+
+export { createKbSnapshotStore } from './internal/pg-snapshots.ts';
+export type { KbSnapshotStore } from './internal/pg-snapshots.ts';
 
 // Public API — lifecycle validation
 export { validateTransition } from './internal/lifecycle.ts';
 
-// Public API — version resolution
-export {
-  listVersions as listEntryVersions,
-  getVersion as getEntryVersion,
-} from './internal/pg-versions.ts';
-
-// Public API — reference resolution
+// Public API — reference resolution (takes store args)
 export {
   resolveReference,
   parseKbUri,
@@ -92,7 +84,7 @@ export {
   UpdateEntryInputSchema as KbEntryUpdateInputSchema,
 } from './internal/schemas.ts';
 
-// Schema initialization
+// Schema initialization (takes pool)
 export { initKBSchema } from './internal/schema.ts';
 
 // Entity directory schemas and types
@@ -127,44 +119,17 @@ export {
   STATUS_TRANSITIONS,
 } from './contract.ts';
 
-// Entity CRUD
-export {
-  createEntity,
-  getEntity,
-  listEntities,
-  updateEntity,
-  deleteEntity,
-  searchEntities,
-} from './internal/pg-entities.ts';
-
 // Content validation
 export {
   validateContent,
   validateContentSafe,
 } from './internal/validate-content.ts';
 
-// Dataset row operations
-export {
-  insertRows,
-  getRows,
-  getRowCount,
-  updateRow,
-  deleteRow,
-  clearRows,
-  replaceRows,
-} from './internal/pg-datasets.ts';
-
-// Row types
+// Row types (for consumers that need the DB shape)
 export type { EntityRow, EntityUpdates } from './internal/pg-entities.ts';
 export type { DatasetRow, DatasetRowInput } from './internal/pg-datasets.ts';
-
-// Snapshot operations
-export {
-  createSnapshot,
-  getSnapshot,
-  listSnapshots,
-  getSnapshotEntries,
-} from './internal/pg-snapshots.ts';
+export type { KbVersionRow } from './internal/pg-versions.ts';
+export type { KbEntryRow, KbEntryFields } from './internal/pg-entries.ts';
 
 // Snapshot types
 export type { KBSnapshot, EntryVersionMap, SnapshotEntry } from './internal/snapshot-types.ts';

@@ -1,4 +1,5 @@
 /** Contract: contracts/ai/rules.md */
+import type { Pool } from 'pg';
 import type { ModelProvider, EmbedderConfig, SourceType } from '../contract.ts';
 import { upsertChunks } from './vector-store.ts';
 
@@ -42,6 +43,7 @@ export async function embedSource(
   sourceType: SourceType,
   workspaceId: string,
   text: string,
+  pg: Pool,
   config: EmbedderConfig = DEFAULT_CONFIG,
 ): Promise<number> {
   const chunks = chunkText(text, config.chunkSize, config.chunkOverlap);
@@ -58,6 +60,6 @@ export async function embedSource(
     });
   }
 
-  await upsertChunks(sourceId, sourceType, workspaceId, embeddings);
+  await upsertChunks(sourceId, sourceType, workspaceId, embeddings, pg);
   return chunks.length;
 }

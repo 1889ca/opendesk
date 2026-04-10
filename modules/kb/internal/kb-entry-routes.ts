@@ -4,17 +4,11 @@ import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
+import type { KbEntriesStore } from './entries-store.ts';
+import type { KbSearchStore } from './search.ts';
+import type { KbRelationshipStore } from './relationships-store.ts';
+import type { KbReverseDepsStore } from './reverse-deps.ts';
 import {
-  createEntry,
-  getEntry,
-  updateEntry,
-  deleteEntry,
-  listEntries,
-  searchEntries,
-  getRelationships,
-  getReverseDependencies,
-  createRelationship,
-  deleteRelationship,
   EntryTypeSchema,
   CreateEntryInputSchema,
   UpdateEntryInputSchema,
@@ -38,11 +32,15 @@ const ListQuerySchema = z.object({
 
 export type KBEntryRoutesOptions = {
   permissions: PermissionsModule;
+  entriesStore: KbEntriesStore;
+  searchStore: KbSearchStore;
+  relationshipStore: KbRelationshipStore;
+  reverseDepsStore: KbReverseDepsStore;
 };
 
 /** Mount KB entry CRUD, search, and relationship routes. */
 export function createKBEntryRoutes(opts: KBEntryRoutesOptions): Router {
-  const { permissions } = opts;
+  const { permissions, entriesStore, searchStore, relationshipStore, reverseDepsStore } = opts;
   const router = Router();
 
   // List entries with optional filters
@@ -57,12 +55,12 @@ export function createKBEntryRoutes(opts: KBEntryRoutesOptions): Router {
       }
       const { entryType, tags, search, corpus, jurisdiction, limit, offset } = qr.data;
       if (search) {
-        const results = await searchEntries(WORKSPACE_ID, search, { entryType, corpus, jurisdiction, limit, offset });
+        const results = await searchStore.searchEntries(WORKSPACE_ID, search, { entryType, corpus, jurisdiction, limit, offset });
         res.json(results.map((r) => ({ ...r.entry, snippet: r.snippet, rank: r.rank })));
         return;
       }
       const parsedTags = tags ? tags.split(',').map((t) => t.trim()).filter(Boolean) : undefined;
-      const entries = await listEntries(WORKSPACE_ID, { entryType, tags: parsedTags, corpus, jurisdiction, limit, offset });
+      const entries = await entriesStore.listEntries(WORKSPACE_ID, { entryType, tags: parsedTags, corpus, jurisdiction, limit, offset });
       res.json(entries);
     }),
   );
@@ -83,7 +81,7 @@ export function createKBEntryRoutes(opts: KBEntryRoutesOptions): Router {
         res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
         return;
       }
-      const entry = await createEntry(bodyResult.data);
+      const entry = await entriesStore.createEntry(bodyResult.data);
       res.status(201).json(entry);
     }),
   );
@@ -93,7 +91,7 @@ export function createKBEntryRoutes(opts: KBEntryRoutesOptions): Router {
     '/:id',
     permissions.requireAuth,
     asyncHandler(async (req: Request, res: Response) => {
-      const entry = await getEntry(WORKSPACE_ID, String(req.params.id));
+      const entry = await entriesStore.getEntry(WORKSPACE_ID, String(req.params.id));
       if (!entry) {
         res.status(404).json({ error: 'Entry not found' });
         return;
@@ -114,7 +112,7 @@ export function createKBEntryRoutes(opts: KBEntryRoutesOptions): Router {
         res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
         return;
       }
-      const updated = await updateEntry(WORKSPACE_ID, String(req.params.id), bodyResult.data);
+      const updated = await entriesStore.updateEntry(WORKSPACE_ID, String(req.params.id), bodyResult.data);
       if (!updated) {
         res.status(404).json({ error: 'Entry not found' });
         return;
@@ -128,7 +126,7 @@ export function createKBEntryRoutes(opts: KBEntryRoutesOptions): Router {
     '/:id',
     permissions.requireAuth,
     asyncHandler(async (req: Request, res: Response) => {
-      const deleted = await deleteEntry(WORKSPACE_ID, String(req.params.id));
+      const deleted = await entriesStore.deleteEntry(WORKSPACE_ID, String(req.params.id));
       if (!deleted) {
         res.status(404).json({ error: 'Entry not found' });
         return;
@@ -145,7 +143,7 @@ export function createKBEntryRoutes(opts: KBEntryRoutesOptions): Router {
       const entryId = String(req.params.id);
       const direction = (req.query.direction as string) || 'both';
       const dir = direction === 'outgoing' || direction === 'incoming' ? direction : 'both';
-      const rels = await getRelationships(WORKSPACE_ID, entryId, dir);
+      const rels = await relationshipStore.getRelationships(WORKSPACE_ID, entryId, dir);
       res.json(rels);
     }),
   );
@@ -157,7 +155,7 @@ export function createKBEntryRoutes(opts: KBEntryRoutesOptions): Router {
     asyncHandler(async (req: Request, res: Response) => {
       const entryId = String(req.params.id);
       const relationType = req.query.relationType as string | undefined;
-      const deps = await getReverseDependencies(WORKSPACE_ID, entryId, relationType);
+      const deps = await reverseDepsStore.getReverseDependencies(WORKSPACE_ID, entryId, relationType);
       res.json(deps);
     }),
   );
@@ -173,7 +171,7 @@ export function createKBEntryRoutes(opts: KBEntryRoutesOptions): Router {
         res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
         return;
       }
-      const rel = await createRelationship(bodyResult.data);
+      const rel = await relationshipStore.createRelationship(bodyResult.data);
       res.status(201).json(rel);
     }),
   );
@@ -183,7 +181,7 @@ export function createKBEntryRoutes(opts: KBEntryRoutesOptions): Router {
     '/relationships/:relId',
     permissions.requireAuth,
     asyncHandler(async (req: Request, res: Response) => {
-      const deleted = await deleteRelationship(WORKSPACE_ID, String(req.params.relId));
+      const deleted = await relationshipStore.deleteRelationship(WORKSPACE_ID, String(req.params.relId));
       if (!deleted) {
         res.status(404).json({ error: 'Relationship not found' });
         return;

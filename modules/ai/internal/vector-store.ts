@@ -1,6 +1,5 @@
 /** Contract: contracts/ai/rules.md */
 import type { Pool } from 'pg';
-import { pool as defaultPool } from '../../storage/internal/pool.ts';
 import type { SourceType, SemanticSearchResult } from '../contract.ts';
 
 /** SQL to create the embeddings table with pgvector. */
@@ -34,7 +33,7 @@ export async function upsertChunks(
   sourceType: SourceType,
   workspaceId: string,
   chunks: Array<{ chunkIndex: number; chunkText: string; embedding: number[] }>,
-  pg: Pool = defaultPool,
+  pg: Pool,
 ): Promise<void> {
   const client = await pg.connect();
   try {
@@ -69,7 +68,7 @@ export async function upsertChunks(
 export async function deleteEmbeddings(
   sourceId: string,
   sourceType: SourceType,
-  pg: Pool = defaultPool,
+  pg: Pool,
 ): Promise<void> {
   await pg.query(
     'DELETE FROM embeddings WHERE source_id = $1 AND source_type = $2',
@@ -89,7 +88,7 @@ export async function searchSimilar(
     limit?: number;
     excludeSourceIds?: string[];
   } = {},
-  pg: Pool = defaultPool,
+  pg: Pool,
 ): Promise<SemanticSearchResult[]> {
   const { sourceTypes, limit = 10, excludeSourceIds } = options;
   const vectorStr = `[${queryEmbedding.join(',')}]`;

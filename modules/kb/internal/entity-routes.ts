@@ -5,13 +5,8 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
+import type { KbEntityStore } from './pg-entities.ts';
 import {
-  createEntity,
-  getEntity,
-  listEntities,
-  updateEntity,
-  deleteEntity,
-  searchEntities,
   EntityCreateInputSchema,
   EntityUpdateInputSchema,
   EntitySubtypeSchema,
@@ -26,13 +21,14 @@ const ListEntitiesQuery = z.object({
 
 export type EntityRoutesOptions = {
   permissions: PermissionsModule;
+  entityStore: KbEntityStore;
 };
 
 /**
  * Mount KB entity CRUD + search routes onto a router.
  */
 export function createEntityRoutes(opts: EntityRoutesOptions): Router {
-  const { permissions } = opts;
+  const { permissions, entityStore } = opts;
   const router = Router();
   const workspaceId = '00000000-0000-0000-0000-000000000000';
 
@@ -50,7 +46,7 @@ export function createEntityRoutes(opts: EntityRoutesOptions): Router {
         return;
       }
       const { subtype, q, limit } = queryResult.data;
-      const entities = await listEntities(workspaceId, {
+      const entities = await entityStore.listEntities(workspaceId, {
         subtype,
         query: q,
         limit,
@@ -69,7 +65,7 @@ export function createEntityRoutes(opts: EntityRoutesOptions): Router {
         res.json([]);
         return;
       }
-      const results = await searchEntities(workspaceId, q, 10);
+      const results = await entityStore.searchEntities(workspaceId, q, 10);
       res.json(
         results.map((e) => ({
           id: e.id,
@@ -106,7 +102,7 @@ export function createEntityRoutes(opts: EntityRoutesOptions): Router {
 
       const id = randomUUID();
       const principal = req.principal!;
-      const entity = await createEntity(id, workspaceId, principal.id, {
+      const entity = await entityStore.createEntity(id, workspaceId, principal.id, {
         ...bodyResult.data,
         content: contentResult.data,
       });
@@ -119,7 +115,7 @@ export function createEntityRoutes(opts: EntityRoutesOptions): Router {
     '/:id',
     permissions.requireAuth,
     asyncHandler(async (req: Request, res: Response) => {
-      const entity = await getEntity(String(req.params.id));
+      const entity = await entityStore.getEntity(String(req.params.id));
       if (!entity) {
         res.status(404).json({ error: 'Entity not found' });
         return;
@@ -156,7 +152,7 @@ export function createEntityRoutes(opts: EntityRoutesOptions): Router {
         }
       }
 
-      const updated = await updateEntity(
+      const updated = await entityStore.updateEntity(
         String(req.params.id),
         bodyResult.data,
       );
@@ -173,7 +169,7 @@ export function createEntityRoutes(opts: EntityRoutesOptions): Router {
     '/:id',
     permissions.requireAuth,
     asyncHandler(async (req: Request, res: Response) => {
-      const deleted = await deleteEntity(String(req.params.id));
+      const deleted = await entityStore.deleteEntity(String(req.params.id));
       if (!deleted) {
         res.status(404).json({ error: 'Entity not found' });
         return;

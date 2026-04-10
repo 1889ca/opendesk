@@ -4,15 +4,8 @@ import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
-import {
-  getEntry,
-  insertRows,
-  getRows,
-  getRowCount,
-  updateRow,
-  deleteRow,
-  replaceRows,
-} from '../index.ts';
+import type { KbEntriesStore } from './entries-store.ts';
+import type { KbDatasetStore } from './pg-datasets.ts';
 
 const WORKSPACE_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -38,26 +31,28 @@ const PaginationSchema = z.object({
 
 export type KBDatasetRoutesOptions = {
   permissions: PermissionsModule;
+  entriesStore: KbEntriesStore;
+  datasetStore: KbDatasetStore;
 };
-
-/** Verify the entry exists and is a dataset type. */
-async function requireDatasetEntry(entryId: string, res: Response): Promise<boolean> {
-  const entry = await getEntry(WORKSPACE_ID, entryId);
-  if (!entry) {
-    res.status(404).json({ error: 'Entry not found' });
-    return false;
-  }
-  if (entry.entryType !== 'dataset') {
-    res.status(400).json({ error: 'Entry is not a dataset' });
-    return false;
-  }
-  return true;
-}
 
 /** Mount dataset row CRUD routes under /api/kb/entries/:entryId/rows. */
 export function createKBDatasetRoutes(opts: KBDatasetRoutesOptions): Router {
-  const { permissions } = opts;
+  const { permissions, entriesStore, datasetStore } = opts;
   const router = Router({ mergeParams: true });
+
+  /** Verify the entry exists and is a dataset type. */
+  async function requireDatasetEntry(entryId: string, res: Response): Promise<boolean> {
+    const entry = await entriesStore.getEntry(WORKSPACE_ID, entryId);
+    if (!entry) {
+      res.status(404).json({ error: 'Entry not found' });
+      return false;
+    }
+    if (entry.entryType !== 'dataset') {
+      res.status(400).json({ error: 'Entry is not a dataset' });
+      return false;
+    }
+    return true;
+  }
 
   // List rows
   router.get(
@@ -71,8 +66,8 @@ export function createKBDatasetRoutes(opts: KBDatasetRoutesOptions): Router {
         res.status(400).json({ error: 'Validation failed', issues: qr.error.issues });
         return;
       }
-      const rows = await getRows(entryId, qr.data);
-      const total = await getRowCount(entryId);
+      const rows = await datasetStore.getRows(entryId, qr.data);
+      const total = await datasetStore.getRowCount(entryId);
       res.json({ rows, total });
     }),
   );
@@ -89,7 +84,7 @@ export function createKBDatasetRoutes(opts: KBDatasetRoutesOptions): Router {
         res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
         return;
       }
-      const inserted = await insertRows(entryId, bodyResult.data.rows, bodyResult.data.startIndex);
+      const inserted = await datasetStore.insertRows(entryId, bodyResult.data.rows, bodyResult.data.startIndex);
       res.status(201).json(inserted);
     }),
   );
@@ -106,7 +101,7 @@ export function createKBDatasetRoutes(opts: KBDatasetRoutesOptions): Router {
         res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
         return;
       }
-      const rows = await replaceRows(entryId, bodyResult.data.rows);
+      const rows = await datasetStore.replaceRows(entryId, bodyResult.data.rows);
       res.json({ rows, total: rows.length });
     }),
   );
@@ -124,7 +119,7 @@ export function createKBDatasetRoutes(opts: KBDatasetRoutesOptions): Router {
         res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
         return;
       }
-      const updated = await updateRow(rowId, entryId, bodyResult.data.data);
+      const updated = await datasetStore.updateRow(rowId, entryId, bodyResult.data.data);
       if (!updated) {
         res.status(404).json({ error: 'Row not found' });
         return;
@@ -141,7 +136,7 @@ export function createKBDatasetRoutes(opts: KBDatasetRoutesOptions): Router {
       const entryId = String(req.params.entryId);
       const rowId = String(req.params.rowId);
       if (!(await requireDatasetEntry(entryId, res))) return;
-      const deleted = await deleteRow(rowId, entryId);
+      const deleted = await datasetStore.deleteRow(rowId, entryId);
       if (!deleted) {
         res.status(404).json({ error: 'Row not found' });
         return;
