@@ -61,7 +61,7 @@ export function buildBubbleMenu(editor: Editor): void {
   const menu = document.createElement('div');
   menu.className = 'bubble-menu';
   menu.setAttribute('role', 'toolbar');
-  menu.setAttribute('aria-label', t('a11y.formattingToolbar'));
+  menu.setAttribute('aria-label', t('bubble.menuLabel'));
   document.body.appendChild(menu);
 
   const actions = buildActions(editor);

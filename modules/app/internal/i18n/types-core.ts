@@ -123,6 +123,7 @@ export interface CoreTranslationKeys {
   'bubble.underline': string;
   'bubble.link': string;
   'bubble.linkPrompt': string;
+  'bubble.menuLabel': string;
 
   // Version name dialog
   'versions.namePrompt': string;
