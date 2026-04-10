@@ -178,8 +178,14 @@
 }
 
 .toolbar-btn:hover {
-  background: var(--bg);
+  background: var(--bg-secondary, var(--bg));
   color: var(--text);
+  box-shadow: 0 0 0 2px var(--accent-shadow);
+}
+
+.toolbar-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .toolbar-btn.is-active {
@@ -299,7 +305,7 @@
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
-  background: var(--surface);
+  background: var(--bg-elevated, var(--surface));
   border: 1px solid var(--border);
   border-radius: 6px;
   box-shadow: 0 4px 12px var(--shadow-color, rgba(0, 0, 0, 0.12));
@@ -308,6 +314,12 @@
   display: flex;
   flex-direction: column;
   padding: 0.25rem;
+  animation: menu-in 120ms ease;
+}
+
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .export-dropdown-item {
@@ -570,7 +582,7 @@
 .link-popover {
   position: fixed;
   z-index: 500;
-  background: var(--surface);
+  background: var(--bg-elevated, var(--surface));
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 4px 16px var(--shadow-medium, rgba(0,0,0,0.2));

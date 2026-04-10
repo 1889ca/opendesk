@@ -4,9 +4,10 @@
 
 /* Light theme (default) */
 :root {
-  --bg-primary: #fafafa;
-  --bg-secondary: #f3f4f6;
+  --bg-primary: #f3f5f8;
+  --bg-secondary: #eaecf0;
   --bg-surface: #ffffff;
+  --bg-elevated: #f8f9fc;
   --editor-canvas-bg: #e8ecf0;
   --text-primary: #1a1a1a;
   --text-secondary: #666666;
@@ -65,13 +66,14 @@
 
 /* Dark theme */
 [data-theme="dark"] {
-  --bg-primary: #0e1019;
+  --bg-primary: #0d0f1a;
   --bg-secondary: #141726;
-  --bg-surface: #1c2038;
+  --bg-surface: #1e2235;
+  --bg-elevated: #242840;
   --editor-canvas-bg: #141726;
   --text-primary: #e4e4e7;
   --text-secondary: #9ca3af;
-  --border-color: #2e3655;
+  --border-color: #2a3050;
   --accent-color: #3b82f6;
   --accent-hover: #60a5fa;
   --toolbar-bg: #141726;
@@ -125,6 +127,11 @@
 
   /* Scrollbar styling */
   color-scheme: dark;
+}
+
+/* Body-level theme transition — smooth colour shift on mode toggle */
+body {
+  transition: background-color 300ms ease, color 200ms ease;
 }
 
 /* Theme toggle button */

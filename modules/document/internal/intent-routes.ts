@@ -4,6 +4,7 @@ import type { Hocuspocus } from '@hocuspocus/server';
 import * as Y from 'yjs';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { createDocumentRepository } from '../../storage/index.ts';
+import type { ColdStorageAdapter } from '../../storage/internal/cold-storage.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
 import { createIntentExecutor } from '../../collab/internal/intent-executor.ts';
 import { createDocumentMaterializer, computeRevisionId } from '../../collab/internal/document-materializer.ts';
@@ -23,6 +24,8 @@ const IntentBodySchema = DocumentIntentSchema.omit({ documentId: true });
 export interface IntentRoutesOptions {
   permissions: PermissionsModule;
   hocuspocus: Hocuspocus;
+  /** Optional cold storage adapter; enables transparent hot/cold tiering in getSnapshot. */
+  coldAdapter?: ColdStorageAdapter;
 }
 
 /**
@@ -36,10 +39,11 @@ export interface IntentRoutesOptions {
  *   503 { code } — document not loaded in memory (retry after opening the document)
  */
 export function createIntentRoutes(opts: IntentRoutesOptions): Router {
-  const { permissions, hocuspocus } = opts;
+  const { permissions, hocuspocus, coldAdapter } = opts;
 
   // DocumentRepository is stateless — create once per route factory invocation.
-  const repo = createDocumentRepository();
+  // Passing the cold adapter enables transparent hot/cold tiering in getSnapshot.
+  const repo = createDocumentRepository(coldAdapter);
   const materializer = createDocumentMaterializer({ repo });
 
   const executor = createIntentExecutor({

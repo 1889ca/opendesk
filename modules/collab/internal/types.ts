@@ -4,6 +4,7 @@ import type { TokenVerifier } from '../../auth/contract.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import type { EventBus } from '../../events/index.ts';
 import type { DocumentRepository } from '../../storage/contract.ts';
+import type { JournalStore } from './journal-store.ts';
 
 /**
  * External dependencies injected into the collab module.
@@ -30,4 +31,12 @@ export type CollabDependencies = {
    * Optional: when omitted, snapshot materialisation is disabled.
    */
   repo?: DocumentRepository;
+  /**
+   * Write-ahead operation journal — used for crash recovery.
+   * Every Yjs update is appended here before being applied in-memory.
+   * On document load, unmerged journal entries are replayed so no
+   * updates are lost between materializer flushes.
+   * Optional: when omitted, crash recovery journalling is disabled.
+   */
+  journalStore?: JournalStore;
 };

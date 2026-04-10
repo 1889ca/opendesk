@@ -88,4 +88,16 @@ export interface DocumentRepository {
 
   /** Retrieve the raw Yjs binary for a document. */
   getYjsBinary(docId: string): Promise<Buffer | null>;
+
+  /**
+   * Move document data from PostgreSQL hot tier to S3 cold tier.
+   * Optional: only present when the repository is wired with a ColdStorageAdapter.
+   */
+  archiveToCold?(docId: string): Promise<void>;
+
+  /**
+   * Restore document data from S3 cold tier back to PostgreSQL hot tier.
+   * Optional: only present when the repository is wired with a ColdStorageAdapter.
+   */
+  warmFromCold?(docId: string): Promise<void>;
 }

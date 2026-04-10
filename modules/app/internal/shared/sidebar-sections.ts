@@ -74,7 +74,7 @@ export async function loadStarred(container: HTMLElement): Promise<void> {
     const res = await apiFetch('/api/starred');
     if (!res.ok) return;
     const items: Array<{ id: string; title: string; document_type?: string }> = await res.json();
-    if (!items.length) { container.innerHTML = `<div class="ws-empty">${t('sidebar.noStarred')}</div>`; return; }
+    if (!items.length) { container.innerHTML = `<div class="ws-empty ws-empty--starred">${t('sidebar.noStarred')}</div>`; return; }
     for (const item of items) {
       const row = buildDocItem(item.id, item.title, item.document_type);
       const unstarBtn = document.createElement('button');

@@ -10,6 +10,8 @@ import { createPreviewRoutes } from './internal/preview-routes.ts';
 import { createStarredRoutes } from './internal/starred-routes.ts';
 import { createGlobalSearchRoutes } from './internal/global-search-routes.ts';
 import { createIntentRoutes } from './internal/intent-routes.ts';
+import { COLD_ADAPTER_KEY } from '../storage/manifest.ts';
+import type { ColdStorageAdapter } from '../storage/internal/cold-storage.ts';
 
 /**
  * Document module manifest.
@@ -102,6 +104,7 @@ export const manifest: OpenDeskManifest = {
         createIntentRoutes({
           permissions: ctx.permissions,
           hocuspocus: ctx.hocuspocus,
+          coldAdapter: ctx.get<ColdStorageAdapter>(COLD_ADAPTER_KEY),
         }),
     },
   ],

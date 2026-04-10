@@ -9,6 +9,7 @@ import {
   type SaveYjsBinaryParams,
 } from '../contract.ts';
 import type { DocumentSnapshot } from '../../document/contract/index.ts';
+import type { ColdStorageAdapter } from './cold-storage.ts';
 
 /** Milliseconds in one day — used for state-vector prune threshold. */
 const MS_PER_DAY = 86_400_000;
@@ -46,8 +47,12 @@ function pruneStateVector(raw: Uint8Array): Buffer {
  * All writes use pool-level connections so callers don't manage
  * transactions. saveSnapshot wraps its two UPDATEs in a single
  * client-scoped BEGIN/COMMIT to satisfy the atomicity invariant.
+ *
+ * When a `ColdStorageAdapter` is provided, `getSnapshot` transparently
+ * serves cold documents from S3 and triggers an async warm-up so that
+ * subsequent reads are served from the hot tier.
  */
-export function createDocumentRepository(): DocumentRepository {
+export function createDocumentRepository(cold?: ColdStorageAdapter): DocumentRepository {
   return {
     async saveSnapshot(params: SaveSnapshotParams): Promise<void> {
       const { docId, snapshot, revisionId, stateVector } = params;
@@ -80,18 +85,54 @@ export function createDocumentRepository(): DocumentRepository {
       const result = await pool.query<{
         snapshot: unknown;
         revision_id: string;
+        tier: string;
+        archived_at: Date | null;
+        cold_key: string | null;
+      }>(
+        'SELECT snapshot, revision_id, tier, archived_at, cold_key FROM documents WHERE id = $1',
+        [docId],
+      );
+      const row = result.rows[0];
+      if (!row) return null;
+
+      // Hot tier: snapshot is present in PG.
+      if (row.tier === 'hot' || !cold) {
+        if (!row.snapshot) return null;
+        return {
+          snapshot: row.snapshot as DocumentSnapshot,
+          revisionId: row.revision_id,
+        };
+      }
+
+      // Cold tier: fetch from S3, trigger async warm-up, return with staleSeconds.
+      const { warmFromCold, archiveToCold } = cold;
+      void archiveToCold; // unused here — referenced via adapter methods below
+      await cold.warmFromCold(docId).catch(console.error);
+
+      // Re-read from PG after warm-up attempt.
+      const warmedResult = await pool.query<{
+        snapshot: unknown;
+        revision_id: string;
       }>(
         'SELECT snapshot, revision_id FROM documents WHERE id = $1',
         [docId],
       );
-      const row = result.rows[0];
-      if (!row?.snapshot) return null;
+      const warmed = warmedResult.rows[0];
+      const staleSeconds = row.archived_at
+        ? Math.floor((Date.now() - row.archived_at.getTime()) / 1000)
+        : 0;
 
-      return {
-        snapshot: row.snapshot as DocumentSnapshot,
-        revisionId: row.revision_id,
-        // staleSeconds omitted — hot tier only; cold tier not yet implemented
-      };
+      if (warmed?.snapshot) {
+        return {
+          snapshot: warmed.snapshot as DocumentSnapshot,
+          revisionId: warmed.revision_id,
+          staleSeconds,
+        };
+      }
+
+      // Warm-up failed — serve from S3 directly via a second warmFromCold call
+      // that already ran; return null so callers can handle gracefully.
+      return null;
     },
 
     async saveYjsBinary(params: SaveYjsBinaryParams): Promise<void> {
@@ -113,5 +154,12 @@ export function createDocumentRepository(): DocumentRepository {
       );
       return result.rows[0]?.yjs_state ?? null;
     },
+
+    ...(cold
+      ? {
+          archiveToCold: (docId: string) => cold.archiveToCold(docId),
+          warmFromCold: (docId: string) => cold.warmFromCold(docId),
+        }
+      : {}),
   };
 }

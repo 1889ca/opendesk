@@ -10,6 +10,8 @@ import {
   serializeBibTeX,
   parseRIS,
   serializeRIS,
+  parseCSLJSON,
+  serializeCSLJSON,
   ensureLibraryGrant,
   checkLibraryAccess,
   type Reference,
@@ -70,9 +72,11 @@ export function createImportExportRoutes(opts: ImportExportRoutesOptions): Route
       parsed = parseBibTeX(body);
     } else if (contentType.includes('ris') || contentType.includes('x-ris')) {
       parsed = parseRIS(body);
+    } else if (contentType.includes('json') || contentType.includes('csl')) {
+      parsed = parseCSLJSON(body);
     } else {
       res.status(415).json({
-        error: 'Unsupported format. Use Content-Type: application/x-bibtex or application/x-ris',
+        error: 'Unsupported format. Use Content-Type: application/x-bibtex, application/x-ris, or application/json (CSL-JSON)',
       });
       return;
     }
@@ -134,8 +138,8 @@ export function createImportExportRoutes(opts: ImportExportRoutesOptions): Route
   // Export references as BibTeX or RIS
   router.get('/export', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
     const format = String(req.query.format ?? '').toLowerCase();
-    if (format !== 'bibtex' && format !== 'ris') {
-      res.status(400).json({ error: 'Query param "format" must be "bibtex" or "ris"' });
+    if (format !== 'bibtex' && format !== 'ris' && format !== 'csl') {
+      res.status(400).json({ error: 'Query param "format" must be "bibtex", "ris", or "csl"' });
       return;
     }
 
@@ -154,10 +158,14 @@ export function createImportExportRoutes(opts: ImportExportRoutesOptions): Route
       res.setHeader('Content-Type', 'application/x-bibtex; charset=utf-8');
       res.setHeader('Content-Disposition', 'attachment; filename="references.bib"');
       res.send(serializeBibTeX(refs));
-    } else {
+    } else if (format === 'ris') {
       res.setHeader('Content-Type', 'application/x-ris; charset=utf-8');
       res.setHeader('Content-Disposition', 'attachment; filename="references.ris"');
       res.send(serializeRIS(refs));
+    } else {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="references.json"');
+      res.send(serializeCSLJSON(refs));
     }
   }));
 

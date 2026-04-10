@@ -14,6 +14,7 @@ const EMPTY_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 
   + '<line x1="18" y1="38" x2="32" y2="38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>'
   + '</svg>';
 
+
 export function renderEmptyState(listEl: HTMLElement, onNewDocument?: () => void): void {
   const emptyEl = document.createElement('div');
   emptyEl.className = 'doc-list-empty';

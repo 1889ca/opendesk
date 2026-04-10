@@ -53,8 +53,10 @@ export interface ReferencesStore {
   ): Promise<ReferenceRow>;
   getReference(id: string): Promise<ReferenceRow | null>;
   listReferences(workspaceId: string): Promise<ReferenceRow[]>;
+  searchReferences(workspaceId: string, query: string): Promise<ReferenceRow[]>;
   updateReference(id: string, updates: ReferenceUpdates): Promise<ReferenceRow | null>;
   deleteReference(id: string): Promise<boolean>;
+  deleteReferences(ids: string[]): Promise<number>;
   findByDOI(workspaceId: string, doi: string): Promise<ReferenceRow | null>;
 }
 
@@ -152,6 +154,33 @@ export function createReferencesStore(pool: Pool): ReferencesStore {
     return (result.rowCount ?? 0) > 0;
   }
 
+  async function searchReferences(
+    workspaceId: string,
+    query: string,
+  ): Promise<ReferenceRow[]> {
+    // Use plainto_tsquery so plain-text phrases work without special syntax.
+    // Falls back to a LIKE scan on the generated tsvector column if FTS
+    // returns nothing (e.g. stopwords-only queries) — we keep it simple.
+    const result = await pool.query<ReferenceRow>(
+      `SELECT * FROM reference_entries
+       WHERE workspace_id = $1
+         AND search_vector @@ plainto_tsquery('english', $2)
+       ORDER BY ts_rank(search_vector, plainto_tsquery('english', $2)) DESC`,
+      [workspaceId, query],
+    );
+    return result.rows;
+  }
+
+  async function deleteReferences(ids: string[]): Promise<number> {
+    if (ids.length === 0) return 0;
+    // Build parameterised ANY clause.
+    const result = await pool.query(
+      'DELETE FROM reference_entries WHERE id = ANY($1::uuid[])',
+      [ids],
+    );
+    return result.rowCount ?? 0;
+  }
+
   async function findByDOI(
     workspaceId: string,
     doi: string,
@@ -163,5 +192,5 @@ export function createReferencesStore(pool: Pool): ReferencesStore {
     return result.rows[0] || null;
   }
 
-  return { createReference, getReference, listReferences, updateReference, deleteReference, findByDOI };
+  return { createReference, getReference, listReferences, searchReferences, updateReference, deleteReference, deleteReferences, findByDOI };
 }

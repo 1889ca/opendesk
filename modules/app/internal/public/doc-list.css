@@ -6,6 +6,7 @@
   flex-direction: column;
   align-items: center;
   padding: 2rem 1rem;
+  background: var(--bg-primary);
 }
 
 .doc-list {
@@ -118,6 +119,7 @@
 }
 
 .doc-row-wrapper:hover {
+  background: var(--bg-secondary);
   border-color: var(--accent);
   box-shadow: 0 4px 12px var(--accent-shadow, rgba(0, 0, 0, 0.1));
   transform: translateY(-2px);
@@ -552,7 +554,7 @@
 .btn-star {
   opacity: 0;
   background: none;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   padding: 0.35rem 0.4rem;
   font-size: 1rem;
   line-height: 1;
@@ -566,6 +568,10 @@
 }
 
 .doc-row-wrapper:hover .btn-star {
+  opacity: 0.7;
+}
+
+.doc-row-wrapper:hover .btn-star:hover {
   opacity: 1;
 }
 
@@ -691,12 +697,18 @@
   position: fixed;
   z-index: 500;
   min-width: 11rem;
-  background: var(--surface);
+  background: var(--bg-elevated, var(--surface));
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
   padding: 0.25rem 0;
   outline: none;
+  animation: menu-in 120ms ease;
+}
+
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .doc-context-item {

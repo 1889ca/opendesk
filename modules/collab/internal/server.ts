@@ -9,6 +9,7 @@ import { CompactionManager } from './compaction-manager.ts';
 import { createOnAuthenticate } from './authenticate.ts';
 import type { CollabConfig } from '../contract.ts';
 import type { CollabDependencies } from './types.ts';
+import type { JournalStore } from './journal-store.ts';
 import { HocuspocusConnectionFinder, subscribeGrantRevoked } from './grant-revoked-handler.ts';
 import { createDocumentMaterializer, type DocumentMaterializer } from './document-materializer.ts';
 import { createLogger } from '../../logger/index.ts';
@@ -31,6 +32,8 @@ export function createCollabServer(
 
   const onAuthenticate = createOnAuthenticate(deps.tokenVerifier, deps.permissions);
 
+  const journal: JournalStore | undefined = deps.journalStore;
+
   const materializer: DocumentMaterializer | null = deps.repo
     ? createDocumentMaterializer({
         repo: deps.repo,
@@ -49,14 +52,43 @@ export function createCollabServer(
     onAuthenticate,
 
     async onLoadDocument({ document, documentName }) {
+      // 1. Load base snapshot from persistent storage.
       const state = await loadYjsState(documentName);
       if (state) {
         Y.applyUpdate(document, state);
       }
+
+      // 2. Replay any unmerged journal entries so no updates are lost
+      //    between the last materializer flush and the previous crash/restart.
+      if (journal) {
+        const pending = await journal.getPendingUpdates(documentName);
+        if (pending.length > 0) {
+          log.info('replaying journal entries on load', {
+            documentName,
+            count: pending.length,
+          });
+          for (const entry of pending) {
+            Y.applyUpdate(document, entry.update);
+          }
+          // Mark replayed entries merged — they are now part of the in-memory
+          // state and will be captured by the next snapshot flush.
+          await journal.markMerged(pending.map((e) => e.id));
+        }
+      }
+
       return document;
     },
 
-    async onChange({ documentName, document }) {
+    async onChange({ documentName, document, update }) {
+      // Append the raw Yjs update to the journal BEFORE scheduling the
+      // debounced materializer flush.  If the process crashes before the
+      // snapshot is saved, the journal entry will be replayed on next load.
+      if (journal && update) {
+        journal.append(documentName, update).catch((err) => {
+          log.error('journal append failed', { documentName, error: String(err) });
+        });
+      }
+
       materializer?.schedule(documentName, document);
     },
 
