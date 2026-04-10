@@ -1,26 +1,25 @@
 /** Contract: contracts/app/rules.md */
 import { t, onLocaleChange } from '../i18n/index.ts';
 
-/** Keys that must always remain visible — never pushed to the overflow menu. */
+/** Keys that must always remain in the primary toolbar — never moved to overflow. */
 const NEVER_OVERFLOW = new Set([
   'toolbar.undo', 'toolbar.redo',
   'toolbar.stylePicker', 'toolbar.fontSize',
   'toolbar.bold', 'toolbar.italic', 'toolbar.underline',
 ]);
 
-/** Keys that overflow first when space is tight. */
-const LOW_PRIORITY = new Set([
-  'toolbar.print', 'toolbar.pdf',
-  'toolbar.references', 'toolbar.versions', 'toolbar.workflows',
-  'toolbar.saveToKb',
-]);
-
 /**
- * Detects available toolbar width via ResizeObserver and moves
- * buttons that don't fit into an overflow dropdown (⋯ menu).
+ * Sets up the More (···) overflow menu.
+ *
+ * alwaysOverflow items are pre-populated into the menu and NEVER restored
+ * to the primary toolbar, regardless of available width. Dynamic overflow
+ * of primary items (on narrow viewports) is layered on top.
  */
-export function setupToolbarOverflow(toolbar: HTMLElement): () => void {
-  const { wrapper, removeDocClickListener } = createOverflowWrapper(toolbar);
+export function setupToolbarOverflow(
+  toolbar: HTMLElement,
+  alwaysOverflow: HTMLElement[] = [],
+): () => void {
+  const { wrapper, removeDocClickListener } = createOverflowWrapper(toolbar, alwaysOverflow);
   const observer = new ResizeObserver(() => reflow(toolbar, wrapper));
   observer.observe(toolbar);
   const unsubLocale = onLocaleChange(() => {
@@ -29,9 +28,10 @@ export function setupToolbarOverflow(toolbar: HTMLElement): () => void {
   return () => { observer.disconnect(); removeDocClickListener(); unsubLocale(); };
 }
 
-function createOverflowWrapper(toolbar: HTMLElement): {
-  wrapper: HTMLElement; removeDocClickListener: () => void;
-} {
+function createOverflowWrapper(
+  toolbar: HTMLElement,
+  alwaysOverflow: HTMLElement[],
+): { wrapper: HTMLElement; removeDocClickListener: () => void } {
   const wrapper = document.createElement('div');
   wrapper.className = 'toolbar-overflow-wrapper';
 
@@ -45,6 +45,16 @@ function createOverflowWrapper(toolbar: HTMLElement): {
   const menu = document.createElement('div');
   menu.className = 'toolbar-overflow-menu';
   menu.setAttribute('role', 'menu');
+
+  // Pre-populate with always-overflow items (never restored to primary toolbar)
+  for (const el of alwaysOverflow) {
+    el.dataset.alwaysOverflow = '1';
+    // Separators are presentational, not interactive menu items
+    el.setAttribute('role', el.classList.contains('toolbar-separator') ? 'separator' : 'menuitem');
+    menu.appendChild(el);
+  }
+  // Always visible since there are permanent overflow items
+  if (alwaysOverflow.length) wrapper.style.display = 'flex';
 
   function closeMenu(): void {
     menu.classList.remove('is-open');
@@ -105,14 +115,16 @@ function reflow(toolbar: HTMLElement, wrapper: HTMLElement): void {
   const menu = wrapper.querySelector<HTMLElement>('.toolbar-overflow-menu');
   if (!menu) return;
 
-  // Restore all overflow items back to toolbar
+  // Restore dynamic overflow items back to toolbar — skip always-overflow items
   for (const el of Array.from(menu.querySelectorAll<HTMLElement>('[role="menuitem"]'))) {
+    if (el.dataset.alwaysOverflow) continue;
     el.removeAttribute('role');
     toolbar.insertBefore(el, wrapper);
   }
-  wrapper.style.display = 'none';
-  menu.classList.remove('is-open');
-  wrapper.querySelector('button')?.setAttribute('aria-expanded', 'false');
+
+  // Keep wrapper visible if there are always-overflow items; otherwise hide until needed
+  const hasAlways = !!menu.querySelector('[data-always-overflow]');
+  if (!hasAlways) wrapper.style.display = 'none';
 
   const WRAPPER_W = 48;
   const children = Array.from(toolbar.children).filter(
@@ -124,53 +136,22 @@ function reflow(toolbar: HTMLElement, wrapper: HTMLElement): void {
 
   const toOverflow: HTMLElement[] = [];
 
-  // Phase 1: low-priority items first
-  for (const el of children) {
+  // Phase 1: low-priority items first (right-to-left, non-NEVER_OVERFLOW)
+  for (const el of [...children].reverse()) {
     if (total + WRAPPER_W <= toolbar.clientWidth) break;
-    if (LOW_PRIORITY.has(el.getAttribute('data-i18n-key') ?? '')) {
+    if (!NEVER_OVERFLOW.has(el.getAttribute('data-i18n-key') ?? '')) {
       toOverflow.push(el);
       total -= el.offsetWidth + 4;
     }
   }
 
-  // Phase 2: neutral items right-to-left
-  if (total + WRAPPER_W > toolbar.clientWidth) {
-    for (const el of [...children].reverse()) {
-      if (total + WRAPPER_W <= toolbar.clientWidth) break;
-      if (!toOverflow.includes(el) && score(el) === 1) {
-        toOverflow.push(el);
-        total -= el.offsetWidth + 4;
-      }
-    }
-  }
-
-  // Phase 3: last resort — anything that isn't NEVER_OVERFLOW
-  if (total + WRAPPER_W > toolbar.clientWidth) {
-    for (const el of [...children].reverse()) {
-      if (total + WRAPPER_W <= toolbar.clientWidth) break;
-      if (!toOverflow.includes(el) && !NEVER_OVERFLOW.has(el.getAttribute('data-i18n-key') ?? '')) {
-        toOverflow.push(el);
-        total -= el.offsetWidth + 4;
-      }
-    }
-  }
-
   if (!toOverflow.length) return;
 
-  for (const el of sortByScore(toOverflow)) {
+  // Prepend dynamic overflow items before always-overflow items in menu
+  const firstAlways = menu.querySelector<HTMLElement>('[data-always-overflow]');
+  for (const el of toOverflow) {
     el.setAttribute('role', 'menuitem');
-    menu.appendChild(el);
+    menu.insertBefore(el, firstAlways);
   }
-  wrapper.style.display = 'block';
-}
-
-function score(el: HTMLElement): number {
-  const k = el.getAttribute('data-i18n-key') ?? '';
-  if (NEVER_OVERFLOW.has(k)) return -1;
-  if (LOW_PRIORITY.has(k)) return 2;
-  return 1;
-}
-
-function sortByScore(els: HTMLElement[]): HTMLElement[] {
-  return els.sort((a, b) => score(b) - score(a));
+  wrapper.style.display = 'flex';
 }

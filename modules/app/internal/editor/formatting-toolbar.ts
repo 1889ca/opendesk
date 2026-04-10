@@ -11,7 +11,7 @@ import { buildFontFamilySelect, buildFontSizeSelect, buildLineHeightSelect, buil
 import { buildColumnSelect } from './column-select.ts';
 import { type ToolbarButton, buildToolbarButtons, buildButtonTitle } from './formatting-toolbar-actions.ts';
 
-function renderToolbarButtons(
+export function renderToolbarButtons(
   toolbar: HTMLElement, buttons: ToolbarButton[], editor: Editor,
 ): void {
   for (const btnDef of buttons) {
@@ -32,7 +32,6 @@ function renderToolbarButtons(
     const titleText = buildButtonTitle(btnDef);
 
     if (iconSvg) {
-      // Icon mode: render SVG + visually-hidden label span
       btn.classList.add('toolbar-btn--icon');
       btn.innerHTML = iconSvg + `<span class="toolbar-btn-label">${labelText}</span>`;
     } else {
@@ -44,7 +43,6 @@ function renderToolbarButtons(
     btn.setAttribute('aria-label', ariaLabel);
 
     if (isActive) btn.setAttribute('aria-pressed', String(isActive()));
-    // Prevent mousedown from stealing focus from editor (#336).
     btn.addEventListener('mousedown', (e) => { e.preventDefault(); });
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -68,17 +66,56 @@ function renderToolbarButtons(
   }
 }
 
-/** Build the main formatting toolbar with all editor actions. */
+/** Build the overflow (More ···) item list: buttons + select rows. */
+function buildOverflowItems(overflowBtns: ToolbarButton[], editor: Editor): HTMLElement[] {
+  const temp = document.createElement('div');
+  renderToolbarButtons(temp, overflowBtns, editor);
+
+  const els = Array.from(temp.children) as HTMLElement[];
+
+  // Append select rows with labels at the end (document formatting)
+  const selectDivider = document.createElement('span');
+  selectDivider.className = 'toolbar-separator';
+  selectDivider.setAttribute('role', 'separator');
+  els.push(selectDivider);
+  els.push(buildSelectRow('Line spacing', buildLineHeightSelect(editor)));
+  els.push(buildSelectRow('Paragraph spacing', buildParagraphSpacingSelect(editor)));
+  els.push(buildSelectRow('Columns', buildColumnSelect(editor)));
+
+  return els;
+}
+
+function buildSelectRow(label: string, select: HTMLElement): HTMLElement {
+  const row = document.createElement('label');
+  row.className = 'overflow-select-row';
+  const span = document.createElement('span');
+  span.className = 'overflow-select-label';
+  span.textContent = label;
+  row.append(span, select);
+  return row;
+}
+
+/** Build the main formatting toolbar with primary actions + More (···) overflow menu. */
 export function buildFormattingToolbar(editor: Editor): void {
   const toolbar = document.getElementById('formatting-toolbar');
   if (!toolbar) return;
   toolbar.setAttribute('role', 'toolbar');
   toolbar.setAttribute('aria-label', t('a11y.formattingToolbar'));
   const editorEl = () => document.querySelector('.editor-content') as HTMLElement | null;
+
+  let overflowCleanup: (() => void) | null = null;
+
   const render = () => {
+    overflowCleanup?.();
     toolbar.innerHTML = '';
-    renderToolbarButtons(toolbar, buildToolbarButtons(editor), editor);
-    // Insert style select, font-family select and font-size select after the undo/redo separator (position 3)
+
+    const allButtons = buildToolbarButtons(editor);
+    const primaryBtns = allButtons.filter(b => !b.priority);
+    const overflowBtns = allButtons.filter(b => b.priority === 'overflow');
+
+    renderToolbarButtons(toolbar, primaryBtns, editor);
+
+    // Insert style / font / size selects at position 3 (after undo/redo/separator)
     const styleSelect = buildStyleSelect(editor);
     const fontFamilySelect = buildFontFamilySelect(editor);
     const fontSizeSelect = buildFontSizeSelect(editor);
@@ -87,25 +124,23 @@ export function buildFormattingToolbar(editor: Editor): void {
     toolbar.insertBefore(styleSelect, insertBefore);
     toolbar.insertBefore(fontFamilySelect, styleSelect.nextSibling);
     toolbar.insertBefore(fontSizeSelect, fontFamilySelect.nextSibling);
-    // Insert line-height select right after the font-size select
-    const lineHeightSelect = buildLineHeightSelect(editor);
-    toolbar.insertBefore(lineHeightSelect, fontSizeSelect.nextSibling);
-    // Insert paragraph spacing select after line-height select
-    const paraSpacingSelect = buildParagraphSpacingSelect(editor);
-    toolbar.insertBefore(paraSpacingSelect, lineHeightSelect.nextSibling);
-    // Append text color and highlight buttons
-    const colorBtn = buildTextColorBtn(editor);
-    toolbar.appendChild(colorBtn);
-    const highlightBtn = buildHighlightBtn(editor);
-    toolbar.appendChild(highlightBtn);
-    // Append column layout select (document-level control, goes last)
-    const columnSelect = buildColumnSelect(editor);
-    toolbar.appendChild(columnSelect);
+
+    // Append text color and highlight to primary toolbar
+    toolbar.appendChild(buildTextColorBtn(editor));
+    toolbar.appendChild(buildHighlightBtn(editor));
+
+    // Build overflow elements and set up the permanent More (···) menu
+    const overflowEls = buildOverflowItems(overflowBtns, editor);
+    overflowCleanup = setupToolbarOverflow(toolbar, overflowEls);
+
     updateRovingTabindex(toolbar);
   };
+
   render();
-  setupToolbarOverflow(toolbar);
   document.addEventListener('opendesk:suggest-mode-changed', render);
   enableToolbarNavigation(toolbar, editorEl);
-  onLocaleChange(() => { toolbar.setAttribute('aria-label', t('a11y.formattingToolbar')); render(); });
+  onLocaleChange(() => {
+    toolbar.setAttribute('aria-label', t('a11y.formattingToolbar'));
+    render();
+  });
 }
