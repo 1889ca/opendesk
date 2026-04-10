@@ -4,6 +4,7 @@ import { t, type TranslationKey } from '../i18n/index.ts';
 import { openImagePicker } from './image-handlers.ts';
 import { openDrawingDialog } from './drawing/index.ts';
 import { isSuggesting, setSuggesting } from './suggestions/suggest-mode.ts';
+import { showTableGridPicker } from './table-grid-picker.ts';
 import { printDocument, exportPdf } from '../shared/print-utils.ts';
 
 export interface ToolbarButton {
@@ -60,13 +61,9 @@ export function buildToolbarButtons(editor: Editor): ToolbarButton[] {
     { key: null, action: () => false },
     // ── Insert ────────────────────────────────────────────────────────
     { key: 'toolbar.link', icon: 'link', ariaKey: 'a11y.linkLabel', titleKey: 'shortcuts.link', action: (btn?: HTMLButtonElement) => { document.dispatchEvent(new CustomEvent('opendesk:open-link-popover', { detail: { anchor: btn } })); return true; }, passSelf: true, isActive: () => editor.isActive('link') },
-    { key: 'table.insert', icon: 'table', ariaKey: 'a11y.tableLabel', action: () => {
-      const { state } = editor;
-      const { $from } = state.selection;
-      const isEmptyParagraph = $from.parent.type.name === 'paragraph' && $from.parent.textContent === '';
-      const chain = editor.chain().focus();
-      if (!isEmptyParagraph) chain.createParagraphNear();
-      return chain.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+    { key: 'table.insert', icon: 'table', ariaKey: 'a11y.tableLabel', passSelf: true, action: (btn?: HTMLButtonElement) => {
+      if (btn) showTableGridPicker(editor, btn);
+      return true;
     } },
     { key: 'toolbar.image', icon: 'image', ariaKey: 'a11y.imageLabel', action: () => { openImagePicker(editor); return true; } },
     { key: 'toolbar.drawing', icon: 'drawing', ariaKey: 'a11y.drawingLabel', action: () => {
