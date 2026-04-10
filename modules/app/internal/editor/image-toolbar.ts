@@ -66,7 +66,7 @@ function hideToolbar(): void {
 export function initImageToolbar(editor: Editor): void {
   editor.on('selectionUpdate', () => {
     const { selection } = editor.state;
-    const node = selection.$anchor.nodeAfter ?? (editor.state as any).doc.nodeAt(selection.from);
+    const node = selection.$anchor.nodeAfter ?? editor.state.doc.nodeAt(selection.from);
 
     if (node?.type.name === 'image') {
       const dom = editor.view.nodeDOM(selection.from) as HTMLElement | null;
