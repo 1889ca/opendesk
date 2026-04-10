@@ -353,8 +353,43 @@
   border-color: var(--accent);
 }
 
-/* Breadcrumb separator between back link and doc title */
+/* Toolbar breadcrumb nav — wraps folder segments + title input */
+.toolbar-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+/* Breadcrumb separator (› or /) between segments */
 .breadcrumb-sep {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  opacity: 0.5;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Clickable folder segment links */
+.breadcrumb-folder-link {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 10rem;
+  flex-shrink: 1;
+  transition: color 0.15s;
+}
+
+.breadcrumb-folder-link:hover {
+  color: var(--text);
+}
+
+/* Collapsed middle segments ellipsis */
+.breadcrumb-ellipsis {
   font-size: 0.8125rem;
   color: var(--text-muted);
   opacity: 0.5;

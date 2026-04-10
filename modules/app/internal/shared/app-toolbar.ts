@@ -2,15 +2,8 @@
 
 /**
  * App Toolbar Shell — shared header chrome for all editor views.
- *
- * Each HTML page declares <header class="toolbar" id="app-toolbar">.
- * Page-specific action buttons live in a <div class="toolbar-actions-slot">
- * inside that header. mountAppToolbar() rescues that slot, builds the
- * standard left chrome (logo + title) and right chrome (status + users),
- * then reassembles them into a consistent layout.
- *
- * Because IDs are preserved, existing JS that uses getElementById() or
- * querySelector('.toolbar-right') continues to work unchanged.
+ * mountAppToolbar() builds the logo + breadcrumb left chrome and status + users right chrome.
+ * updateBreadcrumbFolder() updates folder segments after doc metadata loads.
  */
 
 const LOGO_SVG = `<svg class="logo-mark logo-mark--sm" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
@@ -41,6 +34,13 @@ export interface AppToolbarRefs {
   titleInputEl: HTMLInputElement;
 }
 
+export interface BreadcrumbSegment {
+  id: string;
+  name: string;
+}
+
+let breadcrumbNavEl: HTMLElement | null = null;
+
 function buildLeft(): HTMLElement {
   const left = document.createElement('div');
   left.className = 'toolbar-left';
@@ -51,10 +51,15 @@ function buildLeft(): HTMLElement {
   logoLink.setAttribute('aria-label', 'OpenDesk — back to documents');
   logoLink.innerHTML = LOGO_SVG;
 
-  const breadcrumb = document.createElement('span');
-  breadcrumb.className = 'breadcrumb-sep';
-  breadcrumb.setAttribute('aria-hidden', 'true');
-  breadcrumb.textContent = '›';
+  const breadcrumbNav = document.createElement('nav');
+  breadcrumbNav.className = 'toolbar-breadcrumb';
+  breadcrumbNav.setAttribute('aria-label', 'Document location');
+  breadcrumbNavEl = breadcrumbNav;
+
+  const sep = document.createElement('span');
+  sep.className = 'breadcrumb-sep';
+  sep.setAttribute('aria-hidden', 'true');
+  sep.textContent = '›';
 
   const titleInput = document.createElement('input');
   titleInput.id = 'doc-title';
@@ -63,8 +68,61 @@ function buildLeft(): HTMLElement {
   titleInput.value = 'Loading...';
   titleInput.spellcheck = false;
 
-  left.append(logoLink, breadcrumb, titleInput);
+  breadcrumbNav.append(sep, titleInput);
+  left.append(logoLink, breadcrumbNav);
   return left;
+}
+
+/** Update toolbar breadcrumb with folder hierarchy. Empty path = plain › separator. */
+export function updateBreadcrumbFolder(path: BreadcrumbSegment[]): void {
+  if (!breadcrumbNavEl) return;
+
+  const titleInput = document.getElementById('doc-title') as HTMLInputElement | null;
+  if (!titleInput) return;
+
+  breadcrumbNavEl.innerHTML = '';
+
+  if (path.length === 0) {
+    const sep = document.createElement('span');
+    sep.className = 'breadcrumb-sep';
+    sep.setAttribute('aria-hidden', 'true');
+    sep.textContent = '›';
+    breadcrumbNavEl.append(sep, titleInput);
+    return;
+  }
+
+  const MAX_SEGMENTS = 3;
+  const visible: (BreadcrumbSegment | null)[] = path.length > MAX_SEGMENTS
+    ? [path[0], null, ...path.slice(-(MAX_SEGMENTS - 1))]
+    : [...path];
+
+  for (const segment of visible) {
+    const slashSep = document.createElement('span');
+    slashSep.className = 'breadcrumb-sep';
+    slashSep.setAttribute('aria-hidden', 'true');
+    slashSep.textContent = '/';
+    breadcrumbNavEl.appendChild(slashSep);
+
+    if (segment === null) {
+      const ellipsis = document.createElement('span');
+      ellipsis.className = 'breadcrumb-ellipsis';
+      ellipsis.textContent = '…';
+      ellipsis.setAttribute('aria-hidden', 'true');
+      breadcrumbNavEl.appendChild(ellipsis);
+    } else {
+      const link = document.createElement('a');
+      link.className = 'breadcrumb-folder-link';
+      link.href = `/?folder=${encodeURIComponent(segment.id)}`;
+      link.textContent = segment.name;
+      breadcrumbNavEl.appendChild(link);
+    }
+  }
+
+  const finalSep = document.createElement('span');
+  finalSep.className = 'breadcrumb-sep';
+  finalSep.setAttribute('aria-hidden', 'true');
+  finalSep.textContent = '/';
+  breadcrumbNavEl.append(finalSep, titleInput);
 }
 
 function buildRight(actionsSlot: HTMLElement | null, usersHidden: boolean): {

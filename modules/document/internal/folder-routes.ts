@@ -96,6 +96,16 @@ export function createFolderRoutes(opts: FolderRoutesOptions): Router {
     res.json({ ok: true });
   }));
 
+  // Get folder by ID — requires auth (used by editor breadcrumb)
+  router.get('/:id', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
+    const folder = await getFolder(String(req.params.id));
+    if (!folder) {
+      res.status(404).json({ error: 'Folder not found' });
+      return;
+    }
+    res.json(folder);
+  }));
+
   // Delete folder — requires delete permission via grants
   router.delete('/:id', permissions.requireForResource('delete', 'folder'), asyncHandler(async (req: Request, res: Response) => {
     const folder = await getFolder(String(req.params.id));
