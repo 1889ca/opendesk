@@ -51,6 +51,13 @@ function buildLeft(): HTMLElement {
   logoLink.setAttribute('aria-label', 'OpenDesk — back to documents');
   logoLink.innerHTML = LOGO_SVG;
 
+  const backBtn = document.createElement('a');
+  backBtn.href = '/';
+  backBtn.className = 'back-btn';
+  backBtn.setAttribute('aria-label', 'Back to documents');
+  backBtn.title = 'Back to documents';
+  backBtn.textContent = '‹ Docs';
+
   const breadcrumb = document.createElement('span');
   breadcrumb.className = 'breadcrumb-sep';
   breadcrumb.setAttribute('aria-hidden', 'true');
@@ -63,7 +70,7 @@ function buildLeft(): HTMLElement {
   titleInput.value = 'Loading...';
   titleInput.spellcheck = false;
 
-  left.append(logoLink, breadcrumb, titleInput);
+  left.append(logoLink, backBtn, breadcrumb, titleInput);
   return left;
 }
 
