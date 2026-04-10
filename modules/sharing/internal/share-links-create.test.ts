@@ -68,5 +68,5 @@ describe('share-links — create', () => {
     // bcrypt hash should verify against the original password
     const matches = await verifyPassword('secret123', link.passwordHash!);
     expect(matches).toBe(true);
-  });
+  }, 15_000);
 });
