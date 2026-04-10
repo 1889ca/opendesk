@@ -38,6 +38,7 @@ function init() {
     document: ydoc,
     onConnect() { if (statusEl) { statusEl.textContent = 'Connected'; statusEl.className = 'status connected'; } },
     onDisconnect() { if (statusEl) { statusEl.textContent = 'Disconnected'; statusEl.className = 'status disconnected'; } },
+    onAuthenticationFailed() { if (statusEl) { statusEl.textContent = 'Auth failed'; statusEl.className = 'status error'; } },
   });
 
   const yslides = ydoc.getArray<Y.Map<unknown>>('slides');
@@ -76,16 +77,9 @@ function init() {
   }
 
   function handleContentUpdate(elementId: string, content: string) {
-    const yElements = getActiveYElements();
-    ydoc.transact(() => {
-      for (let i = 0; i < yElements.length; i++) {
-        const yel = yElements.get(i);
-        if (yel.get('id') === elementId) {
-          yel.set('content', content);
-          break;
-        }
-      }
-    });
+    const yEls = getActiveYElements();
+    const yel = [...Array(yEls.length)].map((_, i) => yEls.get(i)).find((y) => y.get('id') === elementId);
+    if (yel) ydoc.transact(() => yel.set('content', content));
   }
 
   function handleStyleUpdate(elementId: string, field: string, value: unknown) {
@@ -183,7 +177,10 @@ function init() {
     onChanged() { renderSlideList(); renderActiveSlide(); notesPanel.update(activeSlideIndex); },
   });
 
-  yslides.observeDeep(() => { renderSlideList(); renderActiveSlide(); notesPanel.update(activeSlideIndex); extras.updateTransitionPicker(); });
+  yslides.observeDeep(() => {
+    activeSlideIndex = Math.min(activeSlideIndex, Math.max(0, yslides.length - 1));
+    try { renderSlideList(); renderActiveSlide(); notesPanel.update(activeSlideIndex); extras.updateTransitionPicker(); } catch (err) { console.error('[slides] render error after Yjs update:', err); }
+  });
 
   // Presence
   provider.awareness?.setLocalStateField('user', user);
@@ -197,4 +194,7 @@ function init() {
   showUsers();
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  try { init(); }
+  catch (err) { console.error('[slides] init failed:', err); document.body.innerHTML = '<p style="padding:2rem">Presentation failed to load. Please refresh.</p>'; }
+});

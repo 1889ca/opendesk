@@ -71,6 +71,7 @@ export function createInteractionController(ctx: InteractionContext): Interactio
   }
 
   function handleMouseDown(e: MouseEvent) {
+    try {
     if (e.button !== 0) return;
     if (textEditCtrl?.isEditing()) {
       const target = e.target as HTMLElement;
@@ -116,9 +117,11 @@ export function createInteractionController(ctx: InteractionContext): Interactio
       marqueeStart = percent;
       e.preventDefault();
     }
+    } catch (err) { console.error('[slides] mousedown error:', err); mode = 'idle'; }
   }
 
   function handleMouseMove(e: MouseEvent) {
+    try {
     const percent = mouseToPercent(e, ctx.viewport);
     if (mode === 'dragging' && dragState) {
       const { elements } = ctx.getActiveSlideElements();
@@ -137,16 +140,16 @@ export function createInteractionController(ctx: InteractionContext): Interactio
       selection = selectByMarquee(elements, marqueeStart, percent);
       onSelectionChange();
     }
+    } catch (err) { console.error('[slides] mousemove error:', err); mode = 'idle'; dragState = null; }
   }
 
   function handleMouseUp() {
-    mode = 'idle';
-    dragState = resizeState = rotateState = null;
-    marqueeStart = null;
+    mode = 'idle'; dragState = resizeState = rotateState = null; marqueeStart = null;
     clearOverlays(ctx.viewport, 'snap-guides');
   }
 
   function handleKeyDown(e: KeyboardEvent) {
+    try {
     if (textEditCtrl?.isEditing()) {
       if (e.key === 'Escape') { e.preventDefault(); textEditCtrl.exitEditMode(); }
       return;
@@ -168,6 +171,7 @@ export function createInteractionController(ctx: InteractionContext): Interactio
       selection = selectNone();
       onSelectionChange();
     }
+    } catch (err) { console.error('[slides] keydown error:', err); }
   }
 
   const vp = ctx.viewport;
