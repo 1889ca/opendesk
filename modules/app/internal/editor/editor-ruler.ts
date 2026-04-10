@@ -183,7 +183,9 @@ export function initRuler(): void {
     state.visible = v;
     container.hidden = !v;
     if (toggleBtn) {
-      toggleBtn.textContent = v ? 'Hide Ruler' : 'Show Ruler';
+      const labelEl = document.getElementById('ruler-toggle-label');
+      const label = v ? 'Hide Ruler' : 'Show Ruler';
+      if (labelEl) { labelEl.textContent = label; } else { toggleBtn.textContent = label; }
       toggleBtn.setAttribute('aria-pressed', String(v));
     }
     saveState(state);

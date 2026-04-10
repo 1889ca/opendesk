@@ -45,18 +45,17 @@ function createOverflowWrapper(toolbar: HTMLElement): {
   const menu = document.createElement('div');
   menu.className = 'toolbar-overflow-menu';
   menu.setAttribute('role', 'menu');
-  menu.hidden = true;
 
   function closeMenu(): void {
-    menu.hidden = true;
+    menu.classList.remove('is-open');
     trigger.setAttribute('aria-expanded', 'false');
     clampMenu(menu, toolbar);
   }
 
   trigger.addEventListener('click', (e) => {
     e.stopPropagation();
-    const opening = menu.hidden;
-    menu.hidden = !opening;
+    const opening = !menu.classList.contains('is-open');
+    menu.classList.toggle('is-open', opening);
     trigger.setAttribute('aria-expanded', String(opening));
     if (opening) {
       clampMenu(menu, toolbar);
@@ -112,7 +111,7 @@ function reflow(toolbar: HTMLElement, wrapper: HTMLElement): void {
     toolbar.insertBefore(el, wrapper);
   }
   wrapper.style.display = 'none';
-  menu.hidden = true;
+  menu.classList.remove('is-open');
   wrapper.querySelector('button')?.setAttribute('aria-expanded', 'false');
 
   const WRAPPER_W = 48;
