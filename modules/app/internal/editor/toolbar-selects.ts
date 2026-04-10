@@ -8,6 +8,7 @@ import { t } from '../i18n/index.ts';
 import { FONT_SIZES } from './font-size.ts';
 import { LINE_HEIGHTS } from './line-height.ts';
 import { FONT_FAMILIES } from './font-family.ts';
+import { buildStylePicker } from './style-picker.ts';
 
 const LINE_HEIGHT_LABELS: Record<string, string> = {
   '1': 'Single',
@@ -132,45 +133,8 @@ export function buildLineHeightSelect(editor: Editor): HTMLElement {
   return select;
 }
 
-const STYLES = [
-  { label: 'Normal', action: (editor: Editor) => editor.chain().focus().setParagraph().run(), isActive: (editor: Editor) => !editor.isActive('heading') && !editor.isActive('codeBlock') },
-  { label: 'Heading 1', action: (editor: Editor) => editor.chain().focus().toggleHeading({ level: 1 }).run(), isActive: (editor: Editor) => editor.isActive('heading', { level: 1 }) },
-  { label: 'Heading 2', action: (editor: Editor) => editor.chain().focus().toggleHeading({ level: 2 }).run(), isActive: (editor: Editor) => editor.isActive('heading', { level: 2 }) },
-  { label: 'Heading 3', action: (editor: Editor) => editor.chain().focus().toggleHeading({ level: 3 }).run(), isActive: (editor: Editor) => editor.isActive('heading', { level: 3 }) },
-  { label: 'Heading 4', action: (editor: Editor) => editor.chain().focus().toggleHeading({ level: 4 }).run(), isActive: (editor: Editor) => editor.isActive('heading', { level: 4 }) },
-  { label: 'Heading 5', action: (editor: Editor) => editor.chain().focus().toggleHeading({ level: 5 }).run(), isActive: (editor: Editor) => editor.isActive('heading', { level: 5 }) },
-  { label: 'Heading 6', action: (editor: Editor) => editor.chain().focus().toggleHeading({ level: 6 }).run(), isActive: (editor: Editor) => editor.isActive('heading', { level: 6 }) },
-  { label: 'Code Block', action: (editor: Editor) => editor.chain().focus().toggleCodeBlock().run(), isActive: (editor: Editor) => editor.isActive('codeBlock') },
-];
-
 export function buildStyleSelect(editor: Editor): HTMLElement {
-  const select = document.createElement('select');
-  select.className = 'toolbar-select toolbar-select--style';
-  select.setAttribute('aria-label', 'Paragraph style');
-  select.setAttribute('title', 'Paragraph style');
-
-  for (const style of STYLES) {
-    const opt = document.createElement('option');
-    opt.value = style.label;
-    opt.textContent = style.label;
-    select.appendChild(opt);
-  }
-
-  select.addEventListener('change', () => {
-    const style = STYLES.find((s) => s.label === select.value);
-    if (style) style.action(editor);
-  });
-
-  const updateValue = () => {
-    const active = STYLES.find((s) => s.isActive(editor));
-    select.value = active ? active.label : 'Normal';
-  };
-
-  editor.on('selectionUpdate', updateValue);
-  editor.on('transaction', updateValue);
-  updateValue();
-
-  return select;
+  return buildStylePicker(editor);
 }
 
 const PARA_SPACINGS = [

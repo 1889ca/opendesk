@@ -55,3 +55,12 @@
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
+
+.bubble-menu-separator {
+  width: 1px;
+  height: 1.25rem;
+  background: var(--border);
+  margin: 0 0.25rem;
+  flex-shrink: 0;
+  align-self: center;
+}
