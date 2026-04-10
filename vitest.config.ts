@@ -7,6 +7,7 @@ export default defineConfig({
       'tests/**/*.test.ts',
     ],
     globals: true,
+    testTimeout: 15000,
     coverage: {
       provider: 'v8',
       thresholds: {

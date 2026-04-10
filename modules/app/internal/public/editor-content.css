@@ -334,8 +334,10 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 }
 
 /* Header / footer zones — contenteditable areas above/below the paper */
+/* Hidden by default; shown when .is-active is added (#442) */
 .doc-header-zone,
 .doc-footer-zone {
+  display: none;
   width: 100%;
   max-width: 56rem;
   background: var(--editor-paper-bg, #ffffff);
@@ -350,35 +352,49 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   transform-origin: top center;
 }
 
-.doc-header-zone {
+.doc-header-zone.is-active,
+.doc-footer-zone.is-active {
+  display: block;
+}
+
+.doc-header-zone.is-active {
   border-bottom: 1px dashed var(--border);
   border-radius: 8px 8px 0 0;
   margin-bottom: -1px;
 }
 
-.doc-footer-zone {
+.doc-footer-zone.is-active {
   border-top: 1px dashed var(--border);
   border-radius: 0 0 8px 8px;
   margin-top: -1px;
 }
 
-/* Placeholder text when empty */
-.doc-header-zone:empty::before,
-.doc-footer-zone:empty::before {
-  content: attr(data-placeholder);
+/* Placeholder text when empty and active */
+.doc-header-zone.is-active:empty::before {
+  content: 'Click to add header...';
   color: var(--text-muted);
-  opacity: 0.5;
+  font-style: italic;
+  font-size: 0.85em;
   pointer-events: none;
   position: absolute;
 }
 
-/* Remove top/bottom border-radius from #editor when header/footer zones are present */
-.doc-header-zone + #editor {
+.doc-footer-zone.is-active:empty::before {
+  content: 'Click to add footer...';
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.85em;
+  pointer-events: none;
+  position: absolute;
+}
+
+/* Remove top/bottom border-radius from #editor when header/footer zones are active */
+.doc-header-zone.is-active + #editor {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
 
-#editor:has(+ .doc-footer-zone) {
+#editor:has(+ .doc-footer-zone.is-active) {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
@@ -454,4 +470,14 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 .footnote-item {
   margin-bottom: 0.25rem;
   line-height: 1.5;
+}
+
+/* Empty document placeholder — issue #443 */
+.editor-content .ProseMirror.is-editor-empty p:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted, #9ca3af);
+  font-style: italic;
+  pointer-events: none;
+  float: left;
+  height: 0;
 }
