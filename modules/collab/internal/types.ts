@@ -2,6 +2,7 @@
 
 import type { TokenVerifier } from '../../auth/contract.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
+import type { EventBus } from '../../events/index.ts';
 
 /**
  * External dependencies injected into the collab module.
@@ -16,4 +17,10 @@ export type CollabDependencies = {
    * authenticated user could read/write any document's CRDT state.
    */
   permissions: PermissionsModule;
+  /**
+   * Event bus — used to subscribe to GrantRevoked events so that
+   * the collab server can disconnect revoked users (issue #307).
+   * Optional: when omitted, grant-revoked disconnection is disabled.
+   */
+  eventBus?: EventBus;
 };

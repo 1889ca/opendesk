@@ -9,6 +9,7 @@ import { CompactionManager } from './compaction-manager.ts';
 import { createOnAuthenticate } from './authenticate.ts';
 import type { CollabConfig } from '../contract.ts';
 import type { CollabDependencies } from './types.ts';
+import { HocuspocusConnectionFinder, subscribeGrantRevoked } from './grant-revoked-handler.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('collab');
@@ -71,6 +72,17 @@ export function createCollabServer(
   ) {
     wss.handleUpgrade(request, socket, head, (ws) => {
       wss.emit('connection', ws, request);
+    });
+  }
+
+  // Subscribe to GrantRevoked events if an event bus is provided.
+  // HocuspocusConnectionFinder reads live document state at event time —
+  // no separate connection tracking is needed.
+  // Fire-and-forget: subscription errors are non-fatal at startup.
+  if (deps.eventBus) {
+    const finder = new HocuspocusConnectionFinder(hocuspocus);
+    subscribeGrantRevoked(deps.eventBus, finder).catch((err) => {
+      log.error('failed to subscribe to GrantRevoked events', { error: String(err) });
     });
   }
 
