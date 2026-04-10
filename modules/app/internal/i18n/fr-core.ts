@@ -39,6 +39,8 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'docList.updated': 'Modifi\u00e9 {time}',
   'docList.loadFailed': 'Impossible de charger les documents',
   'docList.titlePrompt': 'Titre du document :',
+  'docList.spreadsheetTitlePrompt': 'Titre de la feuille de calcul :',
+  'docList.presentationTitlePrompt': 'Titre de la présentation :',
   'docList.namePlaceholder': 'Saisir un nom\u2026',
   'docList.nameCancel': 'Annuler',
   'docList.nameCreate': 'Cr\u00e9er',

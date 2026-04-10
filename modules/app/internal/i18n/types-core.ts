@@ -62,6 +62,8 @@ export interface CoreTranslationKeys {
   'docList.updated': string;
   'docList.loadFailed': string;
   'docList.titlePrompt': string;
+  'docList.spreadsheetTitlePrompt': string;
+  'docList.presentationTitlePrompt': string;
   'docList.namePlaceholder': string;
   'docList.nameCancel': string;
   'docList.nameCreate': string;

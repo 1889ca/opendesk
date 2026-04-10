@@ -42,7 +42,11 @@ function updateState(next: Partial<DocListState>): void {
 
 async function createTypedDocument(documentType: string): Promise<void> {
   const meta = TYPE_META[documentType] || TYPE_META.text;
-  const titleText = await showNameDialog('docList.titlePrompt');
+  const labelKey =
+    documentType === 'spreadsheet' ? 'docList.spreadsheetTitlePrompt' :
+    documentType === 'presentation' ? 'docList.presentationTitlePrompt' :
+    'docList.titlePrompt';
+  const titleText = await showNameDialog(labelKey);
   if (!titleText) return;
   try {
     const res = await apiFetch('/api/documents', {
