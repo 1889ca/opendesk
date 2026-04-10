@@ -24,6 +24,7 @@ import { setupCodeBlockUI } from './code-block-ui.ts';
 import { buildEditorExtensions } from './editor-extensions.ts';
 import { initEntityMentionClicks } from './entity-mentions/index.ts';
 import { getUserIdentity, getDocumentId } from '../shared/identity.ts';
+import { getAuthToken } from '../shared/api-client.ts';
 import { ensureNameConfirmed } from '../shared/name-setup.ts';
 import { buildProfileChip } from '../shared/profile-chip.ts';
 import { initEditorPage } from './editor-page.ts';
@@ -89,7 +90,9 @@ async function init() {
   document.body.insertBefore(buildUpdateBanner(), document.body.firstChild);
 
   const provider = new HocuspocusProvider({
-    url: wsUrl, name: documentId, document: ydoc, token: 'dev',
+    url: wsUrl, name: documentId, document: ydoc,
+    // Use the real auth token — 'dev' sentinel is rejected by the collab server (#340)
+    token: getAuthToken(),
     onConnect() {
       if (statusEl) { statusEl.textContent = t('status.connected'); statusEl.className = 'status connected'; }
       setConnectionState('syncing');
