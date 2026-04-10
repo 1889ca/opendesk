@@ -164,6 +164,15 @@ export async function mount(container: HTMLElement, _params: Record<string, stri
   // Refresh list after import
   document.addEventListener('kb:import-complete', () => loadEntries());
 
+  // Navigate to an entry when a KB internal link is clicked
+  document.addEventListener('opendesk:open-kb-entry', ((e: Event) => {
+    const { entryId } = (e as CustomEvent<{ entryId: string }>).detail;
+    if (!entryId || !detailPanel) return;
+    import('./kb-api.ts').then(({ fetchEntry }) =>
+      fetchEntry(entryId).then((entry) => openDetail(detailPanel!, entry)).catch(console.error),
+    );
+  }) as EventListener);
+
   wrapper.appendChild(header);
   wrapper.appendChild(filterBar);
   wrapper.appendChild(quickNoteEl);
