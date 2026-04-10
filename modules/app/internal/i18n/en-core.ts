@@ -21,6 +21,7 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'status.connected': 'Connected',
   'status.disconnected': 'Disconnected',
   'status.connecting': 'Connecting...',
+  'status.reconnecting': 'Reconnecting...',
   'editor.editors': 'Editors:',
   'editor.backToDocuments': 'Back to documents',
   'editor.loading': 'Loading...',
