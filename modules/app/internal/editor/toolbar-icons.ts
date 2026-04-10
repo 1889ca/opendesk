@@ -96,6 +96,10 @@ const insertIcons: Record<string, string> = {
     '<path d="M3 12 Q5 8 7 10 Q9 12 11 7 Q13 4 14 5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>' +
     '<circle cx="3.5" cy="12" r="1" fill="currentColor"/>',
   ),
+  aiAssist: svg(
+    '<path d="M8 2l1 2.5 2.5 1-2.5 1L8 9l-1-2.5-2.5-1 2.5-1z" fill="currentColor"/>' +
+    '<path d="M13 9l.6 1.4 1.4.6-1.4.6L13 13l-.6-1.4-1.4-.6 1.4-.6z" fill="currentColor"/>',
+  ),
   spellcheck: svg(
     '<path d="M8 2l5.5 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
     '<path d="M8 2L2.5 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
