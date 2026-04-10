@@ -39,6 +39,7 @@ import { SmartPunctuation } from './smart-punctuation.ts';
 import { FootnoteNode } from './footnote.ts';
 import { DrawingExtension } from './drawing/index.ts';
 import { Placeholder } from './placeholder.ts';
+import { SlashCommandExtension } from './slash-commands/index.ts';
 
 const lowlight = createLowlight(common);
 
@@ -92,6 +93,7 @@ export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
     FootnoteNode,
     DrawingExtension,
     Placeholder,
+    SlashCommandExtension,
     Underline,
     Link.configure({ openOnClick: false, autolink: true }),
   ];
