@@ -73,8 +73,8 @@ Enable sovereign OpenDesk instances to federate: share documents, sync CRDT stat
 - Outbound HTTP to peer JWKS endpoints for OIDC token verification
 - Emits domain events: PeerRegistered, SyncChannelOpened, PermissionFederated, KBEntrySynced, SplitBrainDetected, SplitBrainResolved
 - Writes to federated_identities, federated_permissions, kb_federation tables
-- Every federated message MUST be signed with the sender's Ed25519 private key
-- Every received message MUST have its Ed25519 signature verified before processing
+- Every federated message MUST be signed with the sender's RSA-2048 private key (RSA-SHA256)
+- Every received message MUST have its RSA-SHA256 signature verified before processing
 - Identity mappings are unique per (remoteInstanceId, remoteUserId) pair
 - Federated permissions MUST NOT exceed the role granted by the sharing instance
 - KB entries with a jurisdiction field MUST NOT auto-merge across different jurisdictions
@@ -87,8 +87,8 @@ Enable sovereign OpenDesk instances to federate: share documents, sync CRDT stat
 - `events` -- domain event emission
 - `audit` -- split-brain event logging
 - `storage` -- Yjs state persistence
-- MUST: Verify Ed25519 signatures on all incoming federated messages
-- MUST: Sign all outgoing federated messages with instance private key
+- MUST: Verify RSA-SHA256 signatures on all incoming federated messages
+- MUST: Sign all outgoing federated messages with instance RSA-2048 private key
 - MUST: Verify OIDC tokens from federated instances against their published JWKS
 - MUST: Validate SAML assertion XML signatures before extracting identity
 - MUST: Enforce permission ceiling (federated role cannot exceed granted role)
@@ -98,7 +98,7 @@ Enable sovereign OpenDesk instances to federate: share documents, sync CRDT stat
 - MUST NOT: Auto-merge KB entries across jurisdictions
 - MUST NOT: Store peer private keys (only public keys)
 - MUST NOT: Bypass local permission checks for federated users
-- Ed25519 signing/verification -> Unit test: sign message, verify with correct key, reject with wrong key
+- RSA-SHA256 signing/verification -> Unit test: sign message, verify with correct key, reject with wrong key
 - Identity mapping uniqueness -> Integration test: attempt duplicate mapping, assert rejection
 - Permission ceiling -> Property test: generate random role pairs, assert federated role never exceeds granted
 - KB jurisdiction isolation -> Unit test: attempt cross-jurisdiction merge, assert rejection

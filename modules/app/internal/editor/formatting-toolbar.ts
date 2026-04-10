@@ -7,7 +7,8 @@ import { announce } from '../shared/a11y-announcer.ts';
 import { enableToolbarNavigation, updateRovingTabindex } from './toolbar-nav.ts';
 import { getIcon } from './toolbar-icons.ts';
 import { buildTextColorBtn, buildHighlightBtn } from './toolbar-color-btn.ts';
-import { buildFontFamilySelect, buildFontSizeSelect, buildLineHeightSelect, buildParagraphSpacingSelect, buildStyleSelect } from './toolbar-selects.ts';
+import { buildFontFamilySelect, buildFontSizeSelect, buildLineHeightSelect } from './toolbar-selects.ts';
+import { buildParagraphSpacingSelect, buildStyleSelect } from './toolbar-para-select.ts';
 import { buildColumnSelect } from './column-select.ts';
 import { type ToolbarButton, buildToolbarButtons, buildButtonTitle } from './formatting-toolbar-actions.ts';
 
