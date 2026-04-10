@@ -135,6 +135,7 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'bubble.underline': 'Souligné',
   'bubble.link': 'Lien',
   'bubble.linkPrompt': 'Saisir l\'URL',
+  'bubble.menuLabel': 'Mise en forme rapide',
   'versions.namePrompt': 'Nommer cette version (facultatif)',
   'versions.namePlaceholder': 'ex. Avant restructuration',
   'nav.dashboard': 'Documents',
