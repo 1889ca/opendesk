@@ -92,3 +92,107 @@ describe('evaluator — complex formulas', () => {
     expect(evaluateFormula('=ROUND(AVERAGE(A1:A3)*1.1, 1)', g, 'B1')).toBe(22);
   });
 });
+
+describe('evaluator — COUNTIF', () => {
+  const g = grid({ A1: 10, A2: 20, A3: 30, A4: 20, A5: 'hello' });
+
+  it('counts exact numeric match', () => {
+    expect(evaluateFormula('=COUNTIF(A1:A5, 20)', g, 'B1')).toBe(2);
+  });
+
+  it('counts with > operator', () => {
+    expect(evaluateFormula('=COUNTIF(A1:A4, ">15")', g, 'B1')).toBe(3);
+  });
+
+  it('counts with <> operator', () => {
+    expect(evaluateFormula('=COUNTIF(A1:A4, "<>20")', g, 'B1')).toBe(2);
+  });
+
+  it('counts string match', () => {
+    expect(evaluateFormula('=COUNTIF(A1:A5, "hello")', g, 'B1')).toBe(1);
+  });
+});
+
+describe('evaluator — SUMIF', () => {
+  const g = grid({ A1: 'a', A2: 'b', A3: 'a', B1: 10, B2: 20, B3: 30 });
+
+  it('sums with matching criteria and sum_range', () => {
+    expect(evaluateFormula('=SUMIF(A1:A3, "a", B1:B3)', g, 'C1')).toBe(40);
+  });
+
+  it('sums range itself when no sum_range given', () => {
+    const g2 = grid({ A1: 10, A2: 5, A3: 20 });
+    expect(evaluateFormula('=SUMIF(A1:A3, ">8")', g2, 'B1')).toBe(30);
+  });
+});
+
+describe('evaluator — INDEX', () => {
+  const g = grid({ A1: 'apple', A2: 'banana', A3: 'cherry', B1: 1, B2: 2, B3: 3 });
+
+  it('returns value at row in single-column range', () => {
+    expect(evaluateFormula('=INDEX(A1:A3, 2)', g, 'C1')).toBe('banana');
+  });
+
+  it('returns value at row/col in multi-column range', () => {
+    expect(evaluateFormula('=INDEX(A1:B3, 3, 2)', g, 'C1')).toBe(3);
+  });
+
+  it('returns #REF! for out-of-bounds', () => {
+    const result = evaluateFormula('=INDEX(A1:A3, 99)', g, 'C1') as FormulaError;
+    expect(result.error).toBe(FormulaErrorType.REF);
+  });
+});
+
+describe('evaluator — MATCH', () => {
+  const g = grid({ A1: 10, A2: 20, A3: 30 });
+
+  it('exact match returns 1-based position', () => {
+    expect(evaluateFormula('=MATCH(20, A1:A3, 0)', g, 'B1')).toBe(2);
+  });
+
+  it('returns #N/A when no exact match', () => {
+    const result = evaluateFormula('=MATCH(99, A1:A3, 0)', g, 'B1') as FormulaError;
+    expect(result.error).toBe(FormulaErrorType.NA);
+  });
+});
+
+describe('evaluator — DATE / DATEDIF', () => {
+  it('DATE returns Excel serial number', () => {
+    // 2024-01-01 = serial 45292
+    const result = evaluateFormula('=DATE(2024, 1, 1)', grid({}), 'A1') as number;
+    expect(typeof result).toBe('number');
+    expect(result).toBeGreaterThan(0);
+  });
+
+  it('DATEDIF in days', () => {
+    // DATE(2024,1,1) and DATE(2024,1,11) should differ by 10 days
+    const g = grid({ A1: 45292, A2: 45302 }); // approx serial dates
+    const result = evaluateFormula('=DATEDIF(A1, A2, "D")', g, 'B1') as number;
+    expect(result).toBe(10);
+  });
+});
+
+describe('evaluator — FLOOR / CEILING', () => {
+  it('FLOOR with no significance', () => {
+    expect(evaluateFormula('=FLOOR(3.7)', grid({}), 'A1')).toBe(3);
+  });
+
+  it('FLOOR with significance', () => {
+    expect(evaluateFormula('=FLOOR(7, 3)', grid({}), 'A1')).toBe(6);
+  });
+
+  it('CEILING with no significance', () => {
+    expect(evaluateFormula('=CEILING(3.2)', grid({}), 'A1')).toBe(4);
+  });
+
+  it('CEILING with significance', () => {
+    expect(evaluateFormula('=CEILING(7, 3)', grid({}), 'A1')).toBe(9);
+  });
+});
+
+describe('evaluator — CONCAT', () => {
+  it('concatenates multiple values', () => {
+    const g = grid({ A1: 'Hello', B1: ' ', C1: 'World' });
+    expect(evaluateFormula('=CONCAT(A1, B1, C1)', g, 'D1')).toBe('Hello World');
+  });
+});
