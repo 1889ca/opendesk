@@ -14,8 +14,12 @@ export function setupTitleSync(docId: string, suffix = 'OpenDesk'): void {
   apiFetch(`/api/documents/${encodeURIComponent(docId)}`)
     .then((res) => { if (!res.ok) throw new Error('Not found'); return res.json(); })
     .then((doc: { title?: string }) => {
-      titleInput.value = doc.title || 'Untitled';
-      document.title = `${doc.title || 'Untitled'} - ${suffix}`;
+      const resolved = doc.title || 'Untitled';
+      titleInput.value = resolved;
+      document.title = `${resolved} - ${suffix}`;
+      // Also update canvas title if present (#337 — canvas title stuck on "Loading...")
+      const canvasTitle = document.getElementById('canvas-doc-title') as HTMLInputElement | null;
+      if (canvasTitle) canvasTitle.value = resolved;
     })
     .catch(() => { window.location.href = '/'; });
 
