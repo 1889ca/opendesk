@@ -71,6 +71,27 @@ function buildLeft(): HTMLElement {
   titleInput.placeholder = 'Loading...';
   titleInput.spellcheck = false;
 
+  // Mirror span: measures rendered text width so the input auto-expands to fit
+  const mirror = document.createElement('span');
+  mirror.style.cssText = 'visibility:hidden;position:absolute;white-space:pre;font:inherit;padding:inherit;pointer-events:none;';
+  document.body.appendChild(mirror);
+
+  function resizeTitleInput(): void {
+    mirror.style.font = getComputedStyle(titleInput).font;
+    mirror.textContent = titleInput.value || titleInput.placeholder || '';
+    titleInput.style.width = `${Math.max(mirror.offsetWidth + 16, 128)}px`;
+  }
+
+  titleInput.addEventListener('input', resizeTitleInput);
+
+  // Poll briefly after mount to catch async title loads (e.g. from title-sync.ts API fetch)
+  let attempts = 0;
+  const pollResize = (): void => {
+    resizeTitleInput();
+    if (++attempts < 30) requestAnimationFrame(pollResize);
+  };
+  requestAnimationFrame(pollResize);
+
   left.append(logoLink, backBtn, breadcrumb, titleInput);
   return left;
 }
