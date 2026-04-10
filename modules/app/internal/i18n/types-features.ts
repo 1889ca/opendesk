@@ -152,6 +152,9 @@ export interface FeatureTranslationKeys {
   'emoji.objects': string;
   'emoji.symbols': string;
   'dragHandle.tooltip': string;
+  'dragHandle.cut': string;
+  'dragHandle.duplicate': string;
+  'dragHandle.delete': string;
   'sidebar.workspace': string;
   'sidebar.recent': string;
   'sidebar.starred': string;

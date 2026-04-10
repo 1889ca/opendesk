@@ -51,6 +51,41 @@
   transition: opacity 0.15s;
 }
 
+/* Context menu — shown on click of drag handle */
+
+.drag-context-menu {
+  position: fixed;
+  z-index: 200;
+  background: var(--bg-overlay, #fff);
+  border: 1px solid var(--border, #e0e0e0);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 4px;
+  min-width: 140px;
+}
+
+.drag-context-menu__item {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  text-align: left;
+  font-size: 0.875rem;
+  color: var(--text, #1a1a1a);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.drag-context-menu__item:hover {
+  background: var(--bg-hover, #f5f5f5);
+}
+
+.drag-context-menu__item:active {
+  background: var(--bg-active, #ebebeb);
+}
+
 /* Disable drag handle on mobile — touch needs different UX */
 
 @media (pointer: coarse) {
