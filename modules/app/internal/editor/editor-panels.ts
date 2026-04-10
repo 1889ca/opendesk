@@ -14,6 +14,7 @@ import { buildStatusBar } from './status-bar.ts';
 import { openCitationPicker, createBibliography, buildReferenceLibrary } from './citations/index.ts';
 import { setupPromoteToKB } from './promote-to-kb.ts';
 import { buildFootnotePanel } from './footnote-panel.ts';
+import { buildSpecialCharsPanel, toggleSpecialCharsPanel } from './special-chars.ts';
 
 export interface PanelDeps {
   editor: Editor;
@@ -82,6 +83,12 @@ export function initEditorPanels(deps: PanelDeps): void {
   } else {
     editorEl.parentElement?.appendChild(footnotePanel);
   }
+
+  const specialCharsPanel = buildSpecialCharsPanel(editor);
+  document.body.appendChild(specialCharsPanel);
+  document.addEventListener('opendesk:toggle-special-chars', () => {
+    toggleSpecialCharsPanel(specialCharsPanel);
+  });
 
   document.addEventListener('opendesk:insert-citation', () => {
     const citeBtn = document.querySelector('[data-action="insert-citation"]') as HTMLElement | null;

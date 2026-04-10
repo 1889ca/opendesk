@@ -139,4 +139,27 @@ export interface CoreTranslationKeys {
 
   // Footnotes
   'toolbar.footnote': string;
+
+  // AI Writing Assistant
+  'ai.buttonLabel': string;
+  'ai.improve': string;
+  'ai.summarize': string;
+  'ai.expand': string;
+  'ai.shorten': string;
+  'ai.fixGrammar': string;
+  'ai.continue': string;
+  'ai.insert': string;
+  'ai.replace': string;
+  'ai.discard': string;
+  'ai.loading': string;
+  'ai.error': string;
+
+  // Drawing
+  'toolbar.drawing': string;
+
+  // Spell check
+  'toolbar.spellcheck': string;
+
+  // Special characters
+  'toolbar.specialChars': string;
 }

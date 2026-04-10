@@ -2,6 +2,7 @@
 import type { Editor } from '@tiptap/core';
 import { t, type TranslationKey } from '../i18n/index.ts';
 import { openImagePicker } from './image-handlers.ts';
+import { openDrawingDialog } from './drawing/index.ts';
 import { isSuggesting, setSuggesting } from './suggestions/suggest-mode.ts';
 import { printDocument, exportPdf } from '../shared/print-utils.ts';
 
@@ -68,7 +69,18 @@ export function buildToolbarButtons(editor: Editor): ToolbarButton[] {
       return chain.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
     } },
     { key: 'toolbar.image', icon: 'image', ariaKey: 'a11y.imageLabel', action: () => { openImagePicker(editor); return true; } },
+    { key: 'toolbar.drawing', icon: 'drawing', ariaKey: 'a11y.drawingLabel', action: () => {
+      openDrawingDialog().then((svg) => {
+        if (svg) editor.chain().focus().insertDrawing(svg).run();
+      });
+      return true;
+    } },
+    { key: 'toolbar.spellcheck', icon: 'spellcheck', ariaKey: 'a11y.spellcheckLabel', action: () => {
+      document.dispatchEvent(new CustomEvent('opendesk:spellcheck-cycle'));
+      return true;
+    } },
     { key: 'toolbar.emoji', icon: 'emoji', action: () => { document.dispatchEvent(new CustomEvent('opendesk:open-emoji')); return true; } },
+    { key: 'toolbar.specialChars', icon: 'specialChars', action: () => { document.dispatchEvent(new CustomEvent('opendesk:toggle-special-chars')); return true; } },
     { key: null, action: () => false },
     // ── Collaboration tools ───────────────────────────────────────────
     { key: 'toolbar.find', icon: 'search', ariaKey: 'a11y.findLabel', titleKey: 'shortcuts.findReplace', action: () => { document.dispatchEvent(new CustomEvent('opendesk:open-search')); return true; } },
