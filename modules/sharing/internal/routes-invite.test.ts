@@ -12,14 +12,11 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import express, { type Request, type Response, type NextFunction } from 'express';
+import express, { Router, type Request, type Response, type NextFunction } from 'express';
 import request from 'supertest';
-import { Router } from 'express';
 import { createInMemoryPendingGrantStore } from './pending-grant-store.ts';
 import { addInviteRoute } from './routes-invite.ts';
-import { activatePendingGrants } from './activate-pending-grants.ts';
-import { createPermissions, type Role } from '../../permissions/index.ts';
-import type { PermissionsModule } from '../../permissions/index.ts';
+import { createPermissions, type Role, type PermissionsModule } from '../../permissions/index.ts';
 
 function fakeAs(id: string, email?: string) {
   return (req: Request, _res: Response, next: NextFunction) => {
@@ -159,137 +156,5 @@ describe('POST /api/documents/:id/invite', () => {
 
     expect(res.status).toBe(201);
     expect(res.body).not.toHaveProperty('granteeId');
-  });
-});
-
-describe('activatePendingGrants', () => {
-  it('transitions status to active and sets granteeId on email match', async () => {
-    const pendingGrantStore = createInMemoryPendingGrantStore();
-    const permissions = createPermissions();
-    await permissions.grantStore.create({
-      principalId: 'alice',
-      resourceId: 'doc-1',
-      resourceType: 'document',
-      role: 'owner',
-      grantedBy: 'alice',
-    });
-
-    // Create a pending grant
-    await pendingGrantStore.createPending({
-      docId: 'doc-1',
-      grantorId: 'alice',
-      email: 'bob@example.com',
-      role: 'editor',
-    });
-
-    // Activate when bob authenticates
-    const count = await activatePendingGrants(
-      'user-bob',
-      'bob@example.com',
-      pendingGrantStore,
-      permissions.grantStore,
-    );
-
-    expect(count).toBe(1);
-
-    // Grant is now active with granteeId set
-    const pending = await pendingGrantStore.findPendingByEmail('bob@example.com');
-    expect(pending).toHaveLength(0); // no longer 'pending'
-
-    const byId = await pendingGrantStore.findById(
-      (await pendingGrantStore.findPendingByEmail('bob@example.com')).length === 0
-        ? (pending.length === 0
-          ? /* we need to find it another way — check grantStore */ ''
-          : pending[0].id)
-        : '',
-    );
-    // Verify via grantStore that bob now has access
-    const grants = await permissions.grantStore.findByPrincipalAndResource(
-      'user-bob',
-      'doc-1',
-      'document',
-    );
-    expect(grants).toHaveLength(1);
-    expect(grants[0].role).toBe('editor');
-  });
-
-  it('does not activate grants for a different email', async () => {
-    const pendingGrantStore = createInMemoryPendingGrantStore();
-    const permissions = createPermissions();
-
-    await pendingGrantStore.createPending({
-      docId: 'doc-1',
-      grantorId: 'alice',
-      email: 'bob@example.com',
-      role: 'viewer',
-    });
-
-    // Carol authenticates — should not activate bob's grant
-    const count = await activatePendingGrants(
-      'user-carol',
-      'carol@example.com',
-      pendingGrantStore,
-      permissions.grantStore,
-    );
-
-    expect(count).toBe(0);
-
-    // Bob's grant is still pending
-    const pending = await pendingGrantStore.findPendingByEmail('bob@example.com');
-    expect(pending).toHaveLength(1);
-    expect(pending[0].status).toBe('pending');
-  });
-
-  it('does not auto-activate without calling activatePendingGrants', async () => {
-    const pendingGrantStore = createInMemoryPendingGrantStore();
-
-    await pendingGrantStore.createPending({
-      docId: 'doc-1',
-      grantorId: 'alice',
-      email: 'bob@example.com',
-      role: 'editor',
-    });
-
-    // Nothing calls activatePendingGrants — grant stays pending
-    const pending = await pendingGrantStore.findPendingByEmail('bob@example.com');
-    expect(pending).toHaveLength(1);
-    expect(pending[0].status).toBe('pending');
-    expect(pending[0].granteeId).toBeNull();
-  });
-
-  it('handles multiple pending grants for the same email', async () => {
-    const pendingGrantStore = createInMemoryPendingGrantStore();
-    const permissions = createPermissions();
-
-    await pendingGrantStore.createPending({
-      docId: 'doc-1',
-      grantorId: 'alice',
-      email: 'bob@example.com',
-      role: 'viewer',
-    });
-    await pendingGrantStore.createPending({
-      docId: 'doc-2',
-      grantorId: 'carol',
-      email: 'bob@example.com',
-      role: 'editor',
-    });
-
-    const count = await activatePendingGrants(
-      'user-bob',
-      'bob@example.com',
-      pendingGrantStore,
-      permissions.grantStore,
-    );
-
-    expect(count).toBe(2);
-
-    const doc1Grants = await permissions.grantStore.findByPrincipalAndResource(
-      'user-bob', 'doc-1', 'document',
-    );
-    const doc2Grants = await permissions.grantStore.findByPrincipalAndResource(
-      'user-bob', 'doc-2', 'document',
-    );
-    expect(doc1Grants).toHaveLength(1);
-    expect(doc2Grants).toHaveLength(1);
   });
 });

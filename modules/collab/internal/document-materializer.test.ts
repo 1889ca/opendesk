@@ -6,8 +6,7 @@ import {
   computeRevisionId,
 } from './document-materializer.ts';
 import type { DocumentRepository, SaveSnapshotParams } from '../../storage/contract.ts';
-import type { EventBus, DomainEvent } from '../../events/index.ts';
-import { EventType } from '../../events/index.ts';
+import { EventType, type EventBus, type DomainEvent } from '../../events/index.ts';
 
 // ---------------------------------------------------------------------------
 // Helpers

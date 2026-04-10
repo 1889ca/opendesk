@@ -2,8 +2,7 @@
 
 import type { WebSocket } from 'ws';
 import type { Hocuspocus } from '@hocuspocus/server';
-import type { EventBus, DomainEvent } from '../../events/index.ts';
-import { EventType } from '../../events/index.ts';
+import { EventType, type EventBus, type DomainEvent } from '../../events/index.ts';
 import type { Principal } from '../../auth/contract.ts';
 import { createLogger } from '../../logger/index.ts';
 

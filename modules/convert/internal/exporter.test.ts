@@ -13,8 +13,7 @@
 
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { exportDocument } from './exporter.ts';
-import type { EventBus, DomainEvent, EventType, EventHandler } from '../../events/contract.ts';
-import { EventType as ET } from '../../events/contract.ts';
+import { EventType as ET, type EventBus, type DomainEvent, type EventHandler } from '../../events/contract.ts';
 
 // --- mock libreoffice (convertFile) ---
 vi.mock('./libreoffice.ts', () => ({
@@ -37,7 +36,7 @@ function makeEventBus(opts: {
   subscribeFails?: boolean;
 }): { bus: EventBus; emitted: DomainEvent[] } {
   const emitted: DomainEvent[] = [];
-  const subscribers: Array<{ group: string; types: EventType[]; handler: SubscribeHandler }> = [];
+  const subscribers: Array<{ group: string; types: ET[]; handler: SubscribeHandler }> = [];
 
   const emit: Mock = vi.fn(async (event: DomainEvent) => {
     emitted.push(event);
@@ -63,7 +62,7 @@ function makeEventBus(opts: {
 
   const subscribe: Mock = vi.fn(async (
     group: string,
-    types: EventType[],
+    types: ET[],
     handler: EventHandler,
   ) => {
     if (opts.subscribeFails) {

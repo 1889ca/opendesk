@@ -1,10 +1,8 @@
 /** Contract: contracts/collab/rules.md */
 import * as Y from 'yjs';
-import { createHash } from 'node:crypto';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import type { DocumentRepository } from '../../storage/contract.ts';
-import type { EventBus } from '../../events/index.ts';
-import { EventType } from '../../events/index.ts';
+import { EventType, type EventBus } from '../../events/index.ts';
 import type { TextDocumentSnapshot, ProseMirrorNode } from '../../document/contract/index.ts';
 import { createLogger } from '../../logger/index.ts';
 

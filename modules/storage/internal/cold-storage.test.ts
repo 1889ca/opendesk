@@ -10,8 +10,8 @@ import { describe, it, expect, vi, type Mock } from 'vitest';
 import {
   createColdStorageAdapter,
   archiveStaleDocuments,
+  type ColdStorageAdapter,
 } from './cold-storage.ts';
-import type { ColdStorageAdapter } from './cold-storage.ts';
 
 // ---------------------------------------------------------------------------
 // Mock helpers

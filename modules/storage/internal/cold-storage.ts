@@ -1,10 +1,6 @@
 /** Contract: contracts/storage/rules.md */
-import {
-  GetObjectCommand,
-  PutObjectCommand,
-} from '@aws-sdk/client-s3';
+import { GetObjectCommand, PutObjectCommand, type S3Client } from '@aws-sdk/client-s3';
 import type { Pool } from 'pg';
-import type { S3Client } from '@aws-sdk/client-s3';
 
 export interface ColdStorageAdapter {
   archiveToCold(docId: string): Promise<void>;

@@ -3,12 +3,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import express, { type Request, type Response, type NextFunction } from 'express';
 import request from 'supertest';
-import { createPermissions, type Role } from '../../permissions/index.ts';
+import { createPermissions, type Role, type GrantStore } from '../../permissions/index.ts';
 import { createInMemoryShareLinkStore } from './store.ts';
 import { createShareLinkService } from './share-links.ts';
 import { createShareRoutes } from './routes.ts';
 import { createInMemoryPasswordRateLimiter } from './rate-limit.ts';
-import type { GrantStore } from '../../permissions/index.ts';
 
 function fakeAs(id: string) {
   return (req: Request, _res: Response, next: NextFunction) => {
