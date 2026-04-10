@@ -15,13 +15,17 @@ import { createPermissions } from '../../permissions/index.ts';
 import { createInMemoryGrantStore } from '../../permissions/internal/grant-store.ts';
 import type { Principal } from '../../auth/contract.ts';
 
+type SimpleDoc = { id: string; title: string; document_type: 'text'; yjs_state: null; folder_id: null; created_at: Date; updated_at: Date };
+
 /** In-memory document storage for tests. */
 function createTestDocStorage(docs: Record<string, { id: string; title: string }> = {}): DocumentStorageFns {
-  const map = new Map(Object.entries(docs));
+  const map = new Map<string, SimpleDoc>(
+    Object.entries(docs).map(([k, v]) => [k, { ...v, document_type: 'text', yjs_state: null, folder_id: null, created_at: new Date(), updated_at: new Date() }])
+  );
   return {
     listDocuments: async () => ({ rows: [...map.values()], total: map.size }),
     createDocument: async (id, title) => {
-      const doc = { id, title };
+      const doc: SimpleDoc = { id, title, document_type: 'text', yjs_state: null, folder_id: null, created_at: new Date(), updated_at: new Date() };
       map.set(id, doc);
       return doc;
     },

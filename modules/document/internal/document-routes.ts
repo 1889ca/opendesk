@@ -4,19 +4,18 @@ import { Router, type Request, type Response } from 'express';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import {
-  listDocuments as pgListDocuments,
+  listDocuments as defaultListDocuments,
   createDocument as defaultCreateDocument,
   getDocument as defaultGetDocument,
   deleteDocument as defaultDeleteDocument,
   updateDocumentTitle as defaultUpdateDocumentTitle,
   moveDocument as defaultMoveDocument,
   getTemplate as defaultGetTemplate,
+  type DocumentRow,
+  type DocumentType,
   type ListDocumentsOptions,
+  type ListDocumentsResult,
 } from '../../storage/index.ts';
-
-function defaultListDocuments(params: ListDocumentsOptions) {
-  return pgListDocuments(params);
-}
 import type { PermissionsModule } from '../../permissions/index.ts';
 import type { CacheClient } from '../../api/internal/redis.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
@@ -40,21 +39,10 @@ const CreateDocumentQuery = z.object({
   templateId: z.string().uuid().optional(),
 });
 
-type DocRecord = { id: string; [key: string]: unknown };
-
-export type ListDocumentsParams = {
-  folderId?: string | null;
-  type?: string | null;
-  sort?: 'updated_at' | 'created_at' | 'title';
-  sortDir?: 'asc' | 'desc';
-  limit?: number;
-  offset?: number;
-};
-
 export type DocumentStorageFns = {
-  listDocuments: (params: ListDocumentsParams) => Promise<{ rows: DocRecord[]; total: number }>;
-  createDocument: (id: string, title: string, documentType: string) => Promise<DocRecord>;
-  getDocument: (id: string) => Promise<DocRecord | null>;
+  listDocuments: (params: ListDocumentsOptions) => Promise<ListDocumentsResult>;
+  createDocument: (id: string, title: string, documentType?: DocumentType) => Promise<DocumentRow>;
+  getDocument: (id: string) => Promise<DocumentRow | null>;
   deleteDocument: (id: string) => Promise<boolean>;
   updateDocumentTitle: (id: string, title: string) => Promise<void>;
   moveDocument: (id: string, folderId: string | null) => Promise<boolean>;

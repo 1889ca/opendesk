@@ -5,16 +5,17 @@ import { createPermissions } from '../../permissions/index.ts';
 import { createInMemoryGrantStore } from '../../permissions/internal/grant-store.ts';
 import { InMemoryCache } from '../../api/internal/test-helpers.ts';
 
+type SimpleDoc = { id: string; title: string; document_type: 'text'; yjs_state: null; folder_id: null; created_at: Date; updated_at: Date };
+
 /** In-memory document store implementing the storage functions document routes need. */
-function createInMemoryDocStorage(): DocumentStorageFns & {
-  docs: Map<string, { id: string; title: string }>;
-} {
-  const docs = new Map<string, { id: string; title: string }>();
+function createInMemoryDocStorage(): DocumentStorageFns & { docs: Map<string, SimpleDoc> } {
+  const docs = new Map<string, SimpleDoc>();
+  const makeDoc = (id: string, title: string): SimpleDoc => ({ id, title, document_type: 'text', yjs_state: null, folder_id: null, created_at: new Date(), updated_at: new Date() });
   return {
     docs,
     listDocuments: async () => ({ rows: [...docs.values()], total: docs.size }),
     createDocument: async (id: string, title: string) => {
-      const doc = { id, title, created_at: new Date(), updated_at: new Date() };
+      const doc = makeDoc(id, title);
       docs.set(id, doc);
       return doc;
     },
@@ -45,7 +46,7 @@ describe('enhanced document deletion', () => {
 
   it('returns a deletion receipt with timestamp and scope', async () => {
     // Set up a document
-    storage.docs.set('doc-1', { id: 'doc-1', title: 'Test' });
+    storage.docs.set('doc-1', { id: 'doc-1', title: 'Test', document_type: 'text', yjs_state: null, folder_id: null, created_at: new Date(), updated_at: new Date() });
 
     // Create grants for this document
     await grantStore.create({
@@ -66,7 +67,7 @@ describe('enhanced document deletion', () => {
   });
 
   it('cleans up grants when document is deleted', async () => {
-    storage.docs.set('doc-2', { id: 'doc-2', title: 'Test 2' });
+    storage.docs.set('doc-2', { id: 'doc-2', title: 'Test 2', document_type: 'text', yjs_state: null, folder_id: null, created_at: new Date(), updated_at: new Date() });
 
     await grantStore.create({
       principalId: 'user-1',
