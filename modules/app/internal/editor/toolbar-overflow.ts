@@ -1,20 +1,15 @@
 /** Contract: contracts/app/rules.md */
 import { t, onLocaleChange } from '../i18n/index.ts';
 
-/** Priority groups: lower number = higher priority (stays visible longer). */
-const HIGH_PRIORITY_KEYS = new Set([
-  // Core text formatting
+/** Keys that must always remain visible — never pushed to the overflow menu. */
+const NEVER_OVERFLOW = new Set([
   'toolbar.undo', 'toolbar.redo',
-  'toolbar.bold', 'toolbar.italic', 'toolbar.strike', 'toolbar.code',
-  'toolbar.heading1', 'toolbar.heading2', 'toolbar.heading3',
-  // Alignment
-  'toolbar.alignLeft', 'toolbar.alignCenter', 'toolbar.alignRight', 'toolbar.alignJustify',
-  // Lists
-  'toolbar.bulletList', 'toolbar.orderedList',
+  'toolbar.stylePicker', 'toolbar.fontSize',
+  'toolbar.bold', 'toolbar.italic', 'toolbar.underline',
 ]);
 
-/** Low-priority keys pushed to overflow first when space is limited. */
-const LOW_PRIORITY_KEYS = new Set([
+/** Keys that overflow first when space is tight. */
+const LOW_PRIORITY = new Set([
   'toolbar.print', 'toolbar.pdf',
   'toolbar.references', 'toolbar.versions', 'toolbar.workflows',
   'toolbar.saveToKb',
@@ -22,133 +17,161 @@ const LOW_PRIORITY_KEYS = new Set([
 
 /**
  * Detects available toolbar width via ResizeObserver and moves
- * buttons that don't fit into an overflow dropdown.
+ * buttons that don't fit into an overflow dropdown (⋯ menu).
  */
 export function setupToolbarOverflow(toolbar: HTMLElement): () => void {
   const { wrapper, removeDocClickListener } = createOverflowWrapper(toolbar);
   const observer = new ResizeObserver(() => reflow(toolbar, wrapper));
   observer.observe(toolbar);
-
   const unsubLocale = onLocaleChange(() => {
     requestAnimationFrame(() => reflow(toolbar, wrapper));
   });
-
-  return () => {
-    observer.disconnect();
-    removeDocClickListener();
-    unsubLocale();
-  };
+  return () => { observer.disconnect(); removeDocClickListener(); unsubLocale(); };
 }
 
-function createOverflowWrapper(
-  toolbar: HTMLElement,
-): { wrapper: HTMLElement; removeDocClickListener: () => void } {
+function createOverflowWrapper(toolbar: HTMLElement): {
+  wrapper: HTMLElement; removeDocClickListener: () => void;
+} {
   const wrapper = document.createElement('div');
   wrapper.className = 'toolbar-overflow-wrapper';
 
   const trigger = document.createElement('button');
   trigger.className = 'toolbar-overflow-btn';
   trigger.setAttribute('aria-label', t('toolbar.moreOptions'));
-  trigger.textContent = '\u2026'; // ellipsis
-  trigger.addEventListener('click', (e) => {
-    e.stopPropagation();
-    menu.classList.toggle('is-open');
-  });
+  trigger.setAttribute('aria-haspopup', 'true');
+  trigger.setAttribute('aria-expanded', 'false');
+  trigger.textContent = '\u2026';
 
   const menu = document.createElement('div');
   menu.className = 'toolbar-overflow-menu';
+  menu.setAttribute('role', 'menu');
+  menu.hidden = true;
+
+  function closeMenu(): void {
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    clampMenu(menu, toolbar);
+  }
+
+  trigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const opening = menu.hidden;
+    menu.hidden = !opening;
+    trigger.setAttribute('aria-expanded', String(opening));
+    if (opening) {
+      clampMenu(menu, toolbar);
+      (menu.querySelector<HTMLElement>('[role="menuitem"]'))?.focus();
+    }
+  });
+
+  trigger.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+
+  menu.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeMenu(); trigger.focus(); return; }
+    const items = Array.from(menu.querySelectorAll<HTMLElement>('[role="menuitem"]'));
+    if (!items.length) return;
+    const idx = items.indexOf(document.activeElement as HTMLElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); items[(idx + 1) % items.length].focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); items[(idx - 1 + items.length) % items.length].focus(); }
+  });
 
   wrapper.appendChild(trigger);
   wrapper.appendChild(menu);
   toolbar.appendChild(wrapper);
 
-  // Close menu on outside click
-  const onDocClick = () => menu.classList.remove('is-open');
+  const onDocClick = (e: MouseEvent) => {
+    if (!wrapper.contains(e.target as Node)) closeMenu();
+  };
   document.addEventListener('click', onDocClick);
 
-  return {
-    wrapper,
-    removeDocClickListener: () => document.removeEventListener('click', onDocClick),
-  };
+  return { wrapper, removeDocClickListener: () => document.removeEventListener('click', onDocClick) };
+}
+
+function clampMenu(menu: HTMLElement, toolbar: HTMLElement): void {
+  menu.style.right = '0';
+  menu.style.left = '';
+  const r = menu.getBoundingClientRect();
+  if (r.right > window.innerWidth) menu.style.right = `${r.right - window.innerWidth + 8}px`;
+  const tr = toolbar.getBoundingClientRect();
+  if (r.bottom > window.innerHeight) {
+    menu.style.top = 'auto';
+    menu.style.bottom = `${tr.height + 4}px`;
+  } else {
+    menu.style.top = '';
+    menu.style.bottom = '';
+  }
 }
 
 function reflow(toolbar: HTMLElement, wrapper: HTMLElement): void {
-  const menu = wrapper.querySelector('.toolbar-overflow-menu');
+  const menu = wrapper.querySelector<HTMLElement>('.toolbar-overflow-menu');
   if (!menu) return;
 
-  // Reset: move all overflow items back to toolbar
-  const overflowed = Array.from(
-    menu.querySelectorAll('.toolbar-btn, .toolbar-separator'),
-  );
-  for (const el of overflowed) {
+  // Restore all overflow items back to toolbar
+  for (const el of Array.from(menu.querySelectorAll<HTMLElement>('[role="menuitem"]'))) {
+    el.removeAttribute('role');
     toolbar.insertBefore(el, wrapper);
   }
   wrapper.style.display = 'none';
+  menu.hidden = true;
+  wrapper.querySelector('button')?.setAttribute('aria-expanded', 'false');
 
-  const toolbarWidth = toolbar.clientWidth;
-  const wrapperWidth = 48; // reserve space for the "…" button
-
+  const WRAPPER_W = 48;
   const children = Array.from(toolbar.children).filter(
     (el) => el !== wrapper && el instanceof HTMLElement,
   ) as HTMLElement[];
 
-  let totalWidth = children.reduce((sum, el) => sum + el.offsetWidth + 4, 0);
-  if (totalWidth + wrapperWidth <= toolbarWidth) return;
+  let total = children.reduce((s, el) => s + el.offsetWidth + 4, 0);
+  if (total + WRAPPER_W <= toolbar.clientWidth) return;
 
   const toOverflow: HTMLElement[] = [];
 
-  // Phase 1: overflow low-priority items first (print, pdf, versions, etc.)
+  // Phase 1: low-priority items first
   for (const el of children) {
-    if (totalWidth + wrapperWidth <= toolbarWidth) break;
-    const key = el.getAttribute('data-i18n-key') || '';
-    if (LOW_PRIORITY_KEYS.has(key)) {
+    if (total + WRAPPER_W <= toolbar.clientWidth) break;
+    if (LOW_PRIORITY.has(el.getAttribute('data-i18n-key') ?? '')) {
       toOverflow.push(el);
-      totalWidth -= el.offsetWidth + 4;
+      total -= el.offsetWidth + 4;
     }
   }
 
-  // Phase 2: overflow neutral items from right to left
-  if (totalWidth + wrapperWidth > toolbarWidth) {
-    const neutral = [...children].reverse().filter(
-      (el) => !toOverflow.includes(el) && priorityScore(el.getAttribute('data-i18n-key') || '') === 1,
-    );
-    for (const el of neutral) {
-      if (totalWidth + wrapperWidth <= toolbarWidth) break;
-      toOverflow.push(el);
-      totalWidth -= el.offsetWidth + 4;
+  // Phase 2: neutral items right-to-left
+  if (total + WRAPPER_W > toolbar.clientWidth) {
+    for (const el of [...children].reverse()) {
+      if (total + WRAPPER_W <= toolbar.clientWidth) break;
+      if (!toOverflow.includes(el) && score(el) === 1) {
+        toOverflow.push(el);
+        total -= el.offsetWidth + 4;
+      }
     }
   }
 
-  // Phase 3: overflow high-priority items from right to left (last resort)
-  if (totalWidth + wrapperWidth > toolbarWidth) {
-    const high = [...children].reverse().filter(
-      (el) => !toOverflow.includes(el) && HIGH_PRIORITY_KEYS.has(el.getAttribute('data-i18n-key') || ''),
-    );
-    for (const el of high) {
-      if (totalWidth + wrapperWidth <= toolbarWidth) break;
-      toOverflow.push(el);
-      totalWidth -= el.offsetWidth + 4;
+  // Phase 3: last resort — anything that isn't NEVER_OVERFLOW
+  if (total + WRAPPER_W > toolbar.clientWidth) {
+    for (const el of [...children].reverse()) {
+      if (total + WRAPPER_W <= toolbar.clientWidth) break;
+      if (!toOverflow.includes(el) && !NEVER_OVERFLOW.has(el.getAttribute('data-i18n-key') ?? '')) {
+        toOverflow.push(el);
+        total -= el.offsetWidth + 4;
+      }
     }
   }
 
-  if (toOverflow.length === 0) return;
+  if (!toOverflow.length) return;
 
-  for (const el of sortByPriority([...toOverflow])) {
+  for (const el of sortByScore(toOverflow)) {
+    el.setAttribute('role', 'menuitem');
     menu.appendChild(el);
   }
   wrapper.style.display = 'block';
 }
 
-function priorityScore(key: string): number {
-  if (LOW_PRIORITY_KEYS.has(key)) return 2;   // overflow first
-  if (HIGH_PRIORITY_KEYS.has(key)) return 0;  // overflow last
-  return 1;                                    // neutral
+function score(el: HTMLElement): number {
+  const k = el.getAttribute('data-i18n-key') ?? '';
+  if (NEVER_OVERFLOW.has(k)) return -1;
+  if (LOW_PRIORITY.has(k)) return 2;
+  return 1;
 }
 
-function sortByPriority(elements: HTMLElement[]): HTMLElement[] {
-  return elements.sort((a, b) => {
-    const aScore = priorityScore(a.getAttribute('data-i18n-key') || '');
-    const bScore = priorityScore(b.getAttribute('data-i18n-key') || '');
-    return bScore - aScore; // highest score overflows first
-  });
+function sortByScore(els: HTMLElement[]): HTMLElement[] {
+  return els.sort((a, b) => score(b) - score(a));
 }

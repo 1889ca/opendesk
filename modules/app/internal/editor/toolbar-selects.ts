@@ -53,6 +53,7 @@ export function buildFontFamilySelect(editor: Editor): HTMLElement {
 export function buildFontSizeSelect(editor: Editor): HTMLElement {
   const wrapper = document.createElement('span');
   wrapper.style.position = 'relative';
+  wrapper.setAttribute('data-i18n-key', 'toolbar.fontSize');
 
   const datalist = document.createElement('datalist');
   datalist.id = 'font-size-options';
@@ -148,6 +149,7 @@ export function buildStyleSelect(editor: Editor): HTMLElement {
   select.className = 'toolbar-select toolbar-select--style';
   select.setAttribute('aria-label', 'Paragraph style');
   select.setAttribute('title', 'Paragraph style');
+  select.setAttribute('data-i18n-key', 'toolbar.stylePicker');
 
   for (const style of STYLES) {
     const opt = document.createElement('option');
