@@ -130,6 +130,24 @@ jobs:
       - uses: actions/checkout@v6
       - run: ./scripts/security-lint.sh
 
+  # Enforce dev → main flow. Any PR targeting main that does not originate
+  # from the 'dev' branch fails this required check, preventing feature
+  # branches or hotfixes from bypassing the integration branch.
+  source-branch-check:
+    name: source-branch-check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    steps:
+      - name: Enforce dev → main
+        run: |
+          if [[ "${{ github.head_ref }}" != "dev" ]]; then
+            echo "❌ PRs to main must originate from the 'dev' branch."
+            echo "   This PR is from '${{ github.head_ref }}'."
+            echo "   Merge your work into dev first, then open a PR from dev → main."
+            exit 1
+          fi
+          echo "✓ Source branch is 'dev'"
+
   # CONSTITUTION Article II §1: PRs touching restricted zones must be
   # gated by an explicit human-approved label. This job runs only on
   # pull_request events; it computes the diff against the base branch,
