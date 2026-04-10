@@ -315,15 +315,16 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   position: absolute;
   top: -1.4em;
   left: -1px;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1;
-  padding: 0.15rem 0.35rem;
+  padding: 1px 4px;
   border-radius: 3px 3px 3px 0;
   color: #fff;
   white-space: nowrap;
   user-select: none;
   pointer-events: none;
+  opacity: 0.9;
 }
 
 @media print {

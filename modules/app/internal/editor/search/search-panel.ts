@@ -23,9 +23,10 @@ export function buildSearchPanel(editor: Editor): void {
 function openPanel(
   panel: HTMLDivElement,
   els: PanelElements,
+  showReplace = false,
 ): void {
   panel.style.display = 'flex';
-  els.replaceRow.style.display = 'flex';
+  els.replaceRow.style.display = showReplace ? 'flex' : 'none';
   els.searchInput.focus();
   els.searchInput.select();
 }
@@ -41,11 +42,12 @@ function bindPanelEvents(
   panel: HTMLDivElement,
   els: PanelElements,
 ): void {
-  document.addEventListener('opendesk:open-search', (() => {
-    openPanel(panel, els);
+  document.addEventListener('opendesk:open-search', ((e: CustomEvent<{ showReplace?: boolean }>) => {
+    openPanel(panel, els, e.detail?.showReplace ?? false);
   }) as EventListener);
 
   els.searchInput.addEventListener('input', () => {
+    clearInputErrors(els.searchInput);
     editor.commands.find(els.searchInput.value);
   });
 
@@ -113,10 +115,11 @@ function bindEditorEvents(editor: Editor, els: PanelElements): void {
     e: CustomEvent<{ totalMatches: number; currentMatchIndex: number }>,
   ) => {
     const { totalMatches, currentMatchIndex } = e.detail;
+    const hasQuery = Boolean(els.searchInput.value);
+    const noResults = hasQuery && totalMatches === 0;
+    els.searchInput.classList.toggle('is-no-results', noResults);
     if (totalMatches === 0) {
-      els.counter.textContent = els.searchInput.value
-        ? t('search.noMatches')
-        : '';
+      els.counter.textContent = hasQuery ? t('search.noMatches') : '';
     } else {
       els.counter.textContent = t('search.matchCount', {
         current: currentMatchIndex + 1,
@@ -125,8 +128,20 @@ function bindEditorEvents(editor: Editor, els: PanelElements): void {
     }
   }) as EventListener);
 
+  document.addEventListener('opendesk:search-invalid-regex', (() => {
+    els.searchInput.classList.add('is-invalid');
+    els.counter.textContent = '';
+  }) as EventListener);
+
   editor.on('transaction', () => {
     const state = searchPluginKey.getState(editor.state) as SearchState;
-    if (!state?.searchTerm) els.counter.textContent = '';
+    if (!state?.searchTerm) {
+      els.counter.textContent = '';
+      els.searchInput.classList.remove('is-no-results', 'is-invalid');
+    }
   });
+}
+
+function clearInputErrors(input: HTMLInputElement): void {
+  input.classList.remove('is-invalid', 'is-no-results');
 }

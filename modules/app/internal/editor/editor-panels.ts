@@ -15,6 +15,7 @@ import { openCitationPicker, createBibliography, buildReferenceLibrary } from '.
 import { setupPromoteToKB } from './promote-to-kb.ts';
 import { buildFootnotePanel } from './footnote-panel.ts';
 import { buildSpecialCharsPanel, toggleSpecialCharsPanel } from './special-chars.ts';
+import { initSidebarResize } from './sidebar-resize.ts';
 
 export interface PanelDeps {
   editor: Editor;
@@ -44,9 +45,11 @@ export function initEditorPanels(deps: PanelDeps): void {
 
   const commentSidebar = buildCommentSidebar(editor, commentStore, documentId, user);
   document.body.appendChild(commentSidebar);
+  initSidebarResize(commentSidebar);
 
   const suggestionSidebar = buildSuggestionSidebar(editor);
   document.body.appendChild(suggestionSidebar);
+  initSidebarResize(suggestionSidebar);
 
   const tocPanel = buildTocPanel(editor);
   document.body.appendChild(tocPanel);
@@ -58,12 +61,14 @@ export function initEditorPanels(deps: PanelDeps): void {
 
   const versionSidebar = buildVersionSidebar();
   document.body.appendChild(versionSidebar);
+  initSidebarResize(versionSidebar);
   document.addEventListener('opendesk:toggle-versions', () => {
     toggleVersionSidebar(versionSidebar);
   });
 
   const workflowPanel = buildWorkflowPanel();
   document.body.appendChild(workflowPanel);
+  initSidebarResize(workflowPanel);
   document.addEventListener('opendesk:toggle-workflows', () => {
     toggleWorkflowPanel(workflowPanel);
   });

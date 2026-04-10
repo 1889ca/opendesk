@@ -39,6 +39,7 @@ import { SmartPunctuation } from './smart-punctuation.ts';
 import { FootnoteNode } from './footnote.ts';
 import { DrawingExtension } from './drawing/index.ts';
 import { Placeholder } from './placeholder.ts';
+import { SlashCommandExtension } from './slash-commands/index.ts';
 
 const lowlight = createLowlight(common);
 
@@ -64,6 +65,15 @@ const CustomImage = Image.extend<ImageOptions>({
     return ['img', mergeAttributes(imgAttrs, { class: resolvedClass })];
   },
 });
+
+const CURSOR_COLORS = ['#7c3aed','#db2777','#d97706','#059669','#2563eb','#dc2626','#0891b2','#c2410c'];
+
+/** Maps a username to a stable cursor color from the palette (issue #360). */
+function getUserColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return CURSOR_COLORS[Math.abs(hash) % CURSOR_COLORS.length];
+}
 
 interface ExtensionConfig {
   ydoc: Y.Doc;
@@ -96,7 +106,7 @@ export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
     Collaboration.configure({ document: ydoc }),
     CollaborationCursor.configure({
       provider,
-      user: { name: user.name, color: user.color },
+      user: { name: user.name, color: getUserColor(user.name) },
     }),
     createMentionExtension(provider),
     createEntityMentionExtension(),
@@ -115,6 +125,7 @@ export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
     FootnoteNode,
     DrawingExtension,
     Placeholder,
+    SlashCommandExtension,
     Underline,
     Link.configure({ openOnClick: false, autolink: true }),
   ];

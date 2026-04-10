@@ -1,5 +1,7 @@
 /** Contract: contracts/app-kb/rules.md */
 
+import { attachKbLinkSuggestion } from './kb-link-suggestion.ts';
+
 /** Field definition for dynamic metadata form rendering. */
 export interface MetadataFieldDef {
   key: string;
@@ -115,6 +117,10 @@ export function renderMetaFields(
       textarea.rows = 3;
       textarea.value = String(value);
       if (field.placeholder) textarea.placeholder = field.placeholder;
+      // Attach [[ KB inline link suggestion for note body
+      if (entryType === 'note' && field.key === 'body') {
+        attachKbLinkSuggestion(textarea);
+      }
       container.appendChild(textarea);
     } else if (field.type === 'select' && field.options) {
       const select = document.createElement('select');
