@@ -32,7 +32,7 @@ import { initRuler } from './editor-ruler.ts';
 import { initZoomControl } from './zoom-control.ts';
 import { buildSaveIndicator } from './save-indicator.ts';
 import { initPageSetup, showPageSetupDialog } from './page-setup.ts';
-import { insertHeaderFooter, insertPageNumber } from './header-footer.ts';
+import { insertHeaderFooter, insertPageNumber, activateZone } from './header-footer.ts';
 import {
   registerServiceWorker,
   buildOfflineIndicator,
@@ -176,11 +176,34 @@ async function init() {
   // Wire up the Page Setup button in the toolbar
   document.getElementById('page-setup-btn')?.addEventListener('click', showPageSetupDialog);
 
-  // Header / footer zones — inserted above and below the editor paper
-  const { footerZone } = insertHeaderFooter(documentId);
+  // Header / footer zones — inserted above and below the editor paper; hidden until activated (#442)
+  const { headerZone, footerZone } = insertHeaderFooter(documentId);
 
-  // Wire up "Insert Page Number" button
+  // Clicking the top margin area (above the editor paper) activates the header zone
+  // Clicking the bottom margin area (below the editor paper) activates the footer zone
+  const wrapper = document.querySelector('.editor-wrapper');
+  if (wrapper) {
+    wrapper.addEventListener('click', (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target === wrapper) {
+        const editorRect = document.getElementById('editor')?.getBoundingClientRect();
+        if (editorRect) {
+          const mouseY = (e as MouseEvent).clientY;
+          if (mouseY < editorRect.top) {
+            activateZone(headerZone);
+            headerZone.focus();
+          } else if (mouseY > editorRect.bottom) {
+            activateZone(footerZone);
+            footerZone.focus();
+          }
+        }
+      }
+    });
+  }
+
+  // Wire up "Insert Page Number" button — activates footer zone if not already active
   document.getElementById('insert-page-number')?.addEventListener('click', () => {
+    activateZone(footerZone);
     insertPageNumber(footerZone);
   });
 
