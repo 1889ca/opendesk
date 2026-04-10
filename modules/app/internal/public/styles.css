@@ -24,6 +24,7 @@
   --accent: var(--accent-color);
   --connected: var(--status-connected);
   --disconnected: var(--status-disconnected);
+  --reconnecting: var(--status-reconnecting);
 }
 
 body {

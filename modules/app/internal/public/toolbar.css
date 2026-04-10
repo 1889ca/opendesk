@@ -142,6 +142,15 @@
   animation: pulse-dot 1.5s ease-in-out infinite;
 }
 
+.status.reconnecting {
+  color: var(--text-muted);
+}
+
+.status.reconnecting::before {
+  background: var(--reconnecting);
+  animation: pulse-dot 0.8s ease-in-out infinite;
+}
+
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }

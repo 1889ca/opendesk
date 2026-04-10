@@ -44,6 +44,7 @@ export interface CoreTranslationKeys {
   'status.connected': string;
   'status.disconnected': string;
   'status.connecting': string;
+  'status.reconnecting': string;
   'editor.editors': string;
   'editor.backToDocuments': string;
   'editor.loading': string;
