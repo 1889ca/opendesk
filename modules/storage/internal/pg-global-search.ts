@@ -40,20 +40,24 @@ export async function globalSearch(
   }
 
   const useFilter = allowedDocumentIds !== undefined;
+  // search_vector indexes the title; content_plain enables body text search (#284).
+  // ts_headline falls back to title when content_plain is absent so the snippet
+  // area always carries genuine excerpt content distinct from the title. (#291)
   const sql = `SELECT
        id,
        title,
        document_type,
        ts_headline(
          'english',
-         coalesce(title, ''),
+         coalesce(NULLIF(trim(content_plain), ''), title, ''),
          plainto_tsquery('english', $1),
          'StartSel=<mark>, StopSel=</mark>, MaxWords=35, MinWords=15'
        ) AS snippet,
        ts_rank(search_vector, plainto_tsquery('english', $1)) AS rank,
        updated_at
      FROM documents
-     WHERE search_vector @@ plainto_tsquery('english', $1)
+     WHERE (search_vector @@ plainto_tsquery('english', $1)
+            OR to_tsvector('english', coalesce(content_plain, '')) @@ plainto_tsquery('english', $1))
        ${useFilter ? 'AND id = ANY($2)' : ''}
      ORDER BY rank DESC, updated_at DESC
      LIMIT 50`;

@@ -30,7 +30,7 @@ test.describe('Editor', () => {
       // Wait up to 15s for WebSocket + CRDT init
       await expect(toolbar).toBeVisible({ timeout: 15000 });
     }
-    await expect(page.getByRole('button', { name: 'Bold' })).toBeVisible();
+    await expect(toolbar.getByRole('button', { name: 'Bold' })).toBeVisible();
   });
 
   test('editor content area present', async ({ page }) => {

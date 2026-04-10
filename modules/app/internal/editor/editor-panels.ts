@@ -13,6 +13,7 @@ import { buildWorkflowPanel, toggleWorkflowPanel } from './workflow-panel.ts';
 import { buildStatusBar } from './status-bar.ts';
 import { openCitationPicker, createBibliography, buildReferenceLibrary } from './citations/index.ts';
 import { setupPromoteToKB } from './promote-to-kb.ts';
+import { buildFootnotePanel } from './footnote-panel.ts';
 
 export interface PanelDeps {
   editor: Editor;
@@ -30,12 +31,10 @@ export interface PanelDeps {
 export function initEditorPanels(deps: PanelDeps): void {
   const { editor, editorEl, commentStore, documentId, user } = deps;
 
-  const editorWrapper = editorEl.closest('.editor-wrapper');
-  if (editorWrapper) {
-    editorWrapper.appendChild(buildStatusBar(editor));
-  }
+  document.body.appendChild(buildStatusBar(editor));
 
   const bib = createBibliography(editor);
+  const editorWrapper = editorEl.closest('.editor-wrapper');
   if (editorWrapper) {
     editorWrapper.appendChild(bib.element);
   } else {
@@ -75,6 +74,14 @@ export function initEditorPanels(deps: PanelDeps): void {
   });
 
   setupPromoteToKB(editor);
+
+  const footnotePanel = buildFootnotePanel(editor);
+  const editorWrapperEl = editorEl.closest('.editor-wrapper');
+  if (editorWrapperEl) {
+    editorWrapperEl.appendChild(footnotePanel);
+  } else {
+    editorEl.parentElement?.appendChild(footnotePanel);
+  }
 
   document.addEventListener('opendesk:insert-citation', () => {
     const citeBtn = document.querySelector('[data-action="insert-citation"]') as HTMLElement | null;

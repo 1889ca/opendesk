@@ -1,7 +1,7 @@
 /** Contract: contracts/app-slides/rules.md */
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
-import { getUserIdentity, getDocumentId, setupTitleSync } from '@opendesk/app';
+import { getUserIdentity, getDocumentId, setupTitleSync, mountAppToolbar } from '@opendesk/app';
 import { createInteractionController, type InteractionController } from './element-interaction.ts';
 import type { SlideElement } from './types.ts';
 import { renderElement } from './element-renderer.ts';
@@ -17,6 +17,7 @@ import { launchPresenterMode } from './presenter-mode.ts';
 import { initToolbarExtras } from './toolbar-extras.ts';
 
 function init() {
+  mountAppToolbar();
   const slideListEl = document.getElementById('slide-list')!;
   const viewportEl = document.getElementById('slide-viewport')!;
   const statusEl = document.getElementById('status');

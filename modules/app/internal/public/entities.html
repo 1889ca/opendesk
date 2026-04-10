@@ -4,17 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenDesk - Entity Directory</title>
+  <script src="theme-init.js"></script>
   <link rel="stylesheet" href="doc-list.bundle.css">
   <link rel="stylesheet" href="entity-browser.css">
-  <script>
-    (function() {
-      var stored = localStorage.getItem('opendesk-theme');
-      var theme = stored === 'dark' ? 'dark'
-        : stored === 'light' ? 'light'
-        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      document.documentElement.setAttribute('data-theme', theme);
-    })();
-  </script>
 </head>
 <body>
   <header class="toolbar">

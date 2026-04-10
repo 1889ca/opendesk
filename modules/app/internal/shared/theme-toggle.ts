@@ -66,11 +66,13 @@ export function buildThemeToggle(): void {
   const btn = document.createElement('button');
   btn.className = 'theme-toggle';
   btn.setAttribute('aria-label', t('toolbar.theme'));
-  btn.title = t('toolbar.theme');
 
   function updateLabel(): void {
     btn.textContent = `${getIcon(currentMode)} ${getLabel(currentMode)}`;
     btn.setAttribute('aria-label', `${t('toolbar.theme')}: ${getLabel(currentMode)}`);
+    btn.title = currentMode === 'system'
+      ? "Follow your system's light/dark preference"
+      : t('toolbar.theme');
   }
 
   updateLabel();
@@ -91,7 +93,6 @@ export function buildThemeToggle(): void {
   // Update labels on locale change
   onLocaleChange(() => {
     updateLabel();
-    btn.title = t('toolbar.theme');
   });
 
   // Insert before the lang switcher separator

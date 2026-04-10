@@ -191,9 +191,12 @@
   color: var(--disconnected);
   padding-left: 1.2rem;
   word-break: break-word;
+}
+
 /* ==========================================================================
    Workflow Editor — visual drag-and-drop workflow builder
    ========================================================================== */
+
 /* --- Theme variables --- */
 :root {
   --wf-trigger-fill: #dbeafe;
@@ -214,6 +217,8 @@
   --wf-text: var(--text-primary, #1a1a1a);
   --wf-text-muted: var(--text-secondary, #666666);
   --wf-accent: var(--accent-color, #2563eb);
+}
+
 [data-theme="dark"] {
   --wf-trigger-fill: #1e3a5f;
   --wf-trigger-stroke: #60a5fa;
@@ -226,31 +231,45 @@
   --wf-edge-color: #64748b;
   --wf-port-fill: #1e293b;
   --wf-port-stroke: #94a3b8;
+}
+
 /* --- Layout --- */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   background: var(--wf-bg);
   color: var(--wf-text);
+}
+
 .wf-editor {
   display: grid;
   grid-template-columns: 220px 1fr 280px;
   height: 100vh;
   overflow: hidden;
+}
+
 .wf-sidebar-left {
   background: var(--wf-surface);
   border-right: 1px solid var(--wf-border);
+}
+
 .wf-sidebar-right {
   background: var(--wf-surface);
   border-left: 1px solid var(--wf-border);
   padding: 1rem;
+}
+
 .wf-main {
   overflow: hidden;
+}
+
 /* --- Toolbar --- */
 .wf-toolbar {
   background: var(--wf-surface);
   border-bottom: 1px solid var(--wf-border);
   flex-shrink: 0;
+}
+
 .wf-name-input,
 .wf-docid-input {
   padding: 0.375rem 0.625rem;
@@ -258,8 +277,11 @@ body {
   background: var(--wf-bg);
   color: var(--wf-text);
   font-size: 0.875rem;
+}
+
 .wf-name-input { flex: 1; max-width: 240px; }
 .wf-docid-input { flex: 1; max-width: 200px; }
+
 .wf-save-btn,
 .wf-toggle-btn,
 .wf-exec-btn {
@@ -268,10 +290,13 @@ body {
   background: var(--wf-surface);
   color: var(--wf-text);
   transition: background 0.15s;
+}
+
 .wf-save-btn { background: var(--wf-accent); color: #fff; border-color: var(--wf-accent); }
 .wf-save-btn:hover { opacity: 0.9; }
 .wf-toggle-btn:hover,
 .wf-exec-btn:hover { background: var(--wf-bg); }
+
 /* --- Canvas --- */
 .wf-canvas-container {
   position: relative;
@@ -279,41 +304,62 @@ body {
   background:
     radial-gradient(circle, var(--wf-border) 1px, transparent 1px);
   background-size: 20px 20px;
+}
+
 .wf-canvas {
   width: 100%;
   height: 100%;
   display: block;
+}
+
 .wf-canvas.wf-connecting {
   cursor: crosshair;
+}
+
 /* --- SVG Nodes --- */
 .wf-node { cursor: grab; }
 .wf-node:active { cursor: grabbing; }
+
 .wf-node--selected rect,
 .wf-node--selected polygon {
   stroke: var(--wf-selected-stroke) !important;
   stroke-width: 3 !important;
+}
+
 .wf-node-type {
   font-size: 9px;
   fill: var(--wf-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
 .wf-node-label {
   font-size: 12px;
   fill: var(--wf-text);
+}
+
 .wf-port {
   fill: var(--wf-port-fill);
   stroke: var(--wf-port-stroke);
   stroke-width: 2;
   transition: fill 0.15s;
+}
+
 .wf-port:hover {
   fill: var(--wf-accent);
   stroke: var(--wf-accent);
+}
+
 /* --- SVG Edges --- */
 .wf-edge-line {
   transition: stroke 0.15s;
+}
+
 .wf-edge-hit:hover ~ .wf-edge-line {
   stroke: var(--wf-accent);
   stroke-width: 3;
+}
+
 .wf-edge-label {
   font-size: 10px;
   fill: var(--wf-text-muted);

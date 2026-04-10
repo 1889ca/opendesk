@@ -7,6 +7,7 @@ export interface A11yTranslationKeys {
   'a11y.formattingToolbar': string;
   'a11y.boldLabel': string;
   'a11y.italicLabel': string;
+  'a11y.underlineLabel': string;
   'a11y.strikeLabel': string;
   'a11y.codeLabel': string;
   'a11y.heading1Label': string;
@@ -26,6 +27,9 @@ export interface A11yTranslationKeys {
   'a11y.boldOff': string;
   'a11y.italicOn': string;
   'a11y.italicOff': string;
+  'a11y.underlineOn': string;
+  'a11y.underlineOff': string;
+  'a11y.linkLabel': string;
   'a11y.strikeOn': string;
   'a11y.strikeOff': string;
   'a11y.codeOn': string;
@@ -59,4 +63,25 @@ export interface A11yTranslationKeys {
   'shortcuts.undo': string;
   'shortcuts.redo': string;
   'shortcuts.showShortcuts': string;
+  'a11y.undoLabel': string;
+  'a11y.redoLabel': string;
+  'a11y.alignLeftLabel': string;
+  'a11y.alignCenterLabel': string;
+  'a11y.alignRightLabel': string;
+  'a11y.alignJustifyLabel': string;
+  'a11y.indentLabel': string;
+  'a11y.outdentLabel': string;
+  'a11y.superscriptLabel': string;
+  'a11y.subscriptLabel': string;
+  'a11y.highlightLabel': string;
+  'a11y.clearFormattingLabel': string;
+  'shortcuts.underline': string;
+  'shortcuts.link': string;
+  'shortcuts.superscript': string;
+  'shortcuts.subscript': string;
+  'shortcuts.alignment': string;
+  'shortcuts.alignLeft': string;
+  'shortcuts.alignCenter': string;
+  'shortcuts.alignRight': string;
+  'shortcuts.alignJustify': string;
 }

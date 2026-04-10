@@ -1,6 +1,8 @@
 /** Contract: contracts/app/rules.md */
 import type { AnyExtension } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { common, createLowlight } from 'lowlight';
 import Image from '@tiptap/extension-image';
@@ -24,6 +26,17 @@ import { createMentionExtension } from './mentions/index.ts';
 import { EmojiInputRule } from './emoji/index.ts';
 import { DragHandle } from './drag-handle/index.ts';
 import { createEntityMentionExtension } from './entity-mentions/index.ts';
+import { TextAlign } from './text-align.ts';
+import { FontSize } from './font-size.ts';
+import { FontFamily } from './font-family.ts';
+import { LineHeight } from './line-height.ts';
+import { YHistory } from './y-history.ts';
+import { TextColor } from './text-color.ts';
+import { TextHighlight } from './text-highlight.ts';
+import { TabIndent } from './tab-indent.ts';
+import { Superscript, Subscript } from './super-sub.ts';
+import { SmartPunctuation } from './smart-punctuation.ts';
+import { FootnoteNode } from './footnote.ts';
 
 const lowlight = createLowlight(common);
 
@@ -37,7 +50,7 @@ interface ExtensionConfig {
 export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
   const { ydoc, provider, user } = config;
   return [
-    StarterKit.configure({ undoRedo: false, codeBlock: false }),
+    StarterKit.configure({ undoRedo: false, codeBlock: false, link: false, underline: false }),
     CodeBlockLowlight.configure({ lowlight }),
     Table.configure({ resizable: true }),
     TableRow,
@@ -63,5 +76,19 @@ export function buildEditorExtensions(config: ExtensionConfig): AnyExtension[] {
     createMentionExtension(provider),
     createEntityMentionExtension(),
     DragHandle,
+    TextAlign,
+    FontFamily,
+    FontSize,
+    LineHeight,
+    TextColor,
+    TextHighlight,
+    TabIndent,
+    Superscript,
+    Subscript,
+    YHistory,
+    SmartPunctuation,
+    FootnoteNode,
+    Underline,
+    Link.configure({ openOnClick: false, autolink: true }),
   ];
 }

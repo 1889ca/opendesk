@@ -5,15 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Knowledge Base - OpenDesk</title>
   <link rel="stylesheet" href="kb-browser.bundle.css">
-  <script>
-    (function() {
-      var stored = localStorage.getItem('opendesk-theme');
-      var theme = stored === 'dark' ? 'dark'
-        : stored === 'light' ? 'light'
-        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      document.documentElement.setAttribute('data-theme', theme);
-    })();
-  </script>
+  <script src="theme-init.js"></script>
 </head>
 <body>
   <header class="toolbar">

@@ -6,6 +6,7 @@ import { createDocumentRoutes } from './internal/document-routes.ts';
 import { createVersionRoutes } from './internal/version-routes.ts';
 import { createFolderRoutes, createMoveDocumentRoute } from './internal/folder-routes.ts';
 import { createExportRoutes } from './internal/export-routes.ts';
+import { createPreviewRoutes } from './internal/preview-routes.ts';
 import { createStarredRoutes } from './internal/starred-routes.ts';
 import { createGlobalSearchRoutes } from './internal/global-search-routes.ts';
 
@@ -64,6 +65,13 @@ export const manifest: OpenDeskManifest = {
       mount: '/api/documents',
       order: 60,
       factory: (ctx) => createExportRoutes({ permissions: ctx.permissions }),
+    },
+    {
+      // /:id/preview — safe to mount after /:id (order 20) because Express
+      // only matches /:id to single-segment paths, not /abc/preview.
+      mount: '/api/documents',
+      order: 65,
+      factory: (ctx) => createPreviewRoutes({ permissions: ctx.permissions }),
     },
     {
       mount: '/api/starred',

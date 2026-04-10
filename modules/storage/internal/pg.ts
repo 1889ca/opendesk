@@ -130,3 +130,10 @@ export async function updateDocumentTitle(id: string, title: string): Promise<vo
     [title, id]
   );
 }
+
+export async function updateContentPlain(id: string, content: string): Promise<void> {
+  await pool.query(
+    'UPDATE documents SET content_plain = $1 WHERE id = $2',
+    [content, id],
+  );
+}

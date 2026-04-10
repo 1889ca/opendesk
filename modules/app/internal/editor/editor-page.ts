@@ -11,6 +11,7 @@ import { apiFetch } from '../shared/api-client.ts';
 import { setupShareDialog } from './share-dialog.ts';
 import { setupTitleSync } from '../shared/title-sync.ts';
 import { getBibliographyHtml } from './citations/index.ts';
+import { showToast } from '../shared/toast.ts';
 
 function getTitle(): string {
   const input = document.getElementById('doc-title') as HTMLInputElement | null;
@@ -49,12 +50,14 @@ function setupClientExports(): void {
       const body = bibHtml ? `${html}\n${bibHtml}` : html;
       const full = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title>${title}</title>\n</head>\n<body>\n${body}\n</body>\n</html>`;
       downloadBlob(full, `${title}.html`, 'text/html');
+      showToast('Exported as HTML', 'success');
     });
   });
 
   document.getElementById('export-text')?.addEventListener('click', () => {
     waitForEditor((editor) => {
       downloadBlob(editor.getText(), `${getTitle()}.txt`, 'text/plain');
+      showToast('Exported as plain text', 'success');
     });
   });
 }
@@ -78,8 +81,8 @@ function setupCollaboraExports(docId: string): void {
           if (!res.ok) throw new Error(res.status === 502 ? 'Conversion service unavailable' : 'Export failed');
           return res.blob();
         })
-        .then((blob) => downloadBlob(blob, `${getTitle()}.${format}`, blob.type))
-        .catch((err) => alert(err.message))
+        .then((blob) => { downloadBlob(blob, `${getTitle()}.${format}`, blob.type); showToast(`Exported as ${format.toUpperCase()}`, 'success'); })
+        .catch((err: Error) => showToast(err.message, 'error'))
         .finally(() => { btn.disabled = false; btn.textContent = format.toUpperCase(); });
     });
   }
@@ -159,6 +162,23 @@ function setupExportDropdown(): void {
   });
 }
 
+function setupCanvasTitleSync(): void {
+  const canvasTitle = document.getElementById('canvas-doc-title') as HTMLInputElement | null;
+  const toolbarTitle = document.getElementById('doc-title') as HTMLInputElement | null;
+  if (!canvasTitle || !toolbarTitle) return;
+
+  canvasTitle.value = toolbarTitle.value;
+
+  toolbarTitle.addEventListener('input', () => {
+    canvasTitle.value = toolbarTitle.value;
+  });
+
+  canvasTitle.addEventListener('input', () => {
+    toolbarTitle.value = canvasTitle.value;
+    toolbarTitle.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+}
+
 export function initEditorPage(): void {
   const docId = getDocumentId();
   if (docId === 'default') {
@@ -171,4 +191,5 @@ export function initEditorPage(): void {
   setupImport(docId);
   setupShareDialog(docId);
   setupExportDropdown();
+  setupCanvasTitleSync();
 }
