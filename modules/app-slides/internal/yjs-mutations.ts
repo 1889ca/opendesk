@@ -113,13 +113,25 @@ export function applyZOrderToYjs(
 ): void {
   const { yElements } = accessor;
   ydoc.transact(() => {
-    const maps: Y.Map<unknown>[] = [];
-    for (let i = 0; i < yElements.length; i++) maps.push(yElements.get(i));
-    const idToMap = new Map(maps.map((m) => [m.get('id') as string, m]));
+    // Snapshot all entries as plain key/value pairs before deletion.
+    // Yjs forbids re-inserting an already-integrated Y.Map, so we create
+    // fresh Y.Map instances with the same data for each re-insertion.
+    const idToEntries = new Map<string, [string, unknown][]>();
+    for (let i = 0; i < yElements.length; i++) {
+      const m = yElements.get(i);
+      const id = m.get('id') as string;
+      const entries: [string, unknown][] = [];
+      m.forEach((value, key) => entries.push([key, value]));
+      idToEntries.set(id, entries);
+    }
     yElements.delete(0, yElements.length);
     for (const el of reorderedElements) {
-      const m = idToMap.get(el.id);
-      if (m) yElements.push([m]);
+      const entries = idToEntries.get(el.id);
+      if (entries) {
+        const fresh = new Y.Map<unknown>();
+        for (const [k, v] of entries) fresh.set(k, v);
+        yElements.push([fresh]);
+      }
     }
   });
 }
