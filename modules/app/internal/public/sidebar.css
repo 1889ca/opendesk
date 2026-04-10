@@ -7,7 +7,7 @@
   position: fixed;
   top: 0;
   right: 0;
-  width: 320px;
+  width: clamp(280px, 25vw, 420px);
   height: 100vh;
   background: var(--surface);
   border-left: 1px solid var(--border);
@@ -71,6 +71,34 @@
 .version-sidebar-list {
   flex: 1;
   overflow-y: auto;
+}
+
+/* Editor content shifts right when a sidebar is open */
+body:has(.comment-sidebar-open) .editor-wrapper,
+body:has(.suggestion-sidebar-open) .editor-wrapper,
+body:has(.version-sidebar-open) .editor-wrapper,
+body:has(.workflow-sidebar-open) .editor-wrapper,
+body:has(.toc-panel-open) .editor-wrapper {
+  margin-right: clamp(280px, 25vw, 420px);
+  transition: margin-right 0.2s ease;
+}
+
+/* Resize handle — left edge of each sidebar panel */
+/* Panels already have position:fixed so the handle's position:absolute works */
+.sidebar-resize-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 1;
+}
+
+.sidebar-resize-handle:hover {
+  background: var(--primary, #4f6ef7);
+  opacity: 0.4;
 }
 
 /* Scrollbar — sidebar panels */
