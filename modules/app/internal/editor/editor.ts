@@ -43,6 +43,7 @@ import { mountAppToolbar } from '../shared/app-toolbar.ts';
 import { initEditorCollab } from './editor-collab.ts';
 import { initAiAssist } from './ai-assist.ts';
 import { initSpellCheckCycle } from './spell-check.ts';
+import { toggleFocusMode } from './focus-mode.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -197,6 +198,28 @@ async function init() {
 
   // Spell check — cycle through words, leveraging browser native spellcheck.
   initSpellCheckCycle(editorEl);
+
+  // Focus mode button in toolbar-right
+  const toolbarRightForFocus = document.querySelector('.toolbar-right');
+  if (toolbarRightForFocus) {
+    const focusBtn = document.createElement('button');
+    focusBtn.id = 'focus-mode-btn';
+    focusBtn.className = 'btn btn-ghost btn-sm';
+    focusBtn.setAttribute('aria-pressed', 'false');
+    focusBtn.setAttribute('title', 'Focus mode (\u2318\u21e7F)');
+    focusBtn.textContent = 'Focus';
+    focusBtn.addEventListener('click', () => toggleFocusMode());
+    toolbarRightForFocus.appendChild(focusBtn);
+  }
+
+  // Keyboard shortcut: Cmd/Ctrl+Shift+F → focus mode
+  document.addEventListener('keydown', (e) => {
+    const isMod = e.metaKey || e.ctrlKey;
+    if (isMod && e.shiftKey && e.key === 'F') {
+      e.preventDefault();
+      toggleFocusMode();
+    }
+  });
 
   Object.assign(window, { editor, provider, ydoc, commentStore });
 }

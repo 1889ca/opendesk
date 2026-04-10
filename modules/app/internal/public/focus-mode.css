@@ -1,0 +1,29 @@
+/** Focus mode — hides chrome and narrows the editor for distraction-free writing */
+
+body.focus-mode .formatting-toolbar,
+body.focus-mode #ruler-h,
+body.focus-mode .status-bar,
+body.focus-mode .editor-top-chrome {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+body.focus-mode {
+  background: #0a0a0a;
+}
+
+body.focus-mode .editor-wrapper {
+  background: #0a0a0a;
+}
+
+body.focus-mode .editor-page,
+body.focus-mode #editor {
+  max-width: 42rem;
+}
+
+/* Reveal toolbar when hovering near top of screen */
+body.focus-mode .editor-top-chrome:hover {
+  opacity: 1;
+  pointer-events: auto;
+}
