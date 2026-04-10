@@ -165,5 +165,17 @@ export function initRuler(): void {
   const ro = new ResizeObserver(redraw);
   ro.observe(paper);
   ro.observe(container);
+
+  // Redraw ruler when the theme changes so canvas colours update immediately
+  const themeObserver = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      if (m.attributeName === 'data-theme') {
+        redraw();
+        break;
+      }
+    }
+  });
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
   redraw();
 }

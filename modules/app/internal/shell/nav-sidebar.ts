@@ -100,7 +100,8 @@ export async function loadRecentDocs(): Promise<void> {
   try {
     const res = await apiFetch('/api/documents');
     if (!res.ok) return;
-    const docs: RecentDoc[] = await res.json();
+    const result = await res.json();
+    const docs: RecentDoc[] = Array.isArray(result) ? result : (result.data ?? []);
     renderRecentDocs(docs.slice(0, 5));
   } catch {
     // Silently fail — recent list is not critical

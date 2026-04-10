@@ -59,6 +59,11 @@ body {
   padding: 4rem 5rem;
 }
 
+/* Stronger paper shadow in dark mode so the white page pops on the canvas */
+[data-theme="dark"] #editor {
+  box-shadow: 0 4px 16px var(--shadow-color), 0 16px 48px var(--shadow-heavy);
+}
+
 .editor-content {
   padding: 0;
   outline: none;
