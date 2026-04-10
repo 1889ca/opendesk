@@ -6,7 +6,7 @@ export interface DocStats {
   characters: number;
   charactersNoSpaces: number;
   paragraphs: number;
-  readingTime: string;
+  readingTime: number;
 }
 
 export interface StatsResult {
@@ -20,9 +20,8 @@ function countWords(text: string): number {
   return text.split(/\s+/).filter((w) => w.length > 0).length;
 }
 
-function formatReadingTime(words: number): string {
-  const minutes = Math.round(words / WORDS_PER_MINUTE);
-  return minutes < 1 ? '' : String(minutes);
+function calcReadingTime(words: number): number {
+  return Math.max(1, Math.ceil(words / WORDS_PER_MINUTE));
 }
 
 function countParagraphs(editor: Editor): number {
@@ -43,7 +42,7 @@ function buildStats(text: string, paragraphs: number): DocStats {
     characters: text.length,
     charactersNoSpaces: text.replace(/\s/g, '').length,
     paragraphs,
-    readingTime: formatReadingTime(words),
+    readingTime: calcReadingTime(words),
   };
 }
 
