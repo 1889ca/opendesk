@@ -124,6 +124,18 @@ async function init() {
   editor.registerPlugin(createSuggestModePlugin(editor));
   setupSuggestionClickHandler(editor);
 
+  // Focus editor at end when clicking empty page space below content (issue #437)
+  const editorWrapper = document.querySelector<HTMLElement>('.editor-wrapper');
+  if (editorWrapper) {
+    editorWrapper.addEventListener('click', (e) => {
+      const target = e.target as Node;
+      const canvasTitleWrap = document.querySelector('.editor-canvas-title-wrap');
+      if (!editorEl.contains(target) && !(canvasTitleWrap?.contains(target))) {
+        editor.commands.focus('end');
+      }
+    });
+  }
+
   // Allow native context menu — prevent any TipTap extension or parent listener
   // from suppressing right-click (issue #255)
   editorEl.addEventListener('contextmenu', (e) => {
