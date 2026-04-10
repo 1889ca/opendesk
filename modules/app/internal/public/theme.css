@@ -32,8 +32,8 @@
   /* Editor-specific */
   --editor-paper-bg: #ffffff;
   --code-bg: #fafafa;
-  --code-block-bg: #1e1e1e;
-  --code-block-text: #d4d4d4;
+  --code-block-bg: #f5f5f5;
+  --code-block-text: #1a1a1a;
 
   /* Comments */
   --comment-highlight: rgba(255, 235, 120, 0.35);
@@ -95,8 +95,8 @@
   /* Editor-specific */
   --editor-paper-bg: #ffffff;
   --code-bg: #1a1a2e;
-  --code-block-bg: #0f0f1a;
-  --code-block-text: #d4d4d4;
+  --code-block-bg: #1e1e2e;
+  --code-block-text: #cdd6f4;
 
   /* Comments */
   --comment-highlight: rgba(255, 235, 120, 0.2);
