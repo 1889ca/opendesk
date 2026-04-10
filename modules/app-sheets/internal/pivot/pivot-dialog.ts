@@ -1,7 +1,6 @@
 /** Contract: contracts/app-sheets/rules.md */
 import * as Y from 'yjs';
-import type { AggregationType } from './pivot-engine.ts';
-import { buildPivot } from './pivot-engine.ts';
+import { buildPivot, type AggregationType } from './pivot-engine.ts';
 import { pivotToGrid, writePivotToSheet } from './pivot-renderer.ts';
 import type { SheetStore } from '../sheet-store.ts';
 

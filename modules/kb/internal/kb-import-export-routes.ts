@@ -96,7 +96,7 @@ export function createKBImportExportRoutes(opts: KBImportExportRoutesOptions): R
           const entryType = frontMatter.entry_type ?? frontMatter.type ?? 'note';
           const tagsRaw = frontMatter.tags ?? '';
           const tags = tagsRaw
-            .replace(/[\[\]]/g, '').split(',')
+            .replace(/[[\]]/g, '').split(',')
             .map((t: string) => t.trim().replace(/^"|"$/g, ''))
             .filter(Boolean);
 

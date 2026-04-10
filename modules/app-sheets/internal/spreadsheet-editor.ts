@@ -7,7 +7,7 @@ import { getFormatMap } from './format/store.ts';
 import { attachFormatShortcuts } from './format/shortcuts.ts';
 import { renderFormattedGrid } from './grid-render.ts';
 import { SheetStore } from './sheet-store.ts';
-import { TabBar } from './tab-bar.ts';
+import { setupTabBar } from './tab-bar-setup.ts';
 import { createRangeSelection } from './range-selection.ts';
 import { createClipboardManager } from './clipboard.ts';
 import { createColRowResize } from './col-row-resize.ts';
@@ -198,39 +198,6 @@ function init() {
   setupPresence(provider, user, usersEl);
   observeNamedRanges(ydoc, () => doRender());
   Object.assign(window, { ydoc, provider, store });
-}
-
-function setupTabBar(
-  container: HTMLElement | null, store: SheetStore,
-  switchSheet: (id: string) => void, activeSheetId: string,
-): TabBar | null {
-  if (!container) return null;
-  let tabBar: TabBar;
-  tabBar = new TabBar(container, store, {
-    onSwitch: switchSheet,
-    onAdd() {
-      const meta = store.addSheet();
-      tabBar.render();
-      switchSheet(meta.id);
-    },
-    onRename(sheetId, newName) {
-      store.renameSheet(sheetId, newName);
-      tabBar.render();
-    },
-    onDelete(sheetId) {
-      if (store.getSheets().length <= 1) return;
-      if (!store.deleteSheet(sheetId)) return;
-      tabBar.render();
-      if (activeSheetId === sheetId) switchSheet(store.getSheets()[0].id);
-    },
-    onDuplicate(sheetId) {
-      const meta = store.duplicateSheet(sheetId);
-      if (!meta) return;
-      tabBar.render();
-      switchSheet(meta.id);
-    },
-  }, activeSheetId);
-  return tabBar;
 }
 
 document.addEventListener('DOMContentLoaded', init);
