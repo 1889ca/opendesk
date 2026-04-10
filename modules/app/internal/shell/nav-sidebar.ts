@@ -98,9 +98,10 @@ export function updateActiveRoute(path: string): void {
 export async function loadRecentDocs(): Promise<void> {
   if (!recentListEl) return;
   try {
-    const res = await apiFetch('/api/documents');
+    const res = await apiFetch('/api/documents?sort=updated_at&sortDir=desc&limit=5');
     if (!res.ok) return;
-    const docs: RecentDoc[] = await res.json();
+    const json = await res.json();
+    const docs: RecentDoc[] = Array.isArray(json) ? json : (json.data ?? []);
     renderRecentDocs(docs.slice(0, 5));
   } catch {
     // Silently fail — recent list is not critical
