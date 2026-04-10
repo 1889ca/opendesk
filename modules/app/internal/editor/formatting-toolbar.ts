@@ -13,7 +13,9 @@ import { type ToolbarButton, buildToolbarButtons, buildButtonTitle } from './for
 
 export function renderToolbarButtons(
   toolbar: HTMLElement, buttons: ToolbarButton[], editor: Editor,
-): void {
+): () => void {
+  const cleanups: Array<() => void> = [];
+
   for (const btnDef of buttons) {
     const { key, icon, ariaKey, action, isActive } = btnDef;
     if (key === null) {
@@ -62,14 +64,20 @@ export function renderToolbarButtons(
       };
       editor.on('selectionUpdate', update);
       editor.on('transaction', update);
+      cleanups.push(() => {
+        editor.off('selectionUpdate', update);
+        editor.off('transaction', update);
+      });
     }
   }
+
+  return () => { for (const fn of cleanups) fn(); };
 }
 
-/** Build the overflow (More ···) item list: buttons + select rows. */
-function buildOverflowItems(overflowBtns: ToolbarButton[], editor: Editor): HTMLElement[] {
+/** Build the overflow (More ···) item list: buttons + select rows. Returns elements + cleanup fn. */
+function buildOverflowItems(overflowBtns: ToolbarButton[], editor: Editor): { els: HTMLElement[]; cleanup: () => void } {
   const temp = document.createElement('div');
-  renderToolbarButtons(temp, overflowBtns, editor);
+  const cleanup = renderToolbarButtons(temp, overflowBtns, editor);
 
   const els = Array.from(temp.children) as HTMLElement[];
 
@@ -82,7 +90,7 @@ function buildOverflowItems(overflowBtns: ToolbarButton[], editor: Editor): HTML
   els.push(buildSelectRow('Paragraph spacing', buildParagraphSpacingSelect(editor)));
   els.push(buildSelectRow('Columns', buildColumnSelect(editor)));
 
-  return els;
+  return { els, cleanup };
 }
 
 function buildSelectRow(label: string, select: HTMLElement): HTMLElement {
@@ -103,17 +111,17 @@ export function buildFormattingToolbar(editor: Editor): void {
   toolbar.setAttribute('aria-label', t('a11y.formattingToolbar'));
   const editorEl = () => document.querySelector('.editor-content') as HTMLElement | null;
 
-  let overflowCleanup: (() => void) | null = null;
+  let cleanupAll: (() => void) | null = null;
 
   const render = () => {
-    overflowCleanup?.();
+    cleanupAll?.();
     toolbar.innerHTML = '';
 
     const allButtons = buildToolbarButtons(editor);
     const primaryBtns = allButtons.filter(b => !b.priority);
     const overflowBtns = allButtons.filter(b => b.priority === 'overflow');
 
-    renderToolbarButtons(toolbar, primaryBtns, editor);
+    const primaryCleanup = renderToolbarButtons(toolbar, primaryBtns, editor);
 
     // Insert style / font / size selects at position 3 (after undo/redo/separator)
     const styleSelect = buildStyleSelect(editor);
@@ -130,8 +138,10 @@ export function buildFormattingToolbar(editor: Editor): void {
     toolbar.appendChild(buildHighlightBtn(editor));
 
     // Build overflow elements and set up the permanent More (···) menu
-    const overflowEls = buildOverflowItems(overflowBtns, editor);
-    overflowCleanup = setupToolbarOverflow(toolbar, overflowEls);
+    const { els: overflowEls, cleanup: overflowBtnCleanup } = buildOverflowItems(overflowBtns, editor);
+    const overflowCleanup = setupToolbarOverflow(toolbar, overflowEls);
+
+    cleanupAll = () => { primaryCleanup(); overflowBtnCleanup(); overflowCleanup(); };
 
     updateRovingTabindex(toolbar);
   };
