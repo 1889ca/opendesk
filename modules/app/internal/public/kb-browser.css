@@ -386,3 +386,65 @@
   background: var(--status-disconnected-bg);
   color: var(--status-disconnected);
 }
+/* Detail panel empty/placeholder state */
+.kb-detail-placeholder {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 3rem 0;
+  font-size: 0.875rem;
+}
+.kb-detail-body-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.875rem;
+}
+/* New Entry modal (replaces window.prompt) */
+.kb-new-entry-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg, rgba(0, 0, 0, 0.4));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9000;
+}
+.kb-new-entry-modal {
+  background: var(--bg-surface, #fff);
+  border-radius: 10px;
+  padding: 1.5rem;
+  min-width: 22rem;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+.kb-new-entry-modal__title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+.kb-new-entry-modal__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.kb-new-entry-modal__input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color, #e2e2e2);
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  background: var(--bg-primary, #fafafa);
+  color: var(--text-primary, #1a1a1a);
+  box-sizing: border-box;
+}
+.kb-new-entry-modal__input:focus {
+  outline: 2px solid var(--accent-color, #2563eb);
+  outline-offset: 1px;
+}
+.kb-new-entry-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
