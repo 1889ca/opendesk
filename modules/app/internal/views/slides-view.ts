@@ -5,7 +5,7 @@
  * and initialises the collaborative slide editor for a given document ID.
  */
 
-import { initSlides, type SlidesCleanup } from '../../../../app-slides/internal/presentation-editor.ts';
+import { initSlides, type SlidesCleanup } from '../../../app-slides/internal/presentation-editor.ts';
 import { mountAppToolbar } from '../shared/app-toolbar.ts';
 
 let cleanup: SlidesCleanup | null = null;
