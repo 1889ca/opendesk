@@ -40,6 +40,14 @@
   border-color: var(--accent);
 }
 
+.search-panel__input.is-invalid {
+  border-color: var(--error);
+}
+
+.search-panel__input.is-no-results {
+  border-color: var(--error);
+}
+
 .search-panel__toggle {
   font-family: inherit;
   font-size: 0.6875rem;
