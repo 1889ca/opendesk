@@ -101,15 +101,6 @@ async function init() {
     url: wsUrl, name: documentId, document: ydoc,
     // Use the real auth token — 'dev' sentinel is rejected by the collab server (#340)
     token: getAuthToken(),
-    onConnect() {
-      if (statusEl) { statusEl.textContent = t('status.connected'); statusEl.className = 'status connected'; }
-      setConnectionState('syncing');
-      flushQueue().then(() => setConnectionState('online')).catch(() => {});
-    },
-    onDisconnect() {
-      if (statusEl) { statusEl.textContent = t('status.disconnected'); statusEl.className = 'status disconnected'; }
-      setConnectionState('offline');
-    },
   });
 
   let editor: Editor;
