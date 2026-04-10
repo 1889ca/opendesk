@@ -39,3 +39,5 @@
 @import "../public/toast.css";
 @import "../public/special-chars.css";
 @import "../public/ai-assist.css";
+@import "../editor/drawing/drawing.css";
+@import "../public/spellcheck.css";

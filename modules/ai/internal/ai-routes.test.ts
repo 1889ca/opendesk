@@ -25,6 +25,7 @@ function createInMemoryAi(overrides: Partial<AiModule> = {}): AiModule {
       answer: 'The answer is 42.',
       sources: [{ sourceId: 'doc-1', sourceType: 'document' as const, chunkText: 'chunk', similarity: 0.9 }],
     })),
+    assist: vi.fn(async () => ({ result: 'Transformed text.' })),
     healthCheck: vi.fn(async () => true),
     startConsumer: vi.fn(),
     stopConsumer: vi.fn(),
@@ -126,5 +127,44 @@ describe('AI routes', () => {
     const res = await request(app).get('/api/ai/health');
     expect(res.status).toBe(200);
     expect(res.body.ollama).toBe('unavailable');
+  });
+
+  it('POST /assist returns transformed text', async () => {
+    const ai = createInMemoryAi({
+      assist: vi.fn(async () => ({ result: 'Improved text here.' })),
+    });
+    const app = createTestApp(ai, permissions);
+
+    const res = await request(app)
+      .post('/api/ai/assist')
+      .send({ action: 'improve', text: 'This is some text.' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.result).toBe('Improved text here.');
+    expect(ai.assist).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'improve', text: 'This is some text.' }),
+    );
+  });
+
+  it('POST /assist rejects invalid action', async () => {
+    const ai = createInMemoryAi();
+    const app = createTestApp(ai, permissions);
+
+    const res = await request(app)
+      .post('/api/ai/assist')
+      .send({ action: 'unknown-action', text: 'Hello' });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /assist rejects empty text', async () => {
+    const ai = createInMemoryAi();
+    const app = createTestApp(ai, permissions);
+
+    const res = await request(app)
+      .post('/api/ai/assist')
+      .send({ action: 'summarize', text: '' });
+
+    expect(res.status).toBe(400);
   });
 });

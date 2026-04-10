@@ -1,0 +1,187 @@
+/* AI Writing Assistant — floating trigger, dropdown, and result popover */
+
+/* ── Floating trigger bubble ─────────────────────────────────────────── */
+
+.ai-assist-bubble {
+  display: flex;
+  align-items: center;
+  z-index: 101;
+  /* position, top, left, visibility managed by BubbleMenuPlugin */
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  pointer-events: none;
+}
+
+.ai-assist-bubble[style*="visibility: visible"],
+.ai-assist-bubble[style*="visibility:visible"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ai-assist-trigger-btn {
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  line-height: 1.4;
+  transition: background 0.1s, box-shadow 0.1s;
+  white-space: nowrap;
+}
+
+.ai-assist-trigger-btn:hover {
+  background: var(--accent-hover, var(--accent));
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+.ai-assist-trigger-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Dropdown menu ───────────────────────────────────────────────────── */
+
+.ai-assist-dropdown {
+  position: absolute;
+  z-index: 500;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px var(--shadow-heavy, rgba(0, 0, 0, 0.12));
+  padding: 4px;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ai-assist-dropdown-item {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.ai-assist-dropdown-item:hover {
+  background: var(--bg);
+  color: var(--accent);
+}
+
+.ai-assist-dropdown-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* ── Result / loading popover ────────────────────────────────────────── */
+
+.ai-assist-popover {
+  position: absolute;
+  z-index: 500;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px var(--shadow-heavy, rgba(0, 0, 0, 0.12));
+  padding: 0.75rem;
+  max-width: 480px;
+  min-width: 240px;
+}
+
+.ai-assist-popover--loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-style: italic;
+}
+
+.ai-assist-popover--error {
+  color: #dc2626;
+  font-size: 0.8125rem;
+}
+
+.ai-assist-preview {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.6rem;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ai-assist-popover-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.ai-assist-btn {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  line-height: 1.4;
+}
+
+.ai-assist-btn--primary {
+  background: var(--accent);
+  color: #fff;
+  border: 1px solid var(--accent);
+}
+
+.ai-assist-btn--primary:hover {
+  background: var(--accent-hover, var(--accent));
+}
+
+.ai-assist-btn--ghost {
+  background: none;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.ai-assist-btn--ghost:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.ai-assist-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────────────── */
+
+.ai-assist-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: ai-assist-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes ai-assist-spin {
+  to { transform: rotate(360deg); }
+}

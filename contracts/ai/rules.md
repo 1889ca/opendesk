@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Air-gapped local AI module providing a BYOM (Bring Your Own Model) abstraction over Ollama for document embeddings, semantic search, RAG-based document assistance, and sovereign-safe AI model management with a curated model registry. All inference stays within the sovereign deployment boundary.
+Air-gapped local AI module providing a BYOM (Bring Your Own Model) abstraction over Ollama for document embeddings, semantic search, RAG-based document assistance, writing assistance, and sovereign-safe AI model management with a curated model registry. All inference stays within the sovereign deployment boundary.
 
 ## Inputs
 
@@ -19,6 +19,7 @@ Air-gapped local AI module providing a BYOM (Bring Your Own Model) abstraction o
 - `EmbeddingRecord`: Stored text chunk with vector embedding and source metadata.
 - `SemanticSearchResult`: Search result ranked by cosine similarity.
 - `AssistantResponse`: RAG-generated response with source attribution.
+- `AssistResult`: AI-transformed text for writing assistance actions (improve, summarize, expand, shorten, fix-grammar, continue).
 - `ModelZooEntry`: Curated model metadata (name, provider tag, capabilities, license, hardware reqs).
 - `ModelConfig`: Per-workspace active model selection (embedding + generation).
 - `OllamaModelInfo`: Installed model list from Ollama.
@@ -26,7 +27,7 @@ Air-gapped local AI module providing a BYOM (Bring Your Own Model) abstraction o
 ## Side Effects
 
 - Stores embeddings in `document_embeddings` table (pgvector).
-- Calls Ollama HTTP API for embedding generation and LLM inference.
+- Calls Ollama HTTP API for embedding generation, LLM inference, and writing assistance.
 - Subscribes to `StateFlushed` events to trigger re-embedding.
 - Triggers Ollama `/api/pull` to download models.
 - Triggers Ollama `/api/delete` to remove models.
@@ -91,8 +92,9 @@ modules/ai/
     vector-store.ts    -- pgvector read/write operations
     ollama-client.ts   -- BYOM Ollama adapter (embed, chat, model management)
     rag.ts             -- RAG query engine with corpus filtering
+    assist-service.ts  -- AI writing assistant (improve/summarize/expand/shorten/fix-grammar/continue)
     zoo-loader.ts      -- curated model registry loader
     config-store.ts    -- per-workspace model config persistence
     model-service.ts   -- model management service
-    ai-routes.ts       -- API routes (RAG + model zoo management)
+    ai-routes.ts       -- API routes (RAG + model zoo + writing assist)
 ```
