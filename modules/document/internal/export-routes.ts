@@ -1,10 +1,20 @@
 /** Contract: contracts/document/rules.md */
 
 import { Router, type Request, type Response } from 'express';
+import { z } from 'zod';
 import { getDocument } from '../../storage/index.ts';
 import { getDocumentForExport } from '../../convert/index.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
+
+const ExportBody = z.object({
+  format: z.enum(['html', 'text']),
+  content: z.string(),
+});
+
+const ImportBody = z.object({
+  html: z.string().min(1),
+});
 
 export type ExportRoutesOptions = {
   permissions: PermissionsModule;
@@ -20,19 +30,15 @@ export function createExportRoutes(opts: ExportRoutesOptions): Router {
 
   // Export document — requires read permission
   router.post('/:id/export', permissions.require('read'), asyncHandler(async (req: Request, res: Response) => {
-    const format = req.body?.format;
-    if (!format || !['html', 'text'].includes(format)) {
-      res.status(400).json({ error: 'format must be "html" or "text"' });
+    const bodyResult = ExportBody.safeParse(req.body);
+    if (!bodyResult.success) {
+      res.status(400).json({ error: 'validation_error', issues: bodyResult.error.issues });
       return;
     }
+    const { format, content } = bodyResult.data;
     const meta = await getDocumentForExport(String(req.params.id));
     if (!meta) {
       res.status(404).json({ error: 'Document not found' });
-      return;
-    }
-    const content = req.body?.content;
-    if (!content && content !== '') {
-      res.status(400).json({ error: 'content is required (client-side export)' });
       return;
     }
     const ext = format === 'html' ? 'html' : 'txt';
@@ -50,11 +56,12 @@ export function createExportRoutes(opts: ExportRoutesOptions): Router {
 
   // Import HTML into document — requires write permission
   router.post('/:id/import', permissions.require('write'), asyncHandler(async (req: Request, res: Response) => {
-    const html = req.body?.html;
-    if (!html) {
-      res.status(400).json({ error: 'html content is required' });
+    const bodyResult = ImportBody.safeParse(req.body);
+    if (!bodyResult.success) {
+      res.status(400).json({ error: 'validation_error', issues: bodyResult.error.issues });
       return;
     }
+    const { html } = bodyResult.data;
     const doc = await getDocument(String(req.params.id));
     if (!doc) {
       res.status(404).json({ error: 'Document not found' });

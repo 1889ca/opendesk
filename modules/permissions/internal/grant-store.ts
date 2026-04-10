@@ -1,7 +1,7 @@
 /** Contract: contracts/permissions/rules.md */
 
 import { randomUUID } from 'node:crypto';
-import type { Grant, GrantDef } from '../contract.ts';
+import type { Grant, GrantDef, Role } from '../contract.ts';
 
 /**
  * Interface for grant persistence.
@@ -32,6 +32,9 @@ export type GrantStore = {
 
   /** Delete all grants for a specific resource. Returns count of deleted grants. */
   deleteByResource(resourceId: string, resourceType: string): Promise<number>;
+
+  /** Update the role on an existing grant. Returns the updated grant, or null if not found. */
+  updateGrantRole(grantId: string, newRole: Role): Promise<Grant | null>;
 };
 
 /**
@@ -108,6 +111,14 @@ export function createInMemoryGrantStore(): GrantStore {
         }
       }
       return count;
+    },
+
+    async updateGrantRole(grantId, newRole) {
+      const existing = grants.get(grantId);
+      if (!existing) return null;
+      const updated: Grant = { ...existing, role: newRole };
+      grants.set(grantId, updated);
+      return updated;
     },
   };
 }

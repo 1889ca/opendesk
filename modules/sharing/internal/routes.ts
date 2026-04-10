@@ -8,6 +8,7 @@ import { asyncHandler } from '../../api/internal/async-handler.ts';
 import { runAsSystem } from '../../storage/index.ts';
 import type { PasswordRateLimiter, ShareResolveRateLimiter } from './rate-limit.ts';
 import { createLogger } from '../../logger/index.ts';
+import { addUpdateGrantRoute } from './routes-update.ts';
 
 const log = createLogger('sharing:routes');
 
@@ -167,6 +168,9 @@ export function createShareRoutes(opts: ShareRoutesOptions): Router {
     res.json({ grant: { docId: safeLink.docId, role: safeLink.role }, link: safeLink });
     });
   }));
+
+  /** PATCH /api/grants/:grantId -- update role on an active grant */
+  if (grantStore) addUpdateGrantRoute(router, grantStore);
 
   /** DELETE /api/share/:token -- revoke a share link (creator or document write permission) */
   router.delete('/api/share/:token', permissions.requireAuth, asyncHandler(async (req, res) => {

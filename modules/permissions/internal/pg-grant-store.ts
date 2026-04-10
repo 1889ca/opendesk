@@ -2,7 +2,7 @@
 
 import { randomUUID } from 'node:crypto';
 import type pg from 'pg';
-import type { Grant, GrantDef } from '../contract.ts';
+import type { Grant, GrantDef, Role } from '../contract.ts';
 import type { GrantStore } from './grant-store.ts';
 import { rlsQuery } from '../../storage/internal/rls-query.ts';
 
@@ -91,6 +91,15 @@ export function createPgGrantStore(pool: pg.Pool): GrantStore {
         [resourceId, resourceType],
       );
       return rowCount ?? 0;
+    },
+
+    async updateGrantRole(grantId: string, newRole: Role) {
+      const { rows } = await rlsQuery(
+        pool,
+        `UPDATE grants SET role = $2 WHERE id = $1 RETURNING *`,
+        [grantId, newRole],
+      );
+      return rows.length > 0 ? toGrant(rows[0]) : null;
     },
   };
 }

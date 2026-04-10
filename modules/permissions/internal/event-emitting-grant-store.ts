@@ -36,6 +36,24 @@ export function withGrantEvents(
       return grant;
     },
 
+    async updateGrantRole(grantId, newRole) {
+      const updated = await inner.updateGrantRole(grantId, newRole);
+
+      if (updated) {
+        const event: DomainEvent = {
+          id: randomUUID(),
+          type: EventType.GrantCreated,
+          aggregateId: updated.resourceId,
+          actorId: updated.grantedBy,
+          actorType: 'system',
+          occurredAt: new Date().toISOString(),
+        };
+        await eventBus.emit(event, null);
+      }
+
+      return updated;
+    },
+
     async revoke(grantId) {
       // Look up the grant before deletion so we have context for the event.
       const grant = await inner.findById(grantId);
@@ -46,6 +64,10 @@ export function withGrantEvents(
           id: randomUUID(),
           type: EventType.GrantRevoked,
           aggregateId: grant.resourceId,
+          // revisionId carries the grantee principal ID so subscribers
+          // (e.g. collab) can close only that user's connections without
+          // importing the sharing or permissions modules directly.
+          revisionId: grant.principalId,
           actorId: grant.grantedBy,
           actorType: 'system',
           occurredAt: new Date().toISOString(),

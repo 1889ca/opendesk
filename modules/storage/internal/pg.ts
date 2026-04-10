@@ -9,6 +9,7 @@ export interface DocumentRow {
   document_type: DocumentType;
   yjs_state: Buffer | null;
   folder_id: string | null;
+  revision_id: string | null;
   created_at: Date;
   updated_at: Date;
 }

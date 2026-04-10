@@ -59,24 +59,46 @@ export function registerDocumentMutationRoutes(opts: MutationRoutesOptions): voi
   }));
 
   // Get document — requires read permission
+  // Returns ETag header based on revision_id; respects If-None-Match for 304 responses.
   router.get('/:id', permissions.require('read'), asyncHandler(async (req: Request, res: Response) => {
     const doc = await getDocument(String(req.params.id));
     if (!doc) {
       res.status(404).json({ error: 'Document not found' });
       return;
     }
+    const etag = `"${doc.revision_id ?? doc.id}"`;
+    if (req.headers['if-none-match'] === etag) {
+      res.status(304).end();
+      return;
+    }
+    res.setHeader('ETag', etag);
     res.json(doc);
   }));
 
   // Update document title and/or move to folder — requires write permission
+  // Respects If-Match header for optimistic concurrency; returns 412 on mismatch.
   router.patch('/:id', permissions.require('write'), asyncHandler(async (req: Request, res: Response) => {
     const bodyResult = UpdateDocumentBody.safeParse(req.body);
     if (!bodyResult.success) {
       res.status(400).json({ error: 'Validation failed', issues: bodyResult.error.issues });
       return;
     }
-    const { title, folderId } = bodyResult.data;
     const id = String(req.params.id);
+
+    const ifMatch = req.headers['if-match'];
+    if (ifMatch) {
+      const doc = await getDocument(id);
+      if (!doc) {
+        res.status(404).json({ error: 'Document not found' });
+        return;
+      }
+      if (ifMatch !== `"${doc.revision_id}"`) {
+        res.status(412).json({ error: 'precondition_failed', current_revision: doc.revision_id });
+        return;
+      }
+    }
+
+    const { title, folderId } = bodyResult.data;
     if (title !== undefined) {
       await updateDocumentTitle(id, title);
     }
