@@ -107,6 +107,8 @@ function renderToolbarButtons(
     btn.setAttribute('aria-label', ariaLabel);
 
     if (isActive) btn.setAttribute('aria-pressed', String(isActive()));
+    // Prevent mousedown from stealing focus from editor (#336).
+    btn.addEventListener('mousedown', (e) => { e.preventDefault(); });
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       btnDef.passSelf ? action(btn) : action();
