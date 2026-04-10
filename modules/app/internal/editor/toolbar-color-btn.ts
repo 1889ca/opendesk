@@ -12,7 +12,7 @@ const colorAIcon = svg(
   '<rect x="3" y="13" width="10" height="2" rx="1" fill="var(--color-bar-color, currentColor)"/>',
 );
 
-export function buildTextColorBtn(editor: Editor): HTMLElement {
+export function buildTextColorBtn(editor: Editor): { el: HTMLElement; cleanup: () => void } {
   const group = document.createElement('div');
   group.className = 'toolbar-color-group';
 
@@ -69,7 +69,13 @@ export function buildTextColorBtn(editor: Editor): HTMLElement {
   });
 
   group.appendChild(btn);
-  return group;
+  return {
+    el: group,
+    cleanup: () => {
+      editor.off('selectionUpdate', updateBar);
+      editor.off('transaction', updateBar);
+    },
+  };
 }
 
 const highlightIcon = svg(
@@ -78,7 +84,7 @@ const highlightIcon = svg(
   '<line x1="6" y1="7" x2="10" y2="7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
 );
 
-export function buildHighlightBtn(editor: Editor): HTMLElement {
+export function buildHighlightBtn(editor: Editor): { el: HTMLElement; cleanup: () => void } {
   const group = document.createElement('div');
   group.className = 'toolbar-color-group';
 
@@ -130,5 +136,11 @@ export function buildHighlightBtn(editor: Editor): HTMLElement {
   });
 
   group.appendChild(btn);
-  return group;
+  return {
+    el: group,
+    cleanup: () => {
+      editor.off('selectionUpdate', updateBar);
+      editor.off('transaction', updateBar);
+    },
+  };
 }

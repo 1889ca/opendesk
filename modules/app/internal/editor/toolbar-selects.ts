@@ -18,7 +18,7 @@ const LINE_HEIGHT_LABELS: Record<string, string> = {
   '3': 'Triple',
 };
 
-export function buildFontFamilySelect(editor: Editor): HTMLElement {
+export function buildFontFamilySelect(editor: Editor): { el: HTMLElement; cleanup: () => void } {
   const select = document.createElement('select');
   select.className = 'toolbar-select toolbar-select--font';
   select.setAttribute('aria-label', t('a11y.fontFamilyLabel'));
@@ -47,10 +47,16 @@ export function buildFontFamilySelect(editor: Editor): HTMLElement {
   editor.on('selectionUpdate', updateValue);
   editor.on('transaction', updateValue);
 
-  return select;
+  return {
+    el: select,
+    cleanup: () => {
+      editor.off('selectionUpdate', updateValue);
+      editor.off('transaction', updateValue);
+    },
+  };
 }
 
-export function buildFontSizeSelect(editor: Editor): HTMLElement {
+export function buildFontSizeSelect(editor: Editor): { el: HTMLElement; cleanup: () => void } {
   const wrapper = document.createElement('span');
   wrapper.style.position = 'relative';
   wrapper.setAttribute('data-i18n-key', 'toolbar.fontSize');
@@ -102,10 +108,17 @@ export function buildFontSizeSelect(editor: Editor): HTMLElement {
 
   wrapper.appendChild(datalist);
   wrapper.appendChild(input);
-  return wrapper;
+
+  return {
+    el: wrapper,
+    cleanup: () => {
+      editor.off('selectionUpdate', updateValue);
+      editor.off('transaction', updateValue);
+    },
+  };
 }
 
-export function buildLineHeightSelect(editor: Editor): HTMLElement {
+export function buildLineHeightSelect(editor: Editor): { el: HTMLElement; cleanup: () => void } {
   const select = document.createElement('select');
   select.className = 'toolbar-select';
   select.setAttribute('aria-label', t('a11y.lineHeightLabel'));
@@ -130,7 +143,13 @@ export function buildLineHeightSelect(editor: Editor): HTMLElement {
   editor.on('selectionUpdate', updateValue);
   editor.on('transaction', updateValue);
 
-  return select;
+  return {
+    el: select,
+    cleanup: () => {
+      editor.off('selectionUpdate', updateValue);
+      editor.off('transaction', updateValue);
+    },
+  };
 }
 
 const STYLES = [
@@ -144,7 +163,7 @@ const STYLES = [
   { label: 'Code Block', action: (editor: Editor) => editor.chain().focus().toggleCodeBlock().run(), isActive: (editor: Editor) => editor.isActive('codeBlock') },
 ];
 
-export function buildStyleSelect(editor: Editor): HTMLElement {
+export function buildStyleSelect(editor: Editor): { el: HTMLElement; cleanup: () => void } {
   const select = document.createElement('select');
   select.className = 'toolbar-select toolbar-select--style';
   select.setAttribute('aria-label', 'Paragraph style');
@@ -172,7 +191,13 @@ export function buildStyleSelect(editor: Editor): HTMLElement {
   editor.on('transaction', updateValue);
   updateValue();
 
-  return select;
+  return {
+    el: select,
+    cleanup: () => {
+      editor.off('selectionUpdate', updateValue);
+      editor.off('transaction', updateValue);
+    },
+  };
 }
 
 const PARA_SPACINGS = [

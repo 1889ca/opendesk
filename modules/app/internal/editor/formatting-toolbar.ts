@@ -77,7 +77,7 @@ export function renderToolbarButtons(
 /** Build the overflow (More ···) item list: buttons + select rows. Returns elements + cleanup fn. */
 function buildOverflowItems(overflowBtns: ToolbarButton[], editor: Editor): { els: HTMLElement[]; cleanup: () => void } {
   const temp = document.createElement('div');
-  const cleanup = renderToolbarButtons(temp, overflowBtns, editor);
+  const btnCleanup = renderToolbarButtons(temp, overflowBtns, editor);
 
   const els = Array.from(temp.children) as HTMLElement[];
 
@@ -86,11 +86,12 @@ function buildOverflowItems(overflowBtns: ToolbarButton[], editor: Editor): { el
   selectDivider.className = 'toolbar-separator';
   selectDivider.setAttribute('role', 'separator');
   els.push(selectDivider);
-  els.push(buildSelectRow('Line spacing', buildLineHeightSelect(editor)));
+  const lineHeight = buildLineHeightSelect(editor);
+  els.push(buildSelectRow('Line spacing', lineHeight.el));
   els.push(buildSelectRow('Paragraph spacing', buildParagraphSpacingSelect(editor)));
   els.push(buildSelectRow('Columns', buildColumnSelect(editor)));
 
-  return { els, cleanup };
+  return { els, cleanup: () => { btnCleanup(); lineHeight.cleanup(); } };
 }
 
 function buildSelectRow(label: string, select: HTMLElement): HTMLElement {
@@ -129,19 +130,30 @@ export function buildFormattingToolbar(editor: Editor): void {
     const fontSizeSelect = buildFontSizeSelect(editor);
     const children = Array.from(toolbar.children);
     const insertBefore = children[3] ?? null;
-    toolbar.insertBefore(styleSelect, insertBefore);
-    toolbar.insertBefore(fontFamilySelect, styleSelect.nextSibling);
-    toolbar.insertBefore(fontSizeSelect, fontFamilySelect.nextSibling);
+    toolbar.insertBefore(styleSelect.el, insertBefore);
+    toolbar.insertBefore(fontFamilySelect.el, styleSelect.el.nextSibling);
+    toolbar.insertBefore(fontSizeSelect.el, fontFamilySelect.el.nextSibling);
 
     // Append text color and highlight to primary toolbar
-    toolbar.appendChild(buildTextColorBtn(editor));
-    toolbar.appendChild(buildHighlightBtn(editor));
+    const textColorBtn = buildTextColorBtn(editor);
+    const highlightBtn = buildHighlightBtn(editor);
+    toolbar.appendChild(textColorBtn.el);
+    toolbar.appendChild(highlightBtn.el);
 
     // Build overflow elements and set up the permanent More (···) menu
     const { els: overflowEls, cleanup: overflowBtnCleanup } = buildOverflowItems(overflowBtns, editor);
     const overflowCleanup = setupToolbarOverflow(toolbar, overflowEls);
 
-    cleanupAll = () => { primaryCleanup(); overflowBtnCleanup(); overflowCleanup(); };
+    cleanupAll = () => {
+      primaryCleanup();
+      styleSelect.cleanup();
+      fontFamilySelect.cleanup();
+      fontSizeSelect.cleanup();
+      textColorBtn.cleanup();
+      highlightBtn.cleanup();
+      overflowBtnCleanup();
+      overflowCleanup();
+    };
 
     updateRovingTabindex(toolbar);
   };
