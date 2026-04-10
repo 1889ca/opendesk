@@ -1,5 +1,15 @@
 /** Contract: contracts/app-sheets/rules.md */
 
+export interface CellContextMenuCallbacks {
+  cutCell(row: number, col: number): void;
+  copyCell(row: number, col: number): void;
+  pasteCell(row: number, col: number): void;
+  clearCell(row: number, col: number): void;
+  insertRowAboveCell(row: number): void;
+  insertRowBelowCell(row: number): void;
+  deleteRowAtCell(row: number): void;
+}
+
 export interface ContextMenuCallbacks {
   insertRowAbove(row: number): void;
   insertRowBelow(row: number): void;
@@ -8,6 +18,7 @@ export interface ContextMenuCallbacks {
   insertColumnRight(col: number): void;
   deleteColumn(col: number): void;
   sortColumn?(col: number, direction: 'asc' | 'desc'): void;
+  cellMenu?: CellContextMenuCallbacks;
 }
 
 export interface HeaderContextMenu {
@@ -103,6 +114,28 @@ export function createHeaderContextMenu(
         { label: 'Insert row above', action: dismissAndAct(() => callbacks.insertRowAbove(row)) },
         { label: 'Insert row below', action: dismissAndAct(() => callbacks.insertRowBelow(row + 1)) },
         { label: 'Delete row', action: dismissAndAct(() => callbacks.deleteRow(row)) },
+      ]);
+      positionMenu(activeMenu, e.clientX, e.clientY);
+      return;
+    }
+
+    // Data cell right-click
+    const cellRow = target.dataset.row;
+    const cellCol = target.dataset.col;
+    if (cellRow != null && cellCol != null && callbacks.cellMenu) {
+      e.preventDefault();
+      dismiss();
+      const row = Number(cellRow);
+      const col = Number(cellCol);
+      const cm = callbacks.cellMenu;
+      activeMenu = buildMenu([
+        { label: 'Cut', action: dismissAndAct(() => cm.cutCell(row, col)) },
+        { label: 'Copy', action: dismissAndAct(() => cm.copyCell(row, col)) },
+        { label: 'Paste', action: dismissAndAct(() => cm.pasteCell(row, col)) },
+        { label: 'Clear cell', action: dismissAndAct(() => cm.clearCell(row, col)) },
+        { label: 'Insert row above', action: dismissAndAct(() => cm.insertRowAboveCell(row)) },
+        { label: 'Insert row below', action: dismissAndAct(() => cm.insertRowBelowCell(row + 1)) },
+        { label: 'Delete row', action: dismissAndAct(() => cm.deleteRowAtCell(row)) },
       ]);
       positionMenu(activeMenu, e.clientX, e.clientY);
       return;
