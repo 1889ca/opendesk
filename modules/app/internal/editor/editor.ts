@@ -9,13 +9,8 @@ import { setupImageHandlers } from './image-handlers.ts';
 import { buildSearchPanel } from './search/search-panel.ts';
 import { buildFormattingToolbar } from './formatting-toolbar.ts';
 import { buildBubbleMenu } from './bubble-menu.ts';
-import { CommentStore, buildCommentsBlock } from './comments/index.ts';
-import {
-  setSuggestUser,
-  createSuggestModePlugin,
-  setupSuggestionClickHandler,
-  buildSuggestionsBlock,
-} from './suggestions/index.ts';
+import { CommentStore } from './comments/index.ts';
+import { setSuggestUser, createSuggestModePlugin, setupSuggestionClickHandler } from './suggestions/index.ts';
 import { bindShortcutDialogKey } from '../shared/shortcut-dialog.ts';
 import { initTouchSupport } from '../shared/touch-support.ts';
 import { buildThemeToggle } from '../shared/theme-toggle.ts';
@@ -34,21 +29,14 @@ import { initZoomControl } from './zoom-control.ts';
 import { buildSaveIndicator } from './save-indicator.ts';
 import { initPageSetup, showPageSetupDialog } from './page-setup.ts';
 import { insertHeaderFooter, insertPageNumber, activateZone, setupHeaderFooterClicks } from './header-footer.ts';
-import {
-  registerServiceWorker,
-  buildOfflineIndicator,
-  buildUpdateBanner,
-  initConnectivityListeners,
-} from '../offline/index.ts';
+import { registerServiceWorker, buildOfflineIndicator, buildUpdateBanner, initConnectivityListeners } from '../offline/index.ts';
 import { mountAppToolbar } from '../shared/app-toolbar.ts';
 import { initEditorCollab } from './editor-collab.ts';
 import { initAiAssist } from './ai-assist.ts';
 import { initSpellCheckCycle } from './spell-check.ts';
 import { initFocusModeButton } from './focus-mode.ts';
 import { buildMenuBar } from './menu-bar.ts';
-import { buildPanelRail } from './panel-system.ts';
-import { buildStylesBlock, buildLayoutBlock } from './panel-blocks.ts';
-import { buildTocBlock } from './toc/toc-block.ts';
+import { mountEditorRails } from './editor-rails.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -157,27 +145,7 @@ async function init() {
     menuBarSlot.replaceWith(menuBar.el);
   }
 
-  const editorBody = document.querySelector('.editor-body');
-
-  const leftRail = buildPanelRail('left', [
-    buildTocBlock(editor),
-  ]);
-
-  const rightRail = buildPanelRail('right', [
-    buildStylesBlock(editor),
-    buildLayoutBlock(editor),
-    buildCommentsBlock(editor, commentStore, documentId, user),
-    buildSuggestionsBlock(editor),
-  ]);
-
-  if (editorBody) {
-    const editorWrapper = editorBody.querySelector('.editor-wrapper');
-    editorBody.insertBefore(leftRail.el, editorWrapper);
-    editorBody.appendChild(rightRail.el);
-  }
-
-  document.addEventListener('opendesk:toggle-panels', () => rightRail.toggle());
-  document.addEventListener('opendesk:toggle-toc', () => leftRail.toggle());
+  mountEditorRails({ editor, commentStore, documentId, user });
 
   buildFormattingToolbar(editor);
   buildBubbleMenu(editor);

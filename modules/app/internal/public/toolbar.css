@@ -1212,6 +1212,194 @@
   margin: 0;
 }
 
+/* ── Versions block ──────────────────────────────────────────────── */
+
+.versions-block-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+}
+
+.versions-block-list .version-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.5rem;
+}
+
+.versions-block-list .version-card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.versions-block-list .version-card-meta {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  margin: 0.2rem 0 0.375rem;
+}
+
+.versions-block-list .version-card-actions {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.versions-block-empty {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 1rem 0.5rem;
+  margin: 0;
+}
+
+/* ── Workflows block ─────────────────────────────────────────────── */
+
+.workflows-block-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.workflows-block-list .workflow-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.5rem;
+}
+
+.workflows-block-list .workflow-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.375rem;
+}
+
+.workflows-block-list .workflow-card-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.workflows-block-list .workflow-card-meta {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  margin: 0.2rem 0 0.375rem;
+}
+
+.workflows-block-list .workflow-card-actions {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.workflows-block-empty {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 1rem 0.5rem;
+  margin: 0;
+}
+
+/* ── Reference block ─────────────────────────────────────────────── */
+
+.reference-block-actions {
+  display: flex;
+  gap: 0.375rem;
+  margin-bottom: 0.5rem;
+}
+
+.reference-block-search {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  margin-bottom: 0.5rem;
+}
+
+.reference-block-search:focus {
+  border-color: var(--accent);
+}
+
+.reference-block-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.reference-block-empty {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 1rem 0.5rem;
+  margin: 0;
+}
+
+/* ── Special characters block ────────────────────────────────────── */
+
+.special-chars-block-search {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  margin-bottom: 0.5rem;
+}
+
+.special-chars-block-search:focus {
+  border-color: var(--accent);
+}
+
+.special-chars-block-body .special-chars-category {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: 0.5rem 0 0.25rem;
+}
+
+.special-chars-block-body .special-chars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+  gap: 2px;
+}
+
+.special-chars-block-body .special-chars-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.special-chars-block-body .special-chars-tile:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.special-chars-block-empty {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 1rem 0.5rem;
+  margin: 0;
+}
+
 /* ── Responsive: hide rails on small screens ─────────────────────── */
 
 @media (max-width: 900px) {
