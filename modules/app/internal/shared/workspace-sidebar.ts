@@ -65,6 +65,18 @@ export function buildWorkspaceSidebar(): HTMLElement {
   content.appendChild(foldersSection);
   loadFolderTree(foldersSection.querySelector('.ws-section-list')!);
 
+  // Navigation links
+  const navSection = document.createElement('nav');
+  navSection.className = 'ws-nav';
+  for (const [href, label] of [['/entities.html', 'Entity Directory'], ['/kb.html', 'Knowledge Base']]) {
+    const link = document.createElement('a');
+    link.className = 'ws-nav-link';
+    link.href = href;
+    link.textContent = label;
+    navSection.appendChild(link);
+  }
+  content.appendChild(navSection);
+
   // Quick search
   const searchInput = document.createElement('input');
   searchInput.type = 'search';

@@ -37,12 +37,19 @@ export function buildPanelRail(side: 'left' | 'right', blocks: PanelBlock[]): Pa
   header.append(title, collapseBtn);
   rail.appendChild(header);
 
+  const expandTab = document.createElement('button');
+  expandTab.className = 'panel-rail-expand';
+  expandTab.setAttribute('aria-label', 'Expand panels');
+  expandTab.textContent = side === 'left' ? '\u00bb' : '\u00ab';
+  expandTab.addEventListener('click', () => toggle(true));
+  rail.appendChild(expandTab);
+
   for (const block of blocks) {
     rail.appendChild(renderBlock(block));
   }
 
   const saved = localStorage.getItem(`${RAIL_STATE_KEY}-${side}`);
-  const startOpen = saved !== 'closed';
+  const startOpen = saved === 'open';
   rail.classList.toggle('is-open', startOpen);
 
   function toggle(show?: boolean): void {

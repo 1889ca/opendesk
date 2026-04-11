@@ -492,10 +492,108 @@
   outline-offset: -2px;
 }
 
-/* New document group */
+/* New document group (legacy) */
 .new-doc-group {
   display: flex;
   gap: 0.375rem;
+}
+
+/* ── Create dropdown (consolidated "New" button) ────────────────── */
+
+.create-dropdown {
+  position: relative;
+}
+
+.create-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+}
+
+.create-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 300;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px var(--shadow-heavy, rgba(0, 0, 0, 0.18));
+  padding: 0.375rem;
+  min-width: 14rem;
+  display: flex;
+  flex-direction: column;
+  animation: dropdown-enter 0.15s ease-out;
+}
+
+@keyframes dropdown-enter {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.create-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  padding: 0.5rem 0.625rem;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.create-dropdown-item:hover {
+  background: var(--bg);
+}
+
+.create-item-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.create-item-icon--doc { background: rgba(37, 99, 235, 0.12); color: var(--accent); }
+.create-item-icon--doc::before { content: '\1f4c4'; }
+.create-item-icon--sheet { background: rgba(76, 175, 80, 0.12); color: #4caf50; }
+.create-item-icon--sheet::before { content: '\1f4ca'; }
+.create-item-icon--slides { background: rgba(255, 152, 0, 0.12); color: #ff9800; }
+.create-item-icon--slides::before { content: '\1f3ac'; }
+.create-item-icon--folder { background: rgba(156, 163, 175, 0.12); color: var(--text-muted); }
+.create-item-icon--folder::before { content: '\1f4c1'; }
+
+.create-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.create-item-label {
+  font-weight: 600;
+  font-size: 0.8125rem;
+}
+
+.create-item-desc {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.create-dropdown-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 0.25rem 0.5rem;
 }
 
 /* Buttons — base system lives in styles.css (shared); doc-list-specific variants below */

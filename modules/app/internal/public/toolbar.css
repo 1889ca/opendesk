@@ -186,10 +186,41 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 0.375rem 1.5rem;
+  padding: 0.25rem 0.75rem;
+  overflow: visible;
+}
+
+/* Unified toolbar: menu bar + formatting bar in one row */
+.unified-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0.25rem 0.75rem;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   overflow: visible;
+  min-height: 2.25rem;
+}
+
+.unified-toolbar .menu-bar {
+  padding: 0;
+  border-bottom: none;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.unified-toolbar .toolbar-divider {
+  width: 1px;
+  height: 1.25rem;
+  background: var(--border);
+  margin: 0 0.5rem;
+  flex-shrink: 0;
+}
+
+.unified-toolbar .formatting-toolbar {
+  padding: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .toolbar-btn {
@@ -929,7 +960,7 @@
   background: var(--surface);
   display: flex;
   flex-direction: column;
-  transition: width 0.2s ease;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   min-height: 0;
 }
 
@@ -962,10 +993,9 @@
 }
 
 .panel-rail-title {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: var(--text-muted);
   white-space: nowrap;
 }
@@ -986,6 +1016,40 @@
 .panel-rail-collapse:hover {
   background: var(--bg);
   color: var(--text);
+}
+
+/* Expand tab — visible only when rail is collapsed */
+.panel-rail-expand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.5rem 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.panel-rail-expand:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.panel-rail.is-open .panel-rail-expand {
+  display: none;
+}
+
+.panel-rail:not(.is-open) .panel-rail-header,
+.panel-rail:not(.is-open) .panel-block {
+  display: none;
+}
+
+.panel-rail:not(.is-open) {
+  width: 2rem;
+  overflow: visible;
 }
 
 /* ── Panel Blocks (collapsible sections within rails) ─────────────── */
@@ -1009,10 +1073,9 @@
 }
 
 .panel-block-title {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: var(--text-muted);
 }
 

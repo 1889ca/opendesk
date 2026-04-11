@@ -211,18 +211,18 @@
   border-radius: 2px;
 }
 
-/* Dark mode: document paper uses a deep blue-grey — clearly distinct from the near-black canvas */
+/* Dark mode: paper uses a lifted surface tone — clearly distinct from the near-black canvas */
 [data-theme="dark"] #editor,
 [data-theme="dark"] .doc-header-zone,
 [data-theme="dark"] .doc-footer-zone {
-  background-color: #1a1d2e;
+  background-color: #232738;
   color: #dde1ea;
   color-scheme: dark;
 }
 
 [data-theme="dark"] #editor {
-  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.6), 0 1px 8px rgba(0, 0, 0, 0.4);
-  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.5), 0 1px 8px rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 [data-theme="dark"] #editor .editor-content h1,
@@ -500,7 +500,8 @@
 }
 
 /* Empty document placeholder — issue #443 */
-.editor-content .ProseMirror p.is-placeholder::before {
+.editor-content p.is-placeholder::before,
+.editor-content.ProseMirror p.is-placeholder::before {
   content: attr(data-placeholder);
   color: var(--text-muted, #9ca3af);
   font-style: italic;

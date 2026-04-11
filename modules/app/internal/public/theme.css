@@ -67,18 +67,18 @@
 
 /* Dark theme */
 [data-theme="dark"] {
-  --bg-primary: #0e1019;
-  --bg-secondary: #141726;
-  --bg-surface: #1c2038;
-  --editor-canvas-bg: #090b11;
-  --text-primary: #e4e4e7;
-  --text-secondary: #9ca3af;
-  --border-color: #2e3655;
-  --accent-color: #3b82f6;
-  --accent-hover: #60a5fa;
-  --toolbar-bg: #141726;
-  --editor-bg: #1c2038;
-  --sidebar-bg: #141726;
+  --bg-primary: #111318;
+  --bg-secondary: #181b24;
+  --bg-surface: #1e2130;
+  --editor-canvas-bg: #0d0f14;
+  --text-primary: #e8e8ec;
+  --text-secondary: #8b93a5;
+  --border-color: #2a2f42;
+  --accent-color: #4f8ff7;
+  --accent-hover: #6ba3fa;
+  --toolbar-bg: #181b24;
+  --editor-bg: #1e2130;
+  --sidebar-bg: #181b24;
   --overlay-bg: rgba(0, 0, 0, 0.65);
   --shadow-color: rgba(0, 0, 0, 0.35);
   --shadow-medium: rgba(0, 0, 0, 0.45);
