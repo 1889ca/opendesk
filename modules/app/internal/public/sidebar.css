@@ -73,12 +73,11 @@
   overflow-y: auto;
 }
 
-/* Editor content shifts right when a sidebar is open */
+/* Editor content shifts right when an overlay sidebar is open */
 body:has(.comment-sidebar-open) .editor-wrapper,
 body:has(.suggestion-sidebar-open) .editor-wrapper,
 body:has(.version-sidebar-open) .editor-wrapper,
-body:has(.workflow-sidebar-open) .editor-wrapper,
-body:has(.toc-panel-open) .editor-wrapper {
+body:has(.workflow-sidebar-open) .editor-wrapper {
   margin-right: clamp(280px, 25vw, 420px);
   transition: margin-right 0.2s ease;
 }

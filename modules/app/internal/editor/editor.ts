@@ -47,6 +47,7 @@ import { initFocusModeButton } from './focus-mode.ts';
 import { buildMenuBar } from './menu-bar.ts';
 import { buildPanelRail } from './panel-system.ts';
 import { buildStylesBlock, buildLayoutBlock } from './panel-blocks.ts';
+import { buildTocBlock } from './toc/toc-block.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -155,12 +156,25 @@ async function init() {
     menuBarSlot.replaceWith(menuBar.el);
   }
 
+  const editorBody = document.querySelector('.editor-body');
+
+  const leftRail = buildPanelRail('left', [
+    buildTocBlock(editor),
+  ]);
+
   const rightRail = buildPanelRail('right', [
     buildStylesBlock(editor),
     buildLayoutBlock(editor),
   ]);
 
+  if (editorBody) {
+    const editorWrapper = editorBody.querySelector('.editor-wrapper');
+    editorBody.insertBefore(leftRail.el, editorWrapper);
+    editorBody.appendChild(rightRail.el);
+  }
+
   document.addEventListener('opendesk:toggle-panels', () => rightRail.toggle());
+  document.addEventListener('opendesk:toggle-toc', () => leftRail.toggle());
 
   buildFormattingToolbar(editor);
   buildBubbleMenu(editor);

@@ -1,19 +1,15 @@
 /* Editor content — ProseMirror rendered content styles */
 
 .editor-wrapper {
-  flex: 1;
+  grid-column: 2;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 2.5rem 1.5rem;
   background: var(--canvas);
-  transition: margin-right 0.2s ease;
   scroll-behavior: smooth;
-}
-
-body:has(.comment-sidebar-open) .editor-wrapper {
-  margin-right: 320px;
+  min-width: 0;
 }
 
 /* Scrollbar — editor wrapper */
@@ -504,7 +500,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 }
 
 /* Empty document placeholder — issue #443 */
-.editor-content .ProseMirror.is-editor-empty p:first-child::before {
+.editor-content .ProseMirror p.is-placeholder::before {
   content: attr(data-placeholder);
   color: var(--text-muted, #9ca3af);
   font-style: italic;

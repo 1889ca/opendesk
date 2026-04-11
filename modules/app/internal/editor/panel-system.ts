@@ -10,6 +10,7 @@ export interface PanelBlock {
 export interface PanelRail {
   el: HTMLElement;
   toggle: (show?: boolean) => void;
+  addBlock: (block: PanelBlock) => void;
   cleanup: () => void;
 }
 
@@ -27,26 +28,22 @@ export function buildPanelRail(side: 'left' | 'right', blocks: PanelBlock[]): Pa
   title.className = 'panel-rail-title';
   title.textContent = 'Panels';
 
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'panel-rail-close';
-  closeBtn.setAttribute('aria-label', 'Close panels');
-  closeBtn.textContent = '\u00d7';
-  closeBtn.addEventListener('click', () => toggle(false));
+  const collapseBtn = document.createElement('button');
+  collapseBtn.className = 'panel-rail-collapse';
+  collapseBtn.setAttribute('aria-label', 'Collapse panels');
+  collapseBtn.textContent = side === 'left' ? '\u00ab' : '\u00bb';
+  collapseBtn.addEventListener('click', () => toggle(false));
 
-  header.append(title, closeBtn);
+  header.append(title, collapseBtn);
   rail.appendChild(header);
 
   for (const block of blocks) {
     rail.appendChild(renderBlock(block));
   }
 
-  document.body.appendChild(rail);
-
-  syncChromeHeight();
-  window.addEventListener('resize', syncChromeHeight);
-
   const saved = localStorage.getItem(`${RAIL_STATE_KEY}-${side}`);
-  if (saved === 'open') rail.classList.add('is-open');
+  const startOpen = saved !== 'closed';
+  rail.classList.toggle('is-open', startOpen);
 
   function toggle(show?: boolean): void {
     const next = show ?? !rail.classList.contains('is-open');
@@ -54,22 +51,17 @@ export function buildPanelRail(side: 'left' | 'right', blocks: PanelBlock[]): Pa
     localStorage.setItem(`${RAIL_STATE_KEY}-${side}`, next ? 'open' : 'closed');
   }
 
+  function addBlock(block: PanelBlock): void {
+    blocks.push(block);
+    rail.appendChild(renderBlock(block));
+  }
+
   const cleanup = () => {
-    window.removeEventListener('resize', syncChromeHeight);
     for (const block of blocks) block.cleanup?.();
     rail.remove();
   };
 
-  return { el: rail, toggle, cleanup };
-}
-
-function syncChromeHeight(): void {
-  const chrome = document.querySelector('.editor-top-chrome');
-  if (chrome) {
-    document.documentElement.style.setProperty(
-      '--chrome-height', `${chrome.getBoundingClientRect().height}px`,
-    );
-  }
+  return { el: rail, toggle, addBlock, cleanup };
 }
 
 function renderBlock(block: PanelBlock): HTMLElement {

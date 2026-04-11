@@ -7,7 +7,6 @@ import {
   toggleSuggestionSidebar,
 } from './suggestions/index.ts';
 import { announce } from '../shared/a11y-announcer.ts';
-import { buildTocPanel, toggleTocPanel } from './toc/index.ts';
 import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts';
 import { buildWorkflowPanel, toggleWorkflowPanel } from './workflow-panel.ts';
 import { buildStatusBar } from './status-bar.ts';
@@ -33,7 +32,8 @@ export interface PanelDeps {
 export function initEditorPanels(deps: PanelDeps): void {
   const { editor, editorEl, commentStore, documentId, user } = deps;
 
-  document.body.appendChild(buildStatusBar(editor));
+  const statusBar = buildStatusBar(editor);
+  document.body.appendChild(statusBar.el);
 
   const bib = createBibliography(editor);
   const editorWrapper = editorEl.closest('.editor-wrapper');
@@ -50,14 +50,6 @@ export function initEditorPanels(deps: PanelDeps): void {
   const suggestionSidebar = buildSuggestionSidebar(editor);
   document.body.appendChild(suggestionSidebar);
   initSidebarResize(suggestionSidebar);
-
-  const tocPanel = buildTocPanel(editor);
-  document.body.appendChild(tocPanel);
-  document.addEventListener('opendesk:toggle-toc', () => {
-    // Mutually exclusive with the comment sidebar
-    toggleSidebar(commentSidebar, false);
-    toggleTocPanel(tocPanel);
-  });
 
   const versionSidebar = buildVersionSidebar();
   document.body.appendChild(versionSidebar);
@@ -81,12 +73,12 @@ export function initEditorPanels(deps: PanelDeps): void {
 
   setupPromoteToKB(editor);
 
-  const footnotePanel = buildFootnotePanel(editor);
+  const footnote = buildFootnotePanel(editor);
   const editorWrapperEl = editorEl.closest('.editor-wrapper');
   if (editorWrapperEl) {
-    editorWrapperEl.appendChild(footnotePanel);
+    editorWrapperEl.appendChild(footnote.el);
   } else {
-    editorEl.parentElement?.appendChild(footnotePanel);
+    editorEl.parentElement?.appendChild(footnote.el);
   }
 
   const specialCharsPanel = buildSpecialCharsPanel(editor);
@@ -103,8 +95,6 @@ export function initEditorPanels(deps: PanelDeps): void {
 
   document.addEventListener('opendesk:add-comment', () => {
     showCommentInput(editor, commentStore, documentId, user);
-    // Mutually exclusive with the TOC panel
-    toggleTocPanel(tocPanel, false);
     toggleSidebar(commentSidebar, true);
     announce(t('a11y.commentAdded'));
   });
