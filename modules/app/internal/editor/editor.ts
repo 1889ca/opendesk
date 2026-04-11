@@ -44,6 +44,7 @@ import { initEditorCollab } from './editor-collab.ts';
 import { initAiAssist } from './ai-assist.ts';
 import { initSpellCheckCycle } from './spell-check.ts';
 import { initFocusModeButton } from './focus-mode.ts';
+import { buildMenuBar } from './menu-bar.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -145,6 +146,13 @@ async function init() {
 
   setupCodeBlockUI(editor);
   initEntityMentionClicks(editorEl);
+
+  const menuBar = buildMenuBar(editor);
+  const menuBarSlot = document.getElementById('menu-bar');
+  if (menuBarSlot) {
+    menuBarSlot.replaceWith(menuBar.el);
+  }
+
   buildFormattingToolbar(editor);
   buildBubbleMenu(editor);
   initAiAssist(editor);
@@ -168,7 +176,6 @@ async function init() {
   bindShortcutDialogKey();
 
   initEditorCollab({ editor, editorEl, provider, statusEl, usersEl, user });
-
   initEditorPanels({ editor, editorEl, commentStore, documentId, user });
   initRuler();
   initZoomControl();
@@ -204,6 +211,7 @@ async function init() {
 
   initFocusModeButton();
 
+  console.log('[boot] init-complete');
   Object.assign(window, { editor, provider, ydoc, commentStore });
 }
 
