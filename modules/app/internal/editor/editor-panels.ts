@@ -1,7 +1,7 @@
 /** Contract: contracts/app/rules.md */
 import type { Editor } from '@tiptap/core';
 import { t } from '../i18n/index.ts';
-import { buildCommentSidebar, toggleSidebar, showCommentInput, type CommentStore } from './comments/index.ts';
+import { showCommentInput, type CommentStore } from './comments/index.ts';
 import {
   buildSuggestionSidebar,
   toggleSuggestionSidebar,
@@ -42,10 +42,6 @@ export function initEditorPanels(deps: PanelDeps): void {
   } else {
     editorEl.parentElement?.appendChild(bib.element);
   }
-
-  const commentSidebar = buildCommentSidebar(editor, commentStore, documentId, user);
-  document.body.appendChild(commentSidebar);
-  initSidebarResize(commentSidebar);
 
   const suggestionSidebar = buildSuggestionSidebar(editor);
   document.body.appendChild(suggestionSidebar);
@@ -95,7 +91,6 @@ export function initEditorPanels(deps: PanelDeps): void {
 
   document.addEventListener('opendesk:add-comment', () => {
     showCommentInput(editor, commentStore, documentId, user);
-    toggleSidebar(commentSidebar, true);
     announce(t('a11y.commentAdded'));
   });
 
