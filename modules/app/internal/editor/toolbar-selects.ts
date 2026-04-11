@@ -8,6 +8,22 @@ import { t } from '../i18n/index.ts';
 import { FONT_SIZES } from './font-size.ts';
 import { LINE_HEIGHTS } from './line-height.ts';
 import { FONT_FAMILIES } from './font-family.ts';
+import { batchRaf } from './lifecycle.ts';
+
+/** Wrap an updateValue function with batched rAF and register on editor events. */
+function bindSelectToEditor(
+  editor: Editor,
+  updateValue: () => void,
+): () => void {
+  const batched = batchRaf(updateValue);
+  editor.on('selectionUpdate', batched.call);
+  editor.on('transaction', batched.call);
+  return () => {
+    batched.cancel();
+    editor.off('selectionUpdate', batched.call);
+    editor.off('transaction', batched.call);
+  };
+}
 
 const LINE_HEIGHT_LABELS: Record<string, string> = {
   '1': 'Single',
@@ -44,16 +60,7 @@ export function buildFontFamilySelect(editor: Editor): { el: HTMLElement; cleanu
     select.value = (attrs.fontFamily as string | undefined) ?? '';
   };
 
-  editor.on('selectionUpdate', updateValue);
-  editor.on('transaction', updateValue);
-
-  return {
-    el: select,
-    cleanup: () => {
-      editor.off('selectionUpdate', updateValue);
-      editor.off('transaction', updateValue);
-    },
-  };
+  return { el: select, cleanup: bindSelectToEditor(editor, updateValue) };
 }
 
 export function buildFontSizeSelect(editor: Editor): { el: HTMLElement; cleanup: () => void } {
@@ -103,19 +110,10 @@ export function buildFontSizeSelect(editor: Editor): { el: HTMLElement; cleanup:
     input.value = (attrs.fontSize as string | undefined) ?? '14';
   };
 
-  editor.on('selectionUpdate', updateValue);
-  editor.on('transaction', updateValue);
-
   wrapper.appendChild(datalist);
   wrapper.appendChild(input);
 
-  return {
-    el: wrapper,
-    cleanup: () => {
-      editor.off('selectionUpdate', updateValue);
-      editor.off('transaction', updateValue);
-    },
-  };
+  return { el: wrapper, cleanup: bindSelectToEditor(editor, updateValue) };
 }
 
 export function buildLineHeightSelect(editor: Editor): { el: HTMLElement; cleanup: () => void } {
@@ -140,16 +138,7 @@ export function buildLineHeightSelect(editor: Editor): { el: HTMLElement; cleanu
     select.value = (attrs.lineHeight as string | undefined) ?? '';
   };
 
-  editor.on('selectionUpdate', updateValue);
-  editor.on('transaction', updateValue);
-
-  return {
-    el: select,
-    cleanup: () => {
-      editor.off('selectionUpdate', updateValue);
-      editor.off('transaction', updateValue);
-    },
-  };
+  return { el: select, cleanup: bindSelectToEditor(editor, updateValue) };
 }
 
 const STYLES = [
@@ -187,17 +176,9 @@ export function buildStyleSelect(editor: Editor): { el: HTMLElement; cleanup: ()
     select.value = active ? active.label : 'Normal';
   };
 
-  editor.on('selectionUpdate', updateValue);
-  editor.on('transaction', updateValue);
   updateValue();
 
-  return {
-    el: select,
-    cleanup: () => {
-      editor.off('selectionUpdate', updateValue);
-      editor.off('transaction', updateValue);
-    },
-  };
+  return { el: select, cleanup: bindSelectToEditor(editor, updateValue) };
 }
 
 const PARA_SPACINGS = [
@@ -236,3 +217,4 @@ export function buildParagraphSpacingSelect(_editor: Editor): HTMLElement {
 
   return select;
 }
+

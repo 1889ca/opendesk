@@ -286,6 +286,12 @@
   text-align: left;
 }
 
+.toolbar-select--align {
+  min-width: 5rem;
+  max-width: 6rem;
+  text-align: left;
+}
+
 .toolbar-select--size {
   width: 4rem;
   max-width: 4rem;

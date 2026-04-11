@@ -1,20 +1,20 @@
 /** Contract: contracts/app/rules.md */
 import type { Editor } from '@tiptap/core';
 import { t, onLocaleChange } from '../i18n/index.ts';
-import { setupToolbarOverflow } from './toolbar-overflow.ts';
 import './page-break.ts';
 import { announce } from '../shared/a11y-announcer.ts';
 import { enableToolbarNavigation, updateRovingTabindex } from './toolbar-nav.ts';
 import { getIcon } from './toolbar-icons.ts';
 import { buildTextColorBtn, buildHighlightBtn } from './toolbar-color-btn.ts';
-import { buildFontFamilySelect, buildFontSizeSelect, buildLineHeightSelect, buildParagraphSpacingSelect, buildStyleSelect } from './toolbar-selects.ts';
-import { buildColumnSelect } from './column-select.ts';
+import { buildAlignmentSelect } from './alignment-select.ts';
 import { type ToolbarButton, buildToolbarButtons, buildButtonTitle } from './formatting-toolbar-actions.ts';
+import { createScope, batchRaf, type Scope } from './lifecycle.ts';
 
 export function renderToolbarButtons(
   toolbar: HTMLElement, buttons: ToolbarButton[], editor: Editor,
 ): () => void {
-  const cleanups: Array<() => void> = [];
+  // Collect all active-state updaters so we can batch them into ONE handler
+  const activeUpdaters: Array<() => void> = [];
 
   for (const btnDef of buttons) {
     const { key, icon, ariaKey, action, isActive } = btnDef;
@@ -57,54 +57,28 @@ export function renderToolbarButtons(
     });
     toolbar.appendChild(btn);
     if (isActive) {
-      const update = () => {
+      activeUpdaters.push(() => {
         const active = isActive();
         btn.classList.toggle('is-active', active);
         btn.setAttribute('aria-pressed', String(active));
-      };
-      editor.on('selectionUpdate', update);
-      editor.on('transaction', update);
-      cleanups.push(() => {
-        editor.off('selectionUpdate', update);
-        editor.off('transaction', update);
       });
     }
   }
 
-  return () => { for (const fn of cleanups) fn(); };
+  // Single batched handler for ALL buttons instead of 2×N individual handlers
+  if (activeUpdaters.length === 0) return () => {};
+  const updateAll = () => { for (const fn of activeUpdaters) fn(); };
+  const batched = batchRaf(updateAll);
+  editor.on('selectionUpdate', batched.call);
+  editor.on('transaction', batched.call);
+  return () => {
+    batched.cancel();
+    editor.off('selectionUpdate', batched.call);
+    editor.off('transaction', batched.call);
+  };
 }
 
-/** Build the overflow (More ···) item list: buttons + select rows. Returns elements + cleanup fn. */
-function buildOverflowItems(overflowBtns: ToolbarButton[], editor: Editor): { els: HTMLElement[]; cleanup: () => void } {
-  const temp = document.createElement('div');
-  const btnCleanup = renderToolbarButtons(temp, overflowBtns, editor);
-
-  const els = Array.from(temp.children) as HTMLElement[];
-
-  // Append select rows with labels at the end (document formatting)
-  const selectDivider = document.createElement('span');
-  selectDivider.className = 'toolbar-separator';
-  selectDivider.setAttribute('role', 'separator');
-  els.push(selectDivider);
-  const lineHeight = buildLineHeightSelect(editor);
-  els.push(buildSelectRow('Line spacing', lineHeight.el));
-  els.push(buildSelectRow('Paragraph spacing', buildParagraphSpacingSelect(editor)));
-  els.push(buildSelectRow('Columns', buildColumnSelect(editor)));
-
-  return { els, cleanup: () => { btnCleanup(); lineHeight.cleanup(); } };
-}
-
-function buildSelectRow(label: string, select: HTMLElement): HTMLElement {
-  const row = document.createElement('label');
-  row.className = 'overflow-select-row';
-  const span = document.createElement('span');
-  span.className = 'overflow-select-label';
-  span.textContent = label;
-  row.append(span, select);
-  return row;
-}
-
-/** Build the main formatting toolbar with primary actions + More (···) overflow menu. */
+/** Build the slim formatting toolbar — frequent actions only, no overflow. */
 export function buildFormattingToolbar(editor: Editor): void {
   const toolbar = document.getElementById('formatting-toolbar');
   if (!toolbar) return;
@@ -112,48 +86,30 @@ export function buildFormattingToolbar(editor: Editor): void {
   toolbar.setAttribute('aria-label', t('a11y.formattingToolbar'));
   const editorEl = () => document.querySelector('.editor-content') as HTMLElement | null;
 
-  let cleanupAll: (() => void) | null = null;
+  let scope: Scope | null = null;
 
   const render = () => {
-    cleanupAll?.();
+    scope?.dispose();
+    scope = createScope();
     toolbar.innerHTML = '';
 
-    const allButtons = buildToolbarButtons(editor);
-    const primaryBtns = allButtons.filter(b => !b.priority);
-    const overflowBtns = allButtons.filter(b => b.priority === 'overflow');
+    const buttons = buildToolbarButtons(editor);
+    scope.add(renderToolbarButtons(toolbar, buttons, editor));
 
-    const primaryCleanup = renderToolbarButtons(toolbar, primaryBtns, editor);
-
-    // Insert style / font / size selects at position 3 (after undo/redo/separator)
-    const styleSelect = buildStyleSelect(editor);
-    const fontFamilySelect = buildFontFamilySelect(editor);
-    const fontSizeSelect = buildFontSizeSelect(editor);
+    // Insert alignment select after B/I/U/S + separator (position 5)
+    const alignSelect = buildAlignmentSelect(editor);
+    scope.add(alignSelect.cleanup);
     const children = Array.from(toolbar.children);
-    const insertBefore = children[3] ?? null;
-    toolbar.insertBefore(styleSelect.el, insertBefore);
-    toolbar.insertBefore(fontFamilySelect.el, styleSelect.el.nextSibling);
-    toolbar.insertBefore(fontSizeSelect.el, fontFamilySelect.el.nextSibling);
+    const insertBefore = children[5] ?? null;
+    toolbar.insertBefore(alignSelect.el, insertBefore);
 
-    // Append text color and highlight to primary toolbar
+    // Append text color and highlight at the end
     const textColorBtn = buildTextColorBtn(editor);
     const highlightBtn = buildHighlightBtn(editor);
+    scope.add(textColorBtn.cleanup);
+    scope.add(highlightBtn.cleanup);
     toolbar.appendChild(textColorBtn.el);
     toolbar.appendChild(highlightBtn.el);
-
-    // Build overflow elements and set up the permanent More (···) menu
-    const { els: overflowEls, cleanup: overflowBtnCleanup } = buildOverflowItems(overflowBtns, editor);
-    const overflowCleanup = setupToolbarOverflow(toolbar, overflowEls);
-
-    cleanupAll = () => {
-      primaryCleanup();
-      styleSelect.cleanup();
-      fontFamilySelect.cleanup();
-      fontSizeSelect.cleanup();
-      textColorBtn.cleanup();
-      highlightBtn.cleanup();
-      overflowBtnCleanup();
-      overflowCleanup();
-    };
 
     updateRovingTabindex(toolbar);
   };
