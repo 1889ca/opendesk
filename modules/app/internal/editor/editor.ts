@@ -45,6 +45,8 @@ import { initAiAssist } from './ai-assist.ts';
 import { initSpellCheckCycle } from './spell-check.ts';
 import { initFocusModeButton } from './focus-mode.ts';
 import { buildMenuBar } from './menu-bar.ts';
+import { buildPanelRail } from './panel-system.ts';
+import { buildStylesBlock, buildLayoutBlock } from './panel-blocks.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -152,6 +154,13 @@ async function init() {
   if (menuBarSlot) {
     menuBarSlot.replaceWith(menuBar.el);
   }
+
+  const rightRail = buildPanelRail('right', [
+    buildStylesBlock(editor),
+    buildLayoutBlock(editor),
+  ]);
+
+  document.addEventListener('opendesk:toggle-panels', () => rightRail.toggle());
 
   buildFormattingToolbar(editor);
   buildBubbleMenu(editor);

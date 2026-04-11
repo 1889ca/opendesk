@@ -56,6 +56,8 @@ export function buildMenuDefs(editor: Editor): MenuDef[] {
       { label: 'Spelling & Grammar', icon: 'spellcheck', action: () => emit('opendesk:spellcheck-cycle') },
     ]},
     { label: 'View', items: [
+      { label: 'Panels', action: () => emit('opendesk:toggle-panels') },
+      { separator: true, label: '' },
       { label: 'Table of Contents', icon: 'toc', action: () => emit('opendesk:toggle-toc') },
       { label: 'Comments', icon: 'comment', action: () => emit('opendesk:add-comment') },
       { label: 'Suggestions', icon: 'suggest', action: () => emit('opendesk:toggle-suggestions') },

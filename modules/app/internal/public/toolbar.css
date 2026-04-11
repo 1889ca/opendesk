@@ -912,3 +912,146 @@
   background: var(--border);
   margin: 0.2rem 0.5rem;
 }
+
+/* ── Panel Rails (floating sidebar system) ────────────────────────── */
+
+.panel-rail {
+  position: fixed;
+  top: var(--chrome-height, 0px);
+  width: clamp(220px, 18vw, 300px);
+  height: calc(100vh - var(--chrome-height, 0px));
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 110;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.panel-rail--left {
+  left: 0;
+  border-right: 1px solid var(--border);
+  transform: translateX(-100%);
+}
+
+.panel-rail--right {
+  right: 0;
+  border-left: 1px solid var(--border);
+  transform: translateX(100%);
+}
+
+.panel-rail.is-open {
+  transform: translateX(0);
+  box-shadow: 0 0 24px var(--shadow-heavy, rgba(0, 0, 0, 0.12));
+}
+
+.panel-rail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.panel-rail-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.panel-rail-close {
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+  transition: background 0.1s, color 0.1s;
+}
+
+.panel-rail-close:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ── Panel Blocks (collapsible sections within rails) ─────────────── */
+
+.panel-block {
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.1s;
+}
+
+.panel-block-header:hover {
+  background: var(--bg);
+}
+
+.panel-block-title {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.panel-block-chevron {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.panel-block-content {
+  padding: 0.375rem 0.75rem 0.75rem;
+}
+
+.panel-block.is-collapsed .panel-block-content {
+  display: none;
+}
+
+/* ── Panel Fields (label + control rows) ──────────────────────────── */
+
+.panel-block-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.panel-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.panel-field-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.panel-field .toolbar-select,
+.panel-field .panel-select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  text-align: left;
+}
+
+.panel-field input[type="number"] {
+  width: 100%;
+  max-width: 100%;
+}
