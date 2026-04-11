@@ -2,10 +2,6 @@
 import type { Editor } from '@tiptap/core';
 import { t } from '../i18n/index.ts';
 import { showCommentInput, type CommentStore } from './comments/index.ts';
-import {
-  buildSuggestionSidebar,
-  toggleSuggestionSidebar,
-} from './suggestions/index.ts';
 import { announce } from '../shared/a11y-announcer.ts';
 import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts';
 import { buildWorkflowPanel, toggleWorkflowPanel } from './workflow-panel.ts';
@@ -42,10 +38,6 @@ export function initEditorPanels(deps: PanelDeps): void {
   } else {
     editorEl.parentElement?.appendChild(bib.element);
   }
-
-  const suggestionSidebar = buildSuggestionSidebar(editor);
-  document.body.appendChild(suggestionSidebar);
-  initSidebarResize(suggestionSidebar);
 
   const versionSidebar = buildVersionSidebar();
   document.body.appendChild(versionSidebar);
@@ -94,7 +86,4 @@ export function initEditorPanels(deps: PanelDeps): void {
     announce(t('a11y.commentAdded'));
   });
 
-  document.addEventListener('opendesk:toggle-suggestions', () => {
-    toggleSuggestionSidebar(suggestionSidebar);
-  });
 }

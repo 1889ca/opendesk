@@ -74,7 +74,6 @@
 }
 
 /* Editor content shifts right when an overlay sidebar is open */
-body:has(.suggestion-sidebar-open) .editor-wrapper,
 body:has(.version-sidebar-open) .editor-wrapper,
 body:has(.workflow-sidebar-open) .editor-wrapper {
   margin-right: clamp(280px, 25vw, 420px);

@@ -14,6 +14,7 @@ import {
   setSuggestUser,
   createSuggestModePlugin,
   setupSuggestionClickHandler,
+  buildSuggestionsBlock,
 } from './suggestions/index.ts';
 import { bindShortcutDialogKey } from '../shared/shortcut-dialog.ts';
 import { initTouchSupport } from '../shared/touch-support.ts';
@@ -166,6 +167,7 @@ async function init() {
     buildStylesBlock(editor),
     buildLayoutBlock(editor),
     buildCommentsBlock(editor, commentStore, documentId, user),
+    buildSuggestionsBlock(editor),
   ]);
 
   if (editorBody) {
