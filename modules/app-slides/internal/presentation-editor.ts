@@ -15,6 +15,8 @@ import { initLayoutAndTheme } from './layout-theme-init.ts';
 import { createSpeakerNotes } from './speaker-notes.ts';
 import { launchPresenterMode } from './presenter-mode.ts';
 import { initToolbarExtras } from './toolbar-extras.ts';
+import { initAnimations } from './animation-init.ts';
+import { pruneAnimationsForMissingElements } from './animation-yjs.ts';
 
 function init() {
   mountAppToolbar();
@@ -170,6 +172,13 @@ function init() {
     },
   });
 
+  // Animation panel — sidebar for managing element animations
+  initAnimations({
+    ydoc, yslides, canvasEl, toolbarRight,
+    getActiveSlideIndex: () => activeSlideIndex,
+    getInteractionController: () => interactionCtrl,
+  });
+
   // Present button
   const presentBtn = Object.assign(document.createElement('button'), { className: 'slide-present-btn', textContent: 'Present' });
   presentBtn.addEventListener('click', () => launchPresenterMode({ yslides, getSlideElements, totalSlides: () => yslides.length }, activeSlideIndex));
@@ -183,7 +192,11 @@ function init() {
     onChanged() { renderSlideList(); renderActiveSlide(); notesPanel.update(activeSlideIndex); },
   });
 
-  yslides.observeDeep(() => { renderSlideList(); renderActiveSlide(); notesPanel.update(activeSlideIndex); extras.updateTransitionPicker(); });
+  yslides.observeDeep(() => {
+    renderSlideList(); renderActiveSlide(); notesPanel.update(activeSlideIndex); extras.updateTransitionPicker();
+    const slide = yslides.get(activeSlideIndex);
+    if (slide) pruneAnimationsForMissingElements(ydoc, slide, new Set(getSlideElements(activeSlideIndex).map((e) => e.id)));
+  });
 
   // Presence
   provider.awareness?.setLocalStateField('user', user);
