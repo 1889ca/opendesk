@@ -1,6 +1,6 @@
 /* Version history sidebar — component-specific overrides (base in sidebar.css) */
 .version-sidebar {
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
   z-index: 40;
 }
 

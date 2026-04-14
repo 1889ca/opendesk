@@ -10,11 +10,7 @@ import { buildSearchPanel } from './search/search-panel.ts';
 import { buildFormattingToolbar } from './formatting-toolbar.ts';
 import { buildBubbleMenu } from './bubble-menu.ts';
 import { CommentStore } from './comments/index.ts';
-import {
-  setSuggestUser,
-  createSuggestModePlugin,
-  setupSuggestionClickHandler,
-} from './suggestions/index.ts';
+import { setSuggestUser, createSuggestModePlugin, setupSuggestionClickHandler } from './suggestions/index.ts';
 import { bindShortcutDialogKey } from '../shared/shortcut-dialog.ts';
 import { initTouchSupport } from '../shared/touch-support.ts';
 import { buildThemeToggle } from '../shared/theme-toggle.ts';
@@ -33,17 +29,14 @@ import { initZoomControl } from './zoom-control.ts';
 import { buildSaveIndicator } from './save-indicator.ts';
 import { initPageSetup, showPageSetupDialog } from './page-setup.ts';
 import { insertHeaderFooter, insertPageNumber, activateZone, setupHeaderFooterClicks } from './header-footer.ts';
-import {
-  registerServiceWorker,
-  buildOfflineIndicator,
-  buildUpdateBanner,
-  initConnectivityListeners,
-} from '../offline/index.ts';
+import { registerServiceWorker, buildOfflineIndicator, buildUpdateBanner, initConnectivityListeners } from '../offline/index.ts';
 import { mountAppToolbar } from '../shared/app-toolbar.ts';
 import { initEditorCollab } from './editor-collab.ts';
 import { initAiAssist } from './ai-assist.ts';
 import { initSpellCheckCycle } from './spell-check.ts';
 import { initFocusModeButton } from './focus-mode.ts';
+import { buildMenuBar } from './menu-bar.ts';
+import { mountEditorRails } from './editor-rails.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -145,6 +138,15 @@ async function init() {
 
   setupCodeBlockUI(editor);
   initEntityMentionClicks(editorEl);
+
+  const menuBar = buildMenuBar(editor);
+  const menuBarSlot = document.getElementById('menu-bar');
+  if (menuBarSlot) {
+    menuBarSlot.replaceWith(menuBar.el);
+  }
+
+  mountEditorRails({ editor, commentStore, documentId, user });
+
   buildFormattingToolbar(editor);
   buildBubbleMenu(editor);
   initAiAssist(editor);
@@ -168,7 +170,6 @@ async function init() {
   bindShortcutDialogKey();
 
   initEditorCollab({ editor, editorEl, provider, statusEl, usersEl, user });
-
   initEditorPanels({ editor, editorEl, commentStore, documentId, user });
   initRuler();
   initZoomControl();
@@ -204,6 +205,7 @@ async function init() {
 
   initFocusModeButton();
 
+  console.log('[boot] init-complete');
   Object.assign(window, { editor, provider, ydoc, commentStore });
 }
 

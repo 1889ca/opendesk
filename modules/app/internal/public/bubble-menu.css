@@ -4,17 +4,19 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 4px 6px;
+  padding: 4px 8px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 4px 12px var(--shadow-heavy, rgba(0, 0, 0, 0.12));
+  box-shadow: 0 4px 14px var(--shadow-heavy, rgba(0, 0, 0, 0.14));
   z-index: 100;
   /* position, top, left, visibility are managed by BubbleMenuPlugin */
   visibility: hidden;
   opacity: 0;
-  transition: opacity 0.1s ease;
+  transition: opacity 0.12s ease;
   pointer-events: none;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 /* Plugin applies style.visibility = "visible" when text is selected */
@@ -24,13 +26,15 @@
   pointer-events: auto;
 }
 
+/* ─── Buttons ────────────────────────────────────────────────── */
+
 .bubble-menu-btn {
   font-family: inherit;
   font-size: 0.75rem;
   font-weight: 600;
-  padding: 0.25rem 0.45rem;
+  padding: 0.3rem 0.45rem;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 5px;
   background: none;
   color: var(--text-muted);
   cursor: pointer;
@@ -38,11 +42,15 @@
   text-align: center;
   transition: background 0.1s, color 0.1s, border-color 0.1s;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .bubble-menu-btn:hover {
   background: var(--bg);
   color: var(--text);
+  border-color: var(--border);
 }
 
 .bubble-menu-btn.is-active {
@@ -51,7 +59,84 @@
   border-color: var(--accent);
 }
 
+.bubble-menu-btn.is-active:hover {
+  filter: brightness(1.1);
+}
+
 .bubble-menu-btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+/* ─── Separator ──────────────────────────────────────────────── */
+
+.bubble-menu-sep {
+  display: inline-block;
+  width: 1px;
+  height: 14px;
+  background: var(--border);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* ─── Heading picker ─────────────────────────────────────────── */
+
+.bubble-heading-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.bubble-heading-btn {
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.bubble-heading-label {
+  pointer-events: none;
+}
+
+.bubble-heading-picker {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px var(--shadow-heavy, rgba(0, 0, 0, 0.12));
+  padding: 4px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 110px;
+  z-index: 110;
+}
+
+.bubble-heading-picker.is-open {
+  display: flex;
+  flex-direction: column;
+}
+
+.bubble-heading-option {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.35rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+  white-space: nowrap;
+}
+
+.bubble-heading-option:hover {
+  background: var(--bg);
+}
+
+.bubble-heading-option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
 }

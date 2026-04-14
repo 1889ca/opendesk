@@ -2,6 +2,7 @@
 import type { Editor } from '@tiptap/core';
 import { calculateStats } from './doc-stats.ts';
 import { t, onLocaleChange } from '../i18n/index.ts';
+import { createScope, debounce } from './lifecycle.ts';
 
 const DEBOUNCE_MS = 300;
 
@@ -23,7 +24,8 @@ function renderText(editor: Editor): string {
   ].join('  \u00b7  ');
 }
 
-export function buildStatusBar(editor: Editor): HTMLElement {
+export function buildStatusBar(editor: Editor): { el: HTMLElement; cleanup: () => void } {
+  const scope = createScope();
   const bar = document.createElement('div');
   bar.className = 'status-bar';
   bar.setAttribute('role', 'status');
@@ -33,8 +35,6 @@ export function buildStatusBar(editor: Editor): HTMLElement {
   statsSpan.className = 'status-bar__stats';
   bar.appendChild(statsSpan);
 
-  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-
   function update(): void {
     const text = renderText(editor);
     const { selection } = calculateStats(editor);
@@ -42,16 +42,13 @@ export function buildStatusBar(editor: Editor): HTMLElement {
     statsSpan.classList.toggle('status-bar__stats--selection', selection !== null);
   }
 
-  function scheduleUpdate(): void {
-    if (debounceTimer) clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(update, DEBOUNCE_MS);
-  }
-
-  editor.on('transaction', scheduleUpdate);
-  onLocaleChange(() => update());
+  const debouncedUpdate = debounce(update, DEBOUNCE_MS);
+  scope.add(debouncedUpdate.cancel);
+  scope.onEditor(editor, 'transaction', debouncedUpdate.call);
+  scope.add(onLocaleChange(() => update()));
 
   // Initial render
   update();
 
-  return bar;
+  return { el: bar, cleanup: scope.dispose };
 }

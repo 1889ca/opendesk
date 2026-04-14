@@ -138,4 +138,9 @@ export const textIcons: Record<string, string> = {
     '<line x1="3" y1="12" x2="13" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>' +
     '<line x1="13" y1="12" x2="3" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>',
   ),
+  highlight: svg(
+    '<rect x="3" y="11" width="10" height="3" rx="1" fill="currentColor" opacity="0.35"/>' +
+    '<path d="M5 11V4l3-2 3 2v7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>' +
+    '<line x1="5" y1="7" x2="11" y2="7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>',
+  ),
 };

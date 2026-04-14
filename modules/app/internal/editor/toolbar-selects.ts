@@ -8,6 +8,22 @@ import { t } from '../i18n/index.ts';
 import { FONT_SIZES } from './font-size.ts';
 import { LINE_HEIGHTS } from './line-height.ts';
 import { FONT_FAMILIES } from './font-family.ts';
+import { batchRaf } from './lifecycle.ts';
+
+/** Wrap an updateValue function with batched rAF and register on editor events. */
+function bindSelectToEditor(
+  editor: Editor,
+  updateValue: () => void,
+): () => void {
+  const batched = batchRaf(updateValue);
+  editor.on('selectionUpdate', batched.call);
+  editor.on('transaction', batched.call);
+  return () => {
+    batched.cancel();
+    editor.off('selectionUpdate', batched.call);
+    editor.off('transaction', batched.call);
+  };
+}
 
 const LINE_HEIGHT_LABELS: Record<string, string> = {
   '1': 'Single',
@@ -18,7 +34,7 @@ const LINE_HEIGHT_LABELS: Record<string, string> = {
   '3': 'Triple',
 };
 
-export function buildFontFamilySelect(editor: Editor): HTMLElement {
+export function buildFontFamilySelect(editor: Editor): { el: HTMLElement; cleanup: () => void } {
   const select = document.createElement('select');
   select.className = 'toolbar-select toolbar-select--font';
   select.setAttribute('aria-label', t('a11y.fontFamilyLabel'));
@@ -44,13 +60,10 @@ export function buildFontFamilySelect(editor: Editor): HTMLElement {
     select.value = (attrs.fontFamily as string | undefined) ?? '';
   };
 
-  editor.on('selectionUpdate', updateValue);
-  editor.on('transaction', updateValue);
-
-  return select;
+  return { el: select, cleanup: bindSelectToEditor(editor, updateValue) };
 }
 
-export function buildFontSizeSelect(editor: Editor): HTMLElement {
+export function buildFontSizeSelect(editor: Editor): { el: HTMLElement; cleanup: () => void } {
   const wrapper = document.createElement('span');
   wrapper.style.position = 'relative';
   wrapper.setAttribute('data-i18n-key', 'toolbar.fontSize');
@@ -97,15 +110,13 @@ export function buildFontSizeSelect(editor: Editor): HTMLElement {
     input.value = (attrs.fontSize as string | undefined) ?? '14';
   };
 
-  editor.on('selectionUpdate', updateValue);
-  editor.on('transaction', updateValue);
-
   wrapper.appendChild(datalist);
   wrapper.appendChild(input);
-  return wrapper;
+
+  return { el: wrapper, cleanup: bindSelectToEditor(editor, updateValue) };
 }
 
-export function buildLineHeightSelect(editor: Editor): HTMLElement {
+export function buildLineHeightSelect(editor: Editor): { el: HTMLElement; cleanup: () => void } {
   const select = document.createElement('select');
   select.className = 'toolbar-select';
   select.setAttribute('aria-label', t('a11y.lineHeightLabel'));
@@ -127,10 +138,7 @@ export function buildLineHeightSelect(editor: Editor): HTMLElement {
     select.value = (attrs.lineHeight as string | undefined) ?? '';
   };
 
-  editor.on('selectionUpdate', updateValue);
-  editor.on('transaction', updateValue);
-
-  return select;
+  return { el: select, cleanup: bindSelectToEditor(editor, updateValue) };
 }
 
 const STYLES = [
@@ -144,7 +152,7 @@ const STYLES = [
   { label: 'Code Block', action: (editor: Editor) => editor.chain().focus().toggleCodeBlock().run(), isActive: (editor: Editor) => editor.isActive('codeBlock') },
 ];
 
-export function buildStyleSelect(editor: Editor): HTMLElement {
+export function buildStyleSelect(editor: Editor): { el: HTMLElement; cleanup: () => void } {
   const select = document.createElement('select');
   select.className = 'toolbar-select toolbar-select--style';
   select.setAttribute('aria-label', 'Paragraph style');
@@ -168,11 +176,9 @@ export function buildStyleSelect(editor: Editor): HTMLElement {
     select.value = active ? active.label : 'Normal';
   };
 
-  editor.on('selectionUpdate', updateValue);
-  editor.on('transaction', updateValue);
   updateValue();
 
-  return select;
+  return { el: select, cleanup: bindSelectToEditor(editor, updateValue) };
 }
 
 const PARA_SPACINGS = [
@@ -211,3 +217,4 @@ export function buildParagraphSpacingSelect(_editor: Editor): HTMLElement {
 
   return select;
 }
+

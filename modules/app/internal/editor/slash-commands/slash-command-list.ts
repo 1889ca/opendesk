@@ -2,6 +2,30 @@
 import type { SuggestionProps, SuggestionKeyDownProps } from '@tiptap/suggestion';
 import type { SlashCommand } from './slash-commands-data.ts';
 
+const ICON_FALLBACKS: Record<string, string> = {
+  heading1: 'H1',
+  heading2: 'H2',
+  heading3: 'H3',
+  bulletList: '\u2022',
+  orderedList: '1.',
+  blockquote: '\u201C',
+  code: '<>',
+  table: '\u229E',
+  horizontalRule: '\u2014',
+  image: '\uD83D\uDCF7',
+  callout: '\uD83D\uDCA1',
+  toggle: '\u25B8',
+  footnote: '\u00B9',
+  emoji: '\uD83D\uDE0A',
+  drawing: '\u270F\uFE0F',
+  math: '\u2211',
+  pageBreak: '\u2913',
+};
+
+function getIconFallback(icon: string): string {
+  return ICON_FALLBACKS[icon] ?? '';
+}
+
 interface SlashListState {
   items: SlashCommand[];
   selectedIndex: number;
@@ -54,6 +78,11 @@ function renderItems(state: SlashListState): void {
     }
     item.setAttribute('role', 'option');
     item.type = 'button';
+
+    const iconEl = document.createElement('span');
+    iconEl.className = 'slash-command-icon';
+    iconEl.textContent = cmd.icon ? getIconFallback(cmd.icon) : '';
+    item.appendChild(iconEl);
 
     const labelEl = document.createElement('span');
     labelEl.className = 'slash-command-label';

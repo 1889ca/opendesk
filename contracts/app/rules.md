@@ -45,6 +45,8 @@ Provide the frontend shell for OpenDesk: the HTML document, modern CSS styles, J
 
 8. **Locale is deterministic.** The resolved locale (`'en'` or `'fr'`) is fixed at page load from `localStorage` or browser language preference. It does not change during a session unless the user explicitly switches, which triggers a full re-render.
 
+9. **Listener lifecycle.** Every `editor.on`, `addEventListener`, `ResizeObserver`, and `setInterval` MUST have a corresponding teardown path. Use helpers from `editor/lifecycle.ts` (`createScope`, `safeResizeObserver`, `retryUntil`, `debounce`) — never construct a raw `ResizeObserver`. Components that register listeners MUST return a `cleanup` function (or `{ el, cleanup }` for builder functions).
+
 ## Dependencies
 
 - `document` (compile-time and test-time) — ProseMirror schema types, `TextDocumentSnapshot`, `ProseMirrorJSON`, Zod schemas, `TextSchemaVersion`. The app imports these for type safety and schema parity testing. This is a build dependency, not a runtime server import.

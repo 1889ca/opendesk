@@ -86,10 +86,24 @@ export async function mount(container: HTMLElement, params: Record<string, strin
   const { toolbarEl, statusEl, usersEl, titleInput } = buildEditorToolbar(documentId);
   container.appendChild(toolbarEl);
 
+  // Unified toolbar: menu bar + formatting bar in one row
+  const unifiedToolbar = document.createElement('div');
+  unifiedToolbar.className = 'unified-toolbar';
+
+  const menuBarSlot = document.createElement('div');
+  menuBarSlot.id = 'menu-bar';
+  unifiedToolbar.appendChild(menuBarSlot);
+
+  const toolbarDivider = document.createElement('div');
+  toolbarDivider.className = 'toolbar-divider';
+  unifiedToolbar.appendChild(toolbarDivider);
+
   const formattingToolbar = document.createElement('div');
   formattingToolbar.id = 'formatting-toolbar';
   formattingToolbar.className = 'formatting-toolbar';
-  container.appendChild(formattingToolbar);
+  unifiedToolbar.appendChild(formattingToolbar);
+
+  container.appendChild(unifiedToolbar);
 
   const editorWrapper = document.createElement('main');
   editorWrapper.className = 'editor-wrapper';
@@ -153,7 +167,9 @@ export async function mount(container: HTMLElement, params: Record<string, strin
   document.addEventListener('opendesk:open-emoji', onEmoji);
   cleanupFns.push(() => document.removeEventListener('opendesk:open-emoji', onEmoji));
 
-  editorWrapper.appendChild(buildStatusBar(editor));
+  const statusBar = buildStatusBar(editor);
+  editorWrapper.appendChild(statusBar.el);
+  cleanupFns.push(statusBar.cleanup);
 
   // Mount sidebars
   const sidebarCleanups = mountSidebars({ editor, commentStore, documentId, user, container });

@@ -1,6 +1,7 @@
 /** Contract: contracts/app/rules.md */
 
 import type { Editor } from '@tiptap/core';
+import { batchRaf } from './lifecycle.ts';
 
 type AlignKey = 'img-float-left' | 'img-center' | 'img-float-right' | 'img-full-width';
 
@@ -64,7 +65,7 @@ function hideToolbar(): void {
 
 /** Initialise the image float/alignment toolbar for the given editor. */
 export function initImageToolbar(editor: Editor): void {
-  editor.on('selectionUpdate', () => {
+  const updateVisibility = () => {
     const { selection } = editor.state;
     const node = selection.$anchor.nodeAfter ?? editor.state.doc.nodeAt(selection.from);
 
@@ -77,7 +78,9 @@ export function initImageToolbar(editor: Editor): void {
       }
     }
     hideToolbar();
-  });
+  };
+  const batched = batchRaf(updateVisibility);
+  editor.on('selectionUpdate', batched.call);
 
   editor.on('blur', () => {
     // Delay so toolbar button clicks fire before hiding

@@ -5,13 +5,14 @@
 .version-sidebar,
 .workflow-sidebar {
   position: fixed;
-  top: 0;
-  right: 0;
+  top: 8px;
+  right: 8px;
   width: clamp(280px, 25vw, 420px);
-  height: 100vh;
+  height: calc(100vh - 16px);
   background: var(--surface);
-  border-left: 1px solid var(--border);
-  transform: translateX(100%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transform: translateX(calc(100% + 16px));
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
   display: flex;
@@ -73,27 +74,18 @@
   overflow-y: auto;
 }
 
-/* Editor content shifts right when a sidebar is open */
-body:has(.comment-sidebar-open) .editor-wrapper,
-body:has(.suggestion-sidebar-open) .editor-wrapper,
-body:has(.version-sidebar-open) .editor-wrapper,
-body:has(.workflow-sidebar-open) .editor-wrapper,
-body:has(.toc-panel-open) .editor-wrapper {
-  margin-right: clamp(280px, 25vw, 420px);
-  transition: margin-right 0.2s ease;
-}
-
 /* Resize handle — left edge of each sidebar panel */
 /* Panels already have position:fixed so the handle's position:absolute works */
 .sidebar-resize-handle {
   position: absolute;
   left: 0;
-  top: 0;
-  bottom: 0;
+  top: 12px;
+  bottom: 12px;
   width: 4px;
   cursor: col-resize;
   background: transparent;
   z-index: 1;
+  border-radius: 2px;
 }
 
 .sidebar-resize-handle:hover {
@@ -134,4 +126,27 @@ body:has(.toc-panel-open) .editor-wrapper {
   font-size: 0.8125rem;
   text-align: center;
   padding: 2rem 1rem;
+}
+
+/* ── Combined panel sections (Styles & Layout) ───────────────────── */
+
+.panel-combined-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.panel-combined-section + .panel-combined-section {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.panel-combined-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin: 0;
 }

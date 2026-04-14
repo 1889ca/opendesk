@@ -1,16 +1,12 @@
 /** Contract: contracts/app/rules.md */
 
-/**
- * Document row rendering for the doc list.
- * Supports multi-select checkboxes (issue #173), friendly empty state (issue #182),
- * starred/favourites section (issue #184), context menu (issue #228),
- * and hover preview (issue #231).
- */
+/** Document row rendering: checkboxes, icons, context menu, snippets, more-actions. */
 
 import { t } from '../i18n/index.ts';
+import { apiFetch } from '../shared/api-client.ts';
 import { formatRelativeTime } from '../shared/time-format.ts';
 import { getStarred, toggleStar } from './starred-store.ts';
-import { attachContextMenu } from './doc-context-menu.ts';
+import { attachContextMenu, showContextMenuAt } from './doc-context-menu.ts';
 import { attachHoverPreview } from './doc-hover-preview.ts';
 import { renderEmptyState } from './doc-empty-state.ts';
 import { confirmAndDelete, renameDoc, duplicateDoc } from './doc-operations.ts';
@@ -21,6 +17,7 @@ export interface DocEntry {
   updated_at: string;
   created_at?: string;
   document_type?: string;
+  snippet?: string;
 }
 
 // Inline SVG icons — color-coded per type (matches Google Docs visual language)
@@ -81,11 +78,8 @@ export function renderDocuments(options: RenderDocumentsOptions): void {
 }
 
 function buildDocRow(
-  doc: DocEntry,
-  onDelete: () => void,
-  onStarToggle: () => void,
-  selectedIds: Set<string>,
-  onSelectionChange: (ids: Set<string>) => void,
+  doc: DocEntry, onDelete: () => void, onStarToggle: () => void,
+  selectedIds: Set<string>, onSelectionChange: (ids: Set<string>) => void,
 ): HTMLElement {
   const meta = TYPE_META[doc.document_type || 'text'] || TYPE_META.text;
   const isStarred = getStarred().has(doc.id);
@@ -94,6 +88,9 @@ function buildDocRow(
   const wrapper = document.createElement('div');
   wrapper.className = 'doc-row-wrapper';
   wrapper.dataset.type = doc.document_type || 'text';
+  wrapper.dataset.docId = doc.id;
+  wrapper.setAttribute('role', 'option');
+  wrapper.setAttribute('tabindex', '0');
 
   const checkLabel = document.createElement('label');
   checkLabel.className = 'doc-row-check-label';
@@ -131,18 +128,45 @@ function buildDocRow(
   const title = document.createElement('span');
   title.className = 'doc-row-title';
   title.textContent = docName;
-  titleRow.append(icon, title);
   const time = document.createElement('span');
   time.className = 'doc-row-time';
-  let timeText = meta.label + ' \u00B7 ' + t('docList.updated', { time: formatRelativeTime(doc.updated_at) });
-  if (doc.created_at) {
-    const createdShort = new Date(doc.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    timeText += ' \u00B7 ' + t('docList.created', { time: createdShort });
-  }
-  time.textContent = timeText;
+  time.textContent = t('docList.updated', { time: formatRelativeTime(doc.updated_at) });
   time.title = new Date(doc.updated_at).toLocaleString();
-  info.append(titleRow, time);
+  titleRow.append(icon, title, time);
+
+  // Snippet / content preview
+  const snippet = document.createElement('span');
+  snippet.className = 'doc-row-snippet';
+  snippet.textContent = doc.snippet || '';
+  if (!doc.snippet) {
+    loadSnippet(doc.id, snippet);
+  }
+
+  info.append(titleRow, snippet);
   row.appendChild(info);
+
+  // More-actions button (replaces old delete button)
+  const callbacks = {
+    onOpen: () => { window.location.href = meta.editor + '?doc=' + encodeURIComponent(doc.id); },
+    onStar: async () => { await toggleStar(doc.id); onStarToggle(); },
+    onRename: () => renameDoc(doc, onDelete),
+    onDuplicate: () => duplicateDoc(doc.id, onDelete),
+    onDelete: () => confirmAndDelete(doc.id, docName, onDelete),
+    onMove: onDelete,
+  };
+
+  const moreBtn = document.createElement('button');
+  moreBtn.className = 'btn doc-row-more';
+  moreBtn.type = 'button';
+  moreBtn.textContent = '\u22EF';
+  moreBtn.title = t('docList.moreActions');
+  moreBtn.setAttribute('aria-label', t('docList.moreActions'));
+  moreBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = moreBtn.getBoundingClientRect();
+    showContextMenuAt(rect.left, rect.bottom + 4, doc, callbacks);
+  });
 
   const starBtn = document.createElement('button');
   starBtn.className = 'btn btn-star' + (isStarred ? ' btn-star--active' : '');
@@ -150,19 +174,25 @@ function buildDocRow(
   starBtn.setAttribute('aria-label', isStarred ? 'Unstar document' : 'Star document');
   starBtn.addEventListener('click', async () => { await toggleStar(doc.id); onStarToggle(); });
 
-  wrapper.append(checkLabel, row, starBtn);
+  wrapper.append(checkLabel, row, starBtn, moreBtn);
 
-  attachContextMenu(wrapper, doc, {
-    onOpen: () => { window.location.href = meta.editor + '?doc=' + encodeURIComponent(doc.id); },
-    onStar: async () => { await toggleStar(doc.id); onStarToggle(); },
-    onRename: () => renameDoc(doc, onDelete),
-    onDuplicate: () => duplicateDoc(doc.id, onDelete),
-    onDelete: () => confirmAndDelete(doc.id, docName, onDelete),
-    onMove: onDelete,
-  });
-
+  attachContextMenu(wrapper, doc, callbacks);
   attachHoverPreview(wrapper, doc.id);
-
   return wrapper;
 }
 
+/** Lazily load a snippet from the preview API and populate the element. */
+function loadSnippet(docId: string, el: HTMLElement): void {
+  const observer = new IntersectionObserver((entries, obs) => {
+    if (entries[0]?.isIntersecting) {
+      obs.disconnect();
+      apiFetch('/api/documents/' + encodeURIComponent(docId) + '/preview')
+        .then(res => res.ok ? res.json() : null)
+        .then((data: { preview?: string } | null) => {
+          if (data?.preview) el.textContent = data.preview.slice(0, 120);
+        })
+        .catch(() => {});
+    }
+  }, { threshold: 0.1 });
+  observer.observe(el);
+}

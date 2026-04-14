@@ -3,34 +3,23 @@ import type { Editor } from '@tiptap/core';
 import { t, onLocaleChange } from '../../i18n/index.ts';
 import { extractHeadings, type HeadingEntry } from './toc-extractor.ts';
 import { createScope, debounce, retryUntil } from '../lifecycle.ts';
+import type { PanelBlock } from '../panel-system.ts';
 
 const INDENT_PX = 16;
 const DEBOUNCE_MS = 300;
 
-/**
- * Build the TOC sidebar panel.
- * Renders headings with indentation, click-to-scroll, and active highlighting.
- */
-export function buildTocPanel(editor: Editor): { el: HTMLElement; cleanup: () => void } {
+export function buildTocBlock(editor: Editor): PanelBlock {
   const scope = createScope();
-  const panel = document.createElement('aside');
-  panel.className = 'toc-panel';
-  panel.setAttribute('role', 'navigation');
-  panel.setAttribute('aria-label', t('toc.title'));
-
-  const header = createHeader(panel);
-  panel.appendChild(header);
-
-  const list = document.createElement('nav');
-  list.className = 'toc-list';
-  panel.appendChild(list);
+  const content = document.createElement('nav');
+  content.className = 'toc-block-list';
+  content.setAttribute('role', 'navigation');
 
   let headings: HeadingEntry[] = [];
 
   const render = () => {
     headings = extractHeadings(editor);
-    renderList(list, headings, editor);
-    updateActiveHeading(list, headings, editor);
+    renderList(content, headings, editor);
+    updateActiveHeading(content, headings, editor);
   };
 
   render();
@@ -38,41 +27,20 @@ export function buildTocPanel(editor: Editor): { el: HTMLElement; cleanup: () =>
   const debouncedRender = debounce(render, DEBOUNCE_MS);
   scope.add(debouncedRender.cancel);
   scope.onEditor(editor, 'update', debouncedRender.call);
+  attachScrollListener(scope, content, editor, () => headings);
 
-  attachScrollListener(scope, list, editor, () => headings);
-  scope.add(onLocaleChange(() => {
-    panel.setAttribute('aria-label', t('toc.title'));
-    header.querySelector('.toc-panel-title')!.textContent = t('toc.title');
-    render();
-  }));
+  scope.add(onLocaleChange(render));
 
-  return { el: panel, cleanup: scope.dispose };
+  return {
+    id: 'toc',
+    title: t('toc.title'),
+    icon: '\u2630',
+    content,
+    cleanup: scope.dispose,
+  };
 }
 
-function createHeader(panel: HTMLElement): HTMLElement {
-  const header = document.createElement('div');
-  header.className = 'toc-panel-header';
-
-  const title = document.createElement('h2');
-  title.className = 'toc-panel-title';
-  title.textContent = t('toc.title');
-
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'toc-panel-close';
-  closeBtn.textContent = '\u00d7';
-  closeBtn.title = t('toc.title');
-  closeBtn.addEventListener('click', () => toggleTocPanel(panel, false));
-
-  header.appendChild(title);
-  header.appendChild(closeBtn);
-  return header;
-}
-
-function renderList(
-  list: HTMLElement,
-  headings: HeadingEntry[],
-  editor: Editor,
-): void {
+function renderList(list: HTMLElement, headings: HeadingEntry[], editor: Editor): void {
   list.innerHTML = '';
 
   if (headings.length === 0) {
@@ -87,7 +55,7 @@ function renderList(
     const item = document.createElement('button');
     item.className = 'toc-item';
     item.setAttribute('data-pos', String(heading.pos));
-    item.style.paddingLeft = `${(heading.level - 1) * INDENT_PX + 12}px`;
+    item.style.paddingLeft = `${(heading.level - 1) * INDENT_PX + 8}px`;
     item.textContent = heading.text;
     item.addEventListener('click', () => scrollToHeading(editor, heading.pos));
     list.appendChild(item);
@@ -160,10 +128,4 @@ function updateActiveHeading(
     const pos = Number((item as HTMLElement).dataset.pos);
     item.classList.toggle('toc-item-active', pos === activePos);
   }
-}
-
-/** Toggle the TOC panel visibility. */
-export function toggleTocPanel(panel: HTMLElement, show?: boolean): void {
-  const visible = show ?? !panel.classList.contains('toc-panel-open');
-  panel.classList.toggle('toc-panel-open', visible);
 }

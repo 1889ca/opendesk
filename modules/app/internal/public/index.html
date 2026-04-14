@@ -27,12 +27,41 @@
     </div>
     <div class="toolbar-right">
       <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
-      <a href="/entities.html" class="btn btn-secondary">Entity Directory</a>
-      <a href="/kb.html" class="btn btn-secondary">Knowledge Base</a>
-      <div class="new-doc-group">
-        <button id="new-doc-btn" class="btn btn-primary" data-type="text">New Document</button>
-        <button id="new-sheet-btn" class="btn btn-secondary" data-type="spreadsheet">New Spreadsheet</button>
-        <button id="new-slides-btn" class="btn btn-secondary" data-type="presentation">New Presentation</button>
+      <div class="create-dropdown">
+        <button id="create-btn" class="btn btn-primary create-dropdown-toggle">
+          <span aria-hidden="true">+</span> New
+        </button>
+        <div class="create-dropdown-menu" id="create-menu" hidden>
+          <button class="create-dropdown-item" id="new-doc-btn" data-type="text">
+            <span class="create-item-icon create-item-icon--doc"></span>
+            <span class="create-item-info">
+              <span class="create-item-label">Document</span>
+              <span class="create-item-desc">Write and collaborate</span>
+            </span>
+          </button>
+          <button class="create-dropdown-item" id="new-sheet-btn" data-type="spreadsheet">
+            <span class="create-item-icon create-item-icon--sheet"></span>
+            <span class="create-item-info">
+              <span class="create-item-label">Spreadsheet</span>
+              <span class="create-item-desc">Organize data</span>
+            </span>
+          </button>
+          <button class="create-dropdown-item" id="new-slides-btn" data-type="presentation">
+            <span class="create-item-icon create-item-icon--slides"></span>
+            <span class="create-item-info">
+              <span class="create-item-label">Presentation</span>
+              <span class="create-item-desc">Present ideas</span>
+            </span>
+          </button>
+          <div class="create-dropdown-sep"></div>
+          <button class="create-dropdown-item" id="new-folder-btn">
+            <span class="create-item-icon create-item-icon--folder"></span>
+            <span class="create-item-info">
+              <span class="create-item-label">Folder</span>
+              <span class="create-item-desc">Organize files</span>
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   </header>

@@ -1,6 +1,7 @@
 /** Contract: contracts/app/rules.md */
 import type { Editor } from '@tiptap/core';
 import { t, onLocaleChange } from '../i18n/index.ts';
+import { batchRaf } from './lifecycle.ts';
 
 const LANGUAGES = [
   { value: '', label: () => t('codeBlock.plainText') },
@@ -97,8 +98,9 @@ export function setupCodeBlockUI(editor: Editor): void {
 
   const select = overlay.querySelector('.code-block-lang-select') as HTMLSelectElement;
 
-  editor.on('selectionUpdate', () => positionOverlay(editor, editorEl, overlay, select));
-  editor.on('update', () => positionOverlay(editor, editorEl, overlay, select));
+  const batched = batchRaf(() => positionOverlay(editor, editorEl, overlay, select));
+  editor.on('selectionUpdate', batched.call);
+  editor.on('update', batched.call);
 }
 
 function positionOverlay(

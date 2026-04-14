@@ -64,8 +64,7 @@
   font-family: inherit;
   font-size: 0.6875rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   color: var(--text-muted);
   background: none;
   border: none;
@@ -141,6 +140,30 @@
   font-size: 0.75rem;
   color: var(--text-muted);
   padding: 0.5rem 0.75rem;
+}
+
+/* Nav links */
+.ws-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 0.375rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.ws-nav-link {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: background 0.1s, color 0.15s;
+}
+
+.ws-nav-link:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 /* Quick search */

@@ -1,5 +1,6 @@
 /** Contract: contracts/app/rules.md */
 import { Node, mergeAttributes, type NodeViewRendererProps } from '@tiptap/core';
+import { batchRaf } from './lifecycle.ts';
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -7,6 +8,53 @@ declare module '@tiptap/core' {
       insertFootnote: (content: string) => ReturnType;
     };
   }
+}
+
+/**
+ * Shared renumbering logic for all footnote node views.
+ * Instead of N handlers (one per footnote), a single batched handler
+ * walks the doc once and updates all registered DOM elements.
+ */
+const footnoteViews = new Set<{ sup: HTMLElement; getPos: () => number | undefined; content: string }>();
+let batchedRenumber: { call: () => void; cancel: () => void } | null = null;
+let currentEditor: import('@tiptap/core').Editor | null = null;
+
+function renumberAll(): void {
+  if (!currentEditor) return;
+  let count = 0;
+  const posMap = new Map<number, number>();
+  currentEditor.state.doc.descendants((node, pos) => {
+    if (node.type.name === 'footnote') {
+      count++;
+      posMap.set(pos, count);
+    }
+    return true;
+  });
+
+  for (const view of footnoteViews) {
+    const pos = view.getPos();
+    if (pos === undefined) continue;
+    const num = posMap.get(pos);
+    if (num !== undefined) {
+      view.sup.textContent = String(num);
+      view.sup.setAttribute('aria-label', `Footnote ${num}: ${view.content}`);
+    }
+  }
+
+  document.dispatchEvent(new CustomEvent('opendesk:footnotes-changed'));
+}
+
+function ensureBatchHandler(editor: import('@tiptap/core').Editor): void {
+  if (batchedRenumber) return;
+  currentEditor = editor;
+  batchedRenumber = batchRaf(renumberAll);
+  editor.on('update', batchedRenumber.call);
+  editor.on('destroy', () => {
+    batchedRenumber?.cancel();
+    batchedRenumber = null;
+    currentEditor = null;
+    footnoteViews.clear();
+  });
 }
 
 export const FootnoteNode = Node.create({
@@ -48,19 +96,17 @@ export const FootnoteNode = Node.create({
       sup.setAttribute('data-footnote-content', fnContent);
       sup.title = fnContent;
 
-      function updateNumber(): void {
-        if (typeof getPos !== 'function') return;
-        const pos = getPos();
-        if (pos === undefined) return;
-        let count = 0;
-        editor.state.doc.nodesBetween(0, pos, (n) => {
-          if (n.type.name === 'footnote') count++;
-          return true;
-        });
-        sup.textContent = String(count);
-        sup.setAttribute('aria-label', `Footnote ${count}: ${fnContent}`);
-        document.dispatchEvent(new CustomEvent('opendesk:footnotes-changed'));
-      }
+      const view = {
+        sup,
+        getPos: getPos as () => number | undefined,
+        content: fnContent,
+      };
+
+      ensureBatchHandler(editor);
+      footnoteViews.add(view);
+
+      // Initial numbering
+      batchedRenumber!.call();
 
       sup.addEventListener('click', () => {
         document.dispatchEvent(new CustomEvent('opendesk:scroll-to-footnote', {
@@ -68,12 +114,9 @@ export const FootnoteNode = Node.create({
         }));
       });
 
-      updateNumber();
-      editor.on('update', updateNumber);
-
       return {
         dom: sup,
-        destroy() { editor.off('update', updateNumber); },
+        destroy() { footnoteViews.delete(view); },
       };
     };
   },

@@ -6,13 +6,14 @@ import type { Editor } from '@tiptap/core';
 import { buildColorPalette } from './color-palette.ts';
 import { buildHighlightPalette } from './highlight-palette.ts';
 import { svg } from './toolbar-icons-text.ts';
+import { batchRaf } from './lifecycle.ts';
 
 const colorAIcon = svg(
   '<text x="8" y="11" text-anchor="middle" font-size="11" font-weight="700" font-family="serif" fill="currentColor">A</text>' +
   '<rect x="3" y="13" width="10" height="2" rx="1" fill="var(--color-bar-color, currentColor)"/>',
 );
 
-export function buildTextColorBtn(editor: Editor): HTMLElement {
+export function buildTextColorBtn(editor: Editor): { el: HTMLElement; cleanup: () => void } {
   const group = document.createElement('div');
   group.className = 'toolbar-color-group';
 
@@ -34,8 +35,9 @@ export function buildTextColorBtn(editor: Editor): HTMLElement {
     rect.setAttribute('fill', color || 'currentColor');
   };
 
-  editor.on('selectionUpdate', updateBar);
-  editor.on('transaction', updateBar);
+  const batched = batchRaf(updateBar);
+  editor.on('selectionUpdate', batched.call);
+  editor.on('transaction', batched.call);
 
   let paletteEl: HTMLElement | null = null;
 
@@ -69,7 +71,14 @@ export function buildTextColorBtn(editor: Editor): HTMLElement {
   });
 
   group.appendChild(btn);
-  return group;
+  return {
+    el: group,
+    cleanup: () => {
+      batched.cancel();
+      editor.off('selectionUpdate', batched.call);
+      editor.off('transaction', batched.call);
+    },
+  };
 }
 
 const highlightIcon = svg(
@@ -78,7 +87,7 @@ const highlightIcon = svg(
   '<line x1="6" y1="7" x2="10" y2="7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
 );
 
-export function buildHighlightBtn(editor: Editor): HTMLElement {
+export function buildHighlightBtn(editor: Editor): { el: HTMLElement; cleanup: () => void } {
   const group = document.createElement('div');
   group.className = 'toolbar-color-group';
 
@@ -97,8 +106,9 @@ export function buildHighlightBtn(editor: Editor): HTMLElement {
     rect.setAttribute('fill', color || '#fff176');
   };
 
-  editor.on('selectionUpdate', updateBar);
-  editor.on('transaction', updateBar);
+  const batched = batchRaf(updateBar);
+  editor.on('selectionUpdate', batched.call);
+  editor.on('transaction', batched.call);
 
   let paletteEl: HTMLElement | null = null;
 
@@ -130,5 +140,12 @@ export function buildHighlightBtn(editor: Editor): HTMLElement {
   });
 
   group.appendChild(btn);
-  return group;
+  return {
+    el: group,
+    cleanup: () => {
+      batched.cancel();
+      editor.off('selectionUpdate', batched.call);
+      editor.off('transaction', batched.call);
+    },
+  };
 }

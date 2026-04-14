@@ -2,6 +2,7 @@
 import type { Editor } from '@tiptap/core';
 import { t, onLocaleChange, type TranslationKey } from '../i18n/index.ts';
 import { buildCellFormatSection } from './table-cell-format.ts';
+import { batchRaf } from './lifecycle.ts';
 
 interface TableButton {
   key: TranslationKey;
@@ -70,11 +71,10 @@ function renderTableToolbar(container: HTMLElement, editor: Editor) {
     });
 
     if (canRun) {
-      const updateDisabled = () => {
-        btn.disabled = !canRun(editor);
-      };
-      editor.on('selectionUpdate', updateDisabled);
-      editor.on('transaction', updateDisabled);
+      const updateDisabled = () => { btn.disabled = !canRun(editor); };
+      const batchedDisabled = batchRaf(updateDisabled);
+      editor.on('selectionUpdate', batchedDisabled.call);
+      editor.on('transaction', batchedDisabled.call);
       updateDisabled();
     }
 
@@ -111,7 +111,8 @@ export function buildTableToolbar(editor: Editor): void {
     toolbar.style.display = inTable ? 'flex' : 'none';
   };
 
-  editor.on('selectionUpdate', updateVisibility);
-  editor.on('transaction', updateVisibility);
+  const batched = batchRaf(updateVisibility);
+  editor.on('selectionUpdate', batched.call);
+  editor.on('transaction', batched.call);
   updateVisibility();
 }
