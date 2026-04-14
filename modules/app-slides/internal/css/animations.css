@@ -1,0 +1,183 @@
+/* Animation panel — sidebar for managing slide element animations */
+
+.animation-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 22rem;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 80;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.04);
+}
+
+.animation-panel[hidden] { display: none; }
+
+.animation-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.animation-panel__title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.animation-panel__close {
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text);
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+}
+
+.animation-panel__close:hover { background: var(--bg); }
+
+.animation-panel__add {
+  padding: 0.75rem 0.875rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.animation-panel__label {
+  font-size: 0.8125rem;
+  color: var(--text-muted, #555);
+}
+
+.animation-panel__row {
+  display: flex;
+  gap: 0.375rem;
+  align-items: center;
+}
+
+.animation-panel__hint {
+  font-size: 0.75rem;
+  color: var(--text-muted, #888);
+  margin: 0;
+}
+
+.animation-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.animation-panel__empty {
+  text-align: center;
+  padding: 1.5rem 0.5rem;
+  color: var(--text-muted, #888);
+  font-size: 0.85rem;
+}
+
+.animation-panel__item {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr auto;
+  gap: 0.5rem;
+  align-items: start;
+  padding: 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.animation-panel__item--entrance { border-left: 3px solid #16a34a; }
+.animation-panel__item--exit { border-left: 3px solid #dc2626; }
+.animation-panel__item--emphasis { border-left: 3px solid #d97706; }
+
+.animation-panel__order {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-muted, #555);
+  text-align: center;
+  padding-top: 0.125rem;
+}
+
+.animation-panel__main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.animation-panel__elref {
+  background: transparent;
+  border: 1px dashed var(--border);
+  font-size: 0.75rem;
+  color: var(--text-muted, #555);
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.animation-panel__elref:hover { border-style: solid; color: var(--text); }
+
+.animation-panel__select {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem 0.375rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.8125rem;
+}
+
+.animation-panel__num {
+  width: 5rem;
+  padding: 0.25rem 0.375rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.8125rem;
+}
+
+.animation-panel__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.animation-panel__icon-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: var(--text);
+}
+
+.animation-panel__icon-btn:hover:not(:disabled) { background: var(--bg); }
+.animation-panel__icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.animation-panel__icon-btn--danger { color: #dc2626; }
+.animation-panel__icon-btn--danger:hover { background: #fef2f2; }
+
+/* Animation toggle button */
+.slide-animation-toggle.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
