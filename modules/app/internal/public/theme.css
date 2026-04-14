@@ -31,6 +31,7 @@
 
   /* Editor-specific */
   --editor-paper-bg: #ffffff;
+  --editor-paper-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 32px rgba(0, 0, 0, 0.06);
   --code-bg: #fafafa;
   --code-block-bg: #f5f5f5;
   --code-block-text: #1a1a1a;
@@ -67,22 +68,23 @@
 
 /* Dark theme */
 [data-theme="dark"] {
-  --bg-primary: #111318;
-  --bg-secondary: #181b24;
+  --bg-primary: #0f1117;
+  --bg-secondary: #151821;
   --bg-surface: #1e2130;
-  --editor-canvas-bg: #0d0f14;
+  --editor-canvas-bg: #0c0e13;
   --text-primary: #e8e8ec;
   --text-secondary: #8b93a5;
   --border-color: #2a2f42;
-  --accent-color: #4f8ff7;
+  --accent-color: #5b9cf9;
   --accent-hover: #6ba3fa;
   --toolbar-bg: #181b24;
-  --editor-bg: #1e2130;
+  --editor-bg: #1a1d2e;
   --sidebar-bg: #181b24;
   --overlay-bg: rgba(0, 0, 0, 0.65);
   --shadow-color: rgba(0, 0, 0, 0.35);
   --shadow-medium: rgba(0, 0, 0, 0.45);
   --shadow-heavy: rgba(0, 0, 0, 0.6);
+  --editor-paper-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2);
 
   /* Status colors */
   --status-connected: #4ade80;
@@ -129,6 +131,17 @@
 
   /* Scrollbar styling */
   color-scheme: dark;
+}
+
+/* Dark theme scrollbars — slim, translucent, unobtrusive */
+[data-theme="dark"] ::-webkit-scrollbar { width: 8px; height: 8px; }
+[data-theme="dark"] ::-webkit-scrollbar-track { background: transparent; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.2);
 }
 
 /* Theme toggle button */

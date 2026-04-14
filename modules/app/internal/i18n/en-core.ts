@@ -142,6 +142,11 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'bubble.link': 'Link',
   'bubble.linkPrompt': 'Enter URL',
   'bubble.menuLabel': 'Quick formatting',
+  'bubble.code': 'Inline code',
+  'bubble.highlight': 'Highlight',
+  'bubble.heading': 'Heading',
+  'bubble.headingNormal': 'Normal text',
+  'bubble.comment': 'Comment',
   'versions.namePrompt': 'Name this version (optional)',
   'versions.namePlaceholder': 'e.g. Before restructure',
   'nav.dashboard': 'Documents',
@@ -164,4 +169,5 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'toolbar.drawing': 'Drawing',
   'toolbar.spellcheck': 'Spell Check',
   'toolbar.specialChars': 'Special Characters',
+  'docList.moreActions': 'More actions',
 };

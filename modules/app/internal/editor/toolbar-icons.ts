@@ -6,6 +6,17 @@
  */
 import { svg, textIcons } from './toolbar-icons-text.ts';
 
+const chromeIcons: Record<string, string> = {
+  hamburger: svg(
+    '<line x1="2" y1="4" x2="14" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+    '<line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+    '<line x1="2" y1="12" x2="14" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  ),
+  chevronRight: svg(
+    '<polyline points="6,3 11,8 6,13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  ),
+};
+
 const insertIcons: Record<string, string> = {
   table: svg(
     '<rect x="1" y="1" width="14" height="14" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/>' +
@@ -122,7 +133,7 @@ const insertIcons: Record<string, string> = {
   ),
 };
 
-export const icons: Record<string, string> = { ...textIcons, ...insertIcons };
+export const icons: Record<string, string> = { ...textIcons, ...chromeIcons, ...insertIcons };
 
 /** Return the SVG icon string for the given icon name, or empty string if not found. */
 export function getIcon(name: string): string {

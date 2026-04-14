@@ -1,5 +1,6 @@
 /** Contract: contracts/app/rules.md */
 import { t, onLocaleChange } from '../i18n/index.ts';
+import { debounce } from './lifecycle.ts';
 
 /** Keys that must always remain in the primary toolbar — never moved to overflow. */
 const NEVER_OVERFLOW = new Set([
@@ -20,12 +21,27 @@ export function setupToolbarOverflow(
   alwaysOverflow: HTMLElement[] = [],
 ): () => void {
   const { wrapper, removeDocClickListener } = createOverflowWrapper(toolbar, alwaysOverflow);
-  const observer = new ResizeObserver(() => reflow(toolbar, wrapper));
-  observer.observe(toolbar);
+
+  // Reflow on window resize (debounced) — NOT via ResizeObserver on the
+  // toolbar. Observing the toolbar (or its parent) causes an infinite
+  // oscillation: reflow moves children in/out → dimensions change →
+  // observer fires → reflow again → every single frame, forever.
+  const debouncedReflow = debounce(() => reflow(toolbar, wrapper), 100);
+  window.addEventListener('resize', debouncedReflow.call);
+
   const unsubLocale = onLocaleChange(() => {
     requestAnimationFrame(() => reflow(toolbar, wrapper));
   });
-  return () => { observer.disconnect(); removeDocClickListener(); unsubLocale(); };
+
+  // Initial reflow after first paint
+  requestAnimationFrame(() => reflow(toolbar, wrapper));
+
+  return () => {
+    window.removeEventListener('resize', debouncedReflow.call);
+    debouncedReflow.cancel();
+    removeDocClickListener();
+    unsubLocale();
+  };
 }
 
 function createOverflowWrapper(

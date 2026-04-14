@@ -78,6 +78,7 @@ export function buildReferenceBlock(editor: Editor): PanelBlock {
   return {
     id: 'references',
     title: 'References',
+    icon: '\uD83D\uDCDA',
     content,
     cleanup: () => clearTimeout(timer),
   };

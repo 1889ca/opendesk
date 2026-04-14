@@ -69,6 +69,7 @@ export function buildSuggestionsBlock(editor: Editor): PanelBlock {
   return {
     id: 'suggestions',
     title: t('suggestions.title'),
+    icon: '\u2713',
     content,
     cleanup: () => {
       editor.off('transaction', onTx);

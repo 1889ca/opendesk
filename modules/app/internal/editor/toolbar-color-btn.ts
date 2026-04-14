@@ -6,6 +6,7 @@ import type { Editor } from '@tiptap/core';
 import { buildColorPalette } from './color-palette.ts';
 import { buildHighlightPalette } from './highlight-palette.ts';
 import { svg } from './toolbar-icons-text.ts';
+import { batchRaf } from './lifecycle.ts';
 
 const colorAIcon = svg(
   '<text x="8" y="11" text-anchor="middle" font-size="11" font-weight="700" font-family="serif" fill="currentColor">A</text>' +
@@ -34,8 +35,9 @@ export function buildTextColorBtn(editor: Editor): { el: HTMLElement; cleanup: (
     rect.setAttribute('fill', color || 'currentColor');
   };
 
-  editor.on('selectionUpdate', updateBar);
-  editor.on('transaction', updateBar);
+  const batched = batchRaf(updateBar);
+  editor.on('selectionUpdate', batched.call);
+  editor.on('transaction', batched.call);
 
   let paletteEl: HTMLElement | null = null;
 
@@ -72,8 +74,9 @@ export function buildTextColorBtn(editor: Editor): { el: HTMLElement; cleanup: (
   return {
     el: group,
     cleanup: () => {
-      editor.off('selectionUpdate', updateBar);
-      editor.off('transaction', updateBar);
+      batched.cancel();
+      editor.off('selectionUpdate', batched.call);
+      editor.off('transaction', batched.call);
     },
   };
 }
@@ -103,8 +106,9 @@ export function buildHighlightBtn(editor: Editor): { el: HTMLElement; cleanup: (
     rect.setAttribute('fill', color || '#fff176');
   };
 
-  editor.on('selectionUpdate', updateBar);
-  editor.on('transaction', updateBar);
+  const batched = batchRaf(updateBar);
+  editor.on('selectionUpdate', batched.call);
+  editor.on('transaction', batched.call);
 
   let paletteEl: HTMLElement | null = null;
 
@@ -139,8 +143,9 @@ export function buildHighlightBtn(editor: Editor): { el: HTMLElement; cleanup: (
   return {
     el: group,
     cleanup: () => {
-      editor.off('selectionUpdate', updateBar);
-      editor.off('transaction', updateBar);
+      batched.cancel();
+      editor.off('selectionUpdate', batched.call);
+      editor.off('transaction', batched.call);
     },
   };
 }

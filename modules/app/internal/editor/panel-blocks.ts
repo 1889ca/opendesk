@@ -35,6 +35,7 @@ export function buildStylesBlock(editor: Editor): PanelBlock {
   return {
     id: 'styles',
     title: 'Styles',
+    icon: '\uD83C\uDFA8',
     content,
     cleanup: () => { style.cleanup(); font.cleanup(); size.cleanup(); },
   };
@@ -57,6 +58,7 @@ export function buildLayoutBlock(editor: Editor): PanelBlock {
   return {
     id: 'layout',
     title: 'Layout',
+    icon: '\u2630',
     content,
     cleanup: () => { lineHeight.cleanup(); },
   };

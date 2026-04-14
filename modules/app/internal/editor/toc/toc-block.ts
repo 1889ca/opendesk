@@ -34,6 +34,7 @@ export function buildTocBlock(editor: Editor): PanelBlock {
   return {
     id: 'toc',
     title: t('toc.title'),
+    icon: '\u2630',
     content,
     cleanup: scope.dispose,
   };

@@ -3,105 +3,151 @@
 export interface PanelBlock {
   id: string;
   title: string;
+  icon: string;
   content: HTMLElement;
   cleanup?: () => void;
 }
 
 export interface PanelRail {
   el: HTMLElement;
+  /** Show a specific tab by id, or toggle the rail open/closed. */
+  showTab: (id: string) => void;
   toggle: (show?: boolean) => void;
   addBlock: (block: PanelBlock) => void;
   cleanup: () => void;
 }
 
 const RAIL_STATE_KEY = 'opendesk-panel-rail';
+const ACTIVE_TAB_KEY = 'opendesk-panel-active-tab';
 
-export function buildPanelRail(side: 'left' | 'right', blocks: PanelBlock[]): PanelRail {
+export function buildPanelRail(blocks: PanelBlock[]): PanelRail {
+  let activeTab: string | null = null;
+  const blockMap = new Map<string, PanelBlock>();
+  const tabBtnMap = new Map<string, HTMLButtonElement>();
+  const contentMap = new Map<string, HTMLElement>();
+
   const rail = document.createElement('aside');
-  rail.className = `panel-rail panel-rail--${side}`;
-  rail.setAttribute('aria-label', `${side === 'left' ? 'Left' : 'Right'} panels`);
+  rail.className = 'panel-rail panel-rail--right';
+  rail.setAttribute('aria-label', 'Panels');
+
+  // Tab strip (VS Code-style activity bar)
+  const tabStrip = document.createElement('div');
+  tabStrip.className = 'panel-tab-strip';
+
+  // Content area (holds header + active panel content)
+  const contentArea = document.createElement('div');
+  contentArea.className = 'panel-content-area';
 
   const header = document.createElement('div');
   header.className = 'panel-rail-header';
 
-  const title = document.createElement('span');
-  title.className = 'panel-rail-title';
-  title.textContent = 'Panels';
+  const titleEl = document.createElement('span');
+  titleEl.className = 'panel-rail-title';
+  titleEl.textContent = 'Panels';
 
-  const collapseBtn = document.createElement('button');
-  collapseBtn.className = 'panel-rail-collapse';
-  collapseBtn.setAttribute('aria-label', 'Collapse panels');
-  collapseBtn.textContent = side === 'left' ? '\u00ab' : '\u00bb';
-  collapseBtn.addEventListener('click', () => toggle(false));
+  header.appendChild(titleEl);
+  contentArea.appendChild(header);
 
-  header.append(title, collapseBtn);
-  rail.appendChild(header);
+  const contentBody = document.createElement('div');
+  contentBody.className = 'panel-content-body';
+  contentArea.appendChild(contentBody);
 
-  const expandTab = document.createElement('button');
-  expandTab.className = 'panel-rail-expand';
-  expandTab.setAttribute('aria-label', 'Expand panels');
-  expandTab.textContent = side === 'left' ? '\u00bb' : '\u00ab';
-  expandTab.addEventListener('click', () => toggle(true));
-  rail.appendChild(expandTab);
+  rail.append(tabStrip, contentArea);
 
-  for (const block of blocks) {
-    rail.appendChild(renderBlock(block));
+  for (const block of blocks) registerBlock(block);
+
+  // Restore saved state
+  const savedTab = localStorage.getItem(ACTIVE_TAB_KEY);
+  const savedOpen = localStorage.getItem(`${RAIL_STATE_KEY}-right`);
+  if (savedOpen === 'open' && savedTab && blockMap.has(savedTab)) {
+    activateTab(savedTab);
+  } else {
+    rail.classList.remove('is-open');
   }
 
-  const saved = localStorage.getItem(`${RAIL_STATE_KEY}-${side}`);
-  const startOpen = saved === 'open';
-  rail.classList.toggle('is-open', startOpen);
+  function registerBlock(block: PanelBlock): void {
+    blockMap.set(block.id, block);
+
+    const tabBtn = document.createElement('button');
+    tabBtn.className = 'panel-tab';
+    tabBtn.setAttribute('aria-label', block.title);
+    tabBtn.setAttribute('title', block.title);
+    tabBtn.textContent = block.icon;
+    tabBtn.addEventListener('click', () => showTab(block.id));
+    tabStrip.appendChild(tabBtn);
+    tabBtnMap.set(block.id, tabBtn);
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'panel-tab-content';
+    wrapper.style.display = 'none';
+    wrapper.appendChild(block.content);
+    contentBody.appendChild(wrapper);
+    contentMap.set(block.id, wrapper);
+  }
+
+  function activateTab(id: string): void {
+    activeTab = id;
+    rail.classList.add('is-open');
+
+    // Update tab buttons
+    for (const [btnId, btn] of tabBtnMap) {
+      btn.classList.toggle('is-active', btnId === id);
+    }
+
+    // Show/hide content
+    for (const [cId, wrapper] of contentMap) {
+      wrapper.style.display = cId === id ? '' : 'none';
+    }
+
+    // Update header title
+    const block = blockMap.get(id);
+    if (block) titleEl.textContent = block.title;
+
+    localStorage.setItem(ACTIVE_TAB_KEY, id);
+    localStorage.setItem(`${RAIL_STATE_KEY}-right`, 'open');
+  }
+
+  function collapseRail(): void {
+    activeTab = null;
+    rail.classList.remove('is-open');
+
+    for (const btn of tabBtnMap.values()) btn.classList.remove('is-active');
+    for (const wrapper of contentMap.values()) wrapper.style.display = 'none';
+
+    titleEl.textContent = 'Panels';
+    localStorage.setItem(`${RAIL_STATE_KEY}-right`, 'closed');
+  }
+
+  function showTab(id: string): void {
+    if (activeTab === id) {
+      collapseRail();
+    } else if (blockMap.has(id)) {
+      activateTab(id);
+    }
+  }
 
   function toggle(show?: boolean): void {
     const next = show ?? !rail.classList.contains('is-open');
-    rail.classList.toggle('is-open', next);
-    localStorage.setItem(`${RAIL_STATE_KEY}-${side}`, next ? 'open' : 'closed');
+    if (next) {
+      // Open to saved or first tab
+      const target = activeTab
+        ?? localStorage.getItem(ACTIVE_TAB_KEY)
+        ?? blocks[0]?.id;
+      if (target && blockMap.has(target)) activateTab(target);
+    } else {
+      collapseRail();
+    }
   }
 
   function addBlock(block: PanelBlock): void {
     blocks.push(block);
-    rail.appendChild(renderBlock(block));
+    registerBlock(block);
   }
 
   const cleanup = () => {
-    for (const block of blocks) block.cleanup?.();
+    for (const block of blockMap.values()) block.cleanup?.();
     rail.remove();
   };
 
-  return { el: rail, toggle, addBlock, cleanup };
-}
-
-function renderBlock(block: PanelBlock): HTMLElement {
-  const section = document.createElement('section');
-  section.className = 'panel-block';
-  section.id = `panel-${block.id}`;
-
-  const saved = localStorage.getItem(`panel-${block.id}-collapsed`);
-  if (saved === 'true') section.classList.add('is-collapsed');
-
-  const header = document.createElement('div');
-  header.className = 'panel-block-header';
-
-  const title = document.createElement('span');
-  title.className = 'panel-block-title';
-  title.textContent = block.title;
-
-  const chevron = document.createElement('span');
-  chevron.className = 'panel-block-chevron';
-  chevron.textContent = section.classList.contains('is-collapsed') ? '\u25b8' : '\u25be';
-
-  header.append(title, chevron);
-  header.addEventListener('click', () => {
-    section.classList.toggle('is-collapsed');
-    const collapsed = section.classList.contains('is-collapsed');
-    chevron.textContent = collapsed ? '\u25b8' : '\u25be';
-    localStorage.setItem(`panel-${block.id}-collapsed`, String(collapsed));
-  });
-
-  const content = document.createElement('div');
-  content.className = 'panel-block-content';
-  content.appendChild(block.content);
-
-  section.append(header, content);
-  return section;
+  return { el: rail, showTab, toggle, addBlock, cleanup };
 }

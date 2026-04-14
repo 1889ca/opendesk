@@ -6,7 +6,8 @@ import { announce } from '../shared/a11y-announcer.ts';
 import { enableToolbarNavigation, updateRovingTabindex } from './toolbar-nav.ts';
 import { getIcon } from './toolbar-icons.ts';
 import { buildTextColorBtn, buildHighlightBtn } from './toolbar-color-btn.ts';
-import { buildAlignmentSelect } from './alignment-select.ts';
+import { buildAlignmentDropdown } from './alignment-select.ts';
+import { buildStyleSelect } from './toolbar-selects.ts';
 import { type ToolbarButton, buildToolbarButtons, buildButtonTitle } from './formatting-toolbar-actions.ts';
 import { createScope, batchRaf, type Scope } from './lifecycle.ts';
 
@@ -93,15 +94,25 @@ export function buildFormattingToolbar(editor: Editor): void {
     scope = createScope();
     toolbar.innerHTML = '';
 
+    // Style select (Normal / Heading 1-6 / Code Block) — first element
+    const styleSelect = buildStyleSelect(editor);
+    scope.add(styleSelect.cleanup);
+    toolbar.appendChild(styleSelect.el);
+    const styleSep = document.createElement('span');
+    styleSep.className = 'toolbar-separator';
+    styleSep.setAttribute('role', 'separator');
+    toolbar.appendChild(styleSep);
+
     const buttons = buildToolbarButtons(editor);
     scope.add(renderToolbarButtons(toolbar, buttons, editor));
 
-    // Insert alignment select after B/I/U/S + separator (position 5)
-    const alignSelect = buildAlignmentSelect(editor);
-    scope.add(alignSelect.cleanup);
+    // Alignment dropdown (icon-based) after B/I/U/S + separator
+    const alignDropdown = buildAlignmentDropdown(editor);
+    scope.add(alignDropdown.cleanup);
     const children = Array.from(toolbar.children);
-    const insertBefore = children[5] ?? null;
-    toolbar.insertBefore(alignSelect.el, insertBefore);
+    // +2 offset for style select + separator already prepended
+    const insertBefore = children[2 + 5] ?? null;
+    toolbar.insertBefore(alignDropdown.el, insertBefore);
 
     // Append text color and highlight at the end
     const textColorBtn = buildTextColorBtn(editor);

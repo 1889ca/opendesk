@@ -39,6 +39,7 @@ export function buildWorkflowsBlock(): PanelBlock {
   return {
     id: 'workflows',
     title: 'Workflows',
+    icon: '\u2699',
     content,
     cleanup: unsubLocale,
   };

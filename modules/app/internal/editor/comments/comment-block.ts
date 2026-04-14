@@ -37,6 +37,7 @@ export function buildCommentsBlock(
   return {
     id: 'comments',
     title: t('comments.title'),
+    icon: '\uD83D\uDCAC',
     content,
     cleanup: unsub,
   };

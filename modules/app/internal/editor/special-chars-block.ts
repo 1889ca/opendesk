@@ -71,6 +71,7 @@ export function buildSpecialCharsBlock(editor: Editor): PanelBlock {
   return {
     id: 'special-chars',
     title: 'Special Characters',
+    icon: '\u03A9',
     content,
   };
 }

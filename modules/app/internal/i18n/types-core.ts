@@ -127,6 +127,11 @@ export interface CoreTranslationKeys {
   'bubble.link': string;
   'bubble.linkPrompt': string;
   'bubble.menuLabel': string;
+  'bubble.code': string;
+  'bubble.highlight': string;
+  'bubble.heading': string;
+  'bubble.headingNormal': string;
+  'bubble.comment': string;
 
   // Version name dialog
   'versions.namePrompt': string;
@@ -163,4 +168,7 @@ export interface CoreTranslationKeys {
 
   // Special characters
   'toolbar.specialChars': string;
+
+  // Doc list actions (dashboard overhaul)
+  'docList.moreActions': string;
 }

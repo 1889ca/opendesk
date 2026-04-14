@@ -1,7 +1,8 @@
 /** Contract: contracts/app/rules.md */
 import type { Editor } from '@tiptap/core';
 import { t, onLocaleChange } from '../../i18n/index.ts';
-import { extractHeadings, debounce, type HeadingEntry } from './toc-extractor.ts';
+import { extractHeadings, type HeadingEntry } from './toc-extractor.ts';
+import { createScope, debounce, retryUntil } from '../lifecycle.ts';
 
 const INDENT_PX = 16;
 const DEBOUNCE_MS = 300;
@@ -10,7 +11,8 @@ const DEBOUNCE_MS = 300;
  * Build the TOC sidebar panel.
  * Renders headings with indentation, click-to-scroll, and active highlighting.
  */
-export function buildTocPanel(editor: Editor): HTMLElement {
+export function buildTocPanel(editor: Editor): { el: HTMLElement; cleanup: () => void } {
+  const scope = createScope();
   const panel = document.createElement('aside');
   panel.className = 'toc-panel';
   panel.setAttribute('role', 'navigation');
@@ -34,16 +36,17 @@ export function buildTocPanel(editor: Editor): HTMLElement {
   render();
 
   const debouncedRender = debounce(render, DEBOUNCE_MS);
-  editor.on('update', debouncedRender);
+  scope.add(debouncedRender.cancel);
+  scope.onEditor(editor, 'update', debouncedRender.call);
 
-  attachScrollListener(list, editor, () => headings);
-  onLocaleChange(() => {
+  attachScrollListener(scope, list, editor, () => headings);
+  scope.add(onLocaleChange(() => {
     panel.setAttribute('aria-label', t('toc.title'));
     header.querySelector('.toc-panel-title')!.textContent = t('toc.title');
     render();
-  });
+  }));
 
-  return panel;
+  return { el: panel, cleanup: scope.dispose };
 }
 
 function createHeader(panel: HTMLElement): HTMLElement {
@@ -109,26 +112,21 @@ function scrollToHeading(editor: Editor, pos: number): void {
 }
 
 function attachScrollListener(
+  scope: ReturnType<typeof createScope>,
   list: HTMLElement,
   editor: Editor,
   getHeadings: () => HeadingEntry[],
 ): void {
-  const wrapper = () =>
-    editor.view.dom.closest('.editor-wrapper') as HTMLElement | null;
-
   const onScroll = debounce(() => {
     updateActiveHeading(list, getHeadings(), editor);
   }, 100);
+  scope.add(onScroll.cancel);
 
-  const tryAttach = () => {
-    const el = wrapper();
-    if (el) {
-      el.addEventListener('scroll', onScroll, { passive: true });
-    } else {
-      requestAnimationFrame(tryAttach);
-    }
-  };
-  requestAnimationFrame(tryAttach);
+  const { cancel } = retryUntil(
+    () => editor.view.dom.closest('.editor-wrapper') as HTMLElement | null,
+    (el) => scope.onElement(el, 'scroll', onScroll.call as EventListener, { passive: true }),
+  );
+  scope.add(cancel);
 }
 
 function updateActiveHeading(

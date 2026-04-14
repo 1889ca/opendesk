@@ -56,6 +56,7 @@ export function buildVersionsBlock(): PanelBlock {
   return {
     id: 'versions',
     title: t('versions.title'),
+    icon: '\uD83D\uDCDC',
     content,
     cleanup: unsubLocale,
   };

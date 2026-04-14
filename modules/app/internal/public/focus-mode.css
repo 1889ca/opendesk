@@ -1,14 +1,22 @@
 /** Focus mode — hides chrome and narrows the editor for distraction-free writing */
 
+/* ── Smooth fade-out for toolbar, ruler, status bar ─────────────── */
 body.focus-mode .formatting-toolbar,
+body.focus-mode .unified-toolbar,
 body.focus-mode #ruler-h,
-body.focus-mode .status-bar,
 body.focus-mode .editor-top-chrome {
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.4s ease;
 }
 
+body.focus-mode .status-bar {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease 0.1s;
+}
+
+/* ── Dark canvas for immersive feel ─────────────────────────────── */
 body.focus-mode {
   background: #0a0a0a;
 }
@@ -17,13 +25,49 @@ body.focus-mode .editor-wrapper {
   background: #0a0a0a;
 }
 
+/* ── Narrower paper for focused reading width ───────────────────── */
 body.focus-mode .editor-page,
 body.focus-mode #editor {
   max-width: 42rem;
 }
 
-/* Reveal toolbar when hovering near top of screen */
-body.focus-mode .editor-top-chrome:hover {
+/* ── Reveal toolbar on hover near top 80px of viewport ──────────── */
+body.focus-mode .editor-top-chrome {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+}
+
+body.focus-mode .editor-top-chrome:hover,
+body.focus-mode .editor-top-chrome:focus-within {
   opacity: 1;
   pointer-events: auto;
+  transition: opacity 0.2s ease;
+}
+
+/* Invisible hover trigger zone — extends the hit area to top 80px */
+body.focus-mode .editor-top-chrome::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  pointer-events: auto;
+}
+
+/* ── Subtle vignette overlay for center-focus effect ────────────── */
+body.focus-mode .editor-wrapper::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background: radial-gradient(
+    ellipse 80% 70% at 50% 50%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
 }

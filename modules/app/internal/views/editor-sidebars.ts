@@ -34,13 +34,13 @@ export function mountSidebars(input: SidebarsInput): (() => void)[] {
   const suggestionSidebar = buildSuggestionSidebar(editor);
   container.appendChild(suggestionSidebar);
 
-  const tocPanel = buildTocPanel(editor);
-  container.appendChild(tocPanel);
+  const toc = buildTocPanel(editor);
+  container.appendChild(toc.el);
 
   const versionSidebar = buildVersionSidebar();
   container.appendChild(versionSidebar);
 
-  const onToggleToc = () => toggleTocPanel(tocPanel);
+  const onToggleToc = () => toggleTocPanel(toc.el);
   const onToggleVersions = () => toggleVersionSidebar(versionSidebar);
   const onAddComment = () => {
     showCommentInput(editor, commentStore, documentId, user);
@@ -55,6 +55,7 @@ export function mountSidebars(input: SidebarsInput): (() => void)[] {
   document.addEventListener('opendesk:toggle-suggestions', onToggleSuggestions);
 
   cleanups.push(
+    toc.cleanup,
     () => document.removeEventListener('opendesk:toggle-toc', onToggleToc),
     () => document.removeEventListener('opendesk:toggle-versions', onToggleVersions),
     () => document.removeEventListener('opendesk:add-comment', onAddComment),
