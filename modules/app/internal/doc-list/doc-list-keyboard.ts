@@ -6,8 +6,7 @@
  * Requires rows to have role="option" and tabindex="0", list to have role="listbox".
  */
 
-import type { DocEntry } from './doc-row.ts';
-import { TYPE_META } from './doc-row.ts';
+import { type DocEntry, TYPE_META } from './doc-row.ts';
 import { confirmAndDelete } from './doc-operations.ts';
 import { t } from '../i18n/index.ts';
 
