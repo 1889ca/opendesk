@@ -25,6 +25,35 @@ export const TableDataSchema = z.object({
 
 export type TableData = z.infer<typeof TableDataSchema>;
 
+// --- Animation ---
+
+export const AnimationEffectSchema = z.enum([
+  // Entrance
+  'fade-in', 'fly-in-left', 'fly-in-right', 'fly-in-top', 'fly-in-bottom',
+  'zoom-in', 'wipe-right',
+  // Exit
+  'fade-out', 'fly-out-left', 'fly-out-right', 'zoom-out',
+  // Emphasis
+  'pulse', 'spin',
+]);
+
+export type AnimationEffect = z.infer<typeof AnimationEffectSchema>;
+
+export const AnimationTriggerSchema = z.enum(['on-click', 'with-previous', 'after-previous']);
+
+export type AnimationTrigger = z.infer<typeof AnimationTriggerSchema>;
+
+export const ElementAnimationSchema = z.object({
+  id: z.string().min(1),
+  elementId: z.string().min(1),
+  effect: AnimationEffectSchema,
+  trigger: AnimationTriggerSchema,
+  durationMs: z.number().int().positive(),
+  delayMs: z.number().int().nonnegative(),
+});
+
+export type ElementAnimation = z.infer<typeof ElementAnimationSchema>;
+
 // --- Slide Element ---
 
 export const SlideElementSchema = z.object({

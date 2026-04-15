@@ -19,6 +19,7 @@ import { createTextEditController, type TextEditController } from './text-edit-c
 export type InteractionController = {
   destroy: () => void;
   getSelection: () => SelectionState;
+  setSelection: (elementId: string | null) => void;
   applyZOrder: (reorderedElements: SlideElement[]) => void;
   getTextEditController: () => import('./text-edit-controller.ts').TextEditController | null;
 };
@@ -189,6 +190,10 @@ export function createInteractionController(ctx: InteractionContext): Interactio
       clearOverlays(vp, 'all');
     },
     getSelection: () => selection,
+    setSelection: (elementId: string | null) => {
+      selection = elementId ? selectSingle(selection, elementId) : selectNone();
+      onSelectionChange();
+    },
     applyZOrder: (els: SlideElement[]) => applyZOrderToYjs(ctx.ydoc, ctx.getActiveSlideElements(), els),
     getTextEditController: () => textEditCtrl,
   };
