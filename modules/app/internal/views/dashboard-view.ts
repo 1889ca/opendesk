@@ -3,12 +3,13 @@
 /**
  * Dashboard view: document list, folders, search, template picker.
  * Adapts the existing doc-list module for SPA mount/unmount lifecycle.
+ * Delegates row rendering to doc-row.ts for icons, context menu, snippets,
+ * keyboard navigation, and more-actions button.
  */
 
 import { apiFetch } from '../shared/api-client.ts';
 import { createDocumentFromTemplate } from '../doc-list/template-picker.ts';
 import { t } from '../i18n/index.ts';
-import { formatRelativeTime } from '../shared/time-format.ts';
 import { navigate } from '../shell/router.ts';
 import {
   getCurrentFolderId,
@@ -19,72 +20,12 @@ import {
   createNewFolderButton,
 } from '../doc-list/folder-list.ts';
 import { createGlobalSearch } from '../editor/global-search.ts';
-import { showDeleteConfirmDialog } from '../doc-list/delete-confirm-dialog.ts';
-
-interface DocEntry {
-  id: string;
-  title: string;
-  updated_at: string;
-}
+import { renderDocuments, type DocEntry } from '../doc-list/doc-row.ts';
+import { setupKeyboardNav } from '../doc-list/doc-list-keyboard.ts';
 
 let listEl: HTMLElement | null = null;
-
-function renderDocuments(container: HTMLElement, docs: DocEntry[]) {
-  if (!docs.length) {
-    const emptyEl = document.createElement('div');
-    emptyEl.className = 'doc-list-empty';
-    const key = getCurrentFolderId() ? 'folders.empty' : 'docList.noDocuments';
-    const emptyTitle = document.createElement('p');
-    emptyTitle.className = 'empty-title';
-    emptyTitle.textContent = t(key);
-    const emptySub = document.createElement('p');
-    emptySub.className = 'empty-subtitle';
-    emptySub.textContent = t('docList.noDocumentsSubtitle');
-    emptyEl.appendChild(emptyTitle);
-    emptyEl.appendChild(emptySub);
-    container.appendChild(emptyEl);
-    return;
-  }
-
-  for (const doc of docs) {
-    const row = document.createElement('a');
-    row.className = 'doc-row';
-    row.href = '/doc/' + encodeURIComponent(doc.id);
-
-    const info = document.createElement('div');
-    info.className = 'doc-row-info';
-
-    const title = document.createElement('span');
-    title.className = 'doc-row-title';
-    title.textContent = doc.title || t('editor.untitled');
-
-    const time = document.createElement('span');
-    time.className = 'doc-row-time';
-    time.textContent = t('docList.updated', { time: formatRelativeTime(doc.updated_at) });
-
-    info.appendChild(title);
-    info.appendChild(time);
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'btn btn-delete';
-    deleteBtn.textContent = t('docList.delete');
-    deleteBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const name = doc.title || t('editor.untitled');
-      showDeleteConfirmDialog(name).then((confirmed) => {
-        if (!confirmed) return;
-        apiFetch('/api/documents/' + encodeURIComponent(doc.id), { method: 'DELETE' })
-          .then(() => { if (listEl) loadAll(listEl); })
-          .catch((err: unknown) => { console.error('Delete failed', err); });
-      });
-    });
-
-    row.appendChild(info);
-    row.appendChild(deleteBtn);
-    container.appendChild(row);
-  }
-}
+let cleanupKeyboard: (() => void) | null = null;
+let loadedDocs: DocEntry[] = [];
 
 async function loadAll(container: HTMLElement) {
   const folderId = getCurrentFolderId();
@@ -107,7 +48,24 @@ async function loadAll(container: HTMLElement) {
       : '/api/documents';
     const res = await apiFetch(url);
     const docs: DocEntry[] = await res.json();
-    renderDocuments(container, docs);
+    loadedDocs = docs;
+
+    renderDocuments({
+      listEl: container,
+      docs,
+      onDelete: () => { if (listEl) loadAll(listEl); },
+      onNewDocument: () => createNewDoc(),
+      selectedIds: new Set(),
+      onSelectionChange: () => {},
+    });
+
+    // Set up keyboard navigation
+    cleanupKeyboard?.();
+    cleanupKeyboard = setupKeyboardNav(
+      container,
+      (id) => loadedDocs.find((d) => d.id === id),
+      () => { if (listEl) loadAll(listEl); },
+    );
   } catch (err) {
     console.error('Failed to load documents', err);
     const errWrapper = document.createElement('div');
@@ -120,7 +78,18 @@ async function loadAll(container: HTMLElement) {
   }
 }
 
-export async function mount(container: HTMLElement, _params: Record<string, string>): Promise<void> {
+async function createNewDoc(): Promise<void> {
+  try {
+    const docId = await createDocumentFromTemplate();
+    if (docId) navigate('/doc/' + encodeURIComponent(docId));
+  } catch (err: unknown) {
+    console.error('Create failed', err);
+  }
+}
+
+export async function mount(
+  container: HTMLElement, _params: Record<string, string>,
+): Promise<void> {
   const wrapper = document.createElement('div');
   wrapper.className = 'dashboard-view';
 
@@ -155,43 +124,28 @@ export async function mount(container: HTMLElement, _params: Record<string, stri
 
   setNavigateCallback(() => { if (listEl) loadAll(listEl); });
 
-  newBtn.addEventListener('click', async () => {
-    try {
-      const docId = await createDocumentFromTemplate();
-      if (docId) {
-        navigate('/doc/' + encodeURIComponent(docId));
-      }
-    } catch (err: unknown) {
-      console.error('Create failed', err);
-    }
-  });
+  newBtn.addEventListener('click', createNewDoc);
 
-  // Listen for create-document events from the sidebar
-  const onCreateDoc = async () => {
-    try {
-      const docId = await createDocumentFromTemplate();
-      if (docId) {
-        navigate('/doc/' + encodeURIComponent(docId));
-      }
-    } catch (err: unknown) {
-      console.error('Create failed', err);
-    }
-  };
+  const onCreateDoc = () => createNewDoc();
   document.addEventListener('opendesk:create-document', onCreateDoc);
   (wrapper as HTMLElement & { _cleanup?: () => void })._cleanup = () => {
     document.removeEventListener('opendesk:create-document', onCreateDoc);
+    cleanupKeyboard?.();
+    cleanupKeyboard = null;
   };
 
   await loadAll(listEl);
 }
 
 export function unmount(): void {
-  const wrapper = document.querySelector('.dashboard-view') as HTMLElement & { _cleanup?: () => void } | null;
+  const wrapper = document.querySelector(
+    '.dashboard-view',
+  ) as (HTMLElement & { _cleanup?: () => void }) | null;
   if (wrapper?._cleanup) wrapper._cleanup();
 
-  // Remove breadcrumbs that were inserted outside our container
   const breadcrumbs = document.getElementById('folder-breadcrumbs');
   if (breadcrumbs) breadcrumbs.remove();
 
   listEl = null;
+  loadedDocs = [];
 }

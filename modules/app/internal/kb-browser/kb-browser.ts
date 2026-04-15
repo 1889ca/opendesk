@@ -11,9 +11,11 @@ import { createStatusBadge } from './status-badge.ts';
 import { renderDetailPanel } from './detail-panel.ts';
 import { formatRelativeTime } from '../shared/time-format.ts';
 import { initTheme } from '../shared/theme-toggle.ts';
+import { showNewEntryModal } from './new-entry-modal.ts';
 
 let activeFilter: KbEntryStatus | undefined;
 let selectedEntryId: string | null = null;
+
 
 function renderEntryRow(entry: KbEntryData, onClick: (id: string) => void): HTMLElement {
   const row = document.createElement('div');
@@ -120,14 +122,22 @@ async function selectEntry(
       },
       onClose: () => {
         selectedEntryId = null;
-        detailEl.innerHTML = '';
-        detailEl.className = '';
+        renderDetailPlaceholder(detailEl);
         loadEntryList(listEl, detailEl, activeFilter);
       },
     });
   } catch (err) {
     console.error('Failed to load entry', err);
   }
+}
+
+function renderDetailPlaceholder(detailEl: HTMLElement): void {
+  detailEl.innerHTML = '';
+  detailEl.className = 'kb-detail-panel kb-detail-empty';
+  const msg = document.createElement('p');
+  msg.className = 'kb-detail-placeholder';
+  msg.textContent = 'Select an entry to view its details.';
+  detailEl.appendChild(msg);
 }
 
 function init(): void {
@@ -138,16 +148,18 @@ function init(): void {
   const newBtn = document.getElementById('new-kb-btn');
   if (!listEl || !detailEl) return;
 
-  newBtn?.addEventListener('click', async () => {
-    const title = prompt('Entry title:');
-    if (!title) return;
-    try {
-      const entry = await createEntry(title, '');
-      await loadEntryList(listEl, detailEl, activeFilter);
-      await selectEntry(entry.id, listEl, detailEl);
-    } catch (err) {
-      console.error('Create failed', err);
-    }
+  renderDetailPlaceholder(detailEl);
+
+  newBtn?.addEventListener('click', () => {
+    showNewEntryModal(async (title) => {
+      try {
+        const entry = await createEntry(title, '');
+        await loadEntryList(listEl, detailEl, activeFilter);
+        await selectEntry(entry.id, listEl, detailEl);
+      } catch (err) {
+        console.error('Create failed', err);
+      }
+    });
   });
 
   loadEntryList(listEl, detailEl, activeFilter);

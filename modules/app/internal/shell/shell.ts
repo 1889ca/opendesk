@@ -93,8 +93,8 @@ function defineRoutes(): Route[] {
       pattern: '/slides/:id',
       handler: (params) => mountView(
         `slides:${params.id}`,
-        () => import('../views/placeholder-view.ts'),
-        { ...params, type: 'presentation' },
+        () => import('../views/slides-view.ts'),
+        params,
       ),
     },
     {

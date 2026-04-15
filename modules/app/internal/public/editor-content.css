@@ -1,28 +1,48 @@
 /* Editor content — ProseMirror rendered content styles */
 
 .editor-wrapper {
-  flex: 1;
+  grid-column: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 2.5rem 1.5rem;
   background: var(--canvas);
-  transition: margin-right 0.2s ease;
   scroll-behavior: smooth;
+  min-width: 0;
+  transition: padding 0.25s ease;
 }
 
-body:has(.comment-sidebar-open) .editor-wrapper {
-  margin-right: 320px;
+/* Scrollbar — editor wrapper */
+.editor-wrapper::-webkit-scrollbar { width: 8px; }
+.editor-wrapper::-webkit-scrollbar-track { background: transparent; }
+.editor-wrapper::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, rgba(0, 0, 0, 0.2));
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
+.editor-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, rgba(0, 0, 0, 0.35));
+  background-clip: content-box;
+}
+[data-theme="dark"] {
+  --scrollbar-thumb: rgba(255, 255, 255, 0.15);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.25);
+}
+/* Firefox */
+.editor-wrapper { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb, rgba(0, 0, 0, 0.2)) transparent; }
 
 #editor {
   width: 100%;
-  max-width: 56rem;
-  background: var(--editor-paper-bg, var(--surface));
+  max-width: 58rem;
+  /* Paper stays white in all themes (#338 / #372) */
+  background: #ffffff;
+  color: #1a1a1a;
+  color-scheme: light;
   border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 2px 8px var(--shadow-color), 0 8px 32px var(--shadow-medium);
+  box-shadow: var(--editor-paper-shadow);
   min-height: calc(100vh - 120px);
   padding: 4rem 5rem;
   transform: scale(var(--editor-zoom, 1));
@@ -34,6 +54,9 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   outline: none;
   line-height: 1.7;
   font-size: 1rem;
+  font-family: var(--editor-font, inherit);
+  /* Fill #editor height so entire canvas is clickable (#335 / #351) */
+  min-height: calc(100vh - 14rem);
   columns: var(--editor-columns, 1);
   column-gap: var(--editor-column-gap, 0);
 }
@@ -43,24 +66,34 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 }
 
 .editor-content h1 {
-  font-size: 2em;
+  font-size: 2.25em;
   font-weight: 700;
-  margin: 1.5rem 0 0.75rem;
+  margin: 2.5rem 0 1rem;
+  margin-block-start: 2.5rem;
+  margin-block-end: 1rem;
   letter-spacing: -0.02em;
+  line-height: 1.2;
   color: var(--text);
 }
 
 .editor-content h2 {
   font-size: 1.5em;
   font-weight: 600;
-  margin: 1.25rem 0 0.5rem;
+  margin: 2rem 0 0.75rem;
+  margin-block-start: 2rem;
+  margin-block-end: 0.75rem;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
   color: var(--text);
 }
 
 .editor-content h3 {
   font-size: 1.25em;
   font-weight: 600;
-  margin: 1rem 0 0.5rem;
+  margin: 1.5rem 0 0.5rem;
+  margin-block-start: 1.5rem;
+  margin-block-end: 0.5rem;
+  line-height: 1.35;
   color: var(--text);
 }
 
@@ -77,7 +110,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 }
 
 .editor-content p {
-  margin: var(--editor-para-spacing, 0.5rem) 0;
+  margin: var(--editor-para-spacing, 0.75rem) 0;
 }
 
 .editor-content ul,
@@ -184,35 +217,36 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   border-radius: 2px;
 }
 
-/* Dark mode: keep paper white with dark text (like Google Docs / Word) */
+/* Dark mode: paper uses a lifted surface tone — clearly distinct from the near-black canvas */
+[data-theme="dark"] #editor,
+[data-theme="dark"] .doc-header-zone,
+[data-theme="dark"] .doc-footer-zone {
+  background-color: #232738;
+  color: #dde1ea;
+  color-scheme: dark;
+}
+
 [data-theme="dark"] #editor {
-  --text: #1a1a1a;
-  color: #1a1a1a;
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.5), 0 1px 8px rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
-/* Canvas document title — displayed above the editor paper, Google Docs style */
-.editor-canvas-title-wrap {
-  width: 100%;
-  max-width: 56rem;
-  margin-bottom: 0.5rem;
+[data-theme="dark"] #editor .editor-content h1,
+[data-theme="dark"] #editor .editor-content h2,
+[data-theme="dark"] #editor .editor-content h3,
+[data-theme="dark"] #editor .editor-content h4,
+[data-theme="dark"] #editor .editor-content h5,
+[data-theme="dark"] #editor .editor-content h6 {
+  color: #edf0f7;
 }
 
-.editor-canvas-title {
-  width: 100%;
-  font-size: 2rem;
-  font-weight: 700;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--text);
-  padding: 0.5rem 5rem;
-  letter-spacing: -0.02em;
-  box-sizing: border-box;
+[data-theme="dark"] #editor .editor-content a {
+  color: #7eb8f7;
 }
 
-.editor-canvas-title::placeholder {
-  color: var(--text-muted);
-  opacity: 0.5;
+[data-theme="dark"] #editor .editor-content blockquote {
+  border-left-color: rgba(255, 255, 255, 0.2);
+  color: #a8b0c4;
 }
 
 /* Page Setup dialog */
@@ -282,15 +316,16 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   position: absolute;
   top: -1.4em;
   left: -1px;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1;
-  padding: 0.15rem 0.35rem;
+  padding: 1px 4px;
   border-radius: 3px 3px 3px 0;
   color: #fff;
   white-space: nowrap;
   user-select: none;
   pointer-events: none;
+  opacity: 0.9;
 }
 
 @media print {
@@ -301,10 +336,12 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 }
 
 /* Header / footer zones — contenteditable areas above/below the paper */
+/* Hidden by default; shown when .is-active is added (#442) */
 .doc-header-zone,
 .doc-footer-zone {
+  display: none;
   width: 100%;
-  max-width: 56rem;
+  max-width: 58rem;
   background: var(--editor-paper-bg, #ffffff);
   border: 1px solid var(--border);
   padding: 0.5rem 5rem;
@@ -317,35 +354,80 @@ body:has(.comment-sidebar-open) .editor-wrapper {
   transform-origin: top center;
 }
 
-.doc-header-zone {
+.doc-header-zone.is-active,
+.doc-footer-zone.is-active {
+  display: block;
+}
+
+.doc-header-zone.is-active {
   border-bottom: 1px dashed var(--border);
   border-radius: 8px 8px 0 0;
   margin-bottom: -1px;
 }
 
-.doc-footer-zone {
+/* Zone label shown at top-right corner so users know what this area is */
+.doc-header-zone.is-active::after {
+  content: 'Header';
+  position: absolute;
+  top: 0.25rem;
+  right: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+}
+
+.doc-footer-zone.is-active {
   border-top: 1px dashed var(--border);
   border-radius: 0 0 8px 8px;
   margin-top: -1px;
 }
 
-/* Placeholder text when empty */
-.doc-header-zone:empty::before,
-.doc-footer-zone:empty::before {
-  content: attr(data-placeholder);
+.doc-footer-zone.is-active::after {
+  content: 'Footer';
+  position: absolute;
+  bottom: 0.25rem;
+  right: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--text-muted);
   opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Placeholder text when empty and active */
+.doc-header-zone.is-active:empty::before {
+  content: 'Click to add header...';
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.85em;
   pointer-events: none;
   position: absolute;
 }
 
-/* Remove top/bottom border-radius from #editor when header/footer zones are present */
-.doc-header-zone + #editor {
+.doc-footer-zone.is-active:empty::before {
+  content: 'Click to add footer...';
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.85em;
+  pointer-events: none;
+  position: absolute;
+}
+
+/* Remove top/bottom border-radius from #editor when header/footer zones are active */
+.doc-header-zone.is-active + #editor {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
 
-#editor:has(+ .doc-footer-zone) {
+#editor:has(+ .doc-footer-zone.is-active) {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
@@ -394,7 +476,7 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 
 .footnote-panel {
   width: 100%;
-  max-width: 56rem;
+  max-width: 58rem;
   border-top: 1px solid var(--border);
   padding: 1rem 5rem;
   margin-top: 0.5rem;
@@ -421,4 +503,97 @@ body:has(.comment-sidebar-open) .editor-wrapper {
 .footnote-item {
   margin-bottom: 0.25rem;
   line-height: 1.5;
+}
+
+/* Empty document placeholder — issue #443 */
+.editor-content p.is-placeholder::before,
+.editor-content.ProseMirror p.is-placeholder::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted, #9ca3af);
+  font-style: italic;
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* Image float / alignment classes — issue #456 */
+.editor-content img.img-float-left {
+  float: left;
+  margin: 0.5rem 1rem 0.5rem 0;
+  max-width: 50%;
+}
+
+.editor-content img.img-float-right {
+  float: right;
+  margin: 0.5rem 0 0.5rem 1rem;
+  max-width: 50%;
+}
+
+.editor-content img.img-center {
+  display: block;
+  margin: 0 auto;
+}
+
+.editor-content img.img-full-width {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Figure / caption — issue #456 */
+.editor-content figure.editor-figure {
+  display: table;
+  margin: 1rem auto;
+}
+
+.editor-content figure.editor-figure img {
+  display: block;
+  margin: 0;
+}
+
+.editor-content figure.editor-figure figcaption {
+  display: table-caption;
+  caption-side: bottom;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding-top: 0.375rem;
+}
+
+/* Image float toolbar — issue #456 */
+.image-float-toolbar {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e0e0e0);
+  border-radius: 6px;
+  padding: 3px 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+.image-float-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--text, #1a1a1a);
+  transition: background 0.1s;
+}
+
+.image-float-btn:hover {
+  background: var(--bg, #f5f5f5);
+}
+
+.image-float-btn.is-active {
+  background: var(--accent-light, rgba(66, 133, 244, 0.15));
+  color: var(--accent, #4285f4);
 }

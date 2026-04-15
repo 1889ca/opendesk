@@ -7,6 +7,7 @@
  */
 
 import { drawRulerTicks } from './editor-ruler-canvas.ts';
+import { safeResizeObserver } from './lifecycle.ts';
 
 const KEY = 'opendesk-ruler';
 const DEFAULT_MARGIN = 80; // px — matches editor padding: 5rem at 16px/rem
@@ -22,13 +23,13 @@ function loadState(): RulerState {
   try {
     const s = JSON.parse(localStorage.getItem(KEY) || '{}');
     return {
-      visible: s.visible !== false,
+      visible: s.visible === true,
       left: typeof s.left === 'number' ? s.left : DEFAULT_MARGIN,
       right: typeof s.right === 'number' ? s.right : DEFAULT_MARGIN,
       tabs: Array.isArray(s.tabs) ? s.tabs : [],
     };
   } catch {
-    return { visible: true, left: DEFAULT_MARGIN, right: DEFAULT_MARGIN, tabs: [] };
+    return { visible: false, left: DEFAULT_MARGIN, right: DEFAULT_MARGIN, tabs: [] };
   }
 }
 
@@ -183,7 +184,9 @@ export function initRuler(): void {
     state.visible = v;
     container.hidden = !v;
     if (toggleBtn) {
-      toggleBtn.textContent = v ? 'Hide Ruler' : 'Show Ruler';
+      const labelEl = document.getElementById('ruler-toggle-label');
+      const label = v ? 'Hide Ruler' : 'Show Ruler';
+      if (labelEl) { labelEl.textContent = label; } else { toggleBtn.textContent = label; }
       toggleBtn.setAttribute('aria-pressed', String(v));
     }
     saveState(state);
@@ -194,8 +197,6 @@ export function initRuler(): void {
   applyMargins(paper, state);
   setVisible(state.visible);
 
-  const ro = new ResizeObserver(redraw);
-  ro.observe(paper);
-  ro.observe(container);
+  safeResizeObserver([paper, container], () => redraw());
   redraw();
 }

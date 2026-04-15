@@ -35,6 +35,13 @@ export function initEditorCollab(opts: CollabSetupOptions): void {
     setConnectionState('offline');
   });
 
+  provider.on('status', ({ status }: { status: string }) => {
+    if (status === 'connecting' && statusEl) {
+      statusEl.textContent = t('status.reconnecting');
+      statusEl.className = 'status reconnecting';
+    }
+  });
+
   function updateUsers(): void {
     if (!usersEl || !provider.awareness) return;
     const usersSection = document.getElementById('users-section');

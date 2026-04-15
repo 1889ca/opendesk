@@ -162,20 +162,34 @@ function setupExportDropdown(): void {
   });
 }
 
-function setupCanvasTitleSync(): void {
-  const canvasTitle = document.getElementById('canvas-doc-title') as HTMLInputElement | null;
-  const toolbarTitle = document.getElementById('doc-title') as HTMLInputElement | null;
-  if (!canvasTitle || !toolbarTitle) return;
+function setupLayoutDropdown(): void {
+  const toggle = document.querySelector<HTMLButtonElement>('.layout-dropdown-toggle');
+  const menu = document.querySelector<HTMLElement>('.layout-dropdown-menu');
+  if (!toggle || !menu) return;
 
-  canvasTitle.value = toolbarTitle.value;
+  function openMenu(): void {
+    menu!.hidden = false;
+    toggle!.setAttribute('aria-expanded', 'true');
+  }
 
-  toolbarTitle.addEventListener('input', () => {
-    canvasTitle.value = toolbarTitle.value;
+  function closeMenu(): void {
+    menu!.hidden = true;
+    toggle!.setAttribute('aria-expanded', 'false');
+  }
+
+  toggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (menu.hidden) { openMenu(); } else { closeMenu(); }
   });
 
-  canvasTitle.addEventListener('input', () => {
-    toolbarTitle.value = canvasTitle.value;
-    toolbarTitle.dispatchEvent(new Event('input', { bubbles: true }));
+  menu.addEventListener('click', () => { closeMenu(); });
+
+  document.addEventListener('click', (e) => {
+    if (!menu.hidden && !toggle.contains(e.target as Node)) { closeMenu(); }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !menu.hidden) { closeMenu(); toggle.focus(); }
   });
 }
 
@@ -191,5 +205,5 @@ export function initEditorPage(): void {
   setupImport(docId);
   setupShareDialog(docId);
   setupExportDropdown();
-  setupCanvasTitleSync();
+  setupLayoutDropdown();
 }

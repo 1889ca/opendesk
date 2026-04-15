@@ -16,7 +16,14 @@ interface TemplateOption {
  * then lets the user pick one. Resolves with the selected template ID
  * (or null for blank / cancel).
  */
-export function showTemplatePicker(): Promise<string | null> {
+/** Sentinel value returned by showTemplatePicker when the user cancels without selecting. */
+export const TEMPLATE_CANCELLED = Symbol('TEMPLATE_CANCELLED');
+
+/**
+ * Show the template picker modal.
+ * Returns a template ID (string), null for blank, or TEMPLATE_CANCELLED if the user dismissed.
+ */
+export function showTemplatePicker(): Promise<string | null | typeof TEMPLATE_CANCELLED> {
   return new Promise((resolve) => {
     const overlay = document.createElement('div');
     overlay.className = 'template-overlay';
@@ -37,25 +44,30 @@ export function showTemplatePicker(): Promise<string | null> {
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
-    function cleanup(templateId: string | null) {
+    function cancel() {
+      overlay.remove();
+      resolve(TEMPLATE_CANCELLED);
+    }
+
+    function select(templateId: string | null) {
       overlay.remove();
       resolve(templateId);
     }
 
     overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) cleanup(null);
+      if (e.target === overlay) cancel();
     });
 
     document.addEventListener('keydown', function onEsc(e) {
       if (e.key === 'Escape') {
         document.removeEventListener('keydown', onEsc);
-        cleanup(null);
+        cancel();
       }
     });
 
     fetchTemplates().then((templates) => {
       grid.textContent = '';
-      renderCards(grid, templates, cleanup);
+      renderCards(grid, templates, select);
     }).catch(() => {
       grid.textContent = t('templates.loadFailed');
     });
@@ -128,10 +140,16 @@ function createCard(
  * Create a document, optionally from a template.
  * Returns the new document's ID, or null if the user cancelled.
  */
-export async function createDocumentFromTemplate(): Promise<string | null> {
-  const templateId = await showTemplatePicker();
+export async function createDocumentFromTemplate(documentType: 'text' | 'spreadsheet' | 'presentation' = 'text'): Promise<string | null> {
+  const templateResult = await showTemplatePicker();
+  if (templateResult === TEMPLATE_CANCELLED) return null;
+  const templateId = templateResult;
 
-  const titleText = await showNameDialog('docList.titlePrompt');
+  const labelKey =
+    documentType === 'spreadsheet' ? 'docList.spreadsheetTitlePrompt' :
+    documentType === 'presentation' ? 'docList.presentationTitlePrompt' :
+    'docList.titlePrompt';
+  const titleText = await showNameDialog(labelKey);
   if (!titleText) return null;
 
   const isBuiltin = templateId?.startsWith('builtin:');
@@ -142,7 +160,7 @@ export async function createDocumentFromTemplate(): Promise<string | null> {
   const res = await apiFetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title: titleText }),
+    body: JSON.stringify({ title: titleText, documentType }),
   });
 
   if (!res.ok) throw new Error('Failed to create document');

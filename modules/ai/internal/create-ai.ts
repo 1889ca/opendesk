@@ -1,7 +1,8 @@
 /** Contract: contracts/ai/rules.md */
 import type { Pool } from 'pg';
 import type { EventBusModule } from '../../events/contract.ts';
-import type { AiModule, AiConfig, SemanticSearchResult, AssistantResponse } from '../contract.ts';
+import type { AiModule, AiConfig, SemanticSearchResult, AssistantResponse, AssistRequest, AssistResult } from '../contract.ts';
+import { createAssistService } from './assist-service.ts';
 import { createOllamaClient, type OllamaClient } from './ollama-client.ts';
 import { extractDocumentText } from './document-extractor.ts';
 import { chunkText } from './chunker.ts';
@@ -31,6 +32,7 @@ export function createAi(deps: AiDependencies): AiModule {
     embeddingModel: config.embeddingModel,
     chatModel: config.chatModel,
   });
+  const assistService = createAssistService(ollama);
 
   async function embedDocument(documentId: string): Promise<number> {
     const text = await extractDocumentText(documentId);
@@ -121,6 +123,10 @@ export function createAi(deps: AiDependencies): AiModule {
     }
   }
 
+  async function assist(req: AssistRequest): Promise<AssistResult> {
+    return assistService.assist(req);
+  }
+
   async function healthCheck(): Promise<boolean> {
     return ollama.ping();
   }
@@ -147,5 +153,5 @@ export function createAi(deps: AiDependencies): AiModule {
     }
   }
 
-  return { embedDocument, semanticSearch, ask, healthCheck, startConsumer, stopConsumer };
+  return { embedDocument, semanticSearch, ask, assist, healthCheck, startConsumer, stopConsumer };
 }

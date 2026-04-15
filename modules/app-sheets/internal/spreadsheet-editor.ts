@@ -1,24 +1,27 @@
 /** Contract: contracts/app-sheets/rules.md */
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
-import { getUserIdentity, getDocumentId, setupTitleSync, mountAppToolbar } from '@opendesk/app';
+import { getUserIdentity, getDocumentId, setupTitleSync, mountAppToolbar, setupShareDialog } from '@opendesk/app';
 import { createFormatToolbar } from './format/toolbar.ts';
 import { getFormatMap } from './format/store.ts';
 import { attachFormatShortcuts } from './format/shortcuts.ts';
 import { renderFormattedGrid } from './grid-render.ts';
 import { SheetStore } from './sheet-store.ts';
-import { TabBar } from './tab-bar.ts';
+import { setupTabBar } from './tab-bar-setup.ts';
 import { createRangeSelection } from './range-selection.ts';
 import { createClipboardManager } from './clipboard.ts';
 import { createColRowResize } from './col-row-resize.ts';
-import { createHeaderContextMenu } from './header-context-menu.ts';
-import { insertRow, deleteRow, insertColumn, deleteColumn } from './col-row-ops.ts';
+import { buildContextMenu } from './freeze-panes.ts';
 import { sortByColumn } from './sort-engine.ts';
 import { createFilterManager } from './filter-manager.ts';
 import { getRules, addRule, observeRules } from './cond-format-rules.ts';
 import { applyCondFormatting } from './cond-format-renderer.ts';
 import { openCondFormatDialog } from './cond-format-dialog.ts';
 import { setupPresence } from './presence.ts';
+import { createNameBox } from './name-box.ts';
+import { openNamedRangeDialog } from './named-range-dialog.ts';
+import { observeNamedRanges } from './named-ranges.ts';
+import { openPivotDialog } from './pivot/pivot-dialog.ts';
 
 const DEFAULT_COLS = 26;
 const DEFAULT_ROWS = 50;
@@ -51,12 +54,16 @@ function init() {
   const usersEl = document.getElementById('users');
   const cellRefEl = document.getElementById('cell-ref');
   const formulaInput = document.getElementById('formula-input') as HTMLInputElement | null;
+  const nameBoxEl = document.getElementById('name-box') as HTMLInputElement | null;
   const formatBarContainer = document.getElementById('format-bar-container');
   const tabContainer = document.getElementById('sheet-tab-container');
+  const insertNamedRangesBtn = document.getElementById('insert-named-ranges');
+  const insertPivotBtn = document.getElementById('insert-pivot');
   if (!gridEl) return;
 
   const documentId = getDocumentId();
   setupTitleSync(documentId, 'OpenDesk Spreadsheet');
+  setupShareDialog(documentId);
   const user = getUserIdentity();
   const ydoc = new Y.Doc();
 
@@ -85,6 +92,23 @@ function init() {
   attachFormatShortcuts(ydoc, fmtCb);
 
   const rangeSelection = createRangeSelection(gridEl);
+
+  // --- Name Box ---
+  const nameBox = nameBoxEl
+    ? createNameBox({
+        ydoc,
+        element: nameBoxEl,
+        getActiveSheetId: () => activeSheetId,
+        getSelectedRange: () => rangeSelection.getRange(),
+        navigateTo(row, col) {
+          const target = gridEl.querySelector<HTMLElement>(
+            `[data-row="${row}"][data-col="${col}"]`,
+          );
+          target?.focus();
+        },
+        getCurrentCell: () => ({ row: activeRow, col: activeCol }),
+      })
+    : null;
   const clipboardMgr = createClipboardManager(gridEl, rangeSelection, store, { ydoc, ysheet: () => getActiveSheet() });
   const resizeMgr = createColRowResize(gridEl, ydoc);
 
@@ -94,15 +118,13 @@ function init() {
     doRender();
   }
 
-  // --- Context Menu ---
-  const ctxMenu = createHeaderContextMenu(gridEl, {
-    insertRowAbove(row) { insertRow(ydoc, activeSheetId, row); },
-    insertRowBelow(row) { insertRow(ydoc, activeSheetId, row); },
-    deleteRow(row) { deleteRow(ydoc, activeSheetId, row); },
-    insertColumnLeft(col) { insertColumn(ydoc, activeSheetId, col); },
-    insertColumnRight(col) { insertColumn(ydoc, activeSheetId, col); },
-    deleteColumn(col) { deleteColumn(ydoc, activeSheetId, col); },
-    sortColumn(col, direction) { doSort(col, direction); },
+  // --- Context Menu (includes freeze pane callbacks) ---
+  const ctxMenu = buildContextMenu({
+    gridEl, ydoc, store,
+    getActiveSheetId: () => activeSheetId,
+    getActiveSheet,
+    doRender,
+    doSort,
   });
 
   // --- Filter System ---
@@ -117,13 +139,26 @@ function init() {
     cols: DEFAULT_COLS,
   });
 
+  insertNamedRangesBtn?.addEventListener('click', () => openNamedRangeDialog(ydoc, store.getSheets(), activeSheetId));
+  insertPivotBtn?.addEventListener('click', () => openPivotDialog({
+    ydoc, store, activeSheetId,
+    onCreated(newSheetId) { tabBar?.render(); switchSheet(newSheetId); },
+  }));
+
   function doRender() {
     const currentRange = rangeSelection.getRange();
     renderFormattedGrid({
       gridEl, ydoc, ysheet: getActiveSheet(),
       cols: DEFAULT_COLS, rows: DEFAULT_ROWS,
       cellRefEl, formulaInput, formatToolbar,
-      onCellFocus(r, c) { activeRow = r; activeCol = c; },
+      store, activeSheetId,
+      frozenRows: store.getFrozenRows(activeSheetId),
+      frozenCols: store.getFrozenCols(activeSheetId),
+      onCellFocus(r, c) {
+        activeRow = r;
+        activeCol = c;
+        nameBox?.update(r, c);
+      },
     });
     resizeMgr.applyWidths(gridEl, DEFAULT_COLS);
     applyCondFormatting(gridEl, getRules(ydoc), (r, c) => {
@@ -151,34 +186,7 @@ function init() {
 
   function onSheetChange() { doRender(); }
 
-  // --- Tab Bar ---
-  let tabBar: TabBar | null = null;
-  if (tabContainer) {
-    tabBar = new TabBar(tabContainer, store, {
-      onSwitch: switchSheet,
-      onAdd() {
-        const meta = store.addSheet();
-        tabBar!.render();
-        switchSheet(meta.id);
-      },
-      onRename(sheetId, newName) {
-        store.renameSheet(sheetId, newName);
-        tabBar!.render();
-      },
-      onDelete(sheetId) {
-        if (store.getSheets().length <= 1) return;
-        if (!store.deleteSheet(sheetId)) return;
-        tabBar!.render();
-        if (activeSheetId === sheetId) switchSheet(store.getSheets()[0].id);
-      },
-      onDuplicate(sheetId) {
-        const meta = store.duplicateSheet(sheetId);
-        if (!meta) return;
-        tabBar!.render();
-        switchSheet(meta.id);
-      },
-    }, activeSheetId);
-  }
+  const tabBar = setupTabBar(tabContainer, store, switchSheet, activeSheetId);
 
   store.observe(() => tabBar?.render());
   doRender();
@@ -188,6 +196,7 @@ function init() {
 
   if (formulaInput) setupFormulaBar(formulaInput, ydoc, getActiveSheet, () => activeRow, () => activeCol, doRender);
   setupPresence(provider, user, usersEl);
+  observeNamedRanges(ydoc, () => doRender());
   Object.assign(window, { ydoc, provider, store });
 }
 

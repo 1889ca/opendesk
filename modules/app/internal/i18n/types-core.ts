@@ -44,6 +44,7 @@ export interface CoreTranslationKeys {
   'status.connected': string;
   'status.disconnected': string;
   'status.connecting': string;
+  'status.reconnecting': string;
   'editor.editors': string;
   'editor.backToDocuments': string;
   'editor.loading': string;
@@ -62,6 +63,8 @@ export interface CoreTranslationKeys {
   'docList.updated': string;
   'docList.loadFailed': string;
   'docList.titlePrompt': string;
+  'docList.spreadsheetTitlePrompt': string;
+  'docList.presentationTitlePrompt': string;
   'docList.namePlaceholder': string;
   'docList.nameCancel': string;
   'docList.nameCreate': string;
@@ -124,6 +127,11 @@ export interface CoreTranslationKeys {
   'bubble.link': string;
   'bubble.linkPrompt': string;
   'bubble.menuLabel': string;
+  'bubble.code': string;
+  'bubble.highlight': string;
+  'bubble.heading': string;
+  'bubble.headingNormal': string;
+  'bubble.comment': string;
 
   // Version name dialog
   'versions.namePrompt': string;
@@ -137,4 +145,30 @@ export interface CoreTranslationKeys {
 
   // Footnotes
   'toolbar.footnote': string;
+
+  // AI Writing Assistant
+  'ai.buttonLabel': string;
+  'ai.improve': string;
+  'ai.summarize': string;
+  'ai.expand': string;
+  'ai.shorten': string;
+  'ai.fixGrammar': string;
+  'ai.continue': string;
+  'ai.insert': string;
+  'ai.replace': string;
+  'ai.discard': string;
+  'ai.loading': string;
+  'ai.error': string;
+
+  // Drawing
+  'toolbar.drawing': string;
+
+  // Spell check
+  'toolbar.spellcheck': string;
+
+  // Special characters
+  'toolbar.specialChars': string;
+
+  // Doc list actions (dashboard overhaul)
+  'docList.moreActions': string;
 }

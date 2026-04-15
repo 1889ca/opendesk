@@ -1,14 +1,15 @@
 /* Table of Contents panel */
 .toc-panel {
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 8px;
+  left: 8px;
   width: 250px;
-  height: 100vh;
+  height: calc(100vh - 16px);
   background: var(--surface);
-  border-right: 1px solid var(--border);
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
-  transform: translateX(-100%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  transform: translateX(calc(-100% - 16px));
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
   z-index: 40;

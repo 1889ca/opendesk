@@ -5,13 +5,14 @@
 .version-sidebar,
 .workflow-sidebar {
   position: fixed;
-  top: 0;
-  right: 0;
-  width: 320px;
-  height: 100vh;
+  top: 8px;
+  right: 8px;
+  width: clamp(280px, 25vw, 420px);
+  height: calc(100vh - 16px);
   background: var(--surface);
-  border-left: 1px solid var(--border);
-  transform: translateX(100%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transform: translateX(calc(100% + 16px));
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
   display: flex;
@@ -73,6 +74,51 @@
   overflow-y: auto;
 }
 
+/* Resize handle — left edge of each sidebar panel */
+/* Panels already have position:fixed so the handle's position:absolute works */
+.sidebar-resize-handle {
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 1;
+  border-radius: 2px;
+}
+
+.sidebar-resize-handle:hover {
+  background: var(--primary, #4f6ef7);
+  opacity: 0.4;
+}
+
+/* Scrollbar — sidebar panels */
+.comment-sidebar-list::-webkit-scrollbar,
+.suggestion-sidebar-list::-webkit-scrollbar,
+.version-sidebar-list::-webkit-scrollbar { width: 8px; }
+.comment-sidebar-list::-webkit-scrollbar-track,
+.suggestion-sidebar-list::-webkit-scrollbar-track,
+.version-sidebar-list::-webkit-scrollbar-track { background: transparent; }
+.comment-sidebar-list::-webkit-scrollbar-thumb,
+.suggestion-sidebar-list::-webkit-scrollbar-thumb,
+.version-sidebar-list::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, rgba(0, 0, 0, 0.2));
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.comment-sidebar-list::-webkit-scrollbar-thumb:hover,
+.suggestion-sidebar-list::-webkit-scrollbar-thumb:hover,
+.version-sidebar-list::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, rgba(0, 0, 0, 0.35));
+  background-clip: content-box;
+}
+/* Firefox */
+.comment-sidebar-list,
+.suggestion-sidebar-list,
+.version-sidebar-list { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb, rgba(0, 0, 0, 0.2)) transparent; }
+
 .comment-sidebar-empty,
 .suggestion-sidebar-empty,
 .version-sidebar-empty {
@@ -80,4 +126,27 @@
   font-size: 0.8125rem;
   text-align: center;
   padding: 2rem 1rem;
+}
+
+/* ── Combined panel sections (Styles & Layout) ───────────────────── */
+
+.panel-combined-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.panel-combined-section + .panel-combined-section {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.panel-combined-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin: 0;
 }

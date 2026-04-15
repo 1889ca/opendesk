@@ -6,6 +6,7 @@
   <title>OpenDesk</title>
   <link rel="stylesheet" href="editor.bundle.css">
   <link rel="stylesheet" href="entity-mentions.css">
+  <link rel="stylesheet" href="slash-commands.css">
   <script src="theme-init.js"></script>
 </head>
 <body>
@@ -13,44 +14,38 @@
   <header class="toolbar" id="app-toolbar">
     <!-- Shared chrome (logo, title, status, users) injected by mountAppToolbar() in editor.ts -->
     <div class="toolbar-actions-slot">
-      <button id="page-setup-btn" class="btn btn-ghost btn-sm" title="Page setup (paper size, orientation)">Page Setup</button>
-      <span class="toolbar-separator"></span>
-      <div class="export-group">
-        <button id="import-file" class="btn btn-ghost btn-sm" title="Import .docx, .odt, or .pdf">Import</button>
-        <span class="toolbar-separator"></span>
-        <div class="export-dropdown">
-          <button class="btn btn-ghost btn-sm export-dropdown-toggle" aria-haspopup="true" aria-expanded="false" title="Export document">Export &#9660;</button>
-          <div class="export-dropdown-menu" hidden>
-            <button id="export-html" class="export-dropdown-item" title="Export as HTML">HTML</button>
-            <button id="export-text" class="export-dropdown-item" title="Export as plain text">Text</button>
-            <button id="export-docx" class="export-dropdown-item" title="Export as Word document">DOCX</button>
-            <button id="export-odt" class="export-dropdown-item" title="Export as OpenDocument">ODT</button>
-          </div>
+      <!-- Hidden but kept in DOM for programmatic access from menu bar -->
+      <div hidden>
+        <button id="import-file" title="Import .docx, .odt, or .pdf">Import</button>
+        <button id="export-html" title="Export as HTML">HTML</button>
+        <button id="export-text" title="Export as plain text">Text</button>
+        <button id="export-docx" title="Export as Word document">DOCX</button>
+        <button id="export-odt" title="Export as OpenDocument">ODT</button>
+        <button id="page-setup-btn" title="Page setup">Page Setup</button>
+        <button id="ruler-toggle" title="Toggle ruler" aria-pressed="true"><span id="ruler-toggle-label">Hide Ruler</span></button>
+        <button id="insert-page-number" title="Insert page number">Insert Page #</button>
+        <div class="zoom-control" id="zoom-control">
+          <button class="zoom-btn" id="zoom-out" title="Zoom out">−</button>
+          <span id="zoom-level" class="zoom-level">100%</span>
+          <button class="zoom-btn" id="zoom-in" title="Zoom in">+</button>
         </div>
       </div>
-      <span class="toolbar-separator"></span>
-      <button id="ruler-toggle" class="btn btn-ghost btn-sm" title="Show or hide the document ruler" aria-pressed="true">Hide Ruler</button>
-      <span class="toolbar-separator"></span>
-      <div class="zoom-control" id="zoom-control">
-        <button class="btn btn-ghost btn-sm zoom-btn" id="zoom-out" title="Zoom out (−)">−</button>
-        <span id="zoom-level" class="zoom-level">100%</span>
-        <button class="btn btn-ghost btn-sm zoom-btn" id="zoom-in" title="Zoom in (+)">+</button>
-      </div>
-      <span class="toolbar-separator"></span>
-      <button id="insert-page-number" class="btn btn-ghost btn-sm" title="Insert page number into footer">Page #</button>
-      <span class="toolbar-separator"></span>
-      <button id="share-btn" class="btn btn-ghost btn-sm share-btn" title="Share this document">Share</button>
+      <!-- Share — primary CTA -->
+      <button id="share-btn" class="btn btn-primary btn-sm share-btn" title="Share this document">Share</button>
     </div>
   </header>
-  <div id="formatting-toolbar" class="formatting-toolbar"></div>
-  <div id="ruler-h" class="ruler-h" aria-hidden="true"></div>
+  <div class="unified-toolbar">
+    <nav id="menu-bar" class="menu-bar" role="menubar" aria-label="Menu"></nav>
+    <div class="toolbar-divider"></div>
+    <div id="formatting-toolbar" class="formatting-toolbar"></div>
+  </div>
+  <div id="ruler-h" class="ruler-h" aria-hidden="true" hidden></div>
   </div><!-- /.editor-top-chrome -->
-  <main class="editor-wrapper" role="main" aria-label="Document editor">
-    <div class="editor-canvas-title-wrap">
-      <input type="text" id="canvas-doc-title" class="editor-canvas-title" placeholder="Untitled document" aria-label="Document title" spellcheck="false">
-    </div>
-    <div id="editor"></div>
-  </main>
+  <div class="editor-body">
+    <main class="editor-wrapper" role="main" aria-label="Document editor">
+      <div id="editor"></div>
+    </main>
+  </div>
 
   <div id="share-dialog" class="share-overlay" hidden>
     <div class="share-dialog">
@@ -99,6 +94,6 @@
       </div>
     </div>
   </div>
-  <script src="editor.bundle.js?v=8"></script>
+  <script src="editor.bundle.js?v=9"></script>
 </body>
 </html>

@@ -91,4 +91,6 @@ export const a11yTranslations: Partial<TranslationKeys> = {
   'shortcuts.undo': 'Annuler',
   'shortcuts.redo': 'R\u00e9tablir',
   'shortcuts.showShortcuts': 'Afficher les raccourcis clavier',
+  'a11y.drawingLabel': 'Insérer un dessin',
+  'a11y.spellcheckLabel': 'Orthographe et grammaire',
 };

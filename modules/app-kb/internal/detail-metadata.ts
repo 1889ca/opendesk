@@ -83,6 +83,19 @@ function renderDatasetMetadata(m: Record<string, unknown>, el: HTMLElement): HTM
   return el;
 }
 
+function wireKbLinks(container: HTMLElement): void {
+  container.querySelectorAll<HTMLAnchorElement>('a.kb-internal-link').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const entryId = link.dataset.kbEntryId;
+      if (!entryId) return;
+      document.dispatchEvent(
+        new CustomEvent('opendesk:open-kb-entry', { detail: { entryId }, bubbles: true }),
+      );
+    });
+  });
+}
+
 function renderNoteMetadata(m: Record<string, unknown>, el: HTMLElement): HTMLElement {
   const heading = document.createElement('h3');
   heading.textContent = 'Note Content';
@@ -93,6 +106,7 @@ function renderNoteMetadata(m: Record<string, unknown>, el: HTMLElement): HTMLEl
     if (m.format === 'markdown') {
       bodyEl.classList.add('kb-md-content');
       bodyEl.innerHTML = renderSimpleMarkdown(String(m.body));
+      wireKbLinks(bodyEl);
     } else {
       bodyEl.textContent = String(m.body);
     }

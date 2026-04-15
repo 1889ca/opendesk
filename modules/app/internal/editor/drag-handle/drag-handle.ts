@@ -1,10 +1,11 @@
 /** Contract: contracts/app/rules.md */
-import { Extension } from '@tiptap/core';
+import { Extension, type Editor } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
 import { t } from '../../i18n/index.ts';
 import { buildDragHandle, positionHandle, hideDragHandle } from './drag-handle-dom.ts';
 import { createDropIndicator, updateDropIndicator, hideDropIndicator } from './drop-indicator.ts';
+import { openContextMenu, closeMenu } from './drag-context-menu.ts';
 
 export const DragHandlePluginKey = new PluginKey('dragHandle');
 
@@ -74,6 +75,7 @@ export const DragHandle = Extension.create({
   name: 'dragHandle',
 
   addProseMirrorPlugins() {
+    const editor = this.editor as Editor;
     return [
       new Plugin({
         key: DragHandlePluginKey,
@@ -92,6 +94,14 @@ export const DragHandle = Extension.create({
           const onMouseMove = (e: MouseEvent) => handleMouseMove(editorView, state, e);
           const onMouseLeave = () => { if (!state.draggedPos) hideDragHandle(state.handleEl); };
           const onDragStart = (e: DragEvent) => handleDragStart(editorView, state, e);
+
+          const onHandleClick = (e: MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const posStr = state.handleEl.dataset.pos;
+            if (posStr == null) return;
+            openContextMenu(editor, Number(posStr), state.handleEl);
+          };
 
           const onDragOver = (e: DragEvent) => {
             if (state.draggedPos === null) return;
@@ -123,6 +133,7 @@ export const DragHandle = Extension.create({
           editorView.dom.addEventListener('mousemove', onMouseMove);
           editorView.dom.addEventListener('mouseleave', onMouseLeave);
           handleEl.addEventListener('dragstart', onDragStart);
+          handleEl.addEventListener('click', onHandleClick);
           editorView.dom.addEventListener('dragover', onDragOver);
           editorView.dom.addEventListener('drop', onDrop);
           editorView.dom.addEventListener('dragend', onDragEnd);
@@ -135,9 +146,11 @@ export const DragHandle = Extension.create({
               editorView.dom.removeEventListener('mousemove', onMouseMove);
               editorView.dom.removeEventListener('mouseleave', onMouseLeave);
               handleEl.removeEventListener('dragstart', onDragStart);
+              handleEl.removeEventListener('click', onHandleClick);
               editorView.dom.removeEventListener('dragover', onDragOver);
               editorView.dom.removeEventListener('drop', onDrop);
               editorView.dom.removeEventListener('dragend', onDragEnd);
+              closeMenu();
               handleEl.remove();
               indicatorEl.remove();
             },

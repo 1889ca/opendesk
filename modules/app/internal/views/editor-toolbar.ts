@@ -93,7 +93,7 @@ function appendSeparator(parent: HTMLElement): void {
 function appendShareButton(parent: HTMLElement): void {
   const btn = document.createElement('button');
   btn.id = 'share-btn';
-  btn.className = 'export-btn share-btn';
+  btn.className = 'btn btn-ghost btn-sm share-btn';
   btn.title = 'Share this document';
   btn.textContent = 'Share';
   parent.appendChild(btn);
@@ -120,7 +120,7 @@ function setupTitleSave(input: HTMLInputElement, docId: string): void {
 function createExportBtn(id: string, text: string, title: string): HTMLButtonElement {
   const btn = document.createElement('button');
   btn.id = id;
-  btn.className = 'export-btn';
+  btn.className = 'btn btn-ghost btn-sm';
   btn.title = title;
   btn.textContent = text;
   return btn;

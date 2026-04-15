@@ -1,0 +1,131 @@
+/* Special Characters Panel */
+
+.special-chars-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.08);
+  z-index: 200;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 0.8125rem;
+}
+
+.special-chars-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.special-chars-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.special-chars-close {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-muted, var(--text));
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  opacity: 0.6;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.special-chars-close:hover {
+  opacity: 1;
+  background: var(--bg);
+}
+
+.special-chars-search {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.special-chars-search:focus {
+  background: var(--surface);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.special-chars-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.special-chars-section {
+  margin-bottom: 1rem;
+}
+
+.special-chars-category {
+  margin: 0 0 0.375rem;
+  padding: 0.25rem 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, var(--text));
+  opacity: 0.6;
+}
+
+.special-chars-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+}
+
+.special-chars-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: 4px;
+  color: var(--text);
+  transition: background 0.1s;
+  line-height: 1;
+  padding: 0;
+}
+
+.special-chars-tile:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.special-chars-tile:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.special-chars-empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted, var(--text));
+  opacity: 0.6;
+  margin: 0;
+}

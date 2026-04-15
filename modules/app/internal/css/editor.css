@@ -37,3 +37,9 @@
 @import "../public/offline.css";
 @import "../public/profile.css";
 @import "../public/toast.css";
+@import "../public/special-chars.css";
+@import "../public/ai-assist.css";
+@import "../editor/drawing/drawing.css";
+@import "../public/spellcheck.css";
+@import "../public/bubble-menu.css";
+@import "../public/focus-mode.css";

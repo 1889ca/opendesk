@@ -25,3 +25,4 @@ export type { UploadResult } from './internal/editor/image-upload.ts';
 export { initTheme } from './internal/shared/theme-toggle.ts';
 export { mountAppToolbar } from './internal/shared/app-toolbar.ts';
 export type { AppToolbarConfig, AppToolbarRefs } from './internal/shared/app-toolbar.ts';
+export { setupShareDialog } from './internal/editor/share-dialog.ts';

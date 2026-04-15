@@ -1,17 +1,10 @@
 /** Contract: contracts/app/rules.md */
 import type { Editor } from '@tiptap/core';
 import { t } from '../i18n/index.ts';
-import { buildCommentSidebar, toggleSidebar, showCommentInput, type CommentStore } from './comments/index.ts';
-import {
-  buildSuggestionSidebar,
-  toggleSuggestionSidebar,
-} from './suggestions/index.ts';
+import { showCommentInput, type CommentStore } from './comments/index.ts';
 import { announce } from '../shared/a11y-announcer.ts';
-import { buildTocPanel, toggleTocPanel } from './toc/index.ts';
-import { buildVersionSidebar, toggleVersionSidebar } from './version-history.ts';
-import { buildWorkflowPanel, toggleWorkflowPanel } from './workflow-panel.ts';
 import { buildStatusBar } from './status-bar.ts';
-import { openCitationPicker, createBibliography, buildReferenceLibrary } from './citations/index.ts';
+import { openCitationPicker, createBibliography } from './citations/index.ts';
 import { setupPromoteToKB } from './promote-to-kb.ts';
 import { buildFootnotePanel } from './footnote-panel.ts';
 
@@ -24,14 +17,16 @@ export interface PanelDeps {
 }
 
 /**
- * Wire up all panels, sidebars, and event listeners that hang off the
- * editor. Returns nothing — side-effects only (DOM mutations, event
- * listeners).
+ * Wire up non-rail panels and event listeners that hang off the editor.
+ * Rail-based panels (comments, suggestions, versions, workflows,
+ * references, special chars) are now mounted in buildPanelRail calls
+ * inside editor.ts.
  */
 export function initEditorPanels(deps: PanelDeps): void {
   const { editor, editorEl, commentStore, documentId, user } = deps;
 
-  document.body.appendChild(buildStatusBar(editor));
+  const statusBar = buildStatusBar(editor);
+  document.body.appendChild(statusBar.el);
 
   const bib = createBibliography(editor);
   const editorWrapper = editorEl.closest('.editor-wrapper');
@@ -41,46 +36,14 @@ export function initEditorPanels(deps: PanelDeps): void {
     editorEl.parentElement?.appendChild(bib.element);
   }
 
-  const commentSidebar = buildCommentSidebar(editor, commentStore, documentId, user);
-  document.body.appendChild(commentSidebar);
-
-  const suggestionSidebar = buildSuggestionSidebar(editor);
-  document.body.appendChild(suggestionSidebar);
-
-  const tocPanel = buildTocPanel(editor);
-  document.body.appendChild(tocPanel);
-  document.addEventListener('opendesk:toggle-toc', () => {
-    // Mutually exclusive with the comment sidebar
-    toggleSidebar(commentSidebar, false);
-    toggleTocPanel(tocPanel);
-  });
-
-  const versionSidebar = buildVersionSidebar();
-  document.body.appendChild(versionSidebar);
-  document.addEventListener('opendesk:toggle-versions', () => {
-    toggleVersionSidebar(versionSidebar);
-  });
-
-  const workflowPanel = buildWorkflowPanel();
-  document.body.appendChild(workflowPanel);
-  document.addEventListener('opendesk:toggle-workflows', () => {
-    toggleWorkflowPanel(workflowPanel);
-  });
-
-  const refLibrary = buildReferenceLibrary(editor);
-  document.body.appendChild(refLibrary.element);
-  document.addEventListener('opendesk:toggle-reference-library', () => {
-    refLibrary.toggle();
-  });
-
   setupPromoteToKB(editor);
 
-  const footnotePanel = buildFootnotePanel(editor);
+  const footnote = buildFootnotePanel(editor);
   const editorWrapperEl = editorEl.closest('.editor-wrapper');
   if (editorWrapperEl) {
-    editorWrapperEl.appendChild(footnotePanel);
+    editorWrapperEl.appendChild(footnote.el);
   } else {
-    editorEl.parentElement?.appendChild(footnotePanel);
+    editorEl.parentElement?.appendChild(footnote.el);
   }
 
   document.addEventListener('opendesk:insert-citation', () => {
@@ -91,13 +54,6 @@ export function initEditorPanels(deps: PanelDeps): void {
 
   document.addEventListener('opendesk:add-comment', () => {
     showCommentInput(editor, commentStore, documentId, user);
-    // Mutually exclusive with the TOC panel
-    toggleTocPanel(tocPanel, false);
-    toggleSidebar(commentSidebar, true);
     announce(t('a11y.commentAdded'));
-  });
-
-  document.addEventListener('opendesk:toggle-suggestions', () => {
-    toggleSuggestionSidebar(suggestionSidebar);
   });
 }

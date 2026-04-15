@@ -5,6 +5,7 @@ import { DOMSerializer } from '@tiptap/pm/model';
 import { createEntryApi } from '@opendesk/app-kb';
 import { announce } from '../shared/a11y-announcer.ts';
 import { t } from '../i18n/index.ts';
+import { batchRaf } from './lifecycle.ts';
 
 /** Extract the selected content as an HTML string from the editor. */
 function getSelectionHtml(editor: Editor): string {
@@ -149,6 +150,7 @@ export function setupPromoteToKB(editor: Editor): void {
     ) as HTMLButtonElement | null;
     if (btn) btn.disabled = !hasSelection(editor);
   };
-  editor.on('selectionUpdate', updateBtn);
-  editor.on('transaction', updateBtn);
+  const batched = batchRaf(updateBtn);
+  editor.on('selectionUpdate', batched.call);
+  editor.on('transaction', batched.call);
 }

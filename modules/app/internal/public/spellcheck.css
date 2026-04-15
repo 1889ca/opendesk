@@ -1,0 +1,31 @@
+/** Contract: contracts/app/rules.md */
+/**
+ * Spell check styling.
+ * The browser's native spellcheck is enabled via spellcheck="true" on the
+ * ProseMirror element (set in editor.ts editorProps). This stylesheet ensures
+ * the browser's spelling-error underline is consistently styled where the
+ * ::spelling-error pseudo-element is supported.
+ */
+
+/* Ensure misspelled words show a red squiggly underline in browsers that
+   support the ::spelling-error pseudo-element (Chrome 121+, Edge 121+). */
+.editor-content p::spelling-error,
+.editor-content li::spelling-error,
+.editor-content td::spelling-error,
+.editor-content h1::spelling-error,
+.editor-content h2::spelling-error,
+.editor-content h3::spelling-error,
+.editor-content h4::spelling-error,
+.editor-content h5::spelling-error,
+.editor-content h6::spelling-error {
+  text-decoration: red wavy underline;
+}
+
+/* Highlight ring shown on the currently-focused misspelled word when cycling
+   through spelling errors via the toolbar "Spell Check" button. */
+.spelling-highlight {
+  background: rgba(255, 80, 80, 0.15);
+  border-radius: 2px;
+  outline: 2px solid rgba(255, 60, 60, 0.5);
+  outline-offset: 1px;
+}

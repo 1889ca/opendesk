@@ -157,3 +157,55 @@ export async function fetchRelationships(
   if (!res.ok) throw new Error(`API returned ${res.status}`);
   return res.json();
 }
+
+// --- Import/Export ---
+
+/** Download KB export ZIP. Returns a Blob for the caller to trigger download. */
+export async function exportKBAsZip(): Promise<Blob> {
+  const res = await apiFetch(`${BASE}/export`);
+  if (!res.ok) throw new Error(`Export failed: ${res.status}`);
+  return res.blob();
+}
+
+export interface ImportResult {
+  imported: number;
+  files: string[];
+  errors: string[];
+}
+
+/** Upload a .md, .zip, or .html file to import KB entries. */
+export async function importKBFile(file: File): Promise<ImportResult> {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await apiFetch(`${BASE}/import`, { method: 'POST', body: form });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error ?? `Import failed: ${res.status}`);
+  }
+  return res.json();
+}
+
+// --- Public KB settings ---
+
+export interface KBSettings {
+  is_public: boolean;
+  public_url: string | null;
+}
+
+/** Get KB public settings. */
+export async function fetchKBSettings(): Promise<KBSettings> {
+  const res = await apiFetch('/api/kb/settings');
+  if (!res.ok) throw new Error(`API returned ${res.status}`);
+  return res.json();
+}
+
+/** Update KB public toggle. */
+export async function updateKBSettings(isPublic: boolean): Promise<KBSettings & { ok: boolean }> {
+  const res = await apiFetch('/api/kb/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ is_public: isPublic }),
+  });
+  if (!res.ok) throw new Error(`API returned ${res.status}`);
+  return res.json();
+}

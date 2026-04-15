@@ -2,7 +2,7 @@
 
 import { apiFetch } from '../shared/api-client.ts';
 import { createDocumentFromTemplate } from './template-picker.ts';
-import { setNavigateCallback, createNewFolderButton } from './folder-list.ts';
+import { setNavigateCallback, getCurrentFolderId } from './folder-list.ts';
 import { TYPE_META } from './doc-list-render.ts';
 import { initTheme, buildThemeToggle } from '../shared/theme-toggle.ts';
 import { buildNotificationBell } from '../shared/notification-bell.ts';
@@ -42,7 +42,11 @@ function updateState(next: Partial<DocListState>): void {
 
 async function createTypedDocument(documentType: string): Promise<void> {
   const meta = TYPE_META[documentType] || TYPE_META.text;
-  const titleText = await showNameDialog('docList.titlePrompt');
+  const labelKey =
+    documentType === 'spreadsheet' ? 'docList.spreadsheetTitlePrompt' :
+    documentType === 'presentation' ? 'docList.presentationTitlePrompt' :
+    'docList.titlePrompt';
+  const titleText = await showNameDialog(labelKey);
   if (!titleText) return;
   try {
     const res = await apiFetch('/api/documents', {
@@ -83,7 +87,6 @@ async function init() {
 
   if (toolbarRight) {
     toolbarRight.prepend(buildOfflineIndicator());
-    createNewFolderButton(toolbarRight as HTMLElement);
     toolbarRight.appendChild(buildProfileChip());
   }
   document.body.insertBefore(buildUpdateBanner(), document.body.firstChild);
@@ -124,6 +127,34 @@ async function init() {
     ?.addEventListener('click', () => createTypedDocument('spreadsheet'));
   document.getElementById('new-slides-btn')
     ?.addEventListener('click', () => createTypedDocument('presentation'));
+
+  // New folder button in create dropdown
+  document.getElementById('new-folder-btn')?.addEventListener('click', async () => {
+    const name = await showNameDialog('folders.namePrompt');
+    if (!name) return;
+    try {
+      await apiFetch('/api/folders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, parentId: getCurrentFolderId() }),
+      });
+      reload();
+    } catch (err) { console.error('Create folder failed', err); }
+  });
+
+  // Create dropdown toggle
+  const createBtn = document.getElementById('create-btn');
+  const createMenu = document.getElementById('create-menu');
+  if (createBtn && createMenu) {
+    createBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = !createMenu.hidden;
+      createMenu.hidden = open;
+      createBtn.setAttribute('aria-expanded', String(!open));
+    });
+    document.addEventListener('click', () => { createMenu.hidden = true; });
+    createMenu.addEventListener('click', () => { createMenu.hidden = true; });
+  }
 
   reload();
 }

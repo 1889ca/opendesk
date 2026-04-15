@@ -1,7 +1,7 @@
 /** Contract: contracts/ai/rules.md */
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
-import { CustomModelSchema, type AiModule } from '../contract.ts';
+import { CustomModelSchema, AssistRequestSchema, type AiModule } from '../contract.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import type { ModelService } from './model-service.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
@@ -59,6 +59,13 @@ export function createAiRoutes(opts: AiRoutesOptions): Router {
     router.get('/health', permissions.requireAuth, asyncHandler(async (_req: Request, res: Response) => {
       const reachable = await ai.healthCheck();
       res.json({ ollama: reachable ? 'ok' : 'unavailable' });
+    }));
+
+    router.post('/assist', permissions.requireAuth, asyncHandler(async (req: Request, res: Response) => {
+      const parsed = AssistRequestSchema.safeParse(req.body);
+      if (!parsed.success) { res.status(400).json({ error: 'Validation failed', issues: parsed.error.issues }); return; }
+      const result = await ai.assist(parsed.data);
+      res.json(result);
     }));
   }
 

@@ -4,6 +4,7 @@ import type { Editor } from '@tiptap/core';
 import { t } from '../i18n/index.ts';
 import { uploadImage, validateImageFile, extractImageFiles } from './image-upload.ts';
 import { getDocumentId } from '../shared/identity.ts';
+import { initImageToolbar } from './image-toolbar.ts';
 
 /** Open a native file picker and insert the chosen image. */
 export function openImagePicker(editor: Editor): void {
@@ -33,8 +34,10 @@ async function handleImageInsert(editor: Editor, file: File): Promise<void> {
   }
 }
 
-/** Attach drag-and-drop and paste handlers for image upload. */
+/** Attach drag-and-drop and paste handlers for image upload, and init the float toolbar. */
 export function setupImageHandlers(editor: Editor, el: HTMLElement): void {
+  initImageToolbar(editor);
+
   el.addEventListener('drop', (e) => {
     const files = e.dataTransfer ? extractImageFiles(e.dataTransfer) : [];
     if (files.length === 0) return;

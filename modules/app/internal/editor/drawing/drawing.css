@@ -1,0 +1,188 @@
+/** Contract: contracts/app/rules.md */
+
+/* ── Dialog overlay ──────────────────────────────────────────────────── */
+.drawing-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.drawing-dialog {
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary, #1a1a1a);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 95vw;
+  max-height: 95vh;
+  overflow: hidden;
+}
+
+.drawing-dialog-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* ── Canvas wrapper ──────────────────────────────────────────────────── */
+.drawing-canvas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────────────── */
+.drawing-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  background: var(--bg-secondary, #f5f5f5);
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #ddd);
+}
+
+.drawing-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-right: 0.5rem;
+  border-right: 1px solid var(--border-color, #ddd);
+}
+
+.drawing-toolbar-group:last-child {
+  border-right: none;
+}
+
+.drawing-tool-btn {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 4px;
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary, #1a1a1a);
+  font-size: 0.9rem;
+  cursor: pointer;
+  line-height: 1.4;
+  transition: background 0.15s;
+}
+
+.drawing-tool-btn:hover {
+  background: var(--bg-hover, #e8e8e8);
+}
+
+.drawing-tool-btn.is-active {
+  background: var(--accent-color, #2563eb);
+  color: #fff;
+  border-color: var(--accent-color, #2563eb);
+}
+
+.drawing-delete-btn {
+  color: #c0392b;
+  border-color: #e0aaaa;
+}
+
+.drawing-delete-btn:hover {
+  background: #fdecea;
+}
+
+.drawing-color-label,
+.drawing-nofill-label,
+.drawing-width-label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #555);
+  cursor: pointer;
+}
+
+.drawing-color-label input[type="color"] {
+  width: 28px;
+  height: 22px;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 3px;
+  padding: 1px;
+  cursor: pointer;
+}
+
+.drawing-width-label input[type="range"] {
+  width: 70px;
+}
+
+/* ── SVG canvas ──────────────────────────────────────────────────────── */
+.drawing-svg {
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 4px;
+  background: #fff;
+  cursor: crosshair;
+  touch-action: none;
+  display: block;
+  max-width: 100%;
+}
+
+.drawing-svg .drawing-selected {
+  outline: 2px dashed var(--accent-color, #2563eb);
+  outline-offset: 2px;
+}
+
+/* ── Action bar ──────────────────────────────────────────────────────── */
+.drawing-action-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.drawing-btn {
+  padding: 0.4rem 1rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.drawing-btn--cancel {
+  background: var(--bg-secondary, #eee);
+  color: var(--text-primary, #333);
+}
+
+.drawing-btn--cancel:hover {
+  background: var(--bg-hover, #ddd);
+}
+
+.drawing-btn--save {
+  background: var(--accent-color, #2563eb);
+  color: #fff;
+}
+
+.drawing-btn--save:hover {
+  opacity: 0.9;
+}
+
+/* ── Inline drawing node in document ─────────────────────────────────── */
+.drawing-node-wrapper {
+  display: block;
+  margin: 0.5rem 0;
+  line-height: 0;
+}
+
+.drawing-node-img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.drawing-node-img:hover {
+  box-shadow: 0 0 0 2px var(--accent-color, #2563eb);
+}

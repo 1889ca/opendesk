@@ -104,6 +104,20 @@ export type MarqueeState = {
   currentPercent: Point;
 };
 
+export interface SlidesElements {
+  slideListEl: HTMLElement;
+  viewportEl: HTMLElement;
+  canvasEl: HTMLElement | null;
+  statusEl: HTMLElement | null;
+  usersEl: HTMLElement | null;
+  addSlideBtn: HTMLElement | null;
+  toolbarRight: Element | null;
+}
+
+export interface SlidesCleanup {
+  destroy: () => void;
+}
+
 export const MIN_ELEMENT_WIDTH = 2;
 export const MIN_ELEMENT_HEIGHT = 2;
 export const GRID_SIZE = 5; // percentage units

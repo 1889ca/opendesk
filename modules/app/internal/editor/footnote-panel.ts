@@ -1,7 +1,9 @@
 /** Contract: contracts/app/rules.md */
 import type { Editor } from '@tiptap/core';
+import { createScope } from './lifecycle.ts';
 
-export function buildFootnotePanel(editor: Editor): HTMLElement {
+export function buildFootnotePanel(editor: Editor): { el: HTMLElement; cleanup: () => void } {
+  const scope = createScope();
   const panel = document.createElement('section');
   panel.className = 'footnote-panel';
   panel.setAttribute('aria-label', 'Footnotes');
@@ -40,8 +42,7 @@ export function buildFootnotePanel(editor: Editor): HTMLElement {
   }
 
   render();
-  document.addEventListener('opendesk:footnotes-changed', render);
-  editor.on('update', render);
+  scope.onDocument('opendesk:footnotes-changed', render as EventListener);
 
-  return panel;
+  return { el: panel, cleanup: scope.dispose };
 }

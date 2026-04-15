@@ -63,9 +63,16 @@ export function renderDetailPanel(
   // Body preview
   const bodySection = document.createElement('div');
   bodySection.className = 'kb-detail-body';
-  const bodyText = document.createElement('p');
-  bodyText.textContent = entry.body || '(empty)';
-  bodySection.appendChild(bodyText);
+  if (entry.body) {
+    const bodyText = document.createElement('p');
+    bodyText.textContent = entry.body;
+    bodySection.appendChild(bodyText);
+  } else {
+    const emptyMsg = document.createElement('p');
+    emptyMsg.className = 'kb-detail-body-empty';
+    emptyMsg.textContent = 'No content yet. Edit this entry to add a description.';
+    bodySection.appendChild(emptyMsg);
+  }
   container.appendChild(bodySection);
 
   // Tags

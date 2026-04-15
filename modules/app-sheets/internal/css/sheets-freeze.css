@@ -1,0 +1,65 @@
+/** Contract: contracts/app-sheets/rules.md */
+
+/* Frozen row/column headers and cells use sticky positioning.
+   The grid must have overflow: auto on its scroll container for sticky to work. */
+
+/* Corner: sticky at top-left (always frozen) */
+.spreadsheet-grid .cell.header.frozen-corner {
+  position: sticky;
+  left: 0;
+  top: 0;
+  z-index: 40;
+}
+
+/* Frozen column headers (top row, sticky left) */
+.spreadsheet-grid .cell.header.frozen-col-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+/* Frozen row headers (left column, sticky top) */
+.spreadsheet-grid .cell.row-header.frozen-row-header {
+  position: sticky;
+  left: 0;
+  z-index: 30;
+}
+
+/* Frozen cells: row (sticky top) */
+.spreadsheet-grid .cell.frozen-row {
+  position: sticky;
+  top: var(--freeze-row-top, 0);
+  z-index: 20;
+}
+
+/* Frozen cells: col (sticky left) */
+.spreadsheet-grid .cell.frozen-col {
+  position: sticky;
+  left: var(--freeze-col-left, 3rem);
+  z-index: 20;
+}
+
+/* Frozen cells: both row and col */
+.spreadsheet-grid .cell.frozen-cell-corner {
+  position: sticky;
+  top: var(--freeze-row-top, 0);
+  left: var(--freeze-col-left, 3rem);
+  z-index: 25;
+}
+
+/* Visual separator lines after frozen regions */
+.spreadsheet-grid .cell.frozen-row-header,
+.spreadsheet-grid .cell.frozen-row {
+  border-bottom: 2px solid var(--accent, #4a6fa5);
+}
+
+.spreadsheet-grid .cell.frozen-col-header,
+.spreadsheet-grid .cell.frozen-col {
+  border-right: 2px solid var(--accent, #4a6fa5);
+}
+
+.spreadsheet-grid .cell.frozen-cell-corner,
+.spreadsheet-grid .cell.frozen-corner {
+  border-right: 2px solid var(--accent, #4a6fa5);
+  border-bottom: 2px solid var(--accent, #4a6fa5);
+}

@@ -1,6 +1,8 @@
 /** Contract: contracts/app-sheets/rules.md */
+import * as Y from 'yjs';
 import type { SheetStore } from './sheet-store.ts';
 import { parseCrossSheetRef, parseCellRef, parseRangeRef } from './cross-sheet-ref.ts';
+import { resolveNamedRange } from './named-ranges.ts';
 
 /**
  * Evaluate a cell value, resolving cross-sheet references.
@@ -11,11 +13,32 @@ import { parseCrossSheetRef, parseCellRef, parseRangeRef } from './cross-sheet-r
  * Cross-sheet references like Sheet2!A1 are resolved from the store.
  */
 export function evaluateCellValue(
-  rawValue: string, store: SheetStore, activeSheetId: string,
+  rawValue: string, store: SheetStore, activeSheetId: string, ydoc?: Y.Doc,
 ): string {
   if (!rawValue || !rawValue.startsWith('=')) return rawValue;
 
   const formula = rawValue.substring(1).trim();
+
+  // Named range resolution: =TaxRate → resolves to the range's value
+  if (ydoc && /^[A-Za-z_][A-Za-z0-9_.]*$/.test(formula)) {
+    const nr = resolveNamedRange(ydoc, formula);
+    if (nr) {
+      const sheetId = nr.sheetId;
+      const cellRef = parseCellRef(nr.range);
+      if (cellRef) return store.getCellValue(sheetId, cellRef.row, cellRef.col);
+      const rangeRef = parseRangeRef(nr.range);
+      if (rangeRef) {
+        const values: string[] = [];
+        for (let r = rangeRef.startRow; r <= rangeRef.endRow; r++) {
+          for (let c = rangeRef.startCol; c <= rangeRef.endCol; c++) {
+            values.push(store.getCellValue(sheetId, r, c));
+          }
+        }
+        return values.filter(Boolean).join(', ');
+      }
+    }
+  }
+
   // Simple cross-sheet single-cell reference: =Sheet2!A1
   const crossRef = parseCrossSheetRef(formula);
   if (crossRef) {

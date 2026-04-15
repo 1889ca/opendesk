@@ -6,6 +6,17 @@
  */
 import { svg, textIcons } from './toolbar-icons-text.ts';
 
+const chromeIcons: Record<string, string> = {
+  hamburger: svg(
+    '<line x1="2" y1="4" x2="14" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+    '<line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+    '<line x1="2" y1="12" x2="14" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  ),
+  chevronRight: svg(
+    '<polyline points="6,3 11,8 6,13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  ),
+};
+
 const insertIcons: Record<string, string> = {
   table: svg(
     '<rect x="1" y="1" width="14" height="14" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/>' +
@@ -91,6 +102,17 @@ const insertIcons: Record<string, string> = {
     '<line x1="8" y1="6" x2="8" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
     '<line x1="6" y1="8" x2="10" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
   ),
+  drawing: svg(
+    '<rect x="1" y="1" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/>' +
+    '<path d="M3 12 Q5 8 7 10 Q9 12 11 7 Q13 4 14 5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<circle cx="3.5" cy="12" r="1" fill="currentColor"/>',
+  ),
+  spellcheck: svg(
+    '<path d="M8 2l5.5 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
+    '<path d="M8 2L2.5 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
+    '<line x1="4.5" y1="9.5" x2="11.5" y2="9.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>' +
+    '<path d="M3 15 Q5 13.5 7 15 Q9 16.5 11 15 Q13 13.5 14 15" fill="none" stroke="#e53e3e" stroke-width="1.3" stroke-linecap="round"/>',
+  ),
   footnote: svg(
     '<line x1="2" y1="10" x2="10" y2="10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
     '<line x1="2" y1="13" x2="14" y2="13" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>' +
@@ -99,9 +121,19 @@ const insertIcons: Record<string, string> = {
     '<line x1="12" y1="3.8" x2="12" y2="6.2" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>' +
     '<line x1="10.8" y1="5" x2="13.2" y2="5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>',
   ),
+  specialChars: svg(
+    // Omega-like arc (top of circle) representing special/math characters
+    '<path d="M4 10 Q2 5 8 3 Q14 5 12 10" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
+    // Two legs (like omega bottom)
+    '<line x1="3.5" y1="10" x2="2" y2="12.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
+    '<line x1="12.5" y1="10" x2="14" y2="12.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
+    // Arrow (rightwards) below
+    '<line x1="2" y1="14.5" x2="10" y2="14.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>' +
+    '<polyline points="8,12.8 10,14.5 8,16.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>',
+  ),
 };
 
-export const icons: Record<string, string> = { ...textIcons, ...insertIcons };
+export const icons: Record<string, string> = { ...textIcons, ...chromeIcons, ...insertIcons };
 
 /** Return the SVG icon string for the given icon name, or empty string if not found. */
 export function getIcon(name: string): string {

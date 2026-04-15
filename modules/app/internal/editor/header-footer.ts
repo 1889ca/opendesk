@@ -14,6 +14,14 @@ function loadContent(docId: string, part: 'header' | 'footer'): string {
   return localStorage.getItem(storageKey(docId, part)) || '';
 }
 
+export function activateZone(zone: HTMLElement): void {
+  zone.classList.add('is-active');
+}
+
+export function deactivateZone(zone: HTMLElement): void {
+  zone.classList.remove('is-active');
+}
+
 function createZone(part: 'header' | 'footer', docId: string): HTMLElement {
   const zone = document.createElement('div');
   zone.className = `doc-${part}-zone`;
@@ -21,10 +29,12 @@ function createZone(part: 'header' | 'footer', docId: string): HTMLElement {
   zone.spellcheck = true;
   zone.setAttribute('role', 'region');
   zone.setAttribute('aria-label', part === 'header' ? 'Document header' : 'Document footer');
-  zone.setAttribute('data-placeholder', part === 'header' ? 'Header…' : 'Footer…');
 
   const saved = loadContent(docId, part);
-  if (saved) zone.innerHTML = saved;
+  if (saved) {
+    zone.innerHTML = saved;
+    activateZone(zone);
+  }
 
   zone.addEventListener('input', () => {
     saveContent(docId, part, zone.innerHTML);
@@ -47,6 +57,20 @@ export function insertHeaderFooter(docId: string): { headerZone: HTMLElement; fo
   editorEl.insertAdjacentElement('afterend', footerZone);
 
   return { headerZone, footerZone };
+}
+
+export function setupHeaderFooterClicks(headerZone: HTMLElement, footerZone: HTMLElement): void {
+  const wrapper = document.querySelector('.editor-wrapper');
+  if (!wrapper) return;
+  wrapper.addEventListener('click', (e: Event) => {
+    const target = e.target as HTMLElement;
+    if (target !== wrapper) return;
+    const editorRect = document.getElementById('editor')?.getBoundingClientRect();
+    if (!editorRect) return;
+    const mouseY = (e as MouseEvent).clientY;
+    if (mouseY < editorRect.top) { activateZone(headerZone); headerZone.focus(); }
+    else if (mouseY > editorRect.bottom) { activateZone(footerZone); footerZone.focus(); }
+  });
 }
 
 export function insertPageNumber(zone: HTMLElement): void {

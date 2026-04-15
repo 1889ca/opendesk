@@ -141,6 +141,35 @@ export class SheetStore {
     return null;
   }
 
+  /** Get the freeze map for the given sheet (keys: 'rows', 'cols'). */
+  private getFreezeMap(sheetId: string): Y.Map<number> {
+    return this.ydoc.getMap<number>(`freeze-${sheetId}`);
+  }
+
+  /** Get the number of frozen rows for a sheet (0 = none). */
+  getFrozenRows(sheetId: string): number {
+    return this.getFreezeMap(sheetId).get('rows') ?? 0;
+  }
+
+  /** Get the number of frozen columns for a sheet (0 = none). */
+  getFrozenCols(sheetId: string): number {
+    return this.getFreezeMap(sheetId).get('cols') ?? 0;
+  }
+
+  /** Set frozen rows for a sheet. 0 unfreezes. */
+  setFrozenRows(sheetId: string, rows: number): void {
+    this.ydoc.transact(() => {
+      this.getFreezeMap(sheetId).set('rows', rows);
+    });
+  }
+
+  /** Set frozen cols for a sheet. 0 unfreezes. */
+  setFrozenCols(sheetId: string, cols: number): void {
+    this.ydoc.transact(() => {
+      this.getFreezeMap(sheetId).set('cols', cols);
+    });
+  }
+
   /** Get cell value from any sheet (for cross-sheet references). */
   getCellValue(sheetId: string, row: number, col: number): string {
     const data = this.getSheetData(sheetId);

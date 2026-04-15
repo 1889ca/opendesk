@@ -129,6 +129,23 @@ export {
   PullProgressSchema, type PullProgress,
 } from './contract-model-zoo.ts';
 
+// --- AI Writing Assist ---
+
+export const ASSIST_ACTIONS = ['improve', 'summarize', 'expand', 'shorten', 'fix-grammar', 'continue'] as const;
+export const AssistActionSchema = z.enum(ASSIST_ACTIONS);
+export type AssistAction = z.infer<typeof AssistActionSchema>;
+
+export const AssistRequestSchema = z.object({
+  action: AssistActionSchema,
+  text: z.string().min(1).max(50_000),
+  documentId: z.string().optional(),
+});
+export type AssistRequest = z.infer<typeof AssistRequestSchema>;
+
+export interface AssistResult {
+  result: string;
+}
+
 // --- Module Interface ---
 
 export interface AiModule {
@@ -138,6 +155,8 @@ export interface AiModule {
   semanticSearch(query: string, allowedDocumentIds: string[], limit?: number): Promise<SemanticSearchResult[]>;
   /** RAG-based document assistant. */
   ask(question: string, allowedDocumentIds: string[]): Promise<AssistantResponse>;
+  /** AI writing assistant — transform selected text. */
+  assist(req: AssistRequest): Promise<AssistResult>;
   /** Check if the Ollama backend is reachable. */
   healthCheck(): Promise<boolean>;
   /** Start the EventBus consumer for auto-embedding on StateFlushed events. */

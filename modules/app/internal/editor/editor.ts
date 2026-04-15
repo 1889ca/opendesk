@@ -10,17 +10,13 @@ import { buildSearchPanel } from './search/search-panel.ts';
 import { buildFormattingToolbar } from './formatting-toolbar.ts';
 import { buildBubbleMenu } from './bubble-menu.ts';
 import { CommentStore } from './comments/index.ts';
-import {
-  setSuggestUser,
-  createSuggestModePlugin,
-  setupSuggestionClickHandler,
-} from './suggestions/index.ts';
-import { bindShortcutDialogKey, openShortcutDialog } from '../shared/shortcut-dialog.ts';
+import { setSuggestUser, createSuggestModePlugin, setupSuggestionClickHandler } from './suggestions/index.ts';
+import { bindShortcutDialogKey } from '../shared/shortcut-dialog.ts';
 import { initTouchSupport } from '../shared/touch-support.ts';
 import { buildThemeToggle } from '../shared/theme-toggle.ts';
 import { buildNotificationBell } from '../shared/notification-bell.ts';
 import { trackRecentDoc } from '../shared/workspace-sidebar.ts';
-import { apiFetch } from '../shared/api-client.ts';
+import { apiFetch, getAuthToken } from '../shared/api-client.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
 import { buildEditorExtensions } from './editor-extensions.ts';
 import { initEntityMentionClicks } from './entity-mentions/index.ts';
@@ -32,15 +28,15 @@ import { initRuler } from './editor-ruler.ts';
 import { initZoomControl } from './zoom-control.ts';
 import { buildSaveIndicator } from './save-indicator.ts';
 import { initPageSetup, showPageSetupDialog } from './page-setup.ts';
-import { insertHeaderFooter, insertPageNumber } from './header-footer.ts';
-import {
-  registerServiceWorker,
-  buildOfflineIndicator,
-  buildUpdateBanner,
-  initConnectivityListeners,
-} from '../offline/index.ts';
+import { insertHeaderFooter, insertPageNumber, activateZone, setupHeaderFooterClicks } from './header-footer.ts';
+import { registerServiceWorker, buildOfflineIndicator, buildUpdateBanner, initConnectivityListeners } from '../offline/index.ts';
 import { mountAppToolbar } from '../shared/app-toolbar.ts';
 import { initEditorCollab } from './editor-collab.ts';
+import { initAiAssist } from './ai-assist.ts';
+import { initSpellCheckCycle } from './spell-check.ts';
+import { initFocusModeButton } from './focus-mode.ts';
+import { buildMenuBar } from './menu-bar.ts';
+import { mountEditorRails } from './editor-rails.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -97,7 +93,9 @@ async function init() {
   if (statusEl) { statusEl.textContent = t('status.connecting'); statusEl.className = 'status connecting'; }
 
   const provider = new HocuspocusProvider({
-    url: wsUrl, name: documentId, document: ydoc, token: 'dev',
+    url: wsUrl, name: documentId, document: ydoc,
+    // Use the real auth token — 'dev' sentinel is rejected by the collab server (#340)
+    token: getAuthToken(),
   });
 
   let editor: Editor;
@@ -120,6 +118,18 @@ async function init() {
   editor.registerPlugin(createSuggestModePlugin(editor));
   setupSuggestionClickHandler(editor);
 
+  // Focus editor at end when clicking empty page space below content (issue #437)
+  const editorWrapper = document.querySelector<HTMLElement>('.editor-wrapper');
+  if (editorWrapper) {
+    editorWrapper.addEventListener('click', (e) => {
+      const target = e.target as Node;
+      const canvasTitleWrap = document.querySelector('.editor-canvas-title-wrap');
+      if (!editorEl.contains(target) && !(canvasTitleWrap?.contains(target))) {
+        editor.commands.focus('end');
+      }
+    });
+  }
+
   // Allow native context menu — prevent any TipTap extension or parent listener
   // from suppressing right-click (issue #255)
   editorEl.addEventListener('contextmenu', (e) => {
@@ -128,8 +138,18 @@ async function init() {
 
   setupCodeBlockUI(editor);
   initEntityMentionClicks(editorEl);
+
+  const menuBar = buildMenuBar(editor);
+  const menuBarSlot = document.getElementById('menu-bar');
+  if (menuBarSlot) {
+    menuBarSlot.replaceWith(menuBar.el);
+  }
+
+  mountEditorRails({ editor, commentStore, documentId, user });
+
   buildFormattingToolbar(editor);
   buildBubbleMenu(editor);
+  initAiAssist(editor);
   buildTableToolbar(editor);
   buildSearchPanel(editor);
   buildLanguageSwitcher();
@@ -150,7 +170,6 @@ async function init() {
   bindShortcutDialogKey();
 
   initEditorCollab({ editor, editorEl, provider, statusEl, usersEl, user });
-
   initEditorPanels({ editor, editorEl, commentStore, documentId, user });
   initRuler();
   initZoomControl();
@@ -159,11 +178,14 @@ async function init() {
   // Wire up the Page Setup button in the toolbar
   document.getElementById('page-setup-btn')?.addEventListener('click', showPageSetupDialog);
 
-  // Header / footer zones — inserted above and below the editor paper
-  const { footerZone } = insertHeaderFooter(documentId);
+  // Header / footer zones — inserted above and below the editor paper; hidden until activated (#442)
+  const { headerZone, footerZone } = insertHeaderFooter(documentId);
 
-  // Wire up "Insert Page Number" button
+  setupHeaderFooterClicks(headerZone, footerZone);
+
+  // Wire up "Insert Page Number" button — activates footer zone if not already active
   document.getElementById('insert-page-number')?.addEventListener('click', () => {
+    activateZone(footerZone);
     insertPageNumber(footerZone);
   });
 
@@ -178,6 +200,12 @@ async function init() {
     }, 500);
   }
 
+  // Spell check — cycle through words, leveraging browser native spellcheck.
+  initSpellCheckCycle(editorEl);
+
+  initFocusModeButton();
+
+  console.log('[boot] init-complete');
   Object.assign(window, { editor, provider, ydoc, commentStore });
 }
 

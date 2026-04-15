@@ -3,7 +3,9 @@
 import { type ASTNode, type CellGrid, type CellAddress, type FormulaResult, type CellRef, type RangeRef, FormulaErrorType, makeError, isFormulaError } from './types.ts';
 import { getFunction, toNumber, toString } from './functions.ts';
 import { evaluateVLOOKUP } from './evaluator-vlookup.ts';
+import { evaluateCOUNTIF, evaluateSUMIF, evaluateINDEX, evaluateMATCH } from './evaluator-countif.ts';
 import './functions-text.ts'; // side-effect: registers text functions
+import './functions-lookup.ts'; // side-effect: registers DATE, DATEDIF, FLOOR, CEILING, CONCAT
 
 /** Convert column letters to 1-based index: A=1, B=2, ..., Z=26, AA=27 */
 export function colToIndex(col: string): number {
@@ -138,9 +140,11 @@ function evaluateFunctionCall(
   node: { name: string; args: ASTNode[] },
   grid: CellGrid, cellRef: CellAddress
 ): FormulaResult {
-  if (node.name === 'VLOOKUP') {
-    return evaluateVLOOKUP(node.args, grid, cellRef, evaluate);
-  }
+  if (node.name === 'VLOOKUP') return evaluateVLOOKUP(node.args, grid, cellRef, evaluate);
+  if (node.name === 'COUNTIF') return evaluateCOUNTIF(node.args, grid, cellRef, evaluate);
+  if (node.name === 'SUMIF') return evaluateSUMIF(node.args, grid, cellRef, evaluate);
+  if (node.name === 'INDEX') return evaluateINDEX(node.args, grid, cellRef, evaluate);
+  if (node.name === 'MATCH') return evaluateMATCH(node.args, grid, cellRef, evaluate);
 
   const resolvedArgs: FormulaResult[] = [];
   for (const arg of node.args) {
