@@ -4,8 +4,14 @@ import { type ASTNode, type CellGrid, type CellAddress, type FormulaResult, type
 import { getFunction, toNumber, toString } from './functions.ts';
 import { evaluateVLOOKUP } from './evaluator-vlookup.ts';
 import { evaluateCOUNTIF, evaluateSUMIF, evaluateINDEX, evaluateMATCH } from './evaluator-countif.ts';
+import {
+  evaluateCOUNTIFS, evaluateSUMIFS, evaluateAVERAGEIF, evaluateAVERAGEIFS,
+  evaluateMAXIFS, evaluateMINIFS,
+} from './evaluator-multi-criteria.ts';
+import { evaluateXLOOKUP } from './evaluator-xlookup.ts';
 import './functions-text.ts'; // side-effect: registers text functions
 import './functions-lookup.ts'; // side-effect: registers DATE, DATEDIF, FLOOR, CEILING, CONCAT
+import './functions-logical.ts'; // side-effect: registers AND, OR, NOT, XOR, IFERROR, IFNA, IFS, SWITCH, TRUE, FALSE, IS*
 
 /** Convert column letters to 1-based index: A=1, B=2, ..., Z=26, AA=27 */
 export function colToIndex(col: string): number {
@@ -61,6 +67,7 @@ export function evaluate(node: ASTNode, grid: CellGrid, cellRef: CellAddress): F
     case 'number': return node.value;
     case 'string': return node.value;
     case 'boolean': return node.value;
+    case 'empty': return null;
     case 'cell_ref': return resolveCell(grid, cellRefToKey(node));
     case 'range_ref': return makeError(FormulaErrorType.VALUE, 'Range outside function');
     case 'unary_op': {
@@ -145,6 +152,13 @@ function evaluateFunctionCall(
   if (node.name === 'SUMIF') return evaluateSUMIF(node.args, grid, cellRef, evaluate);
   if (node.name === 'INDEX') return evaluateINDEX(node.args, grid, cellRef, evaluate);
   if (node.name === 'MATCH') return evaluateMATCH(node.args, grid, cellRef, evaluate);
+  if (node.name === 'COUNTIFS') return evaluateCOUNTIFS(node.args, grid, cellRef, evaluate);
+  if (node.name === 'SUMIFS') return evaluateSUMIFS(node.args, grid, cellRef, evaluate);
+  if (node.name === 'AVERAGEIF') return evaluateAVERAGEIF(node.args, grid, cellRef, evaluate);
+  if (node.name === 'AVERAGEIFS') return evaluateAVERAGEIFS(node.args, grid, cellRef, evaluate);
+  if (node.name === 'MAXIFS') return evaluateMAXIFS(node.args, grid, cellRef, evaluate);
+  if (node.name === 'MINIFS') return evaluateMINIFS(node.args, grid, cellRef, evaluate);
+  if (node.name === 'XLOOKUP') return evaluateXLOOKUP(node.args, grid, cellRef, evaluate);
 
   const resolvedArgs: FormulaResult[] = [];
   for (const arg of node.args) {

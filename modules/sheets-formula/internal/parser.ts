@@ -137,11 +137,20 @@ export function parse(formula: string): ASTNode | FormulaError {
 
     const args: ASTNode[] = [];
     if (peek().type !== 'RPAREN') {
-      const first = parseExpression();
-      if ('type' in first && first.type === 'error') return first;
-      args.push(first as ASTNode);
+      // Support leading empty arg: FN(, x) — rare but allowed in Excel.
+      if (peek().type === 'COMMA') args.push({ type: 'empty' });
+      else {
+        const first = parseExpression();
+        if ('type' in first && first.type === 'error') return first;
+        args.push(first as ASTNode);
+      }
       while (peek().type === 'COMMA') {
         advance();
+        // Skipped arg: immediately followed by another COMMA or RPAREN.
+        if (peek().type === 'COMMA' || peek().type === 'RPAREN') {
+          args.push({ type: 'empty' });
+          continue;
+        }
         const arg = parseExpression();
         if ('type' in arg && arg.type === 'error') return arg;
         args.push(arg as ASTNode);

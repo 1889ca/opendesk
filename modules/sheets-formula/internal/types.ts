@@ -51,7 +51,8 @@ export type ASTNode =
   | RangeRef
   | FunctionCall
   | BinaryOp
-  | UnaryOp;
+  | UnaryOp
+  | EmptyArg;
 
 export type NumberLiteral = { type: 'number'; value: number };
 export type StringLiteral = { type: 'string'; value: string };
@@ -89,6 +90,9 @@ export type UnaryOp = {
   op: '+' | '-';
   operand: ASTNode;
 };
+
+/** A skipped function argument, e.g. XLOOKUP(x, a, b, , 1). Evaluates to null. */
+export type EmptyArg = { type: 'empty' };
 
 // --- Token Types (for parser) ---
 

@@ -47,7 +47,15 @@ No other OpenDesk module may be imported by `sheets-formula`.
 - Export `evaluateFormula(formula: string, grid: CellGrid, cellRef: CellAddress): FormulaResult` as the public evaluation API.
 - Export `getDependencies(formula: string): DependencySet` for dependency graph construction.
 - Export `detectCircular(formulas: Map<string, string>): Set<string>` for bulk circular reference detection.
-- Support these functions: SUM, AVERAGE, COUNT, MIN, MAX, IF, VLOOKUP, CONCATENATE, NOW, TODAY, ROUND, ABS, LEN, LEFT, RIGHT, MID, TRIM, UPPER, LOWER.
+- Support these functions:
+  - **Math/aggregate**: SUM, AVERAGE, COUNT, MIN, MAX, ROUND, ABS, FLOOR, CEILING.
+  - **Logical**: IF, AND, OR, NOT, XOR, IFERROR, IFNA, IFS, SWITCH, TRUE, FALSE,
+    ISERROR, ISNA, ISNUMBER, ISTEXT, ISBLANK, ISLOGICAL.
+  - **Multi-criteria aggregates**: COUNTIF, COUNTIFS, SUMIF, SUMIFS, AVERAGEIF,
+    AVERAGEIFS, MAXIFS, MINIFS.
+  - **Lookup**: VLOOKUP, XLOOKUP, INDEX, MATCH.
+  - **Text**: CONCATENATE, CONCAT, LEN, LEFT, RIGHT, MID, TRIM, UPPER, LOWER.
+  - **Date**: NOW, TODAY, DATE, DATEDIF.
 - Return typed `FormulaError` values (never throw) for all error conditions.
 - Handle both uppercase and lowercase function names (case-insensitive).
 - Keep every file under 200 lines.
@@ -79,13 +87,23 @@ How to test each invariant:
 
 ```
 modules/sheets-formula/
-  contract.ts          -- Zod schemas, inferred types, FormulaError enum
-  index.ts             -- re-exports public API
+  contract.ts                      -- Zod schemas, inferred types, FormulaError enum
+  index.ts                         -- re-exports public API
   internal/
-    types.ts           -- AST node types, CellRef, CellValue, FormulaError
-    parser.ts          -- tokenizer + recursive descent parser
-    evaluator.ts       -- AST walker, cell ref resolution, function dispatch
-    functions.ts       -- function library implementations (SUM, IF, etc.)
-    functions-text.ts  -- text function implementations (LEN, LEFT, etc.)
-    circular-detect.ts -- dependency graph + cycle detection
+    types.ts                       -- AST node types, CellRef, CellValue, FormulaError
+    tokenizer.ts                   -- formula tokenizer
+    parser.ts                      -- recursive descent parser
+    evaluator.ts                   -- AST walker, function dispatch
+    functions.ts                   -- core math/aggregate functions (SUM, IF, etc.)
+    functions-text.ts              -- text functions (LEN, LEFT, TRIM, etc.)
+    functions-lookup.ts            -- DATE, DATEDIF, FLOOR, CEILING, CONCAT
+    functions-logical.ts           -- AND, OR, NOT, XOR, IFERROR, IFNA, IFS, SWITCH,
+                                      TRUE, FALSE, IS* predicates
+    evaluator-vlookup.ts           -- VLOOKUP with range access
+    evaluator-countif.ts           -- COUNTIF, SUMIF, INDEX, MATCH
+    evaluator-multi-criteria.ts    -- COUNTIFS, SUMIFS, AVERAGEIF, AVERAGEIFS,
+                                      MAXIFS, MINIFS
+    evaluator-xlookup.ts           -- XLOOKUP (exact/approx/wildcard/binary search)
+    criteria-match.ts              -- shared criterion parsing + predicate helpers
+    circular-detect.ts             -- dependency graph + cycle detection
 ```
