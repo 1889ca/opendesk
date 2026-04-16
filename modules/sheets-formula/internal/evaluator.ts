@@ -4,8 +4,14 @@ import { type ASTNode, type CellGrid, type CellAddress, type FormulaResult, type
 import { getFunction, toNumber, toString } from './functions.ts';
 import { evaluateVLOOKUP } from './evaluator-vlookup.ts';
 import { evaluateCOUNTIF, evaluateSUMIF, evaluateINDEX, evaluateMATCH } from './evaluator-countif.ts';
+import { evaluateAVERAGEIF, evaluateCOUNTIFS, evaluateSUMIFS, evaluateSUMPRODUCT, evaluateHLOOKUP, evaluateCHOOSE } from './evaluator-aggregate.ts';
 import './functions-text.ts'; // side-effect: registers text functions
+import './functions-text-ext.ts'; // side-effect: registers SUBSTITUTE, FIND, SEARCH, EXACT, REPT, PROPER, VALUE, CHAR, CODE, REPLACE, TEXTJOIN
 import './functions-lookup.ts'; // side-effect: registers DATE, DATEDIF, FLOOR, CEILING, CONCAT
+import './functions-logic.ts'; // side-effect: registers AND, OR, NOT, IFERROR, IFNA, ISBLANK, ISERROR, ISNA, ISNUMBER, ISTEXT, XOR
+import './functions-math-ext.ts'; // side-effect: registers INT, MOD, POWER, SQRT, LOG, LN, EXP, PI, RAND, RANDBETWEEN, SIGN, LOG10
+import './functions-stat.ts'; // side-effect: registers MEDIAN, STDEV, STDEVP, VAR, VARP, LARGE, SMALL, COUNTA, COUNTBLANK, MODE, PRODUCT
+import './functions-date-ext.ts'; // side-effect: registers YEAR, MONTH, DAY, HOUR, MINUTE, SECOND, WEEKDAY, EOMONTH, EDATE, TIME
 
 /** Convert column letters to 1-based index: A=1, B=2, ..., Z=26, AA=27 */
 export function colToIndex(col: string): number {
@@ -141,10 +147,16 @@ function evaluateFunctionCall(
   grid: CellGrid, cellRef: CellAddress
 ): FormulaResult {
   if (node.name === 'VLOOKUP') return evaluateVLOOKUP(node.args, grid, cellRef, evaluate);
+  if (node.name === 'HLOOKUP') return evaluateHLOOKUP(node.args, grid, cellRef, evaluate);
   if (node.name === 'COUNTIF') return evaluateCOUNTIF(node.args, grid, cellRef, evaluate);
   if (node.name === 'SUMIF') return evaluateSUMIF(node.args, grid, cellRef, evaluate);
   if (node.name === 'INDEX') return evaluateINDEX(node.args, grid, cellRef, evaluate);
   if (node.name === 'MATCH') return evaluateMATCH(node.args, grid, cellRef, evaluate);
+  if (node.name === 'AVERAGEIF') return evaluateAVERAGEIF(node.args, grid, cellRef, evaluate);
+  if (node.name === 'COUNTIFS') return evaluateCOUNTIFS(node.args, grid, cellRef, evaluate);
+  if (node.name === 'SUMIFS') return evaluateSUMIFS(node.args, grid, cellRef, evaluate);
+  if (node.name === 'SUMPRODUCT') return evaluateSUMPRODUCT(node.args, grid, cellRef, evaluate);
+  if (node.name === 'CHOOSE') return evaluateCHOOSE(node.args, grid, cellRef, evaluate);
 
   const resolvedArgs: FormulaResult[] = [];
   for (const arg of node.args) {

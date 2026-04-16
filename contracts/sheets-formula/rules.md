@@ -47,7 +47,13 @@ No other OpenDesk module may be imported by `sheets-formula`.
 - Export `evaluateFormula(formula: string, grid: CellGrid, cellRef: CellAddress): FormulaResult` as the public evaluation API.
 - Export `getDependencies(formula: string): DependencySet` for dependency graph construction.
 - Export `detectCircular(formulas: Map<string, string>): Set<string>` for bulk circular reference detection.
-- Support these functions: SUM, AVERAGE, COUNT, MIN, MAX, IF, VLOOKUP, CONCATENATE, NOW, TODAY, ROUND, ABS, LEN, LEFT, RIGHT, MID, TRIM, UPPER, LOWER.
+- Support these core functions: SUM, AVERAGE, COUNT, MIN, MAX, IF, VLOOKUP, CONCATENATE, NOW, TODAY, ROUND, ABS, LEN, LEFT, RIGHT, MID, TRIM, UPPER, LOWER.
+- Support these logical functions: AND, OR, NOT, XOR, IFERROR, IFNA, ISBLANK, ISERROR, ISNA, ISNUMBER, ISTEXT.
+- Support these extended math functions: INT, MOD, POWER, SQRT, LOG, LN, LOG10, EXP, PI, RAND, RANDBETWEEN, SIGN.
+- Support these statistical functions: MEDIAN, STDEV, STDEVP, VAR, VARP, LARGE, SMALL, COUNTA, COUNTBLANK, MODE, PRODUCT.
+- Support these extended text functions: SUBSTITUTE, FIND, SEARCH, EXACT, REPT, PROPER, VALUE, CHAR, CODE, REPLACE, TEXTJOIN.
+- Support these date accessor functions: YEAR, MONTH, DAY, HOUR, MINUTE, SECOND, WEEKDAY, EOMONTH, EDATE, TIME.
+- Support these conditional/lookup functions: HLOOKUP, CHOOSE, AVERAGEIF, COUNTIFS, SUMIFS, SUMPRODUCT.
 - Return typed `FormulaError` values (never throw) for all error conditions.
 - Handle both uppercase and lowercase function names (case-insensitive).
 - Keep every file under 200 lines.
@@ -79,13 +85,23 @@ How to test each invariant:
 
 ```
 modules/sheets-formula/
-  contract.ts          -- Zod schemas, inferred types, FormulaError enum
-  index.ts             -- re-exports public API
+  contract.ts               -- Zod schemas, inferred types, FormulaError enum
+  index.ts                  -- re-exports public API
   internal/
-    types.ts           -- AST node types, CellRef, CellValue, FormulaError
-    parser.ts          -- tokenizer + recursive descent parser
-    evaluator.ts       -- AST walker, cell ref resolution, function dispatch
-    functions.ts       -- function library implementations (SUM, IF, etc.)
-    functions-text.ts  -- text function implementations (LEN, LEFT, etc.)
-    circular-detect.ts -- dependency graph + cycle detection
+    types.ts                -- AST node types, CellRef, CellValue, FormulaError
+    tokenizer.ts            -- lexer producing Token stream
+    parser.ts               -- recursive descent parser producing AST
+    evaluator.ts            -- AST walker, cell ref resolution, function dispatch
+    functions.ts            -- core function library (SUM, AVERAGE, IF, etc.)
+    functions-text.ts       -- text functions (LEN, LEFT, RIGHT, MID, TRIM, UPPER, LOWER)
+    functions-text-ext.ts   -- extended text (SUBSTITUTE, FIND, SEARCH, EXACT, REPT, PROPER, VALUE, CHAR, CODE, REPLACE, TEXTJOIN)
+    functions-lookup.ts     -- lookup/date (DATE, DATEDIF, FLOOR, CEILING, CONCAT, INDEX, MATCH stubs)
+    functions-logic.ts      -- logical (AND, OR, NOT, XOR, IFERROR, IFNA, IS* family)
+    functions-math-ext.ts   -- extended math (INT, MOD, POWER, SQRT, LOG, LN, EXP, PI, RAND, SIGN, LOG10)
+    functions-stat.ts       -- statistical (MEDIAN, STDEV, STDEVP, VAR, VARP, LARGE, SMALL, COUNTA, COUNTBLANK, MODE, PRODUCT)
+    functions-date-ext.ts   -- date accessors (YEAR, MONTH, DAY, HOUR, MINUTE, SECOND, WEEKDAY, EOMONTH, EDATE, TIME)
+    evaluator-vlookup.ts    -- VLOOKUP (needs range-aware evaluation)
+    evaluator-countif.ts    -- COUNTIF, SUMIF, INDEX, MATCH (range-aware)
+    evaluator-aggregate.ts  -- AVERAGEIF, COUNTIFS, SUMIFS, SUMPRODUCT, HLOOKUP, CHOOSE (range-aware)
+    circular-detect.ts      -- dependency graph + cycle detection
 ```
