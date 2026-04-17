@@ -18,6 +18,7 @@ Provide the spreadsheet editor for OpenDesk: grid rendering, cell editing, formu
 - Format toolbar DOM elements
 - Tab bar DOM elements for sheet management
 - Conditional formatting visual overlays
+- Data validation indicators (dropdown arrows, invalid-cell markers, input/error popups)
 
 ## Side Effects
 
@@ -95,6 +96,13 @@ modules/app-sheets/
     filter-state.ts             — Filter state management
     cell-evaluator.ts           — Cell formula evaluation
     cross-sheet-ref.ts          — Cross-sheet reference parser
+    data-validation-rules.ts     — Data validation rule types and Yjs storage
+    data-validation-engine.ts    — Validation logic (list, number, date, text, custom)
+    data-validation-renderer.ts  — Visual indicators (dropdown arrows, error markers)
+    data-validation-dialog.ts    — Data validation rule editor dialog
+    data-validation-dropdown.ts  — In-cell dropdown for list validation
+    data-validation-integration.ts — Focus/blur hooks and event wiring
+    toolbar-buttons.ts           — Toolbar button factories (cond format, validation)
     cond-format-rules.ts        — Conditional formatting rule storage
     cond-format-engine.ts       — Conditional formatting evaluation
     cond-format-renderer.ts     — Conditional formatting visual rendering
@@ -106,6 +114,7 @@ modules/app-sheets/
       sheets-col-row.css        — Column/row resize styles
       sheets-filter.css         — Filter UI styles
       sheets-cond-format.css    — Conditional formatting styles
+      sheets-data-validation.css — Data validation styles
 ```
 
 ## Verification
@@ -114,6 +123,7 @@ modules/app-sheets/
 2. **Multi-sheet tabs** — Create, rename, delete, switch sheets.
 3. **Cell formatting** — Toolbar and shortcuts apply formatting via Yjs.
 4. **Conditional formatting** — Rules apply visual styles correctly.
+5. **Data validation** — Rules validate input, dropdowns show options, errors reject/warn.
 5. **Clipboard** — Copy/paste preserves formatting and values.
 6. **Sorting/filtering** — Sort and filter operations work correctly.
 7. **Build** — `npm run build` succeeds with updated entry points.

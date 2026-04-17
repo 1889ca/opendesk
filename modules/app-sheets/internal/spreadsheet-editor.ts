@@ -14,38 +14,19 @@ import { createColRowResize } from './col-row-resize.ts';
 import { buildContextMenu } from './freeze-panes.ts';
 import { sortByColumn } from './sort-engine.ts';
 import { createFilterManager } from './filter-manager.ts';
-import { getRules, addRule, observeRules } from './cond-format-rules.ts';
+import { getRules, observeRules } from './cond-format-rules.ts';
 import { applyCondFormatting } from './cond-format-renderer.ts';
-import { openCondFormatDialog } from './cond-format-dialog.ts';
 import { setupPresence } from './presence.ts';
 import { createNameBox } from './name-box.ts';
 import { openNamedRangeDialog } from './named-range-dialog.ts';
 import { observeNamedRanges } from './named-ranges.ts';
 import { openPivotDialog } from './pivot/pivot-dialog.ts';
+import { applyValidationIndicators } from './data-validation-renderer.ts';
+import { handleValidationFocus, attachValidationListeners, observeValidation } from './data-validation-integration.ts';
+import { appendCondFormatButton, appendDataValidationButton, setupFormulaBar } from './toolbar-buttons.ts';
 
 const DEFAULT_COLS = 26;
 const DEFAULT_ROWS = 50;
-
-function setupFormulaBar(
-  input: HTMLInputElement, ydoc: Y.Doc,
-  getSheet: () => Y.Array<Y.Array<string>>, getRow: () => number, getCol: () => number, render: () => void,
-): void {
-  input.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter') return;
-    const yrow = getSheet().get(getRow());
-    if (yrow) ydoc.transact(() => { yrow.delete(getCol(), 1); yrow.insert(getCol(), [input.value]); });
-    render();
-  });
-}
-
-function appendCondFormatButton(container: HTMLElement, ydoc: Y.Doc, getCol: () => number): void {
-  const btn = document.createElement('button');
-  btn.className = 'format-btn';
-  btn.textContent = 'Cond Format';
-  btn.title = 'Conditional Formatting';
-  btn.addEventListener('click', () => openCondFormatDialog((rule) => addRule(ydoc, rule), getCol()));
-  container.appendChild(btn);
-}
 
 function init() {
   mountAppToolbar();
@@ -88,6 +69,7 @@ function init() {
   if (formatBarContainer) {
     formatToolbar = createFormatToolbar(formatBarContainer, ydoc, fmtCb);
     appendCondFormatButton(formatBarContainer, ydoc, () => activeCol);
+    appendDataValidationButton(formatBarContainer, ydoc, () => activeRow, () => activeCol);
   }
   attachFormatShortcuts(ydoc, fmtCb);
 
@@ -158,6 +140,7 @@ function init() {
         activeRow = r;
         activeCol = c;
         nameBox?.update(r, c);
+        handleValidationFocus(gridEl, ydoc, r, c);
       },
     });
     resizeMgr.applyWidths(gridEl, DEFAULT_COLS);
@@ -165,6 +148,12 @@ function init() {
       const yrow = getActiveSheet().get(r);
       return (yrow && c < yrow.length) ? yrow.get(c) : '';
     }, DEFAULT_ROWS, DEFAULT_COLS);
+    const dvGetData = (r: number, c: number) => {
+      const yrow = getActiveSheet().get(r);
+      return (yrow && c < yrow.length) ? yrow.get(c) : '';
+    };
+    applyValidationIndicators(gridEl, ydoc, dvGetData, DEFAULT_ROWS, DEFAULT_COLS);
+    attachValidationListeners(gridEl, ydoc, getActiveSheet, doRender);
     if (currentRange) rangeSelection.setRange(currentRange);
     filterMgr.afterRender();
   }
@@ -197,6 +186,7 @@ function init() {
   if (formulaInput) setupFormulaBar(formulaInput, ydoc, getActiveSheet, () => activeRow, () => activeCol, doRender);
   setupPresence(provider, user, usersEl);
   observeNamedRanges(ydoc, () => doRender());
+  observeValidation(ydoc, () => doRender());
   Object.assign(window, { ydoc, provider, store });
 }
 
