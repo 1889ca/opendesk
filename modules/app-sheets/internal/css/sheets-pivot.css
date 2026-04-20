@@ -142,3 +142,96 @@
 .pivot-cancel-btn:hover {
   background: var(--muted-hover, #d1d5db);
 }
+
+/* Multi-value field entries */
+
+.pivot-value-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.pivot-value-entry {
+  display: flex;
+  gap: 0.375rem;
+  align-items: center;
+}
+
+.pivot-value-entry .pivot-select {
+  flex: 1;
+}
+
+.pivot-value-field-sel {
+  flex: 2;
+}
+
+.pivot-value-agg-sel {
+  flex: 1;
+}
+
+.pivot-remove-btn {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1;
+  border-radius: 50%;
+  background: var(--error-muted, #fecaca);
+  color: var(--error, #dc2626);
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.pivot-remove-btn:hover {
+  background: var(--error, #dc2626);
+  color: #fff;
+}
+
+.pivot-add-value-btn {
+  align-self: flex-start;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  background: var(--primary-muted, #dbeafe);
+  color: var(--primary, #2563eb);
+}
+
+.pivot-add-value-btn:hover {
+  background: var(--primary, #2563eb);
+  color: #fff;
+}
+
+/* Advanced options section */
+
+.pivot-options-section {
+  border: 1px solid var(--border, #ccc);
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.pivot-options-section summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary, #555);
+  user-select: none;
+}
+
+.pivot-options-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.pivot-filter-input {
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--border, #ccc);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--surface, #fff);
+  color: var(--text, #1a1a1a);
+}
