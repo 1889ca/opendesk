@@ -1,0 +1,100 @@
+/* Data Validation cell styles — Contract: contracts/app-sheets/data-validation.md */
+
+/* --- Cell indicators --- */
+
+.dv-has-rule {
+  position: relative;
+}
+
+.dv-invalid {
+  outline: 2px solid #ea4335 !important;
+  outline-offset: -2px;
+}
+
+.dv-warning {
+  outline: 2px solid #fbbc04 !important;
+  outline-offset: -2px;
+}
+
+.dv-info {
+  outline: 2px solid #4285f4 !important;
+  outline-offset: -2px;
+}
+
+/* --- Dropdown arrow on list-validated cells --- */
+
+.dv-dropdown-arrow {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--text-muted, #888);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.12s, color 0.12s;
+  pointer-events: auto;
+}
+
+.dv-dropdown-arrow:hover {
+  background: var(--bg, #e8e8e8);
+  color: var(--text, #333);
+}
+
+/* --- Dropdown overlay --- */
+
+.dv-dropdown {
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #ddd);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.dv-dropdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.dv-dropdown-item {
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  color: var(--text, #333);
+  transition: background 0.1s;
+}
+
+.dv-dropdown-item:hover,
+.dv-dropdown-item--focused {
+  background: var(--bg, #f0f0f0);
+}
+
+.dv-dropdown-item--selected {
+  font-weight: 600;
+  color: var(--accent, #4285f4);
+}
+
+/* --- Input tooltip --- */
+
+.dv-input-tooltip {
+  background: var(--surface, #fffde7);
+  border: 1px solid #f0e68c;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  color: var(--text, #333);
+  max-width: 240px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+}
+
+.dv-input-tooltip strong {
+  font-size: 0.8125rem;
+}
