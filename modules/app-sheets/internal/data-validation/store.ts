@@ -1,7 +1,7 @@
 /** Contract: contracts/app-sheets/data-validation.md */
 import * as Y from 'yjs';
-import type { ValidationRule } from './types.ts';
 import {
+  type ValidationRule,
   createRuleId,
   cellInRange,
   serializeRule,

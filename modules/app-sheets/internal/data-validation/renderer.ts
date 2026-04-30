@@ -1,6 +1,5 @@
 /** Contract: contracts/app-sheets/data-validation.md */
-import type { ValidationRule } from './types.ts';
-import { cellInRange } from './types.ts';
+import { type ValidationRule, cellInRange } from './types.ts';
 import { validate } from './engine.ts';
 import { showDropdown, closeDropdown } from './dropdown.ts';
 import * as Y from 'yjs';
