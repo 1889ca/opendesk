@@ -4,8 +4,17 @@ import { type ASTNode, type CellGrid, type CellAddress, type FormulaResult, type
 import { getFunction, toNumber, toString } from './functions.ts';
 import { evaluateVLOOKUP } from './evaluator-vlookup.ts';
 import { evaluateCOUNTIF, evaluateSUMIF, evaluateINDEX, evaluateMATCH } from './evaluator-countif.ts';
+import { evaluateSUMPRODUCT, evaluateHLOOKUP, evaluateCHOOSE } from './evaluator-aggregate.ts';
+import { evaluateCOUNTIFS, evaluateSUMIFS, evaluateAVERAGEIF, evaluateAVERAGEIFS, evaluateMAXIFS, evaluateMINIFS } from './evaluator-multi-criteria.ts';
+import { evaluateXLOOKUP } from './evaluator-xlookup.ts';
 import './functions-text.ts'; // side-effect: registers text functions
 import './functions-lookup.ts'; // side-effect: registers DATE, DATEDIF, FLOOR, CEILING, CONCAT
+import './functions-logical.ts'; // side-effect: registers AND, OR, NOT, XOR, IF*, IS*, TRUE, FALSE, TYPE
+import './functions-math-ext.ts'; // side-effect: registers INT, MOD, POWER, SQRT, LOG, EVEN, ODD, etc.
+import './functions-stat.ts'; // side-effect: registers MEDIAN, STDEV, VAR, MODE, PRODUCT, etc.
+import './functions-text-ext.ts'; // side-effect: registers SUBSTITUTE, FIND, SEARCH, TEXTJOIN, etc.
+import './functions-date-ext.ts'; // side-effect: registers YEAR, MONTH, DAY, HOUR, WEEKDAY, etc.
+import './functions-financial.ts'; // side-effect: registers PMT, FV, PV, NPV, IRR, RATE
 
 /** Convert column letters to 1-based index: A=1, B=2, ..., Z=26, AA=27 */
 export function colToIndex(col: string): number {
@@ -145,6 +154,16 @@ function evaluateFunctionCall(
   if (node.name === 'SUMIF') return evaluateSUMIF(node.args, grid, cellRef, evaluate);
   if (node.name === 'INDEX') return evaluateINDEX(node.args, grid, cellRef, evaluate);
   if (node.name === 'MATCH') return evaluateMATCH(node.args, grid, cellRef, evaluate);
+  if (node.name === 'SUMPRODUCT') return evaluateSUMPRODUCT(node.args, grid, cellRef, evaluate);
+  if (node.name === 'HLOOKUP') return evaluateHLOOKUP(node.args, grid, cellRef, evaluate);
+  if (node.name === 'CHOOSE') return evaluateCHOOSE(node.args, grid, cellRef, evaluate);
+  if (node.name === 'COUNTIFS') return evaluateCOUNTIFS(node.args, grid, cellRef, evaluate);
+  if (node.name === 'SUMIFS') return evaluateSUMIFS(node.args, grid, cellRef, evaluate);
+  if (node.name === 'AVERAGEIF') return evaluateAVERAGEIF(node.args, grid, cellRef, evaluate);
+  if (node.name === 'AVERAGEIFS') return evaluateAVERAGEIFS(node.args, grid, cellRef, evaluate);
+  if (node.name === 'MAXIFS') return evaluateMAXIFS(node.args, grid, cellRef, evaluate);
+  if (node.name === 'MINIFS') return evaluateMINIFS(node.args, grid, cellRef, evaluate);
+  if (node.name === 'XLOOKUP') return evaluateXLOOKUP(node.args, grid, cellRef, evaluate);
 
   const resolvedArgs: FormulaResult[] = [];
   for (const arg of node.args) {
