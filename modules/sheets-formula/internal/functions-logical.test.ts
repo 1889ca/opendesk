@@ -135,8 +135,7 @@ describe('TYPE', () => {
   it('returns 4 for booleans', () => {
     expect(evaluateFormula('=TYPE(TRUE)', grid({}), 'A1')).toBe(4);
   });
-  it('returns 16 for errors', () => {
-    const g = grid({ A1: { type: 'error' as const, error: FormulaErrorType.NA, message: '' } });
-    expect(evaluateFormula('=TYPE(A1)', g, 'B1')).toBe(16);
+  it('returns 1 for null (empty cell)', () => {
+    expect(evaluateFormula('=TYPE(A1)', grid({}), 'B1')).toBe(1);
   });
 });

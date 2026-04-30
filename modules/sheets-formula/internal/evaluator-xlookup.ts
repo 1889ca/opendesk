@@ -94,17 +94,17 @@ export function evaluateXLOOKUP(
   }
   const stride = returnKeys.length / lookupKeys.length;
 
-  const matchMode = args.length >= 5 && args[4].type !== 'empty'
+  const matchMode = args.length >= 5
     ? toNumber(evalNode(args[4], grid, cellRef)) : 0;
   if (isFormulaError(matchMode)) return matchMode;
-  const searchMode = args.length === 6 && args[5].type !== 'empty'
+  const searchMode = args.length === 6
     ? toNumber(evalNode(args[5], grid, cellRef)) : 1;
   if (isFormulaError(searchMode)) return searchMode;
 
   const values = lookupKeys.map((k) => resolveCell(grid, k));
   const idx = findXLookupIndex(values, lookup, Math.trunc(matchMode), Math.trunc(searchMode));
   if (idx === -1) {
-    if (args.length >= 4 && args[3].type !== 'empty') {
+    if (args.length >= 4) {
       return evalNode(args[3], grid, cellRef);
     }
     return makeError(FormulaErrorType.NA, 'XLOOKUP: no match found');
