@@ -55,7 +55,10 @@ export function addInviteRoute(router: Router, opts: InviteRoutesOptions): void 
         return;
       }
 
-      const { email, role } = bodyResult.data;
+      const { role } = bodyResult.data;
+      // Issue #508: canonicalize email on creation so it matches the form used
+      // at activation time (activatePendingGrants also lowercases + trims).
+      const email = bodyResult.data.email.trim().toLowerCase();
 
       // Enforce role ceiling: grantor cannot invite at a higher role than their own.
       const grantorGrants = await grantStore.findByPrincipalAndResource(
