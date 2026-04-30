@@ -3,38 +3,48 @@
 import { type FormulaResult, FormulaErrorType, makeError, isFormulaError } from './types.ts';
 import { toNumber, registerFunction } from './functions.ts';
 
-const EXCEL_EPOCH = new Date(1899, 11, 30).getTime();
-const MS_PER_DAY = 86400000;
+/** Excel epoch: Dec 30, 1899, as a UTC midnight value. */
+const EXCEL_EPOCH_UTC = Date.UTC(1899, 11, 30); // UTC midnight, avoids DST
 
-/** Convert Excel serial date number to JS Date */
-function serialToDate(serial: number): Date {
-  return new Date(EXCEL_EPOCH + serial * MS_PER_DAY);
+/** Convert Excel serial date number to JS Date components (via UTC to avoid DST). */
+function serialToDateUTC(serial: number): { year: number; month: number; day: number } {
+  const ms = EXCEL_EPOCH_UTC + Math.floor(serial) * 86400000;
+  const d = new Date(ms);
+  return { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate() };
 }
 
-/** Convert JS Date to Excel serial date number */
+/** Convert a JS Date's local components to an Excel serial number (UTC-based). */
 function dateToSerial(date: Date): number {
-  return Math.floor((date.getTime() - EXCEL_EPOCH) / MS_PER_DAY);
+  const utcMs = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  return Math.round((utcMs - EXCEL_EPOCH_UTC) / 86400000);
+}
+
+/** For functions that need a Date object, build from UTC components. */
+function serialToDate(serial: number): Date {
+  const { year, month, day } = serialToDateUTC(serial);
+  // Return a Date using local constructor but with correct y/m/d values
+  return new Date(year, month - 1, day);
 }
 
 function fnYEAR(args: FormulaResult[]): FormulaResult {
   if (args.length !== 1) return makeError(FormulaErrorType.VALUE, 'YEAR requires 1 argument');
   const n = toNumber(args[0]);
   if (isFormulaError(n)) return n;
-  return serialToDate(n).getFullYear();
+  return serialToDateUTC(n).year;
 }
 
 function fnMONTH(args: FormulaResult[]): FormulaResult {
   if (args.length !== 1) return makeError(FormulaErrorType.VALUE, 'MONTH requires 1 argument');
   const n = toNumber(args[0]);
   if (isFormulaError(n)) return n;
-  return serialToDate(n).getMonth() + 1;
+  return serialToDateUTC(n).month;
 }
 
 function fnDAY(args: FormulaResult[]): FormulaResult {
   if (args.length !== 1) return makeError(FormulaErrorType.VALUE, 'DAY requires 1 argument');
   const n = toNumber(args[0]);
   if (isFormulaError(n)) return n;
-  return serialToDate(n).getDate();
+  return serialToDateUTC(n).day;
 }
 
 function fnHOUR(args: FormulaResult[]): FormulaResult {

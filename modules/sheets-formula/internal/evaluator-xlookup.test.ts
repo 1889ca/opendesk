@@ -50,12 +50,12 @@ describe('XLOOKUP — search modes', () => {
       A1: 'x', A2: 'y', A3: 'x',
       B1: 1,   B2: 2,   B3: 3,
     });
-    expect(evaluateFormula('=XLOOKUP("x", A1:A3, B1:B3, , 0, -1)', g, 'E1')).toBe(3);
-    expect(evaluateFormula('=XLOOKUP("x", A1:A3, B1:B3, , 0, 1)', g, 'E1')).toBe(1);
+    expect(evaluateFormula('=XLOOKUP("x", A1:A3, B1:B3, "#N/A", 0, -1)', g, 'E1')).toBe(3);
+    expect(evaluateFormula('=XLOOKUP("x", A1:A3, B1:B3, "#N/A", 0, 1)', g, 'E1')).toBe(1);
   });
 
   it('binary search ascending (search_mode=2)', () => {
-    expect(evaluateFormula('=XLOOKUP(10, A1:A5, B1:B5, , 0, 2)', sorted, 'E1')).toBe('c');
+    expect(evaluateFormula('=XLOOKUP(10, A1:A5, B1:B5, "#N/A", 0, 2)', sorted, 'E1')).toBe('c');
   });
 });
 
@@ -69,15 +69,15 @@ describe('XLOOKUP — approximate match modes', () => {
   });
 
   it('match_mode=-1 (next smaller) for exact miss', () => {
-    expect(evaluateFormula('=XLOOKUP(85, A1:A5, B1:B5, , -1)', tiers, 'E1')).toBe('B');
+    expect(evaluateFormula('=XLOOKUP(85, A1:A5, B1:B5, "#N/A", -1)', tiers, 'E1')).toBe('B');
   });
 
   it('match_mode=1 (next larger) for exact miss', () => {
-    expect(evaluateFormula('=XLOOKUP(85, A1:A5, B1:B5, , 1)', tiers, 'E1')).toBe('A');
+    expect(evaluateFormula('=XLOOKUP(85, A1:A5, B1:B5, "#N/A", 1)', tiers, 'E1')).toBe('A');
   });
 
   it('match_mode=-1 with binary search sorted-ascending', () => {
-    expect(evaluateFormula('=XLOOKUP(85, A1:A5, B1:B5, , -1, 2)', tiers, 'E1')).toBe('B');
+    expect(evaluateFormula('=XLOOKUP(85, A1:A5, B1:B5, "#N/A", -1, 2)', tiers, 'E1')).toBe('B');
   });
 });
 
@@ -88,11 +88,11 @@ describe('XLOOKUP — wildcards (match_mode=2)', () => {
   });
 
   it('matches * wildcard', () => {
-    expect(evaluateFormula('=XLOOKUP("Al*", A1:A3, B1:B3, , 2)', names, 'E1')).toBe(1);
+    expect(evaluateFormula('=XLOOKUP("Al*", A1:A3, B1:B3, "#N/A", 2)', names, 'E1')).toBe(1);
   });
 
   it('matches ? wildcard', () => {
-    expect(evaluateFormula('=XLOOKUP("Bo?", A1:A3, B1:B3, , 2)', names, 'E1')).toBe(2);
+    expect(evaluateFormula('=XLOOKUP("Bo?", A1:A3, B1:B3, "#N/A", 2)', names, 'E1')).toBe(2);
   });
 });
 

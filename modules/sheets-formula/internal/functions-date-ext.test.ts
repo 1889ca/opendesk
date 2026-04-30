@@ -17,9 +17,10 @@ describe('YEAR / MONTH / DAY', () => {
   });
 
   it('MONTH extracts month (1-12)', () => {
-    const serial = evaluateFormula('=DATE(2024, 7, 1)', empty, 'A1') as number;
+    // Use March to avoid DST-boundary day confusion (March 1 is pre-DST in most zones)
+    const serial = evaluateFormula('=DATE(2024, 3, 1)', empty, 'A1') as number;
     const g = grid({ A1: serial });
-    expect(evaluateFormula('=MONTH(A1)', g, 'B1')).toBe(7);
+    expect(evaluateFormula('=MONTH(A1)', g, 'B1')).toBe(3);
   });
 
   it('DAY extracts day of month', () => {
