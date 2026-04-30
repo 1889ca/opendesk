@@ -85,4 +85,29 @@ describe('createTableElement', () => {
       }
     }
   });
+
+  // Security: #505 table bounds clamping (invariant 13)
+  it('clamps rows to MAX_TABLE_ROWS when over limit', () => {
+    const el = createTableElement(10000, 3);
+    expect(el.tableData.rows).toBeLessThanOrEqual(50);
+    expect(el.tableData.cells).toHaveLength(el.tableData.rows);
+  });
+
+  it('clamps cols to MAX_TABLE_COLS when over limit', () => {
+    const el = createTableElement(3, 10000);
+    expect(el.tableData.cols).toBeLessThanOrEqual(20);
+    expect(el.tableData.cells[0]).toHaveLength(el.tableData.cols);
+  });
+
+  it('clamps both dimensions simultaneously', () => {
+    const el = createTableElement(99999, 99999);
+    expect(el.tableData.rows).toBeLessThanOrEqual(50);
+    expect(el.tableData.cols).toBeLessThanOrEqual(20);
+  });
+
+  it('does not clamp a 6×6 table (within bounds)', () => {
+    const el = createTableElement(6, 6);
+    expect(el.tableData.rows).toBe(6);
+    expect(el.tableData.cols).toBe(6);
+  });
 });

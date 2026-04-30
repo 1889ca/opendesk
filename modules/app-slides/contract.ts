@@ -15,12 +15,18 @@ export const TextAlignSchema = z.enum(['left', 'center', 'right']);
 
 export type TextAlign = z.infer<typeof TextAlignSchema>;
 
+// --- Table Bounds ---
+
+export const MAX_TABLE_ROWS = 50;
+export const MAX_TABLE_COLS = 20;
+const MAX_CELL_BYTES = 8192;
+
 // --- Table Data ---
 
 export const TableDataSchema = z.object({
-  rows: z.number().int().positive(),
-  cols: z.number().int().positive(),
-  cells: z.array(z.array(z.string())),
+  rows: z.number().int().positive().max(MAX_TABLE_ROWS),
+  cols: z.number().int().positive().max(MAX_TABLE_COLS),
+  cells: z.array(z.array(z.string().max(MAX_CELL_BYTES))),
 });
 
 export type TableData = z.infer<typeof TableDataSchema>;
@@ -69,8 +75,11 @@ export const SlideElementSchema = z.object({
   fontSize: z.number().optional(),
   fontColor: z.string().optional(),
   textAlign: TextAlignSchema.optional(),
-  // Image elements
-  src: z.string().optional(),
+  // Image elements — must be http(s) or a relative /uploads/ path (invariant 11)
+  src: z.string().max(2048).refine(
+    (u) => /^https?:\/\//.test(u) || u.startsWith('/uploads/'),
+    { message: 'Image src must be http(s) or relative /uploads/ path' },
+  ).optional(),
   // Shape elements
   shapeType: ShapeTypeSchema.optional(),
   fill: z.string().optional(),

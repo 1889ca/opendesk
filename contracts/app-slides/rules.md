@@ -47,6 +47,12 @@ Provide the presentation slide editor for OpenDesk: canvas-based element renderi
 
 10. **Animation steps drive presenter advancement.** A presenter "next" key first advances through the current slide's animation steps (each `on-click` opens a new step; `with-previous` and `after-previous` join the open step). Only after the last step does navigation move to the next slide.
 
+11. **Image src must be http(s) or relative /uploads/.** `SlideElementSchema.src` is validated with a `refine` that rejects any other scheme (e.g. `javascript:`, `data:`, `blob:`, `file:`). `parse-elements.ts` applies the same check on read; `yjs-element-insert.ts` throws on insert. `render-image.ts` guards the final DOM assignment.
+
+12. **Rich text content is sanitized on write and read.** `sanitizeRichTextHtml` (browser DOMParser, no external deps) is applied before storing content to Yjs and before loading it into TipTap. Only TipTap StarterKit + Underline tags are allowed; all event-handler attributes and non-allowlisted tags are stripped.
+
+13. **Tables clamped to MAX_TABLE_ROWS × MAX_TABLE_COLS.** `MAX_TABLE_ROWS = 50` and `MAX_TABLE_COLS = 20` are exported from `contract.ts`. `createTableElement` clamps on create; `parseTableData` clamps on read; `parse-elements.ts` clamps after parsing. Cell strings are capped at 8 KB.
+
 ## Dependencies
 
 - `@opendesk/app` (compile-time) — `uploadImage`, `validateImageFile`, `extractImageFiles`, `getUserIdentity`, `getDocumentId`, `setupTitleSync`

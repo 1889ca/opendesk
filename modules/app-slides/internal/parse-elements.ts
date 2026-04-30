@@ -3,6 +3,24 @@
 import * as Y from 'yjs';
 import type { SlideElement, ShapeType, TableData } from './types.ts';
 import { parseTableData } from './yjs-element-insert.ts';
+import { MAX_TABLE_ROWS, MAX_TABLE_COLS } from '../contract.ts';
+
+/** Invariant 11: validate image src scheme before using it */
+function safeSrc(raw: unknown): string {
+  if (typeof raw !== 'string') return '';
+  if (/^https?:\/\//.test(raw) || raw.startsWith('/uploads/')) return raw;
+  return '';
+}
+
+/** Invariant 13: clamp table dimensions to MAX_TABLE_ROWS × MAX_TABLE_COLS */
+function clampTableData(data: TableData): TableData {
+  const rows = Math.min(data.rows, MAX_TABLE_ROWS);
+  const cols = Math.min(data.cols, MAX_TABLE_COLS);
+  const cells = data.cells.slice(0, rows).map((row) =>
+    row.slice(0, cols).map((cell) => cell.slice(0, 8192))
+  );
+  return { rows, cols, cells };
+}
 
 /** Parse Yjs element maps into typed SlideElement objects */
 export function parseSlideElements(yElements: Y.Array<Y.Map<unknown>>): SlideElement[] {
@@ -25,7 +43,7 @@ export function parseSlideElements(yElements: Y.Array<Y.Map<unknown>>): SlideEle
     };
 
     if (type === 'image') {
-      result.push({ ...base, src: (el.get('src') as string) || '' });
+      result.push({ ...base, src: safeSrc(el.get('src')) });
     } else if (type === 'shape') {
       result.push({
         ...base,
@@ -36,7 +54,8 @@ export function parseSlideElements(yElements: Y.Array<Y.Map<unknown>>): SlideEle
       });
     } else if (type === 'table') {
       const rawTableData = el.get('tableData');
-      const tableData: TableData = parseTableData(rawTableData) || { rows: 3, cols: 3, cells: [['', '', ''], ['', '', ''], ['', '', '']] };
+      const rawParsed = parseTableData(rawTableData) || { rows: 3, cols: 3, cells: [['', '', ''], ['', '', ''], ['', '', '']] };
+      const tableData: TableData = clampTableData(rawParsed);
       result.push({ ...base, tableData });
     } else {
       result.push(base);
