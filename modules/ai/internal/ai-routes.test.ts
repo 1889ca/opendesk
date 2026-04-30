@@ -168,3 +168,5 @@ describe('AI routes', () => {
     expect(res.status).toBe(400);
   });
 });
+
+// Security tests for model zoo routes (#483) live in ai-zoo-auth.test.ts.

@@ -16,6 +16,7 @@ import {
   headingLevel,
   textNode,
   stripTags,
+  decodeEntities,
   findBalancedClose,
   parseInlineContent,
 } from './html-parser-utils.ts';
@@ -99,7 +100,8 @@ function extractBlocks(html: string): ProseMirrorNode[] {
   }
 
   if (blocks.length === 0) {
-    const stripped = stripTags(html).trim();
+    // Fix #485: decode entities before stripping so encoded markup is neutralised.
+    const stripped = stripTags(decodeEntities(html)).trim();
     if (stripped) {
       blocks.push(blockNode('paragraph', [textNode(stripped)]));
     }
