@@ -1,7 +1,7 @@
 /** Contract: contracts/app/rules.md */
 import type { Editor } from '@tiptap/core';
 import { t, onLocaleChange, type TranslationKey } from '../i18n/index.ts';
-import { buildCellFormatSection } from './table-cell-format.ts';
+import { buildCellFormatSection } from './table-cell-format-ui.ts';
 import { batchRaf } from './lifecycle.ts';
 
 interface TableButton {

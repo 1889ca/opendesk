@@ -28,53 +28,12 @@ import { navigate } from '../shell/router.ts';
 import { buildEditorToolbar } from './editor-toolbar.ts';
 import { mountSidebars } from './editor-sidebars.ts';
 import { getUserIdentity } from '../shared/identity.ts';
+import { fetchMyRole, applyPermissionMode } from './editor-view-permissions.ts';
 
 let editor: Editor | null = null;
 let provider: HocuspocusProvider | null = null;
 let ydoc: Y.Doc | null = null;
 let cleanupFns: (() => void)[] = [];
-
-/** Fetch the current user's role on a document. Returns null on error. */
-async function fetchMyRole(documentId: string): Promise<{ role: string; canWrite: boolean; canComment: boolean } | null> {
-  try {
-    const res = await apiFetch(`/api/documents/${encodeURIComponent(documentId)}/my-role`);
-    if (!res.ok) return null;
-    return res.json() as Promise<{ role: string; canWrite: boolean; canComment: boolean }>;
-  } catch {
-    return null;
-  }
-}
-
-/** Apply read-only or comment-only mode to the editor and toolbar. */
-function applyPermissionMode(
-  editorInstance: Editor,
-  formattingToolbarEl: HTMLElement,
-  perm: { canWrite: boolean; canComment: boolean } | null,
-): void {
-  const canWrite = perm?.canWrite ?? true; // fail open only in case of fetch error
-  const canComment = perm?.canComment ?? true;
-
-  if (!canWrite) {
-    editorInstance.setEditable(false);
-
-    // Hide or disable the formatting toolbar for viewers and commenters.
-    // Commenters can add comments via the sidebar; the toolbar is for editing only.
-    formattingToolbarEl.hidden = true;
-    formattingToolbarEl.setAttribute('aria-hidden', 'true');
-
-    // Show a read-only banner above the editor.
-    const banner = document.createElement('div');
-    banner.className = 'permission-banner';
-    banner.setAttribute('role', 'status');
-    banner.textContent = canComment
-      ? 'You can view and comment on this document.'
-      : 'You have read-only access to this document.';
-    const parent = formattingToolbarEl.parentElement;
-    if (parent) {
-      parent.insertBefore(banner, formattingToolbarEl.nextSibling);
-    }
-  }
-}
 
 export async function mount(container: HTMLElement, params: Record<string, string>): Promise<void> {
   const documentId = params.id || 'default';
