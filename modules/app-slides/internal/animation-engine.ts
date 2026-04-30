@@ -91,24 +91,20 @@ export function runAnimation(anim: ElementAnimation, resolve: ElementResolver): 
 }
 
 /**
- * Run a step. Items chained "after-previous" wait for the prior item; items
- * chained "with-previous" run in parallel. The first item in the step always
- * starts immediately (its trigger is the click that opened the step).
+ * Run a step. "with-previous" items join the current parallel group;
+ * "after-previous" items start a new group that waits for the prior group to finish.
+ * Groups execute sequentially; items within a group execute in parallel.
  */
 export async function runStep(step: AnimationStep, resolve: ElementResolver): Promise<void> {
-  // Group items into parallel lanes. A new lane begins on the first item or any after-previous.
-  const lanes: ElementAnimation[][] = [];
+  const groups: ElementAnimation[][] = [];
   for (let i = 0; i < step.items.length; i++) {
     const a = step.items[i];
-    if (i === 0 || a.trigger === 'after-previous') lanes.push([a]);
-    else lanes[lanes.length - 1].push(a);
+    if (i === 0 || a.trigger === 'after-previous') groups.push([a]);
+    else groups[groups.length - 1].push(a);
   }
-  const lanePromises = lanes.map(async (lane) => {
-    for (const item of lane) {
-      await runAnimation(item, resolve);
-    }
-  });
-  await Promise.all(lanePromises);
+  for (const group of groups) {
+    await Promise.all(group.map((item) => runAnimation(item, resolve)));
+  }
 }
 
 /**

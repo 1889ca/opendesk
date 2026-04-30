@@ -140,7 +140,7 @@ export function initSlides(documentId: string, els: SlidesElements): SlidesClean
   });
 
   // Animation panel — sidebar for managing element animations
-  initAnimations({
+  const animationInit = initAnimations({
     ydoc, yslides, canvasEl, toolbarRight,
     getActiveSlideIndex: () => activeSlideIndex,
     getInteractionController: () => interactionCtrl,
@@ -176,6 +176,7 @@ export function initSlides(documentId: string, els: SlidesElements): SlidesClean
 
   return {
     destroy() {
+      animationInit.destroy();
       interactionCtrl?.destroy();
       interactionCtrl = null;
       provider.destroy();
