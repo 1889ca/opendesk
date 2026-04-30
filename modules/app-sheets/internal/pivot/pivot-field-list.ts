@@ -1,6 +1,5 @@
 /** Contract: contracts/app-sheets/rules.md */
-import type { AggregationType } from './pivot-aggregations.ts';
-import { AGGREGATION_LABELS } from './pivot-aggregations.ts';
+import { AGGREGATION_LABELS, type AggregationType } from './pivot-aggregations.ts';
 
 function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,

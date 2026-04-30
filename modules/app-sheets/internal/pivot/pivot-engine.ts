@@ -1,6 +1,5 @@
 /** Contract: contracts/app-sheets/rules.md */
-import { aggregate } from './pivot-aggregations.ts';
-import type { AggregationType } from './pivot-aggregations.ts';
+import { aggregate, type AggregationType } from './pivot-aggregations.ts';
 
 export type { AggregationType } from './pivot-aggregations.ts';
 
