@@ -173,24 +173,26 @@ describe('AI routes', () => {
 
 /** Minimal ModelService stub for route mounting. */
 function createFakeModelService() {
+  async function* emptyGen() {}
   return {
     listModels: vi.fn(async () => []),
     getConfig: vi.fn(async () => ({
       workspaceId: 'default',
-      embeddingModel: null,
-      generationModel: null,
+      embeddingModel: null as string | null,
+      generationModel: null as string | null,
       updatedAt: new Date(),
     })),
-    pullModel: vi.fn(async function* () {}),
-    deleteModel: vi.fn(async () => {}),
-    setActive: vi.fn(async (_ws: string, _role: string, _id: string) => ({
+    // pullModel returns Promise<AsyncGenerator<PullProgress>>
+    pullModel: vi.fn(async (_id: string) => emptyGen()),
+    deleteModel: vi.fn(async (_id: string) => {}),
+    setActive: vi.fn(async (_ws: string, _role: 'embedding' | 'generation', _id: string) => ({
       workspaceId: 'default',
-      embeddingModel: null,
-      generationModel: null,
+      embeddingModel: null as string | null,
+      generationModel: null as string | null,
       updatedAt: new Date(),
     })),
     registerCustom: vi.fn(async () => {}),
-    unregisterCustom: vi.fn(async () => true),
+    unregisterCustom: vi.fn(async (_id: string) => true as boolean),
   };
 }
 
