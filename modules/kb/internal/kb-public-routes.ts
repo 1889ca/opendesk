@@ -100,10 +100,13 @@ export function createKBPublicRoutes(opts: KBPublicRoutesOptions): Router {
     }),
   );
 
-  // Update KB settings (authenticated)
+  // Update KB settings (admin only)
+  // Fix #484: toggling KB public access must require admin, not just any
+  // authenticated user — any authenticated user could previously expose
+  // the entire knowledge base publicly.
   router.post(
     '/settings',
-    permissions.requireAuth,
+    permissions.requireAdmin,
     asyncHandler(async (req: Request, res: Response) => {
       const bodyResult = SettingsBodySchema.safeParse(req.body);
       if (!bodyResult.success) {

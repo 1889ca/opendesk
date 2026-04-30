@@ -101,3 +101,53 @@ describe('decodeEntities', () => {
       .toBe('&<>"\' ');
   });
 });
+
+// --- Security fix #485: entity-encoded tags must be stripped, not stored ---
+
+describe('XSS via entity-encoded tags — security #485', () => {
+  it('strips entity-encoded script tag inside bold text', () => {
+    // Attacker encodes <script>alert(1)</script> as HTML entities inside <strong>.
+    // After the fix, decodeEntities runs first (exposing the real tags),
+    // then stripTags removes them — the final text must contain no markup.
+    const html = '<p><strong>&lt;script&gt;alert(1)&lt;/script&gt;</strong></p>';
+    const result = htmlToProseMirrorJson(html);
+    const text = result.content[0].content?.[0]?.text ?? '';
+    expect(text).not.toContain('<script>');
+    expect(text).not.toContain('</script>');
+    expect(text).not.toContain('<');
+    expect(text).not.toContain('>');
+  });
+
+  it('strips entity-encoded script tag inside span', () => {
+    const html = '<p><span style="font-weight: bold">&lt;img src=x onerror=alert(1)&gt;</span></p>';
+    const result = htmlToProseMirrorJson(html);
+    const text = result.content[0].content?.[0]?.text ?? '';
+    expect(text).not.toContain('<img');
+    expect(text).not.toContain('onerror');
+    expect(text).not.toContain('<');
+  });
+
+  it('strips entity-encoded tags in the extractBlocks fallback path', () => {
+    // Plain text with no recognised block tags triggers the extractBlocks fallback.
+    // An attacker encodes <script>alert(1)</script> as entities. After the fix,
+    // decode runs first so the real <script> tag is exposed and stripped.
+    // The tag itself must not appear in the stored output; text content may remain.
+    const html = '&lt;script&gt;alert(1)&lt;/script&gt;';
+    const result = htmlToProseMirrorJson(html);
+    const text = result.content[0].content?.[0]?.text ?? '';
+    expect(text).not.toContain('<script>');
+    expect(text).not.toContain('</script>');
+    expect(text).not.toContain('<');
+    expect(text).not.toContain('>');
+    // The inner text "alert(1)" is harmless text — it is allowed to appear.
+  });
+
+  it('preserves legitimate text content containing angle-bracket-like descriptions', () => {
+    // Normal user content like "A < B" should round-trip safely.
+    const html = '<p>A &lt; B &gt; C</p>';
+    const result = htmlToProseMirrorJson(html);
+    const text = result.content[0].content?.[0]?.text ?? '';
+    // After fix: decodeEntities('A < B > C') → 'A < B > C', then stripTags has nothing to strip
+    expect(text).toBe('A < B > C');
+  });
+});

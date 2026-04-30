@@ -168,3 +168,93 @@ describe('AI routes', () => {
     expect(res.status).toBe(400);
   });
 });
+
+// --- Security fix #483: model zoo routes require admin auth ---
+
+/** Minimal ModelService stub for route mounting. */
+function createFakeModelService() {
+  return {
+    listModels: vi.fn(async () => []),
+    getConfig: vi.fn(async () => ({
+      workspaceId: 'default',
+      embeddingModel: null,
+      generationModel: null,
+      updatedAt: new Date(),
+    })),
+    pullModel: vi.fn(async function* () {}),
+    deleteModel: vi.fn(async () => {}),
+    setActive: vi.fn(async (_ws: string, _role: string, _id: string) => ({
+      workspaceId: 'default',
+      embeddingModel: null,
+      generationModel: null,
+      updatedAt: new Date(),
+    })),
+    registerCustom: vi.fn(async () => {}),
+    unregisterCustom: vi.fn(async () => true),
+  };
+}
+
+describe('AI model zoo routes — security #483', () => {
+  let permissions: PermissionsModule;
+
+  beforeEach(async () => {
+    permissions = createPermissions();
+  });
+
+  /** App with NO principal attached — simulates unauthenticated request. */
+  function createUnauthApp() {
+    const modelService = createFakeModelService();
+    const app = express();
+    app.use(express.json());
+    // No fakePrincipal() — request arrives without authentication
+    app.use('/api/ai', createAiRoutes({ permissions, modelService }));
+    return app;
+  }
+
+  /** App with a non-admin principal (no wildcard scope). */
+  function createNonAdminApp() {
+    const modelService = createFakeModelService();
+    const app = express();
+    app.use(express.json());
+    app.use((req: Request, _res: Response, next: NextFunction) => {
+      req.principal = { id: 'user-1', actorType: 'human', displayName: 'Regular User', scopes: [] };
+      next();
+    });
+    app.use('/api/ai', createAiRoutes({ permissions, modelService }));
+    return app;
+  }
+
+  it('GET /models rejects unauthenticated request with 401', async () => {
+    const res = await request(createUnauthApp()).get('/api/ai/models');
+    expect(res.status).toBe(401);
+  });
+
+  it('GET /models rejects non-admin user with 403', async () => {
+    const res = await request(createNonAdminApp()).get('/api/ai/models');
+    expect(res.status).toBe(403);
+  });
+
+  it('DELETE /models/:id rejects unauthenticated request with 401', async () => {
+    const res = await request(createUnauthApp()).delete('/api/ai/models/some-model');
+    expect(res.status).toBe(401);
+  });
+
+  it('PUT /config rejects unauthenticated request with 401', async () => {
+    const res = await request(createUnauthApp())
+      .put('/api/ai/config')
+      .send({ role: 'embedding', modelId: 'llama3' });
+    expect(res.status).toBe(401);
+  });
+
+  it('POST /models/custom rejects non-admin user with 403', async () => {
+    const res = await request(createNonAdminApp())
+      .post('/api/ai/models/custom')
+      .send({ id: 'my-model', name: 'My Model', ollamaTag: 'my-model:latest', capability: 'generate' });
+    expect(res.status).toBe(403);
+  });
+
+  it('DELETE /models/custom/:id rejects non-admin user with 403', async () => {
+    const res = await request(createNonAdminApp()).delete('/api/ai/models/custom/my-model');
+    expect(res.status).toBe(403);
+  });
+});

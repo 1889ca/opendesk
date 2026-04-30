@@ -69,16 +69,18 @@ export function createAiRoutes(opts: AiRoutesOptions): Router {
     }));
   }
 
-  // --- Model zoo routes (require modelService) ---
+  // --- Model zoo routes (require modelService + admin) ---
+  // Fix #483: zoo management routes were entirely unauthenticated. All model
+  // zoo endpoints now require admin-level auth via permissions.requireAdmin.
 
-  if (modelService) {
-    router.get('/models', asyncHandler(async (_req: Request, res: Response) => {
+  if (modelService && permissions) {
+    router.get('/models', permissions.requireAdmin, asyncHandler(async (_req: Request, res: Response) => {
       const models = await modelService.listModels();
       const config = await modelService.getConfig();
       res.json({ models, config });
     }));
 
-    router.post('/models/:id/pull', asyncHandler(async (req: Request, res: Response) => {
+    router.post('/models/:id/pull', permissions.requireAdmin, asyncHandler(async (req: Request, res: Response) => {
       const generator = await modelService.pullModel(String(req.params.id));
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
@@ -90,19 +92,19 @@ export function createAiRoutes(opts: AiRoutesOptions): Router {
       res.end();
     }));
 
-    router.delete('/models/:id', asyncHandler(async (req: Request, res: Response) => {
+    router.delete('/models/:id', permissions.requireAdmin, asyncHandler(async (req: Request, res: Response) => {
       await modelService.deleteModel(String(req.params.id));
       res.json({ ok: true });
     }));
 
-    router.get('/models/:id/status', asyncHandler(async (req: Request, res: Response) => {
+    router.get('/models/:id/status', permissions.requireAdmin, asyncHandler(async (req: Request, res: Response) => {
       const models = await modelService.listModels();
       const model = models.find((m) => m.id === String(req.params.id));
       if (!model) { res.status(404).json({ error: 'Model not found' }); return; }
       res.json({ id: model.id, installed: model.installed });
     }));
 
-    router.put('/config', asyncHandler(async (req: Request, res: Response) => {
+    router.put('/config', permissions.requireAdmin, asyncHandler(async (req: Request, res: Response) => {
       const schema = z.object({
         role: z.enum(['embedding', 'generation']),
         modelId: z.string().min(1),
@@ -113,13 +115,13 @@ export function createAiRoutes(opts: AiRoutesOptions): Router {
       res.json(config);
     }));
 
-    router.post('/models/custom', asyncHandler(async (req: Request, res: Response) => {
+    router.post('/models/custom', permissions.requireAdmin, asyncHandler(async (req: Request, res: Response) => {
       const model = CustomModelSchema.parse(req.body);
       await modelService.registerCustom(model);
       res.status(201).json({ ok: true, id: model.id });
     }));
 
-    router.delete('/models/custom/:id', asyncHandler(async (req: Request, res: Response) => {
+    router.delete('/models/custom/:id', permissions.requireAdmin, asyncHandler(async (req: Request, res: Response) => {
       const removed = await modelService.unregisterCustom(String(req.params.id));
       if (!removed) { res.status(404).json({ error: 'Custom model not found' }); return; }
       res.json({ ok: true });
