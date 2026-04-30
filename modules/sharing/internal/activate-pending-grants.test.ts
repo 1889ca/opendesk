@@ -2,13 +2,11 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { activatePendingGrants } from './activate-pending-grants.ts';
-import { createInMemoryPendingGrantStore } from './pending-grant-store.ts';
-import { createInMemoryGrantStore } from '../../permissions/index.ts';
-import type { PendingGrantStore } from './pending-grant-store.ts';
-import type { GrantStore } from '../../permissions/index.ts';
+import { createInMemoryPendingGrantStore, type PendingGrantStore } from './pending-grant-store.ts';
+import { createInMemoryGrantStore, type GrantStore } from '../../permissions/index.ts';
 
 // ---------------------------------------------------------------------------
-// Helpers (shared with activate-pending-grants-toctou.test.ts)
+// Helpers (re-exported for use in activate-pending-grants-toctou.test.ts)
 // ---------------------------------------------------------------------------
 
 export async function seedGrantorRole(
