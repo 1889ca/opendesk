@@ -33,10 +33,20 @@ export function aggregate(
       return values.length;
     case 'AVERAGE':
       return values.reduce((a, b) => a + b, 0) / values.length;
-    case 'MIN':
-      return Math.min(...values);
-    case 'MAX':
-      return Math.max(...values);
+    case 'MIN': {
+      let m = values[0];
+      for (let i = 1; i < values.length; i++) {
+        if (values[i] < m) m = values[i];
+      }
+      return m;
+    }
+    case 'MAX': {
+      let mx = values[0];
+      for (let i = 1; i < values.length; i++) {
+        if (values[i] > mx) mx = values[i];
+      }
+      return mx;
+    }
     case 'MEDIAN':
       return median(values);
     case 'STDEV':
