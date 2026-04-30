@@ -1,17 +1,16 @@
 /** Contract: contracts/sheets-chart/rules.md */
 
-import { type ChartConfig, type ChartDataInput, type ChartOutput, ChartConfigSchema, ChartDataInputSchema } from '../contract.ts';
+import { type ChartConfig, type ChartDataInput, type ChartOutput, type ChartType, ChartConfigSchema, ChartDataInputSchema } from '../contract.ts';
 import { extractSeries, type ExtractedData } from './data-series.ts';
 import { isChartError } from './types.ts';
 import { renderBarChart } from './render-bar.ts';
 import { renderLineChart } from './render-line.ts';
 import { renderPieChart } from './render-pie.ts';
 import { renderScatterChart, type ScatterSeries } from './render-scatter.ts';
-import { getColor } from './color-palette.ts';
-import { type PaletteName } from './color-palette.ts';
+import { getColor, type PaletteName } from './color-palette.ts';
 import * as svg from './svg-builder.ts';
 
-export function renderChart(rawConfig: ChartConfig, rawData: ChartDataInput): ChartOutput {
+export function renderChart(rawConfig: { type: ChartType } & Record<string, unknown>, rawData: ChartDataInput): ChartOutput {
   const configResult = ChartConfigSchema.safeParse(rawConfig);
   if (!configResult.success) {
     return { type: 'chart_error', message: `Invalid config: ${configResult.error.message}` };
