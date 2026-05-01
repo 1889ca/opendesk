@@ -49,11 +49,12 @@ export function createInMemoryPendingGrantStore(): PendingGrantStore {
 
   return {
     async createPending({ docId, grantorId, email, role }) {
+      // Issue #508: canonicalize so stored email always matches activation-time lookup.
       const grant: PendingGrant = {
         id: randomUUID(),
         docId,
         grantorId,
-        granteeEmail: email,
+        granteeEmail: email.trim().toLowerCase(),
         granteeId: null,
         role,
         status: 'pending',
@@ -65,9 +66,11 @@ export function createInMemoryPendingGrantStore(): PendingGrantStore {
     },
 
     async findPendingByEmail(email) {
+      // Issue #508: canonicalize before matching so lookup is case-insensitive.
+      const canonical = email.trim().toLowerCase();
       const results: PendingGrant[] = [];
       for (const grant of grants.values()) {
-        if (grant.granteeEmail === email && grant.status === 'pending') {
+        if (grant.granteeEmail === canonical && grant.status === 'pending') {
           results.push({ ...grant });
         }
       }

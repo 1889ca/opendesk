@@ -71,6 +71,9 @@ export function createOidcVerifier(config: AuthConfig): TokenVerifier {
             actorType: 'human',
             displayName: (payload.name as string) || (payload.preferred_username as string) || id,
             email: (payload.email as string) || undefined,
+            // Issue #508: propagate the IdP's email_verified claim so callers
+            // (e.g. activatePendingGrants) can gate on verified email only.
+            emailVerified: payload.email_verified === true,
             scopes: parseScopeClaim(payload),
           },
         };

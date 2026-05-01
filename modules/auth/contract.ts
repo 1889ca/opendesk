@@ -14,6 +14,12 @@ export const PrincipalSchema = z.object({
   actorType: ActorTypeSchema,
   displayName: z.string().min(1),
   email: z.string().email().optional(),
+  /**
+   * Whether the IdP has verified that the user owns the email address.
+   * Set from the OIDC `email_verified` claim. Absent means unverified.
+   * MUST be checked before trusting email-based lookups (e.g. pending grants).
+   */
+  emailVerified: z.boolean().optional(),
   scopes: z.array(z.string()),
 });
 
