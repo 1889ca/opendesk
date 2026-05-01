@@ -3,10 +3,8 @@ import { describe, it, expect } from 'vitest';
 import { parse } from './parser.ts';
 import { evaluate, expandRange } from './evaluator.ts';
 import { extractDependencies, detectCircular } from './circular-detect.ts';
-import { isFormulaError, FormulaErrorType } from './types.ts';
-import type { CellGrid, FormulaResult } from './types.ts';
-import type { MultiSheetGrid } from './cross-sheet-types.ts';
-import type { CrossSheetCellRef, CrossSheetRangeRef } from './cross-sheet-types.ts';
+import { isFormulaError, FormulaErrorType, type CellGrid, type FormulaResult } from './types.ts';
+import type { MultiSheetGrid, CrossSheetCellRef, CrossSheetRangeRef } from './cross-sheet-types.ts';
 
 // ---------------------------------------------------------------------------
 // Test fixtures — no mock data; all values are deterministic constants

@@ -7,9 +7,9 @@ const NUMBER_PATTERN = /^[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?/;
 const FUNCTION_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*(?=\s*\()/;
 const BOOLEAN_PATTERN = /^(TRUE|FALSE)\b/i;
 // Unquoted sheet prefix: letters/digits/underscores followed by !
-const UNQUOTED_SHEET_PREFIX = /^([A-Za-z_][A-Za-z0-9_.]*)\!/;
+const UNQUOTED_SHEET_PREFIX = /^([A-Za-z_][A-Za-z0-9_.]*)!/;
 // Quoted sheet prefix: 'any chars ('' = escaped quote)' followed by !
-const QUOTED_SHEET_PREFIX = /^'((?:[^']|'')*)'\!/;
+const QUOTED_SHEET_PREFIX = /^'((?:[^']|'')*)'!/;
 
 export function tokenize(formula: string): Token[] | FormulaError {
   const tokens: Token[] = [];
