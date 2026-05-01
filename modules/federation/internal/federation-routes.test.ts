@@ -49,7 +49,7 @@ function createInMemoryFederation(overrides: Partial<FederationModule> = {}): Fe
     receiveDocument: vi.fn(async () => ({ ...testTransfer, direction: 'inbound' as const })),
     listTransfers: vi.fn(async () => [testTransfer]),
     peerHealth: vi.fn(async () => []),
-    pingPeer: vi.fn(async () => ({ reachable: true, latencyMs: 0 })),
+    pingPeer: vi.fn(async (peerId: string) => ({ peerId, reachable: true, latencyMs: 0, error: null })),
     ...overrides,
   };
 }
