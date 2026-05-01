@@ -136,10 +136,51 @@ function computeColTotals(
   return totals;
 }
 
+/** Parse a spreadsheet column letter(s) to a 0-based index (A→0, Z→25, AA→26). */
+function colLetterToIndex(col: string): number {
+  let idx = 0;
+  for (let i = 0; i < col.length; i++) {
+    idx = idx * 26 + (col.charCodeAt(i) - 64);
+  }
+  return idx - 1;
+}
+
+/**
+ * Parse a range string of the form "A1:D50" and slice sheetData to only the
+ * rows and columns within that range.  Row and column indices are 1-based in
+ * the range string, 0-based in sheetData.
+ *
+ * Returns null and does NOT fall back to full sheet data when the range
+ * string is absent, malformed, or out of bounds — callers must treat null
+ * as a hard error.
+ */
 export function parseSourceRange(
-  _rangeStr: string,
+  rangeStr: string,
   sheetData: string[][],
 ): { headers: string[]; dataRows: string[][] } | null {
-  if (sheetData.length === 0) return null;
-  return { headers: sheetData[0], dataRows: sheetData.slice(1) };
+  if (!rangeStr || sheetData.length === 0) return null;
+
+  // Expected format: "A1:D50" (column letters + row numbers)
+  const match = /^([A-Z]+)(\d+):([A-Z]+)(\d+)$/i.exec(rangeStr.trim());
+  if (!match) return null;
+
+  const startCol = colLetterToIndex(match[1].toUpperCase());
+  const startRow = parseInt(match[2], 10) - 1;  // 0-based
+  const endCol   = colLetterToIndex(match[3].toUpperCase());
+  const endRow   = parseInt(match[4], 10) - 1;  // 0-based
+
+  if (startRow < 0 || endRow < startRow || startCol < 0 || endCol < startCol) {
+    return null;
+  }
+  if (startRow >= sheetData.length) return null;
+
+  const clampedEndRow = Math.min(endRow, sheetData.length - 1);
+
+  const sliced = sheetData
+    .slice(startRow, clampedEndRow + 1)
+    .map((row) => row.slice(startCol, endCol + 1));
+
+  if (sliced.length === 0) return null;
+
+  return { headers: sliced[0], dataRows: sliced.slice(1) };
 }
