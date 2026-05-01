@@ -2,12 +2,12 @@
 /**
  * AI Writing Assistant — UI layer.
  * Provides a floating AI button (appears on text selection) with dropdown,
- * and a result popover with Insert / Replace / Discard actions.
+ * a "Context:" badge showing what scope the AI sees, and a result popover.
  */
 import type { Editor } from '@tiptap/core';
 import { BubbleMenuPlugin } from '@tiptap/extension-bubble-menu';
 import { t } from '../i18n/index.ts';
-import type { AssistAction } from './ai-assist-api.ts';
+import type { AssistAction, AssistContext } from './ai-assist-api.ts';
 
 const ACTIONS: Array<{ action: AssistAction; labelKey: Parameters<typeof t>[0] }> = [
   { action: 'improve',     labelKey: 'ai.improve' },
@@ -18,16 +18,32 @@ const ACTIONS: Array<{ action: AssistAction; labelKey: Parameters<typeof t>[0] }
   { action: 'continue',    labelKey: 'ai.continue' },
 ];
 
-type OnActionCallback = (action: AssistAction, text: string) => Promise<void>;
+type OnActionCallback = (action: AssistAction, text: string, context: AssistContext) => Promise<void>;
 
 function removePopover(): void {
   document.querySelector('.ai-assist-popover')?.remove();
   document.querySelector('.ai-assist-dropdown')?.remove();
 }
 
+/** Build the context badge element displayed at the top of the dropdown. */
+function buildContextBadge(context: AssistContext): HTMLElement {
+  const badge = document.createElement('div');
+  badge.className = 'ai-assist-context-badge';
+  const label = document.createElement('span');
+  label.className = 'ai-assist-context-badge__label';
+  label.textContent = t('ai.contextLabel');
+  const value = document.createElement('span');
+  value.className = `ai-assist-context-badge__value ai-assist-context-badge__value--${context.type}`;
+  value.textContent = context.label;
+  badge.appendChild(label);
+  badge.appendChild(value);
+  return badge;
+}
+
 function buildDropdown(
   anchor: HTMLElement,
   selectedText: string,
+  context: AssistContext,
   onAction: OnActionCallback,
 ): void {
   document.querySelector('.ai-assist-dropdown')?.remove();
@@ -39,6 +55,12 @@ function buildDropdown(
   dropdown.style.left = `${rect.left + window.scrollX}px`;
   dropdown.setAttribute('role', 'menu');
 
+  dropdown.appendChild(buildContextBadge(context));
+
+  const divider = document.createElement('hr');
+  divider.className = 'ai-assist-dropdown-divider';
+  dropdown.appendChild(divider);
+
   for (const { action, labelKey } of ACTIONS) {
     const item = document.createElement('button');
     item.type = 'button';
@@ -48,7 +70,7 @@ function buildDropdown(
     item.addEventListener('mousedown', (e) => {
       e.preventDefault();
       dropdown.remove();
-      onAction(action, selectedText).catch(() => {});
+      onAction(action, selectedText, context).catch(() => {});
     });
     dropdown.appendChild(item);
   }
@@ -169,7 +191,14 @@ export function buildAiAssistButton(
     const { from, to } = editor.state.selection;
     const selectedText = editor.state.doc.textBetween(from, to, ' ');
     if (!selectedText.trim()) return;
-    buildDropdown(btn, selectedText, onAction);
+
+    // Scope the context to the selection so the LLM knows it is operating
+    // on a deliberate excerpt, not inferring from whole-document position.
+    const selectionContext: AssistContext = {
+      type: 'selection',
+      label: t('ai.contextSelection'),
+    };
+    buildDropdown(btn, selectedText, selectionContext, onAction);
   });
 
   editor.registerPlugin(

@@ -13,6 +13,10 @@ Air-gapped local AI module providing a BYOM (Bring Your Own Model) abstraction o
 - `workspaceId` -- scopes all operations to a workspace
 - Model zoo entries from `model-zoo.json`
 - `pool` -- PostgreSQL connection pool for persisting model config
+- `AssistContext` (optional on `/api/ai/assist`) -- narrows what the AI "sees":
+  - `type`: `'selection' | 'thread' | 'dataset' | 'document'`
+  - `label`: human-readable label shown in the UI context badge
+  - `content`: additional prose prepended to the LLM prompt (max 10 000 chars)
 
 ## Outputs
 
@@ -62,11 +66,26 @@ Air-gapped local AI module providing a BYOM (Bring Your Own Model) abstraction o
 - MUST: Return real Ollama download progress, not synthetic.
 - MUST: Use pgvector for vector storage (not a separate vector DB).
 - MUST: Replace all existing chunks when re-embedding a source (idempotent).
+- MUST: Accept optional `context` on `/api/ai/assist`; prepend `context.content` to prompt when present.
+- MUST: Validate `context.type` against the `AssistContextTypeSchema` enum before use.
 - MUST NOT: Send document content to any external endpoint other than the configured Ollama instance.
 - MUST NOT: Mutate document content or state.
 - MUST NOT: Cache or persist LLM responses (stateless inference).
 - MUST NOT: Ship models that require proprietary licenses.
 - MUST NOT: Store model weights in PostgreSQL -- Ollama manages storage.
+
+## Context Scoping (follow-up scope: thread + dataset)
+
+Selection scope is fully implemented. Thread and dataset scopes are specified but not yet
+wired in the frontend — they are a follow-up:
+
+- **Thread scope** (`type: 'thread'`): when the user clicks "AI" inside a comment card,
+  assemble `content` from the thread's comment bodies + the surrounding paragraph text
+  extracted from the editor at the mark position. Wire in `comment-card.ts`.
+
+- **Dataset scope** (`type: 'dataset'`): when the user triggers AI from the KB detail
+  panel on a dataset entry, assemble `content` from `entry.title`, column schema, and
+  a sample of rows from `fetchDatasetRows`. Wire in `entry-detail.ts`.
 
 ## Verification
 

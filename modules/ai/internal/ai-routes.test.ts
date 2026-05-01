@@ -146,6 +146,39 @@ describe('AI routes', () => {
     );
   });
 
+  it('POST /assist passes scoped context to the AI module', async () => {
+    const ai = createInMemoryAi({
+      assist: vi.fn(async () => ({ result: 'Context-aware result.' })),
+    });
+    const app = createTestApp(ai, permissions);
+
+    const context = { type: 'selection', label: 'Selection', content: 'surrounding paragraph text' };
+    const res = await request(app)
+      .post('/api/ai/assist')
+      .send({ action: 'summarize', text: 'Selected sentence.', context });
+
+    expect(res.status).toBe(200);
+    expect(res.body.result).toBe('Context-aware result.');
+    expect(ai.assist).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'summarize',
+        text: 'Selected sentence.',
+        context: expect.objectContaining({ type: 'selection', label: 'Selection' }),
+      }),
+    );
+  });
+
+  it('POST /assist rejects unknown context type', async () => {
+    const ai = createInMemoryAi();
+    const app = createTestApp(ai, permissions);
+
+    const res = await request(app)
+      .post('/api/ai/assist')
+      .send({ action: 'improve', text: 'Some text.', context: { type: 'unknown-type', label: 'Bad' } });
+
+    expect(res.status).toBe(400);
+  });
+
   it('POST /assist rejects invalid action', async () => {
     const ai = createInMemoryAi();
     const app = createTestApp(ai, permissions);

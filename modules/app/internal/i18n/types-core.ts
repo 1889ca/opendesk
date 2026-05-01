@@ -159,6 +159,9 @@ export interface CoreTranslationKeys {
   'ai.discard': string;
   'ai.loading': string;
   'ai.error': string;
+  // Context scope badge
+  'ai.contextLabel': string;
+  'ai.contextSelection': string;
 
   // Drawing
   'toolbar.drawing': string;

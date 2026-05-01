@@ -135,10 +135,35 @@ export const ASSIST_ACTIONS = ['improve', 'summarize', 'expand', 'shorten', 'fix
 export const AssistActionSchema = z.enum(ASSIST_ACTIONS);
 export type AssistAction = z.infer<typeof AssistActionSchema>;
 
+// --- AI Context Scope ---
+
+export const ASSIST_CONTEXT_TYPES = ['selection', 'thread', 'dataset', 'document'] as const;
+export const AssistContextTypeSchema = z.enum(ASSIST_CONTEXT_TYPES);
+export type AssistContextType = z.infer<typeof AssistContextTypeSchema>;
+
+/**
+ * Optional scoped context sent with an assist request.
+ * Narrows what the AI "sees" beyond just the text being transformed.
+ * - selection: the highlighted editor text (auto-populated from editor state)
+ * - thread: a comment thread + surrounding paragraph
+ * - dataset: a KB dataset summary (schema + row sample)
+ * - document: full document (default when no scope is given)
+ */
+export const AssistContextSchema = z.object({
+  type: AssistContextTypeSchema,
+  /** Human-readable label shown in the UI context badge. */
+  label: z.string().min(1).max(200),
+  /** Additional prose context injected into the LLM prompt before the text. */
+  content: z.string().max(10_000).optional(),
+});
+export type AssistContext = z.infer<typeof AssistContextSchema>;
+
 export const AssistRequestSchema = z.object({
   action: AssistActionSchema,
   text: z.string().min(1).max(50_000),
   documentId: z.string().optional(),
+  /** Scoped context — when present, the AI prompt is prefixed with context.content. */
+  context: AssistContextSchema.optional(),
 });
 export type AssistRequest = z.infer<typeof AssistRequestSchema>;
 
