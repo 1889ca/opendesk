@@ -228,3 +228,30 @@
 .share-btn {
   font-weight: 600;
 }
+
+/* Role enforcement banner — shown when a document is opened via a share link */
+.role-enforcement-banner {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1875rem 0.625rem;
+  background: var(--surface-alt, #f3f4f6);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  user-select: none;
+}
+
+/* Toolbar disabled state for commenter role */
+#formatting-toolbar[data-role="commenter"] {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+#formatting-toolbar[data-role="commenter"] button,
+#formatting-toolbar[data-role="commenter"] select {
+  cursor: not-allowed;
+}
