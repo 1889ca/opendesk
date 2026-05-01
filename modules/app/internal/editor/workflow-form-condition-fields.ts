@@ -1,6 +1,5 @@
 /** Contract: contracts/app/rules.md */
-import type { TriggerConditionConfig, LeafTriggerConditionConfig } from './workflow-types.ts';
-import { CONDITION_REQUIRED_TRIGGERS } from './workflow-types.ts';
+import { CONDITION_REQUIRED_TRIGGERS, type TriggerConditionConfig, type LeafTriggerConditionConfig } from './workflow-types.ts';
 
 export function buildDocumentVersionFilter(container: HTMLElement): void {
   container.innerHTML = '';
