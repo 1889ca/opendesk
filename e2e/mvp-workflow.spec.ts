@@ -113,7 +113,7 @@ test.describe('Editor', () => {
     await editor.click();
     await page.keyboard.type('My Heading');
     await page.keyboard.press('ControlOrMeta+a');
-    await page.locator('select[aria-label="Paragraph style"]').selectOption('Heading 1');
+    await page.getByRole('toolbar', { name: 'Formatting toolbar' }).locator('select[aria-label="Paragraph style"]').selectOption('Heading 1');
     await expect(editor.locator('h1')).toContainText('My Heading');
   });
 
@@ -145,7 +145,7 @@ test.describe('Editor', () => {
 
   test('back link returns to doc list', async ({ page }) => {
     await openEditor(page, docId);
-    await page.getByRole('link', { name: 'Back to documents' }).click();
+    await page.getByRole('link', { name: 'Back to documents', exact: true }).click();
     await expect(page).toHaveURL('/');
   });
 
