@@ -32,6 +32,9 @@ export function buildNavSidebar(): HTMLElement {
   const kbItem = createNavItem('/kb', 'nav.knowledgeBase', '\u{1F4DA}');
   navList.appendChild(kbItem);
 
+  const formsItem = createNavItem('/forms', 'nav.forms', '\u{1F4CB}');
+  navList.appendChild(formsItem);
+
   const newDocItem = document.createElement('li');
   const newDocBtn = document.createElement('button');
   newDocBtn.className = 'shell-sidebar-btn shell-sidebar-new';

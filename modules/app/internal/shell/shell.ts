@@ -101,6 +101,10 @@ function defineRoutes(): Route[] {
       pattern: '/kb',
       handler: () => mountView('kb', () => import('@opendesk/app-kb'), {}),
     },
+    {
+      pattern: '/forms',
+      handler: () => mountView('forms', () => import('../views/forms-list-view.ts'), {}),
+    },
   ];
 }
 

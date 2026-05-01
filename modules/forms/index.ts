@@ -15,4 +15,6 @@ export type {
   FormsModule,
 } from './contract.ts';
 
-export { createMemoryFormStore } from './internal/memory-store.ts';
+export { createPgFormStore } from './internal/pg-store.ts';
+export { validateResponse } from './internal/validate-response.ts';
+export type { ValidationResult, ValidationError } from './internal/validate-response.ts';
