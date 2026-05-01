@@ -43,12 +43,18 @@ export type FormulaResult = CellValue | FormulaError;
 
 // --- AST Node Types ---
 
+// Imported here for union membership; cross-sheet-types.ts owns the definitions.
+import type { CrossSheetCellRef, CrossSheetRangeRef } from './cross-sheet-types.ts';
+export type { CrossSheetCellRef, CrossSheetRangeRef } from './cross-sheet-types.ts';
+
 export type ASTNode =
   | NumberLiteral
   | StringLiteral
   | BooleanLiteral
   | CellRef
   | RangeRef
+  | CrossSheetCellRef
+  | CrossSheetRangeRef
   | FunctionCall
   | BinaryOp
   | UnaryOp;
@@ -94,6 +100,7 @@ export type UnaryOp = {
 
 export type TokenType =
   | 'NUMBER' | 'STRING' | 'BOOLEAN' | 'CELL_REF' | 'FUNCTION'
+  | 'SHEET_PREFIX'   // e.g., "Sheet2!" or "'My Sheet'!" (decoded, bang stripped)
   | 'LPAREN' | 'RPAREN' | 'COMMA' | 'COLON'
   | 'PLUS' | 'MINUS' | 'STAR' | 'SLASH' | 'CARET' | 'AMPERSAND'
   | 'EQ' | 'NEQ' | 'LT' | 'GT' | 'LTE' | 'GTE'

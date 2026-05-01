@@ -8,6 +8,7 @@ export const EventType = {
   StateFlushed: 'StateFlushed',
   GrantCreated: 'GrantCreated',
   GrantRevoked: 'GrantRevoked',
+  InviteCreated: 'InviteCreated',
   ConversionRequested: 'ConversionRequested',
   ExportReady: 'ExportReady',
   AuditEntryCreated: 'AuditEntryCreated',
@@ -16,6 +17,12 @@ export const EventType = {
   ErasureCompleted: 'ErasureCompleted',
   CascadeErasureCompleted: 'CascadeErasureCompleted',
   RetentionPruneCompleted: 'RetentionPruneCompleted',
+  /** Emitted when a document version snapshot is created (named or numbered). */
+  DocumentVersionCreated: 'DocumentVersionCreated',
+  /** Emitted when a KB entry's status or content changes. */
+  KBEntityChanged: 'KBEntityChanged',
+  /** Emitted when a form response is submitted. */
+  FormSubmitted: 'FormSubmitted',
 } as const;
 
 export type EventType = (typeof EventType)[keyof typeof EventType];
@@ -25,6 +32,7 @@ export const EventTypeSchema = z.enum([
   'StateFlushed',
   'GrantCreated',
   'GrantRevoked',
+  'InviteCreated',
   'ConversionRequested',
   'ExportReady',
   'AuditEntryCreated',
@@ -33,6 +41,9 @@ export const EventTypeSchema = z.enum([
   'ErasureCompleted',
   'CascadeErasureCompleted',
   'RetentionPruneCompleted',
+  'DocumentVersionCreated',
+  'KBEntityChanged',
+  'FormSubmitted',
 ]);
 
 // --- Actor ---

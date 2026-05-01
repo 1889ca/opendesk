@@ -6,6 +6,8 @@ export type {
   ASTNode,
   CellRef,
   RangeRef,
+  CrossSheetCellRef,
+  CrossSheetRangeRef,
   FunctionCall,
   BinaryOp,
   UnaryOp,
@@ -19,6 +21,8 @@ export type {
   Token,
   TokenType,
 } from './internal/types.ts';
+
+export type { MultiSheetGrid } from './internal/cross-sheet-types.ts';
 
 export {
   FormulaErrorType,

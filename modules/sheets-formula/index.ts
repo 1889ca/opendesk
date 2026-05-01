@@ -15,6 +15,8 @@ export type {
   ASTNode,
   CellRef,
   RangeRef,
+  CrossSheetCellRef,
+  CrossSheetRangeRef,
   FunctionCall,
   BinaryOp,
   UnaryOp,
@@ -28,6 +30,7 @@ export type {
   FormulaError,
   Token,
   TokenType,
+  MultiSheetGrid,
 } from './contract.ts';
 
 // --- Error utilities ---
@@ -43,6 +46,7 @@ export { registerFunction, getFunction, toNumber, toString } from './internal/fu
 import { parse } from './internal/parser.ts';
 import { evaluate } from './internal/evaluator.ts';
 import { type CellGrid, type CellAddress, type FormulaResult, isFormulaError } from './internal/types.ts';
+import { type MultiSheetGrid } from './internal/cross-sheet-types.ts';
 
 export function evaluateFormula(
   formula: string,
@@ -52,4 +56,23 @@ export function evaluateFormula(
   const ast = parse(formula);
   if (isFormulaError(ast)) return ast;
   return evaluate(ast, grid, cellRef);
+}
+
+/**
+ * Parse and evaluate a formula that may contain cross-sheet references.
+ * @param formula  The formula string (may contain Sheet2!A1 style refs).
+ * @param grid     The active sheet's cell grid.
+ * @param cellRef  The address of the cell being evaluated (for circular detection).
+ * @param multiSheet  Map of sheet name -> cell grid for all sheets. Active sheet
+ *                    should also be present here under its own name.
+ */
+export function evaluateFormulaMultiSheet(
+  formula: string,
+  grid: CellGrid,
+  cellRef: CellAddress,
+  multiSheet: MultiSheetGrid,
+): FormulaResult {
+  const ast = parse(formula);
+  if (isFormulaError(ast)) return ast;
+  return evaluate(ast, grid, cellRef, multiSheet);
 }

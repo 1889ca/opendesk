@@ -4,6 +4,8 @@ import type { SlideElement } from './types.ts';
 import { renderElement } from './element-renderer.ts';
 import { getSlideNotes } from './speaker-notes.ts';
 import { getSlideTransition, animateTransition } from './transitions.ts';
+import { listAnimations, buildAnimationSteps } from './animation-yjs.ts';
+import { createAnimationController, type AnimationController } from './animation-engine.ts';
 import type * as Y from 'yjs';
 
 interface PresenterContext {
@@ -65,12 +67,24 @@ export function launchPresenterMode(ctx: PresenterContext, startIndex = 0): void
   }
 
   let transitioning = false;
+  let animCtrl: AnimationController | null = null;
+
+  function buildAnimationsForCurrent(): AnimationController | null {
+    const slide = ctx.yslides.get(current);
+    const animations = listAnimations(slide);
+    if (animations.length === 0) return null;
+    const steps = buildAnimationSteps(animations);
+    return createAnimationController(steps, animations, (elementId) =>
+      currentEl.querySelector(`[data-element-id="${elementId}"]`),
+    );
+  }
 
   function update() {
     renderSlideInto(currentEl, current);
     renderSlideInto(nextEl, current + 1);
     notesEl.textContent = getSlideNotes(ctx.yslides, current);
     counterEl.textContent = `${current + 1} / ${ctx.totalSlides()}`;
+    animCtrl = buildAnimationsForCurrent();
   }
 
   async function navigateTo(index: number, direction: 'forward' | 'backward') {
@@ -83,13 +97,22 @@ export function launchPresenterMode(ctx: PresenterContext, startIndex = 0): void
     transitioning = false;
   }
 
+  /** Advance one step within the current slide, or move to the next slide. */
+  async function advance() {
+    if (transitioning) return;
+    if (animCtrl && animCtrl.currentStep < animCtrl.totalSteps) {
+      const result = await animCtrl.next();
+      if (!result.done) return;
+    }
+    if (current < ctx.totalSlides() - 1) navigateTo(current + 1, 'forward');
+  }
+
   update();
 
   // Keyboard navigation
   function handleKey(e: KeyboardEvent) {
     if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
-      e.preventDefault();
-      if (current < ctx.totalSlides() - 1) navigateTo(current + 1, 'forward');
+      e.preventDefault(); advance();
     } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
       e.preventDefault();
       if (current > 0) navigateTo(current - 1, 'backward');

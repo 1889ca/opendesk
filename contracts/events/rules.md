@@ -33,14 +33,17 @@ No payload field. Subscribers fetch data from storage using `aggregateId`.
 
 ### Registered Event Types
 
-| Event Type            | Owner Module |
-|-----------------------|-------------|
-| `DocumentUpdated`     | collab      |
-| `StateFlushed`        | collab      |
-| `GrantCreated`        | sharing     |
-| `GrantRevoked`        | sharing / permissions |
-| `ConversionRequested` | convert     |
-| `ExportReady`         | convert     |
+| Event Type               | Owner Module |
+|--------------------------|-------------|
+| `DocumentUpdated`        | collab      |
+| `StateFlushed`           | collab      |
+| `GrantCreated`           | sharing     |
+| `GrantRevoked`           | sharing / permissions |
+| `ConversionRequested`    | convert     |
+| `ExportReady`            | convert     |
+| `DocumentVersionCreated` | collab      |
+| `KBEntityChanged`        | kb          |
+| `FormSubmitted`          | forms       |
 
 ## Side Effects
 

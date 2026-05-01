@@ -3,6 +3,7 @@
 import type { ShapeType, SlideElement } from './types.ts';
 import { createMiniEditor, applyTextStyles, TEXT_DEFAULTS, type MiniEditor } from './tiptap-mini-editor.ts';
 import type { TextElementDom } from './render-text.ts';
+import { sanitizeRichTextHtml } from './sanitize-rich-text.ts';
 
 export type ShapeElementResult = {
   dom: HTMLElement;
@@ -35,7 +36,8 @@ export function renderShapeElement(
   const textAlign = el.textAlign ?? 'center'; // shapes default center
 
   const miniEditor = createMiniEditor({
-    content: el.content || '',
+    // Invariant 12: sanitize on read path before loading into TipTap
+    content: sanitizeRichTextHtml(el.content || ''),
     fontSize,
     fontColor,
     textAlign,

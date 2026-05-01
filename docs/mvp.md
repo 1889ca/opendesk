@@ -282,6 +282,83 @@ Full dependency analysis: `decisions/2026-04-06-pillar-sequencing-deliberation.m
 
 ---
 
+---
+
+## Office-Parity Sprint (branch `claude/office-parity-improvements-g2HTi`)
+
+Tracking a sweep of improvements to close feature gaps with Microsoft 365. Non-goal: feature-for-feature cloning. Goal: remove "but Office has X" blockers for regulated-sector adopters. Ordered by impact below, but implemented in the order dependencies allow.
+
+### Landed this sprint (contracts + skeletons)
+
+Contracts written (implementations staged — mostly in-memory stores and stubs so routes/UI can wire against a stable interface):
+
+- `contracts/forms/rules.md` + `modules/forms/` — form builder, respondent page, KB dataset mirror, schema-versioned responses, S3-backed file uploads, close/expire semantics.
+- `contracts/pdf-edit/rules.md` + `modules/pdf-edit/` — native PDF annotation, AcroForm fill, content-stream redaction, incremental save. Signatures delegated to `esign`. JS strip and no external fetches by contract.
+- `contracts/esign/rules.md` + `modules/esign/` — PKCS#7 signing ceremony with HMAC-chained audit trail, RFC 3161 TSA timestamps, sequential/parallel packets, revocation, expiration.
+- `contracts/plugins/rules.md` + `modules/plugins/` — public extension API. Reuses `workflow`'s Wasm sandbox. Capability-based, signed manifests, origin-pinned UI plugins, timeouts mandatory, non-blocking failure.
+- `contracts/diagrams/rules.md` + `modules/diagrams/` — vector diagramming (Visio/draw.io parity). Shapes + connectors by stable ID, KB entry of type `diagram`, deterministic SVG rendering, 2000-shape-per-page cap.
+- `contracts/app-admin/policy.md` + `modules/app-admin/internal/policy/` — workspace policy control plane (retention, export, DLP, watermark, sensitivity labels, branding). UI renders + saves; enforcement lives in other modules.
+
+Offline-sync wiring (partial completion of item 7):
+
+- `contracts/app/offline.md` — extended with Yjs persistence invariants (§8–§10), reconnect merge order, and per-document IndexedDB isolation.
+- `modules/app/internal/offline/yjs-persistence.ts` — per-document IndexedDB provider for Yjs `Doc`s. Replays prior updates into the doc BEFORE Hocuspocus opens a socket so the state-vector sent on sync already contains offline edits. Graceful degradation when IndexedDB is unavailable. Compaction every 200 updates.
+- Wired into `modules/app/internal/editor/editor.ts` init sequence.
+
+### Still to do on this sprint
+
+**Offline-sync (item 7)** — most of the infra is now in place. Remaining:
+
+- [ ] Mirror the Yjs persistence hook into the Sheets editor (`modules/app/internal/editor/sheet.ts` or equivalent) and the Slides editor. Documents is done.
+- [ ] Hook `modules/erasure` into `YjsPersistenceHandle.clear()` so workspace/user erasure drops local caches too.
+- [ ] Playwright test: edit offline, reload while offline, assert content still present; then reconnect and assert server converges.
+- [ ] Yjs reconnect merge stress test with two browser contexts (one offline, one online).
+- [ ] Complete service-worker route caching for `/api/documents/:id/snapshot` (currently cache covers list only).
+
+**Module implementations (MVP-real, replacing skeletons)**
+
+- [ ] `forms` — Postgres-backed store, Yjs co-authored `FormDefinition`, respondent page, KB dataset mirror, share-link integration, audit + erasure cascade.
+- [ ] `pdf-edit` — choose a sandbox-safe PDF parser (requires deliberation; candidates: `pdf-lib` for writes, `pdfjs-dist` for render) and pin it. Content-stream redaction. Ed25519-signed incremental save option.
+- [ ] `esign` — Postgres-backed audit chain, RFC 3161 TSA client, PKCS#7 embed via `pdf-edit`, in-app signing ceremony with OIDC identity.
+- [ ] `plugins` — Postgres-backed registry, Ed25519 signature verification against workspace trust store, Wasm dispatch through `workflow`, UI contribution renderer in `app`.
+- [ ] `diagrams` — Yjs co-authoring, shape libraries (flowchart, BPMN-lite, network, UML class), auto-routing connectors, shared client/server SVG renderer, KB entry sync, insertion pickers in Docs/Slides.
+- [ ] `app-admin/policy` — Postgres-backed `workspace_policies` table, `/api/admin/policies` GET/PUT routes, enforcement bridges in `erasure`, `audit`, `sharing`, `convert`. Full editors for DLP, labels, branding, export rules.
+
+### Deferred — requires human sign-off (restricted zones)
+
+Items blocked by `CONSTITUTION.md` restricted-zone rules. Contracts and schemas can be drafted but implementation requires maintainer approval:
+
+- [ ] **Enterprise auth hardening** (original item 8). Touches `modules/auth/` and likely `migrations/`.
+  - MFA enforcement (TOTP, WebAuthn)
+  - Strict SAML 2.0 profile (signed assertions, audience restriction, replay protection)
+  - Conditional access policies (IP allowlist, device posture, time-of-day)
+  - Sensitivity-label-backed DLP enforcement at `sharing` and `convert` boundaries
+  - Watermark rendering at `convert` export time
+- [ ] **SCIM provisioning** (part of item 9). Touches `modules/auth/` and `migrations/`.
+  - SCIM 2.0 `/Users` and `/Groups` endpoints with bearer-token auth
+  - Org-structure model: department / team scoping under workspace
+  - Seat-tracking and license model
+- [ ] **Policy enforcement in restricted modules** — `modules/sharing` and `modules/permissions` need hooks into `WorkspacePolicy` to actually block shares or downgrade roles. The Admin UI renders policy; enforcement is the restricted part.
+
+### Deferred — separate future sprint (items 1–6)
+
+Kept visible so we do not lose them. Not in this sprint's scope:
+
+- [ ] **1. Outlook-equivalent mail client** — new `modules/mail`: IMAP/SMTP or JMAP, inbox, contacts, rules, mail-to-doc, document-digest emails.
+- [ ] **2. Calendar + scheduling** — new `modules/calendar`: CalDAV/iCal interop, free/busy, meeting invites, recurring events, reminders. Ties into `mail`.
+- [ ] **3. Teams-style chat/channels** — new `modules/chat`: persistent DMs, channels, threaded messages, cross-product @mentions with notification routing (extends existing `notifications`).
+- [ ] **4. Video meetings** — `modules/meetings`: embed Jitsi/LiveKit, recording to S3, transcript pipeline feeding `ai` and `kb`.
+- [ ] **5. Copilot-style AI side panel** — extends `modules/ai` with in-editor context-aware assistant: rewrite, summarize, formula-gen, slide-gen. Uses existing Ollama + pgvector stack.
+- [ ] **6. Native mobile + desktop apps** — React Native (iOS/Android) and Electron shells over the existing web app. Offline Yjs sync rides on the work done this sprint.
+
+### Extras (capacity permitting)
+
+- [ ] **Large-document performance (>100 pages)** — not started this sprint; needs benchmarks before implementation. Open a perf-harness issue and land Yjs compaction metrics before choosing a direction.
+- [ ] **Plugin marketplace UI** — out of scope for this sprint; `plugins` contract supports it. Revisit after first external plugin exists.
+- [ ] **Diagram live-data binding** (shapes that read from KB datasets) — post-MVP in `diagrams`.
+
+---
+
 ## Data Sovereignty Requirements
 
 This is not a feature -- it is a hard constraint that shapes every technical decision.

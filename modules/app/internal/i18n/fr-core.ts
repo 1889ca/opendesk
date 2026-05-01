@@ -166,6 +166,8 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'ai.discard': 'Ignorer',
   'ai.loading': 'Réflexion…',
   'ai.error': 'IA indisponible. Ollama est-il lancé ?',
+  'ai.contextLabel': 'Contexte :',
+  'ai.contextSelection': 'Sélection',
   'toolbar.drawing': 'Dessin',
   'toolbar.spellcheck': 'Orthographe',
   'toolbar.specialChars': 'Caractères spéciaux',

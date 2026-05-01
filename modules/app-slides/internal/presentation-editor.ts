@@ -15,6 +15,9 @@ import { initLayoutAndTheme } from './layout-theme-init.ts';
 import { createSpeakerNotes } from './speaker-notes.ts';
 import { launchPresenterMode } from './presenter-mode.ts';
 import { initToolbarExtras } from './toolbar-extras.ts';
+import { initAnimations } from './animation-init.ts';
+import { pruneAnimationsForMissingElements } from './animation-yjs.ts';
+import { sanitizeRichTextHtml } from './sanitize-rich-text.ts';
 
 /**
  * Initialise the presentation editor with a given document ID and DOM elements.
@@ -27,11 +30,9 @@ export function initSlides(documentId: string, els: SlidesElements): SlidesClean
   const user = getUserIdentity();
   const ydoc = new Y.Doc();
 
-  const wsUrl = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/collab`;
   const provider = new HocuspocusProvider({
-    url: wsUrl,
-    name: documentId,
-    document: ydoc,
+    url: `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/collab`,
+    name: documentId, document: ydoc,
     onConnect() { if (statusEl) { statusEl.textContent = 'Connected'; statusEl.className = 'status connected'; } },
     onDisconnect() { if (statusEl) { statusEl.textContent = 'Disconnected'; statusEl.className = 'status disconnected'; } },
   });
@@ -53,11 +54,12 @@ export function initSlides(documentId: string, els: SlidesElements): SlidesClean
   }
 
   function handleContentUpdate(elementId: string, content: string) {
+    const safeContent = sanitizeRichTextHtml(content); // invariant 12
     const yElements = getActiveYElements();
     ydoc.transact(() => {
       for (let i = 0; i < yElements.length; i++) {
         const yel = yElements.get(i);
-        if (yel.get('id') === elementId) { yel.set('content', content); break; }
+        if (yel.get('id') === elementId) { yel.set('content', safeContent); break; }
       }
     });
   }
@@ -101,13 +103,10 @@ export function initSlides(documentId: string, els: SlidesElements): SlidesClean
     }
   }
 
-  renderSlideList();
-  renderActiveSlide();
-  notesPanel.update(activeSlideIndex);
+  renderSlideList(); renderActiveSlide(); notesPanel.update(activeSlideIndex);
 
   let interactionCtrl: InteractionController | null = createInteractionController({
-    ydoc,
-    viewport: viewportEl,
+    ydoc, viewport: viewportEl,
     getActiveSlideElements() {
       return { yElements: getActiveYElements(), elements: getSlideElements(activeSlideIndex) };
     },
@@ -137,6 +136,12 @@ export function initSlides(documentId: string, els: SlidesElements): SlidesClean
     },
   });
 
+  const animationInit = initAnimations({
+    ydoc, yslides, canvasEl, toolbarRight,
+    getActiveSlideIndex: () => activeSlideIndex,
+    getInteractionController: () => interactionCtrl,
+  });
+
   const presentBtn = Object.assign(document.createElement('button'), { className: 'slide-present-btn', textContent: 'Present' });
   presentBtn.addEventListener('click', () => launchPresenterMode({ yslides, getSlideElements, totalSlides: () => yslides.length }, activeSlideIndex));
   if (toolbarRight) toolbarRight.appendChild(presentBtn);
@@ -148,7 +153,11 @@ export function initSlides(documentId: string, els: SlidesElements): SlidesClean
     onChanged() { renderSlideList(); renderActiveSlide(); notesPanel.update(activeSlideIndex); },
   });
 
-  yslides.observeDeep(() => { renderSlideList(); renderActiveSlide(); notesPanel.update(activeSlideIndex); extras.updateTransitionPicker(); });
+  yslides.observeDeep(() => {
+    renderSlideList(); renderActiveSlide(); notesPanel.update(activeSlideIndex); extras.updateTransitionPicker();
+    const slide = yslides.get(activeSlideIndex);
+    if (slide) pruneAnimationsForMissingElements(ydoc, slide, new Set(getSlideElements(activeSlideIndex).map((e) => e.id)));
+  });
 
   provider.awareness?.setLocalStateField('user', user);
   const showUsers = () => {
@@ -162,6 +171,7 @@ export function initSlides(documentId: string, els: SlidesElements): SlidesClean
 
   return {
     destroy() {
+      animationInit.destroy();
       interactionCtrl?.destroy();
       interactionCtrl = null;
       provider.destroy();

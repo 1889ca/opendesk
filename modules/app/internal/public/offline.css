@@ -65,6 +65,103 @@
   background: rgba(255, 255, 255, 0.35);
 }
 
+/* --- Conflict resolution modal --- */
+
+.conflict-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.conflict-modal {
+  background: var(--surface, #fff);
+  border-radius: 12px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.22);
+  width: 26rem;
+  max-width: 90vw;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.conflict-modal__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+}
+
+.conflict-modal__body {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+  line-height: 1.5;
+}
+
+.conflict-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.25rem;
+}
+
+.conflict-modal__btn {
+  padding: 0.4375rem 1rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.conflict-modal__btn--primary {
+  background: var(--accent-color, #2563eb);
+  color: #fff;
+  border-color: var(--accent-color, #2563eb);
+}
+
+.conflict-modal__btn--primary:hover {
+  background: var(--accent-hover, #1d4ed8);
+  border-color: var(--accent-hover, #1d4ed8);
+}
+
+.conflict-modal__btn--secondary {
+  background: var(--bg-secondary, #f3f4f6);
+  color: var(--text-primary, #111827);
+  border-color: var(--border, #e5e7eb);
+}
+
+.conflict-modal__btn--secondary:hover {
+  background: var(--bg-hover, #e5e7eb);
+}
+
+.conflict-modal__btn--ghost {
+  background: transparent;
+  color: var(--text-secondary, #6b7280);
+  border-color: transparent;
+}
+
+.conflict-modal__btn--ghost:hover {
+  color: var(--text-primary, #111827);
+}
+
+[data-theme="dark"] .conflict-modal {
+  background: var(--surface, #1f2937);
+}
+
+[data-theme="dark"] .conflict-modal__btn--secondary {
+  background: var(--bg-secondary, #374151);
+  color: var(--text-primary, #f9fafb);
+  border-color: var(--border, #4b5563);
+}
+
 /* --- Offline badge on cached documents --- */
 
 .doc-row-offline-badge {

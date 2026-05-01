@@ -3,6 +3,22 @@
 import * as Y from 'yjs';
 import type { NewElement } from './element-factory.ts';
 import type { TableData } from './types.ts';
+import { MAX_TABLE_ROWS, MAX_TABLE_COLS } from '../contract.ts';
+
+/** Invariant 11: only http(s) or /uploads/ relative paths are permitted */
+function isSafeSrc(src: string): boolean {
+  return /^https?:\/\//.test(src) || src.startsWith('/uploads/');
+}
+
+/** Invariant 13: clamp table dimensions before persisting */
+function clampTableData(data: TableData): TableData {
+  const rows = Math.min(data.rows, MAX_TABLE_ROWS);
+  const cols = Math.min(data.cols, MAX_TABLE_COLS);
+  const cells = data.cells.slice(0, rows).map((row) =>
+    row.slice(0, cols).map((cell) => cell.slice(0, 8192))
+  );
+  return { rows, cols, cells };
+}
 
 /** Insert a new element into the Yjs slide elements array */
 export function insertElement(
@@ -26,6 +42,10 @@ export function insertElement(
       yel.set('fontColor', element.fontColor);
       yel.set('textAlign', element.textAlign);
     } else if (element.type === 'image') {
+      // Invariant 11: reject unsafe src schemes before storing
+      if (element.src && !isSafeSrc(element.src)) {
+        throw new Error(`Rejected unsafe image src scheme: ${element.src.slice(0, 64)}`);
+      }
       yel.set('src', element.src);
     } else if (element.type === 'shape') {
       yel.set('fontSize', element.fontSize);
@@ -36,7 +56,8 @@ export function insertElement(
       yel.set('stroke', element.stroke);
       yel.set('strokeWidth', element.strokeWidth);
     } else if (element.type === 'table') {
-      yel.set('tableData', serializeTableData(element.tableData));
+      // Invariant 13: clamp dimensions before persisting
+      yel.set('tableData', serializeTableData(clampTableData(element.tableData)));
     }
 
     yElements.push([yel]);
@@ -82,7 +103,7 @@ export function parseTableData(raw: unknown): TableData | null {
     const parsed = JSON.parse(raw);
     if (typeof parsed.rows !== 'number' || typeof parsed.cols !== 'number') return null;
     if (!Array.isArray(parsed.cells)) return null;
-    return parsed as TableData;
+    return clampTableData(parsed as TableData);
   } catch {
     return null;
   }

@@ -2,7 +2,8 @@
 import type { Editor } from '@tiptap/core';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
 import { t } from '../i18n/index.ts';
-import { setConnectionState, flushQueue } from '../offline/index.ts';
+import { setConnectionState, flushQueue, setYjsQueueCount } from '../offline/index.ts';
+import { showConflictModal } from './conflict-modal.ts';
 import { openEmojiPicker } from './emoji/index.ts';
 import { showLinkPopover } from './link-popover.ts';
 import { buildProfileChip } from '../shared/profile-chip.ts';
@@ -27,7 +28,20 @@ export function initEditorCollab(opts: CollabSetupOptions): void {
   provider.on('connect', () => {
     if (statusEl) { statusEl.textContent = t('status.connected'); statusEl.className = 'status connected'; }
     setConnectionState('syncing');
-    flushQueue().then(() => setConnectionState('online')).catch(() => {});
+    flushQueue().catch(() => {});
+  });
+
+  provider.on('synced', ({ state }: { state: boolean }) => {
+    if (state) {
+      setConnectionState('online');
+      // Reset Yjs queue count — the server has now absorbed all offline edits
+      setYjsQueueCount(0);
+    }
+  });
+
+  provider.on('unsyncedChanges', ({ number }: { number: number }) => {
+    // Propagate the provider's native unsynced-change count to the indicator
+    setYjsQueueCount(number);
   });
 
   provider.on('disconnect', () => {
@@ -39,6 +53,14 @@ export function initEditorCollab(opts: CollabSetupOptions): void {
     if (status === 'connecting' && statusEl) {
       statusEl.textContent = t('status.reconnecting');
       statusEl.className = 'status reconnecting';
+    }
+  });
+
+  // Detect when the server rejects our state vector (synced=false after connect)
+  // This signals a diverged state that the user should be notified about
+  provider.on('synced', ({ state }: { state: boolean }) => {
+    if (!state) {
+      showConflictModal(provider);
     }
   });
 

@@ -138,9 +138,12 @@ export function parseInlineContent(html: string): ProseMirrorNode[] {
       if (text) nodes.push(textNode(text));
     } else if (match[1] && match[2] !== undefined) {
       // Semantic inline tag (strong, em, etc.)
+      // Fix #485: decode entities BEFORE stripping tags so that encoded markup
+      // like &lt;script&gt; is first normalised to <script> (a real tag) and
+      // then stripped, preventing XSS via entity-encoded tag injection.
       const tag = match[1].toUpperCase();
       const markType = INLINE_TAG_MARKS[tag];
-      const text = decodeEntities(stripTags(match[2]));
+      const text = stripTags(decodeEntities(match[2]));
       if (text && markType) {
         nodes.push(textNode(text, [{ type: markType }]));
       }
@@ -149,7 +152,7 @@ export function parseInlineContent(html: string): ProseMirrorNode[] {
       const attrs = match[3] || '';
       const styleMatch = /style\s*=\s*["']([^"']*)["']/i.exec(attrs);
       const marks = styleMatch ? marksFromStyle(styleMatch[1]) : [];
-      const text = decodeEntities(stripTags(match[4]));
+      const text = stripTags(decodeEntities(match[4]));
       if (text) {
         nodes.push(marks.length > 0 ? textNode(text, marks) : textNode(text));
       }
@@ -158,7 +161,7 @@ export function parseInlineContent(html: string): ProseMirrorNode[] {
   }
 
   if (nodes.length === 0) {
-    const plain = decodeEntities(stripTags(html)).trim();
+    const plain = stripTags(decodeEntities(html)).trim();
     if (plain) nodes.push(textNode(plain));
   }
 

@@ -61,6 +61,64 @@
   gap: 1px;
 }
 
+/* ── Context badge ───────────────────────────────────────────────────── */
+
+.ai-assist-context-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem 0.25rem;
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+.ai-assist-context-badge__label {
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.ai-assist-context-badge__value {
+  font-weight: 700;
+  border-radius: 3px;
+  padding: 0.1em 0.4em;
+  font-size: 0.7rem;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-assist-context-badge__value--selection {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+
+.ai-assist-context-badge__value--thread {
+  background: color-mix(in srgb, #8b5cf6 12%, transparent);
+  color: #7c3aed;
+}
+
+.ai-assist-context-badge__value--dataset {
+  background: color-mix(in srgb, #059669 12%, transparent);
+  color: #047857;
+}
+
+.ai-assist-context-badge__value--document {
+  background: color-mix(in srgb, var(--text-muted) 12%, transparent);
+  color: var(--text-muted);
+}
+
+.ai-assist-dropdown-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2px 0.5rem;
+}
+
+/* ── Dropdown items ──────────────────────────────────────────────────── */
+
 .ai-assist-dropdown-item {
   font-family: inherit;
   font-size: 0.8125rem;

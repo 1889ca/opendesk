@@ -1,6 +1,7 @@
 /** Contract: contracts/sheets-formula/rules.md */
 
 import { type Token, type TokenType, type ASTNode, type FormulaError, FormulaErrorType, makeError } from './types.ts';
+import { type CrossSheetCellRef, type CrossSheetRangeRef } from './cross-sheet-types.ts';
 import { tokenize, parseCellRef } from './tokenizer.ts';
 
 // Re-export tokenize for tests and consumers
@@ -105,6 +106,25 @@ export function parse(formula: string): ASTNode | FormulaError {
     if (token.type === 'STRING') { advance(); return { type: 'string', value: token.value }; }
     if (token.type === 'BOOLEAN') { advance(); return { type: 'boolean', value: token.value === 'TRUE' }; }
     if (token.type === 'FUNCTION') return parseFunctionCall();
+
+    if (token.type === 'SHEET_PREFIX') {
+      advance();
+      const sheet = token.value;
+      const cellToken = expect('CELL_REF');
+      if ('type' in cellToken && cellToken.type === 'error') return cellToken as unknown as FormulaError;
+      const ref = parseCellRef((cellToken as Token).value);
+      if (peek().type === 'COLON') {
+        advance();
+        const endToken = expect('CELL_REF');
+        if ('type' in endToken && endToken.type === 'error') return endToken as unknown as FormulaError;
+        const node: CrossSheetRangeRef = {
+          type: 'cross_sheet_range_ref', sheet, start: ref, end: parseCellRef((endToken as Token).value),
+        };
+        return node;
+      }
+      const node: CrossSheetCellRef = { type: 'cross_sheet_cell_ref', sheet, ref };
+      return node;
+    }
 
     if (token.type === 'CELL_REF') {
       advance();

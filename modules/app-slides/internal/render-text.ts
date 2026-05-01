@@ -2,6 +2,7 @@
 
 import type { SlideElement } from './types.ts';
 import { createMiniEditor, applyTextStyles, TEXT_DEFAULTS, type MiniEditor } from './tiptap-mini-editor.ts';
+import { sanitizeRichTextHtml } from './sanitize-rich-text.ts';
 
 export type TextElementResult = {
   dom: HTMLElement;
@@ -25,7 +26,8 @@ export function renderTextElement(
   const textAlign = el.textAlign ?? TEXT_DEFAULTS.textAlign;
 
   const miniEditor = createMiniEditor({
-    content: el.content,
+    // Invariant 12: sanitize on read path before loading into TipTap
+    content: sanitizeRichTextHtml(el.content),
     fontSize,
     fontColor,
     textAlign,

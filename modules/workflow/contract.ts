@@ -1,5 +1,6 @@
 /** Contract: contracts/workflow/rules.md */
 import { z } from 'zod';
+import { TriggerConditionSchema } from './internal/config-schemas.ts';
 
 // Re-export config schemas
 export {
@@ -13,6 +14,11 @@ export {
   WasmPluginConfigSchema, type WasmPluginConfig,
   ConditionOperatorSchema, type ConditionOperator,
   ConditionConfigSchema, type ConditionConfig,
+  TriggerConditionSchema, type TriggerCondition,
+  LeafTriggerConditionSchema, type LeafTriggerCondition,
+  DocumentVersionFilterSchema, type DocumentVersionFilter,
+  KBEntityChangeFilterSchema, type KBEntityChangeFilter,
+  FormSubmissionFilterSchema, type FormSubmissionFilter,
 } from './internal/config-schemas.ts';
 
 // --- Trigger & Action Enums ---
@@ -22,6 +28,9 @@ export const TriggerTypeSchema = z.enum([
   'document.exported',
   'grant.created',
   'grant.revoked',
+  'document.version_created',
+  'kb_entity.changed',
+  'form.submitted',
 ]);
 
 export type TriggerType = z.infer<typeof TriggerTypeSchema>;
@@ -80,6 +89,10 @@ export const WorkflowDefinitionSchema = z.object({
   documentId: z.string().min(1),
   name: z.string().min(1).max(200),
   triggerType: TriggerTypeSchema,
+  /** Optional pre-trigger condition filter. When present, the workflow fires only when
+   * the condition tree evaluates to true against the fetched entity state.
+   * Null means "always fire on trigger" (legacy behaviour for existing trigger types). */
+  triggerConditions: TriggerConditionSchema.nullable().optional(),
   actionType: ActionTypeSchema,
   actionConfig: z.record(z.unknown()),
   graph: WorkflowGraphSchema.optional(),
@@ -97,6 +110,7 @@ export const CreateWorkflowSchema = z.object({
   name: z.string().min(1).max(200),
   documentId: z.string().min(1),
   triggerType: TriggerTypeSchema,
+  triggerConditions: TriggerConditionSchema.nullable().optional(),
   actionType: ActionTypeSchema,
   actionConfig: z.record(z.unknown()),
   graph: WorkflowGraphSchema.optional(),
@@ -107,6 +121,7 @@ export type CreateWorkflow = z.infer<typeof CreateWorkflowSchema>;
 export const UpdateWorkflowSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   triggerType: TriggerTypeSchema.optional(),
+  triggerConditions: TriggerConditionSchema.nullable().optional(),
   actionType: ActionTypeSchema.optional(),
   actionConfig: z.record(z.unknown()).optional(),
   graph: WorkflowGraphSchema.optional(),

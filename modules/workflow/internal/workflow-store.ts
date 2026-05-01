@@ -7,6 +7,7 @@ import type {
   UpdateWorkflow,
   TriggerType,
   WorkflowGraph,
+  TriggerCondition,
 } from '../contract.ts';
 
 function rowToDefinition(row: Record<string, unknown>): WorkflowDefinition {
@@ -15,6 +16,7 @@ function rowToDefinition(row: Record<string, unknown>): WorkflowDefinition {
     documentId: row.document_id as string,
     name: row.name as string,
     triggerType: row.trigger_type as TriggerType,
+    triggerConditions: (row.trigger_conditions as TriggerCondition) ?? null,
     actionType: row.action_type as WorkflowDefinition['actionType'],
     actionConfig: row.action_config as Record<string, unknown>,
     graph: (row.graph as WorkflowGraph) ?? undefined,
@@ -33,11 +35,12 @@ export async function createDefinition(
   const id = randomUUID();
   const { rows } = await pool.query(
     `INSERT INTO workflow_definitions
-       (id, document_id, name, trigger_type, action_type, action_config, graph, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       (id, document_id, name, trigger_type, trigger_conditions, action_type, action_config, graph, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING *`,
     [
       id, def.documentId, def.name, def.triggerType,
+      def.triggerConditions != null ? JSON.stringify(def.triggerConditions) : null,
       def.actionType, JSON.stringify(def.actionConfig),
       def.graph ? JSON.stringify(def.graph) : null,
       createdBy,
@@ -113,6 +116,10 @@ export async function updateDefinition(
     setClauses.push(`active = $${paramIdx++}`);
     values.push(updates.active);
   }
+  if ('triggerConditions' in updates) {
+    setClauses.push(`trigger_conditions = $${paramIdx++}`);
+    values.push(updates.triggerConditions != null ? JSON.stringify(updates.triggerConditions) : null);
+  }
 
   values.push(id);
   const { rows } = await pool.query(
@@ -143,6 +150,24 @@ export async function findByTrigger(
     `SELECT * FROM workflow_definitions
      WHERE trigger_type = $1 AND document_id = $2 AND active = true`,
     [triggerType, documentId],
+  );
+  return rows.map(rowToDefinition);
+}
+
+/**
+ * Find all active workflows matching a trigger type across all documents.
+ * Used for kb_entity.changed and form.submitted triggers, which are not
+ * scoped to a single document — the consumer evaluates triggerConditions
+ * after fetching entity state.
+ */
+export async function findByTriggerType(
+  pool: Pool,
+  triggerType: TriggerType,
+): Promise<WorkflowDefinition[]> {
+  const { rows } = await pool.query(
+    `SELECT * FROM workflow_definitions
+     WHERE trigger_type = $1 AND active = true`,
+    [triggerType],
   );
   return rows.map(rowToDefinition);
 }

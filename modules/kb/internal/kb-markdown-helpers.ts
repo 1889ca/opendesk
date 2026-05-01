@@ -6,6 +6,8 @@
  * and KB entry serialization.
  */
 
+import { decodeEntities, stripTags } from '../../convert/internal/html-parser-utils.ts';
+
 /** Serialize a KB entry as a Markdown string with YAML front-matter. */
 export function entryToMarkdown(entry: {
   id: string; entryType: string; title: string; metadata: Record<string, unknown>;
@@ -58,17 +60,21 @@ export function parseFrontMatter(md: string): { frontMatter: Record<string, stri
 
 /** Parse Confluence HTML export — extract title and body as plain text. */
 export function parseConfluenceHtml(html: string): { title: string; body: string } {
+  // Fix #513 / original issue #485: decode entities BEFORE stripping tags so that
+  // entity-encoded markup like &lt;script&gt; is first normalised to <script> (a real
+  // tag) and then stripped by stripTags, preventing XSS via entity-encoded injection.
+  // The previous fix (#495) landed in modules/convert/internal/html-parser* instead of
+  // this file, leaving the vulnerable function unchanged.
   const titleMatch = html.match(/<h1[^>]*>(.*?)<\/h1>/is);
-  const title = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').trim() : 'Imported Entry';
+  const title = titleMatch ? stripTags(decodeEntities(titleMatch[1])).trim() : 'Imported Entry';
   const bodyMatch = html.match(/<div[^>]+class="[^"]*wiki-content[^"]*"[^>]*>([\s\S]*?)<\/div>/i)
     ?? html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
   const rawBody = bodyMatch ? bodyMatch[1] : html;
   const body = rawBody
-    .replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gis, (_, t) => `\n## ${t.replace(/<[^>]+>/g, '').trim()}\n`)
-    .replace(/<p[^>]*>(.*?)<\/p>/gis, (_, t) => `\n${t.replace(/<[^>]+>/g, '').trim()}\n`)
-    .replace(/<li[^>]*>(.*?)<\/li>/gis, (_, t) => `- ${t.replace(/<[^>]+>/g, '').trim()}\n`)
+    .replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gis, (_, t) => `\n## ${stripTags(decodeEntities(t)).trim()}\n`)
+    .replace(/<p[^>]*>(.*?)<\/p>/gis, (_, t) => `\n${stripTags(decodeEntities(t)).trim()}\n`)
+    .replace(/<li[^>]*>(.*?)<\/li>/gis, (_, t) => `- ${stripTags(decodeEntities(t)).trim()}\n`)
     .replace(/<[^>]+>/g, '')
-    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ')
     .replace(/\n{3,}/g, '\n\n').trim();
   return { title, body };
 }

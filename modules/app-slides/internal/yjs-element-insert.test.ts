@@ -86,6 +86,53 @@ describe('updateTableCell', () => {
   });
 });
 
+// Security: #503 image src validation on insert (invariant 11)
+describe('insertElement image src validation', () => {
+  it('throws when inserting an image with javascript: src', () => {
+    const { ydoc, yElements } = setupYElements();
+    const el = createImageElement('javascript:alert(1)');
+    expect(() => insertElement(ydoc, yElements, el)).toThrow(/unsafe/i);
+    expect(yElements.length).toBe(0);
+  });
+
+  it('throws when inserting an image with data: src', () => {
+    const { ydoc, yElements } = setupYElements();
+    const el = createImageElement('data:image/png;base64,abc123');
+    expect(() => insertElement(ydoc, yElements, el)).toThrow(/unsafe/i);
+  });
+
+  it('throws when inserting an image with blob: src', () => {
+    const { ydoc, yElements } = setupYElements();
+    const el = createImageElement('blob:https://evil.com/abc');
+    expect(() => insertElement(ydoc, yElements, el)).toThrow(/unsafe/i);
+  });
+
+  it('allows inserting https src', () => {
+    const { ydoc, yElements } = setupYElements();
+    expect(() => insertElement(ydoc, yElements, createImageElement('https://cdn.example.com/photo.jpg'))).not.toThrow();
+    expect(yElements.length).toBe(1);
+  });
+
+  it('allows inserting /uploads/ relative src', () => {
+    const { ydoc, yElements } = setupYElements();
+    expect(() => insertElement(ydoc, yElements, createImageElement('/uploads/user-img.png'))).not.toThrow();
+    expect(yElements.length).toBe(1);
+  });
+});
+
+// Security: #505 table bounds clamping on insert (invariant 13)
+describe('insertElement table bounds clamping', () => {
+  it('clamps oversized table dimensions on insert', () => {
+    const { ydoc, yElements } = setupYElements();
+    const oversize = createTableElement(999, 999);
+    insertElement(ydoc, yElements, oversize);
+    const raw = yElements.get(0).get('tableData') as string;
+    const parsed = parseTableData(raw);
+    expect(parsed!.rows).toBeLessThanOrEqual(50);
+    expect(parsed!.cols).toBeLessThanOrEqual(20);
+  });
+});
+
 describe('parseTableData', () => {
   it('parses valid JSON table data', () => {
     const raw = JSON.stringify({ rows: 2, cols: 3, cells: [['a', 'b', 'c'], ['d', 'e', 'f']] });

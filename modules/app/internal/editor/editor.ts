@@ -29,7 +29,7 @@ import { initZoomControl } from './zoom-control.ts';
 import { buildSaveIndicator } from './save-indicator.ts';
 import { initPageSetup, showPageSetupDialog } from './page-setup.ts';
 import { insertHeaderFooter, insertPageNumber, activateZone, setupHeaderFooterClicks } from './header-footer.ts';
-import { registerServiceWorker, buildOfflineIndicator, buildUpdateBanner, initConnectivityListeners } from '../offline/index.ts';
+import { registerServiceWorker, buildOfflineIndicator, buildUpdateBanner, initConnectivityListeners, attachYjsPersistence } from '../offline/index.ts';
 import { mountAppToolbar } from '../shared/app-toolbar.ts';
 import { initEditorCollab } from './editor-collab.ts';
 import { initAiAssist } from './ai-assist.ts';
@@ -79,6 +79,10 @@ async function init() {
   onLocaleChange(() => updateStaticText(statusEl));
 
   const ydoc = new Y.Doc();
+  // Replay any offline edits persisted in IndexedDB into `ydoc` BEFORE the
+  // Hocuspocus provider opens a socket, so the state vector sent on sync
+  // already contains offline work (contracts/app/offline.md §8–§10).
+  const persistence = await attachYjsPersistence(ydoc, documentId);
   const commentStore = new CommentStore(ydoc);
   const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/collab`;
   // Offline UI
@@ -206,7 +210,7 @@ async function init() {
   initFocusModeButton();
 
   console.log('[boot] init-complete');
-  Object.assign(window, { editor, provider, ydoc, commentStore });
+  Object.assign(window, { editor, provider, ydoc, commentStore, persistence });
 }
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -65,6 +65,16 @@ export {
 export type { GlobalSearchResult, ContentType } from './internal/pg-global-search.ts';
 export { globalSearch } from './internal/pg-global-search.ts';
 
+// Document repository (atomic snapshot + state vector co-persistence)
+export { createDocumentRepository } from './internal/pg-document-repository.ts';
+
+// Cold storage (hot/cold tiering via S3)
+export {
+  createColdStorageAdapter,
+  archiveStaleDocuments,
+} from './internal/cold-storage.ts';
+export type { ColdStorageAdapter } from './internal/cold-storage.ts';
+
 // Schema initialization and pool (for server startup)
 export { initSchema } from './internal/schema.ts';
 // Issue #134: pool / getPool are no longer exported through the public

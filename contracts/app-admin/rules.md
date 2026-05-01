@@ -48,17 +48,35 @@ Provide the admin observability dashboard for OpenDesk: health indicators, opera
 
 ```
 modules/app-admin/
-  index.ts                      — Module marker (no public API)
-  contract.ts                   — Module marker (no shared schemas)
+  index.ts                        — Module marker (no public API)
+  contract.ts                     — Module marker (no shared schemas)
   internal/
-    admin-dashboard.ts          — Entry point: DOMContentLoaded init
-    admin-helpers.ts            — Types and utility functions
-    observability-dashboard.ts  — Main dashboard section builder
-    health-panel.ts             — Health indicator rendering
-    metrics-charts.ts           — Volume and latency chart rendering
-    correlation-search.ts       — Log correlation search UI
-    compliance-export.ts        — Compliance data export
-    observability-dashboard.css — Dashboard-specific styles
+    admin-dashboard.ts            — Entry point: DOMContentLoaded init
+    admin-helpers.ts              — Types and utility functions
+    observability-dashboard.ts    — Main dashboard section builder
+    health-panel.ts               — Health indicator rendering
+    metrics-charts.ts             — Volume and latency chart rendering
+    correlation-search.ts         — Log correlation search UI
+    compliance-export.ts          — Compliance data export
+    federation-health-panel.ts    — Federation peer health section (polls /api/federation/peers/health)
+    federation-health-types.ts    — FederationPeerHealth, PingResult types + formatters
+    observability-dashboard.css   — Dashboard-specific styles
+    federation-health.css         — Federation health panel styles
     css/
-      admin.css                 — CSS bundle entry
+      admin.css                   — CSS bundle entry
 ```
+
+## Federation Health Panel
+
+The federation health section is injected into the admin grid by `admin-dashboard.ts`
+after the observability section. It polls `GET /api/federation/peers/health` every 30s
+and renders a card per peer showing:
+
+- Connection status (connected / disconnected / error)
+- Last successful sync timestamp
+- Document conflict count (all-time rejected/failed inbound)
+- Failed request count (last 24h)
+- Manual "Ping" action that calls `POST /api/federation/peers/:id/ping`
+
+The section is only visible when federation peers are configured. It renders an empty
+state message otherwise.

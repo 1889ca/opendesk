@@ -6,6 +6,10 @@ const CELL_REF_PATTERN = /^\$?[A-Za-z]{1,3}\$?[0-9]+/;
 const NUMBER_PATTERN = /^[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?/;
 const FUNCTION_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*(?=\s*\()/;
 const BOOLEAN_PATTERN = /^(TRUE|FALSE)\b/i;
+// Unquoted sheet prefix: letters/digits/underscores followed by !
+const UNQUOTED_SHEET_PREFIX = /^([A-Za-z_][A-Za-z0-9_.]*)!/;
+// Quoted sheet prefix: 'any chars ('' = escaped quote)' followed by !
+const QUOTED_SHEET_PREFIX = /^'((?:[^']|'')*)'!/;
 
 export function tokenize(formula: string): Token[] | FormulaError {
   const tokens: Token[] = [];
@@ -23,6 +27,24 @@ export function tokenize(formula: string): Token[] | FormulaError {
       if (end === -1) return makeError(FormulaErrorType.VALUE, `Unterminated string at position ${pos}`);
       tokens.push({ type: 'STRING', value: formula.slice(pos + 1, end), position: start });
       pos = end + 1;
+      continue;
+    }
+
+    // Quoted sheet prefix: 'My Sheet'!  (must check before string literal '"')
+    const quotedSheetMatch = remaining.match(QUOTED_SHEET_PREFIX);
+    if (quotedSheetMatch) {
+      // decoded: replace '' escape sequences with single quote
+      const decoded = quotedSheetMatch[1].replace(/''/g, "'");
+      tokens.push({ type: 'SHEET_PREFIX', value: decoded, position: start });
+      pos += quotedSheetMatch[0].length;
+      continue;
+    }
+
+    // Unquoted sheet prefix: Sheet2!  (check before function/cell-ref, which lack '!')
+    const unquotedSheetMatch = remaining.match(UNQUOTED_SHEET_PREFIX);
+    if (unquotedSheetMatch) {
+      tokens.push({ type: 'SHEET_PREFIX', value: unquotedSheetMatch[1], position: start });
+      pos += unquotedSheetMatch[0].length;
       continue;
     }
 

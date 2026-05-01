@@ -63,6 +63,7 @@ Provide the spreadsheet editor for OpenDesk: grid rendering, cell editing, formu
 
 - `contracts/sheets-formatting/rules.md` — Cell formatting types, toolbar, rendering, shortcuts
 - `contracts/sheets-tabs/rules.md` — Multi-sheet tab management, cross-sheet references
+- Pivot Tables (inline) — Multi-value pivot engine, 9 aggregation types (SUM, COUNT, AVERAGE, MIN, MAX, MEDIAN, STDEV, PRODUCT, COUNT_DISTINCT), display mode transforms (% of row/col/grand total, rank, running total), sort by label/value, Top N / threshold filtering
 
 ## File Structure
 
@@ -100,12 +101,22 @@ modules/app-sheets/
     cond-format-renderer.ts     — Conditional formatting visual rendering
     cond-format-dialog.ts       — Conditional formatting rule editor
     presence.ts                 — Collaborative presence indicators
+    pivot/
+      pivot-aggregations.ts     — Aggregation functions (SUM, COUNT, MEDIAN, STDEV, etc.)
+      pivot-engine.ts           — Pivot table computation with multi-value field support
+      pivot-transforms.ts       — Display mode transforms (%, rank, running total)
+      pivot-sort-filter.ts      — Sort by value/label, Top N / threshold filtering
+      pivot-renderer.ts         — Pivot result → grid conversion, Yjs sheet writer
+      pivot-field-list.ts       — Field selector UI components
+      pivot-options.ts          — Advanced options UI (display mode, sort, filter)
+      pivot-dialog.ts           — Pivot table dialog orchestrator
     css/
       spreadsheet.css           — Main spreadsheet styles
       sheets-selection.css      — Selection highlight styles
       sheets-col-row.css        — Column/row resize styles
       sheets-filter.css         — Filter UI styles
       sheets-cond-format.css    — Conditional formatting styles
+      sheets-pivot.css          — Pivot table dialog and UI styles
 ```
 
 ## Verification

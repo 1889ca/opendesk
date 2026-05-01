@@ -185,6 +185,27 @@ export interface SyncChannel {
 
 export type SyncChannelStatus = 'active' | 'paused' | 'closed';
 
+// --- Peer Health ---
+
+export interface PeerHealthEntry {
+  peer: FederationPeer;
+  /** ISO timestamp of last successful inbound or outbound transfer, or null. */
+  lastSuccessfulSyncAt: string | null;
+  /** All-time count of rejected + failed inbound transfers (document conflicts). */
+  conflictCount: number;
+  /** Count of failed/rejected transfers in the last 24 hours. */
+  failedRequestCount: number;
+  /** Derived status: active/suspended/revoked from peer record. */
+  connectionStatus: 'connected' | 'disconnected' | 'error';
+}
+
+export interface PingResult {
+  peerId: string;
+  reachable: boolean;
+  latencyMs: number | null;
+  error: string | null;
+}
+
 // --- Module Interface ---
 
 export interface FederationModule {
@@ -200,4 +221,8 @@ export interface FederationModule {
   receiveDocument(bundle: TransferBundle): Promise<TransferRecord>;
   /** List transfer history for a peer. */
   listTransfers(peerId?: string, limit?: number): Promise<TransferRecord[]>;
+  /** Get health metrics for all peers. */
+  peerHealth(): Promise<PeerHealthEntry[]>;
+  /** Ping a peer to test reachability, updating last_seen_at on success. */
+  pingPeer(peerId: string): Promise<PingResult>;
 }

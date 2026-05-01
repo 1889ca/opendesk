@@ -166,6 +166,8 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'ai.discard': 'Discard',
   'ai.loading': 'Thinking…',
   'ai.error': 'AI unavailable. Is Ollama running?',
+  'ai.contextLabel': 'Context:',
+  'ai.contextSelection': 'Selection',
   'toolbar.drawing': 'Drawing',
   'toolbar.spellcheck': 'Spell Check',
   'toolbar.specialChars': 'Special Characters',

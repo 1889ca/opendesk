@@ -4,7 +4,7 @@
  * Wires the AI assist UI into the TipTap editor.
  */
 import type { Editor } from '@tiptap/core';
-import { callAssist, type AssistAction } from './ai-assist-api.ts';
+import { callAssist, type AssistAction, type AssistContext } from './ai-assist-api.ts';
 import {
   buildAiAssistButton,
   buildResultPopover,
@@ -17,11 +17,11 @@ import { t } from '../i18n/index.ts';
 export function initAiAssist(editor: Editor): void {
   let triggerBtn: HTMLButtonElement | null = null;
 
-  function onAction(action: AssistAction, text: string): Promise<void> {
+  function onAction(action: AssistAction, text: string, context: AssistContext): Promise<void> {
     const anchor = triggerBtn ?? document.querySelector<HTMLButtonElement>('.ai-assist-trigger-btn');
     if (anchor) showLoadingState(anchor);
 
-    return callAssist({ action, text }).then((res) => {
+    return callAssist({ action, text, context }).then((res) => {
       removePopover();
       const anchorEl = anchor ?? document.querySelector<HTMLButtonElement>('.ai-assist-trigger-btn');
       if (anchorEl) {

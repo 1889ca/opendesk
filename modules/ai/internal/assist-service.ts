@@ -1,24 +1,13 @@
 /** Contract: contracts/ai/rules.md */
 import type { OllamaClient } from './ollama-client.ts';
+import type { AssistRequest, AssistResult } from '../contract.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('ai:assist');
 
-export type AssistAction = 'improve' | 'summarize' | 'expand' | 'shorten' | 'fix-grammar' | 'continue';
-
-export interface AssistRequest {
-  action: AssistAction;
-  text: string;
-  documentId?: string;
-}
-
-export interface AssistResult {
-  result: string;
-}
-
 const SYSTEM_PROMPT = `You are a writing assistant integrated into OpenDesk, a sovereign office suite. You help users improve their documents. Respond ONLY with the transformed text — no explanations, no preamble, no quotes around the result. Output only the written content itself.`;
 
-function buildPrompt(action: AssistAction, text: string): string {
+function buildActionInstruction(action: AssistRequest['action'], text: string): string {
   switch (action) {
     case 'improve':
       return `Improve the writing quality of the following text. Make it clearer, more concise, and more professional:\n\n${text}`;
@@ -35,10 +24,24 @@ function buildPrompt(action: AssistAction, text: string): string {
   }
 }
 
+/**
+ * Prepend scoped context to the prompt so the model understands what
+ * surrounding material the user is working within before acting on text.
+ */
+function buildPrompt(req: AssistRequest): string {
+  const action = buildActionInstruction(req.action, req.text);
+  if (!req.context?.content) return action;
+  return `Context (${req.context.label}):\n${req.context.content}\n\n---\n\n${action}`;
+}
+
 export function createAssistService(ollama: OllamaClient) {
   async function assist(req: AssistRequest): Promise<AssistResult> {
-    const prompt = buildPrompt(req.action, req.text);
-    log.info('ai assist', { action: req.action, textLength: req.text.length });
+    const prompt = buildPrompt(req);
+    log.info('ai assist', {
+      action: req.action,
+      textLength: req.text.length,
+      contextType: req.context?.type ?? 'none',
+    });
     try {
       const result = await ollama.chat(SYSTEM_PROMPT, prompt);
       return { result };

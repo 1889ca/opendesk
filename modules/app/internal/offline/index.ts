@@ -14,6 +14,7 @@ export {
   setConnectionState,
   getConnectionState,
   onConnectionStateChange,
+  setYjsQueueCount,
 } from './offline-indicator.ts';
 export type { ConnectionState } from './offline-indicator.ts';
 export {
@@ -26,3 +27,5 @@ export {
 } from './offline-storage.ts';
 export type { CachedDocEntry } from './offline-storage.ts';
 export { queueMutation, getQueueSize, flushQueue, onQueueChange } from './sync-manager.ts';
+export { attachYjsPersistence } from './yjs-persistence.ts';
+export type { YjsPersistenceHandle } from './yjs-persistence.ts';

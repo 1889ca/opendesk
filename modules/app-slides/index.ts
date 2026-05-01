@@ -6,6 +6,9 @@ export {
   TextAlignSchema,
   TableDataSchema,
   SlideElementSchema,
+  AnimationEffectSchema,
+  AnimationTriggerSchema,
+  ElementAnimationSchema,
 } from './contract.ts';
 
 // Types
@@ -14,4 +17,7 @@ export type {
   TextAlign,
   TableData,
   SlideElement,
+  AnimationEffect,
+  AnimationTrigger,
+  ElementAnimation,
 } from './contract.ts';

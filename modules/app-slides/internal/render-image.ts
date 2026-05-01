@@ -2,6 +2,11 @@
 
 import type { SlideElement } from './types.ts';
 
+/** Invariant 11: only http(s) or /uploads/ relative paths are safe to assign as image src */
+function isSafeSrc(src: string): boolean {
+  return /^https?:\/\//.test(src) || src.startsWith('/uploads/');
+}
+
 /** Render an image element */
 export function renderImageElement(el: SlideElement): HTMLElement {
   const div = document.createElement('div');
@@ -10,9 +15,10 @@ export function renderImageElement(el: SlideElement): HTMLElement {
   div.dataset.elementId = el.id;
   applyTransform(div, el);
 
-  if (el.src) {
+  const src = el.src && isSafeSrc(el.src) ? el.src : null;
+  if (src) {
     const img = document.createElement('img');
-    img.src = el.src;
+    img.src = src;
     img.alt = el.content || 'Slide image';
     img.draggable = false;
     img.className = 'slide-image-content';

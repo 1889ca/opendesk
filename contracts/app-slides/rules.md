@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Provide the presentation slide editor for OpenDesk: canvas-based element rendering (text, image, shape, table), drag/resize/rotate interactions, Yjs-backed collaborative slide editing, slide sorter, speaker notes, presenter mode, layouts, themes, and transitions. This is a pure client-side rendering and interaction module with no business logic.
+Provide the presentation slide editor for OpenDesk: canvas-based element rendering (text, image, shape, table), drag/resize/rotate interactions, Yjs-backed collaborative slide editing, slide sorter, speaker notes, presenter mode, layouts, themes, slide transitions, and per-element animations (entrance, exit, emphasis effects with on-click / with-previous / after-previous triggers). This is a pure client-side rendering and interaction module with no business logic.
 
 ## Inputs
 
@@ -42,6 +42,16 @@ Provide the presentation slide editor for OpenDesk: canvas-based element renderi
 7. **Aspect ratio lock with Shift.** Shift during resize preserves original aspect ratio.
 
 8. **Z-order maps to array position.** Element rendering order is determined by Yjs array index.
+
+9. **Animations live on the slide.** Per-element animations are stored in a `Y.Array` on the slide map (keyed `'animations'`), in playback order. Each row references the target by `elementId`. Removing an element removes its animations on the next observe pass.
+
+10. **Animation steps drive presenter advancement.** A presenter "next" key first advances through the current slide's animation steps (each `on-click` opens a new step; `with-previous` and `after-previous` join the open step). Only after the last step does navigation move to the next slide.
+
+11. **Image src must be http(s) or relative /uploads/.** `SlideElementSchema.src` is validated with a `refine` that rejects any other scheme (e.g. `javascript:`, `data:`, `blob:`, `file:`). `parse-elements.ts` applies the same check on read; `yjs-element-insert.ts` throws on insert. `render-image.ts` guards the final DOM assignment.
+
+12. **Rich text content is sanitized on write and read.** `sanitizeRichTextHtml` (browser DOMParser, no external deps) is applied before storing content to Yjs and before loading it into TipTap. Only TipTap StarterKit + Underline tags are allowed; all event-handler attributes and non-allowlisted tags are stripped.
+
+13. **Tables clamped to MAX_TABLE_ROWS × MAX_TABLE_COLS.** `MAX_TABLE_ROWS = 50` and `MAX_TABLE_COLS = 20` are exported from `contract.ts`. `createTableElement` clamps on create; `parseTableData` clamps on read; `parse-elements.ts` clamps after parsing. Cell strings are capped at 8 KB.
 
 ## Dependencies
 
@@ -111,8 +121,15 @@ modules/app-slides/
     speaker-notes.ts          — Speaker notes panel
     presenter-mode.ts         — Fullscreen presenter mode
     toolbar-extras.ts         — Additional toolbar controls
+    animation-types.ts        — Animation effect catalog and trigger types
+    animation-yjs.ts          — Yjs read/write helpers and step-builder for element animations
+    animation-engine.ts       — Web Animations playback engine (entrance/exit/emphasis)
+    animation-panel.ts        — Sidebar UI for managing element animations
+    animation-panel-controls.ts — Small DOM control factories for the animation panel
+    animation-init.ts         — Mounts the animation panel and toolbar toggle
     css/
       presentation.css        — Presentation editor styles
+      animations.css          — Animation panel styles
 ```
 
 ## Verification
@@ -127,3 +144,6 @@ modules/app-slides/
 8. **Table grid** — Correct rows/cols. Cell edits write to Yjs.
 9. **Insert toolbar** — Each button inserts correct element type.
 10. **Build** — `npm run build` succeeds with updated entry points.
+11. **Animation Yjs round-trip** — Append, update, remove, move, and prune helpers preserve schema and order (`animation-yjs.test.ts`).
+12. **Animation step grouping** — `buildAnimationSteps` opens a new step on each on-click, groups with-previous and after-previous into the open step (`animation-yjs.test.ts`).
+13. **Animation engine** — `keyframesFor`, `prepareInitialState`, `runStep` (sequential after-previous), and `createAnimationController` (advance/done/reset) behave as specified (`animation-engine.test.ts`).

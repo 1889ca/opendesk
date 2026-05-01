@@ -93,3 +93,97 @@ describe('parseSlideElements', () => {
     expect(elements[0].strokeWidth).toBe(2);
   });
 });
+
+// --- Security: #503 image src validation ---
+describe('parseSlideElements image src validation (invariant 11)', () => {
+  function makeImageEl(src: string): Y.Map<unknown> {
+    const doc = new Y.Doc();
+    const arr = doc.getArray<Y.Map<unknown>>('t');
+    doc.transact(() => {
+      arr.push([createYElement({
+        id: 'img-sec', type: 'image', x: 0, y: 0, width: 40, height: 40,
+        rotation: 0, content: '', src,
+      })]);
+    });
+    return arr.get(0);
+  }
+
+  function parseOne(src: string) {
+    const doc = new Y.Doc();
+    const arr = doc.getArray<Y.Map<unknown>>('t');
+    doc.transact(() => {
+      arr.push([createYElement({
+        id: 'img-sec', type: 'image', x: 0, y: 0, width: 40, height: 40,
+        rotation: 0, content: '', src,
+      })]);
+    });
+    return parseSlideElements(arr)[0];
+  }
+
+  it('accepts https src', () => {
+    expect(parseOne('https://cdn.example.com/img.png').src).toBe('https://cdn.example.com/img.png');
+  });
+
+  it('accepts http src', () => {
+    expect(parseOne('http://example.com/img.jpg').src).toBe('http://example.com/img.jpg');
+  });
+
+  it('accepts /uploads/ relative src', () => {
+    expect(parseOne('/uploads/my-image.png').src).toBe('/uploads/my-image.png');
+  });
+
+  it('rejects javascript: scheme — returns empty string', () => {
+    expect(parseOne('javascript:alert(1)').src).toBe('');
+  });
+
+  it('rejects data: scheme', () => {
+    expect(parseOne('data:image/png;base64,abc').src).toBe('');
+  });
+
+  it('rejects blob: scheme', () => {
+    expect(parseOne('blob:https://evil.com/123').src).toBe('');
+  });
+
+  it('rejects file: scheme', () => {
+    expect(parseOne('file:///etc/passwd').src).toBe('');
+  });
+});
+
+// --- Security: #505 table bounds clamping ---
+describe('parseSlideElements table bounds clamping (invariant 13)', () => {
+  function parseTableEl(rows: number, cols: number) {
+    const doc = new Y.Doc();
+    const arr = doc.getArray<Y.Map<unknown>>('t');
+    const cells = Array.from({ length: rows }, () => Array(cols).fill('x'));
+    const tableData = JSON.stringify({ rows, cols, cells });
+    doc.transact(() => {
+      arr.push([createYElement({
+        id: 'tbl-sec', type: 'table', x: 0, y: 0, width: 50, height: 50,
+        rotation: 0, content: '', tableData,
+      })]);
+    });
+    return parseSlideElements(arr)[0];
+  }
+
+  it('allows table within bounds (3×3)', () => {
+    const el = parseTableEl(3, 3);
+    expect(el.tableData!.rows).toBe(3);
+    expect(el.tableData!.cols).toBe(3);
+  });
+
+  it('clamps rows exceeding MAX_TABLE_ROWS (50)', () => {
+    const el = parseTableEl(200, 3);
+    expect(el.tableData!.rows).toBeLessThanOrEqual(50);
+  });
+
+  it('clamps cols exceeding MAX_TABLE_COLS (20)', () => {
+    const el = parseTableEl(3, 500);
+    expect(el.tableData!.cols).toBeLessThanOrEqual(20);
+  });
+
+  it('clamps both dimensions simultaneously', () => {
+    const el = parseTableEl(999, 999);
+    expect(el.tableData!.rows).toBeLessThanOrEqual(50);
+    expect(el.tableData!.cols).toBeLessThanOrEqual(20);
+  });
+});

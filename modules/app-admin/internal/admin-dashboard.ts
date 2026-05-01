@@ -5,6 +5,7 @@ import {
   type HealthIndicator, type OperationSummary, type MetricsSummary, type AuditSummary,
 } from './admin-helpers.ts';
 import { buildObservabilitySection, initObservabilityDashboard } from './observability-dashboard.ts';
+import { buildFederationHealthSection, initFederationHealthPanel } from './federation-health-panel.ts';
 
 // --- Rendering ---
 
@@ -174,6 +175,9 @@ function init(): void {
   if (adminGrid) {
     adminGrid.insertAdjacentHTML('beforeend', buildObservabilitySection());
     initObservabilityDashboard();
+
+    adminGrid.insertAdjacentHTML('beforeend', buildFederationHealthSection());
+    initFederationHealthPanel();
   }
 }
 
