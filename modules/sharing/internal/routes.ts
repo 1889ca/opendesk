@@ -55,16 +55,17 @@ export function createShareRoutes(opts: ShareRoutesOptions): Router {
 
       const grantorId = req.principal!.id;
 
-      const link = await service.create({
+      const { link, wireToken } = await service.create({
         docId: String(docId),
         grantorId,
         role: roleResult.data,
         options: optsParse.data,
       });
 
-      // Never expose passwordHash to the client
-      const { passwordHash: _, ...safeLink } = link;
-      res.status(201).json(safeLink);
+      // Never expose passwordHash to the client.
+      // Expose wireToken as the shareable token (may be signed or legacy jti).
+      const { passwordHash: _, token: _jti, ...rest } = link;
+      res.status(201).json({ ...rest, token: wireToken });
     }),
   );
 
@@ -133,6 +134,7 @@ export function createShareRoutes(opts: ShareRoutesOptions): Router {
         revoked: 410,
         exhausted: 410,
         wrong_password: 403,
+        invalid_token: 400,
       } as const;
       res.status(statusMap[result.reason]).json({ error: result.reason });
       return;
