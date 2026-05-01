@@ -9,6 +9,15 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:3000',
     headless: true,
+    // Block service workers during e2e tests. The doc-list and editor bundles
+    // register sw.js which calls self.skipWaiting() + clients.claim() on
+    // install/activate, causing a controllerchange event that triggers
+    // window.location.reload(). With a fresh browser context (no pre-existing
+    // SW registration) this reload fires immediately after page load, creating
+    // a race where Playwright locators run during the reload and see 0 elements.
+    // Blocking SWs eliminates this non-determinism. SW behaviour is covered
+    // separately; e2e tests focus on server-rendered HTML and API contracts.
+    serviceWorkers: 'block',
     // Pre-seed localStorage so the first-visit name-setup modal
     // (modules/app/internal/shared/name-setup.ts, added in #170)
     // never shows during e2e runs. Without this seed, the modal

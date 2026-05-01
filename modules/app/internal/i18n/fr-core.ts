@@ -151,6 +151,7 @@ export const coreTranslations: Partial<TranslationKeys> = {
   'versions.namePlaceholder': 'ex. Avant restructuration',
   'nav.dashboard': 'Documents',
   'nav.knowledgeBase': 'Base de connaissances',
+  'nav.forms': 'Formulaires',
   'nav.newDocument': 'Nouveau document',
   'nav.recent': 'R\u00e9cents',
   'toolbar.footnote': 'Note de bas de page',

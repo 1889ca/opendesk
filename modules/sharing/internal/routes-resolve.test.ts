@@ -5,14 +5,16 @@ import type express from 'express';
 import request from 'supertest';
 import { createInMemoryShareLinkStore, type ShareLinkStore } from './store.ts';
 import { createTestApp } from './routes-test-helpers.ts';
+import type { ShareLinkService } from './share-links.ts';
 
 describe('share routes — POST /api/share/:token/resolve', () => {
   let store: ShareLinkStore;
   let app: ReturnType<typeof express>;
+  let service: ShareLinkService;
 
   beforeEach(() => {
     store = createInMemoryShareLinkStore();
-    ({ app } = createTestApp(store));
+    ({ app, service } = createTestApp(store));
   });
 
   it('resolves a valid token', async () => {
@@ -43,13 +45,18 @@ describe('share routes — POST /api/share/:token/resolve', () => {
       .post('/api/documents/doc-1/share')
       .send({ role: 'viewer', options: { expiresIn: 1 } });
 
-    // Force expiration
-    await store.update(createRes.body.token, {
-      expiresAt: new Date(Date.now() - 1000).toISOString(),
-    });
+    // Force expiration: resolve wireToken to the internal link to get the jti for store update.
+    const wireToken = createRes.body.token as string;
+    const linkResult = await service.resolve(wireToken, undefined, { skipIncrement: true });
+    expect(linkResult.ok).toBe(true);
+    if (linkResult.ok) {
+      await store.update(linkResult.link.token, {
+        expiresAt: new Date(Date.now() - 1000).toISOString(),
+      });
+    }
 
     const res = await request(app)
-      .post(`/api/share/${createRes.body.token}/resolve`)
+      .post(`/api/share/${wireToken}/resolve`)
       .send({});
 
     expect(res.status).toBe(410);

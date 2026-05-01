@@ -1,8 +1,8 @@
 /** Contract: contracts/app/rules.md */
 
 /**
- * Sort, filter, and pagination controls for the document list.
- * Extracted to keep doc-list.ts under the 200-line limit.
+ * Sort, filter, and view-toggle controls for the document list.
+ * Pagination is in doc-list-pagination.ts.
  */
 
 import { t, type TranslationKey } from '../i18n/index.ts';
@@ -10,6 +10,8 @@ import { t, type TranslationKey } from '../i18n/index.ts';
 export type SortOption = 'updated_at-desc' | 'updated_at-asc' | 'created_at-desc' | 'created_at-asc' | 'title-asc' | 'title-desc';
 export type TypeFilter = 'all' | 'text' | 'spreadsheet' | 'presentation';
 export type ViewMode = 'list' | 'grid';
+
+export { createPaginationBar } from './doc-list-pagination.ts';
 
 const VIEW_MODE_KEY = 'opendesk-doc-view';
 
@@ -171,39 +173,6 @@ export function createControlsBar(
   bar.appendChild(filterGroup);
   bar.appendChild(viewToggle);
   bar.appendChild(sortLabel);
-
-  return bar;
-}
-
-export function createPaginationBar(
-  state: DocListState,
-  onChange: (next: Partial<DocListState>) => void,
-): HTMLElement {
-  const bar = document.createElement('div');
-  bar.className = 'doc-list-pagination';
-
-  const prevBtn = document.createElement('button');
-  prevBtn.className = 'btn btn-secondary doc-list-page-btn';
-  prevBtn.textContent = t('docList.prevPage');
-  prevBtn.disabled = state.page <= 1;
-  prevBtn.addEventListener('click', () => onChange({ page: state.page - 1 }));
-
-  const pageInfo = document.createElement('span');
-  pageInfo.className = 'doc-list-page-info';
-  pageInfo.textContent = t('docList.pageOf', {
-    page: String(state.page),
-    total: String(state.totalPages),
-  });
-
-  const nextBtn = document.createElement('button');
-  nextBtn.className = 'btn btn-secondary doc-list-page-btn';
-  nextBtn.textContent = t('docList.nextPage');
-  nextBtn.disabled = state.page >= state.totalPages;
-  nextBtn.addEventListener('click', () => onChange({ page: state.page + 1 }));
-
-  bar.appendChild(prevBtn);
-  bar.appendChild(pageInfo);
-  bar.appendChild(nextBtn);
 
   return bar;
 }

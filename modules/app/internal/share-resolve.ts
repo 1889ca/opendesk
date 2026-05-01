@@ -41,11 +41,15 @@ function init(): void {
         if (!res.ok) return res.json().then((d: { error?: string }) => { throw new Error(d.error || 'Failed'); });
         return res.json();
       })
-      .then((data: { grant?: { docId?: string } } | null) => {
+      .then((data: { grant?: { docId?: string; role?: string } } | null) => {
         if (!data) return;
         const docId = data.grant?.docId;
+        const role = data.grant?.role;
         if (docId) {
-          window.location.href = '/editor.html?doc=' + encodeURIComponent(docId);
+          // Pass the role to the editor so it can enforce read-only / comment-only mode.
+          // If role is 'editor' or absent, no restrictions are applied.
+          const roleParam = (role && role !== 'editor') ? '&role=' + encodeURIComponent(role) : '';
+          window.location.href = '/editor.html?doc=' + encodeURIComponent(docId) + roleParam;
         } else {
           heading!.textContent = 'Error';
           message!.textContent = 'Could not determine document ID.';
