@@ -49,6 +49,39 @@ Cross-sovereign federation enabling document exchange between distinct OpenDesk 
 - MUST NOT: Modify transferred document content during import.
 - MUST NOT: Expose federation endpoints when federation is disabled.
 
+## Peer Health API
+
+`GET /api/federation/peers/health` (admin-only) returns `PeerHealthEntry[]`:
+
+```ts
+interface PeerHealthEntry {
+  peer: FederationPeer;
+  lastSuccessfulSyncAt: string | null;   // ISO timestamp of last completed transfer
+  conflictCount: number;                  // all-time rejected+failed inbound transfers
+  failedRequestCount: number;             // failed/rejected transfers in the last 24h
+  connectionStatus: 'connected' | 'disconnected' | 'error';
+}
+```
+
+`POST /api/federation/peers/:id/ping` (admin-only) performs a live HTTP GET to
+`<peer.endpointUrl>/api/federation/health`, updates `last_seen_at` on success, and
+returns a `PingResult`:
+
+```ts
+interface PingResult {
+  peerId: string;
+  reachable: boolean;
+  latencyMs: number | null;
+  error: string | null;
+}
+```
+
+`GET /api/federation/health` — unauthenticated liveness probe used as the ping
+target by remote peers. Always returns `{ status: 'ok' }` when federation is enabled.
+
+Health data is aggregated from the `federation_transfers` table at query time — no
+extra columns or tables are required.
+
 ## Verification
 
 - Peer registration: Register peer, verify stored correctly with public key.
@@ -56,6 +89,9 @@ Cross-sovereign federation enabling document exchange between distinct OpenDesk 
 - Inbound verification: Receive signed bundle, verify signature matches registered peer.
 - Tampered transfer: Modify signed bundle, verify import is rejected.
 - Disabled federation: Verify endpoints return 404 when federation disabled.
+- Peer health: Register peers + create transfers, verify health endpoint returns correct counts.
+- Ping success: Stub httpFetch to return 200, verify reachable=true and last_seen_at updated.
+- Ping failure: Stub httpFetch to throw, verify reachable=false and error message present.
 Enable sovereign OpenDesk instances to federate: share documents, sync CRDT state, map identities across OIDC/SAML boundaries, propagate permissions, federate KB libraries, and resolve split-brain conflicts after network partitions.
 - `PeerRegistration`: `{ instanceId, endpoint, publicKey, name }` -- register a federated peer instance
 - `FederatedIdentity`: `{ localUserId, remoteInstanceId, remoteUserId }` -- map remote user to local

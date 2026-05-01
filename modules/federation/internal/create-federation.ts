@@ -5,11 +5,14 @@ import type {
   FederationPeer,
   FederationConfig,
   TransferBundle,
+  PeerHealthEntry,
+  PingResult,
 } from '../contract.ts';
 import { randomUUID } from 'node:crypto';
 import * as store from './federation-store.ts';
 import * as transferOps from './transfer-ops.ts';
 import { validatePeerUrl } from './peer-url-validator.ts';
+import { httpFetch } from '../../http/index.ts';
 import { createLogger } from '../../logger/index.ts';
 
 const log = createLogger('federation');
@@ -75,6 +78,65 @@ export function createFederation(deps: FederationDependencies): FederationModule
     return store.listTransfers(pool, peerId, limit);
   }
 
+  async function peerHealth(): Promise<PeerHealthEntry[]> {
+    const [peers, healthRows] = await Promise.all([
+      store.listPeers(pool),
+      store.listPeerHealth(pool),
+    ]);
+
+    const healthByPeerId = new Map(healthRows.map((r) => [r.peerId, r]));
+
+    return peers.map((peer): PeerHealthEntry => {
+      const row = healthByPeerId.get(peer.id);
+
+      let connectionStatus: PeerHealthEntry['connectionStatus'];
+      if (peer.status !== 'active') {
+        connectionStatus = 'disconnected';
+      } else if (row && row.failedRequestCount > 0 && !row.lastSuccessfulSyncAt) {
+        connectionStatus = 'error';
+      } else {
+        connectionStatus = 'connected';
+      }
+
+      return {
+        peer,
+        lastSuccessfulSyncAt: row?.lastSuccessfulSyncAt ?? null,
+        conflictCount: row?.conflictCount ?? 0,
+        failedRequestCount: row?.failedRequestCount ?? 0,
+        connectionStatus,
+      };
+    });
+  }
+
+  async function pingPeer(peerId: string): Promise<PingResult> {
+    const peer = await store.getPeer(pool, peerId);
+    if (!peer) {
+      return { peerId, reachable: false, latencyMs: null, error: 'Peer not found' };
+    }
+
+    const start = Date.now();
+    try {
+      const res = await httpFetch(`${peer.endpointUrl}/api/federation/health`, {
+        method: 'GET',
+        timeoutMs: 10_000,
+      });
+
+      const latencyMs = Date.now() - start;
+
+      if (res.ok) {
+        await store.updateLastSeen(pool, peerId);
+        log.info('peer ping ok', { peerId, latencyMs });
+        return { peerId, reachable: true, latencyMs, error: null };
+      }
+
+      return { peerId, reachable: false, latencyMs, error: `HTTP ${res.status}` };
+    } catch (err) {
+      const error = err instanceof Error ? err.message : String(err);
+      log.warn('peer ping failed', { peerId, error });
+      return { peerId, reachable: false, latencyMs: null, error };
+    }
+  }
+
   return {
     registerPeer,
     listPeers,
@@ -82,5 +144,7 @@ export function createFederation(deps: FederationDependencies): FederationModule
     sendDocument,
     receiveDocument,
     listTransfers,
+    peerHealth,
+    pingPeer,
   };
 }

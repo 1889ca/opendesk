@@ -112,3 +112,43 @@ function mapTransferRow(row: Record<string, unknown>): TransferRecord {
     createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : (row.created_at as string),
   };
 }
+
+// --- Peer Health ---
+
+export interface PeerHealthRow {
+  peerId: string;
+  lastSeenAt: string | null;
+  lastSuccessfulSyncAt: string | null;
+  conflictCount: number;
+  failedRequestCount: number;
+}
+
+/**
+ * Aggregate health metrics per peer from the transfers table.
+ * failedRequestCount covers the last 24 hours.
+ * conflictCount is the all-time count of rejected+failed inbound transfers.
+ */
+export async function listPeerHealth(pool: Pool): Promise<PeerHealthRow[]> {
+  const result = await pool.query(`
+    SELECT
+      p.id AS peer_id,
+      p.last_seen_at,
+      MAX(CASE WHEN t.status = 'completed' THEN t.created_at END) AS last_successful_sync_at,
+      COUNT(CASE WHEN t.direction = 'inbound' AND t.status IN ('rejected', 'failed') THEN 1 END)::int AS conflict_count,
+      COUNT(CASE WHEN t.status IN ('failed', 'rejected') AND t.created_at > now() - interval '24 hours' THEN 1 END)::int AS failed_request_count
+    FROM federation_peers p
+    LEFT JOIN federation_transfers t ON t.peer_id = p.id
+    GROUP BY p.id, p.last_seen_at
+    ORDER BY p.created_at DESC
+  `);
+
+  return result.rows.map((row) => ({
+    peerId: row.peer_id as string,
+    lastSeenAt: row.last_seen_at instanceof Date ? row.last_seen_at.toISOString() : (row.last_seen_at as string | null),
+    lastSuccessfulSyncAt: row.last_successful_sync_at instanceof Date
+      ? row.last_successful_sync_at.toISOString()
+      : (row.last_successful_sync_at as string | null),
+    conflictCount: Number(row.conflict_count),
+    failedRequestCount: Number(row.failed_request_count),
+  }));
+}

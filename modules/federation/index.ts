@@ -17,6 +17,8 @@ export {
   type TransferRecord,
   type TransferBundle,
   type FederationModule,
+  type PeerHealthEntry,
+  type PingResult,
   type Peer,
   type PeerRegistration,
   type PeerStatus,
@@ -39,6 +41,7 @@ export { createFederation, type FederationDependencies } from './internal/create
 
 // Routes
 export { createFederationRoutes, type FederationRoutesOptions } from './internal/federation-routes.ts';
+export { createFederationHealthRoutes, type FederationHealthRoutesOptions } from './internal/federation-health-routes.ts';
 
 // Crypto utilities
 export { signPayload, verifySignature, sha256, generateKeyPair, exportPublicKey, importPublicKey, signMessage, verifyMessage } from './internal/signing.ts';

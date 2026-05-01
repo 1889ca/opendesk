@@ -1,0 +1,128 @@
+/* Federation Health Panel — Contract: contracts/app-admin/rules.md */
+
+.fed-panel-full {
+  grid-column: 1 / -1;
+}
+
+.fed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* Peer list */
+.fed-peer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.fed-peer-card {
+  display: grid;
+  grid-template-columns: 1.25rem 1fr auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: border-color 0.15s;
+}
+
+.fed-peer-card.fed-status-error {
+  border-color: var(--disconnected, #ef4444);
+}
+
+/* Status dot */
+.fed-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fed-dot-connected    { background: var(--connected, #22c55e); }
+.fed-dot-disconnected { background: var(--text-muted, #6b7280); }
+.fed-dot-error        { background: var(--disconnected, #ef4444); }
+
+/* Peer info */
+.fed-peer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.fed-peer-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fed-peer-url {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Meta row */
+.fed-peer-meta {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.fed-meta-item {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.fed-meta-item strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.fed-meta-warn strong {
+  color: var(--disconnected, #ef4444);
+}
+
+/* Ping button and result */
+.fed-ping-btn {
+  white-space: nowrap;
+}
+
+.fed-ping-result {
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.fed-ping-ok   { background: color-mix(in srgb, #22c55e 15%, transparent); color: #16a34a; }
+.fed-ping-fail { background: color-mix(in srgb, #ef4444 12%, transparent); color: #dc2626; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .fed-peer-card {
+    grid-template-columns: 1.25rem 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  .fed-peer-meta {
+    grid-column: 1 / -1;
+    gap: 0.75rem;
+  }
+
+  .fed-ping-btn {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}

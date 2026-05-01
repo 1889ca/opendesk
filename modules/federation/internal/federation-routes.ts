@@ -5,6 +5,7 @@ import { TransferBundleSchema, type FederationModule } from '../contract.ts';
 import type { PermissionsModule } from '../../permissions/index.ts';
 import { asyncHandler } from '../../api/internal/async-handler.ts';
 import { verifySignature } from './signing.ts';
+import { createFederationHealthRoutes } from './federation-health-routes.ts';
 
 const RegisterPeerBody = z.object({
   name: z.string().min(1).max(200),
@@ -185,6 +186,9 @@ export function createFederationRoutes(opts: FederationRoutesOptions): Router {
       res.json(transfers);
     }),
   );
+
+  // Health + ping routes live in a separate file to stay under 200 lines
+  router.use('/', createFederationHealthRoutes({ federation, permissions }));
 
   return router;
 }
