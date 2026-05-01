@@ -14,6 +14,7 @@ import { manifest as observabilityManifest } from '../../observability/manifest.
 import { manifest as referencesManifest } from '../../references/manifest.ts';
 import { manifest as storageManifest } from '../../storage/manifest.ts';
 import { manifest as workflowManifest } from '../../workflow/manifest.ts';
+import { manifest as formsManifest } from '../../forms/manifest.ts';
 
 /**
  * Central registry of OpenDesk module manifests.
@@ -37,6 +38,7 @@ export const manifests: OpenDeskManifest[] = [
   documentManifest,
   erasureManifest,
   federationManifest,
+  formsManifest,
   kbManifest,
   notificationsManifest,
   observabilityManifest,
