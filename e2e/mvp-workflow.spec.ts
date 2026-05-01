@@ -63,12 +63,13 @@ test.describe('Editor', () => {
 
   test('loads with full toolbar', async ({ page }) => {
     await openEditor(page, docId);
-    await expect(page.getByRole('button', { name: 'Bold' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Italic' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Heading 1' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Bullet list' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Insert table' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Emoji' })).toBeVisible();
+    const toolbar = page.getByRole('toolbar', { name: 'Formatting toolbar' });
+    await expect(toolbar.getByRole('button', { name: 'Bold' })).toBeVisible();
+    await expect(toolbar.getByRole('button', { name: 'Italic' })).toBeVisible();
+    await expect(toolbar.getByRole('button', { name: 'Underline' })).toBeVisible();
+    await expect(toolbar.getByRole('button', { name: 'Bullet list' })).toBeVisible();
+    await expect(toolbar.getByRole('button', { name: 'Ordered list' })).toBeVisible();
+    await expect(toolbar.getByRole('button', { name: 'Insert link' })).toBeVisible();
   });
 
   test('content area and status bar present', async ({ page }) => {
