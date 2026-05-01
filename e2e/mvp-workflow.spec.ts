@@ -135,7 +135,7 @@ test.describe('Editor', () => {
 
   test('language switcher works', async ({ page }) => {
     await openEditor(page, docId);
-    const langSelect = page.locator('select[aria-label="Language"]');
+    const langSelect = page.locator('#lang-switcher select');
     if (await langSelect.count() === 0) return;
     await langSelect.selectOption('fr');
     await page.waitForTimeout(300);
