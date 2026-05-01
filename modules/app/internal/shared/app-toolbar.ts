@@ -133,6 +133,10 @@ function buildRight(actionsSlot: HTMLElement | null, usersHidden: boolean): {
   usersSection.append(usersLabel, usersEl);
   right.appendChild(usersSection);
 
+  const langSlot = document.createElement('span');
+  langSlot.id = 'lang-switcher';
+  right.appendChild(langSlot);
+
   return { right, statusEl, usersEl, usersSectionEl: usersSection };
 }
 

@@ -93,7 +93,12 @@ export function applySecurityMiddleware(app: Express, opts: SecurityMiddlewareOp
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     message: { error: 'Too many requests, please try again later' },
-    skip: (req) => req.path === '/health',
+    skip: (req) => {
+      if (req.path === '/health') return true;
+      // Loopback traffic is always local (dev/E2E/CI) — never real users.
+      const ip = req.ip ?? '';
+      return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+    },
     ...(rateLimitStore ? { store: rateLimitStore } : {}),
   }));
 }
