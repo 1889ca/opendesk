@@ -4,6 +4,7 @@ import { apiFetch } from '../shared/api-client.ts';
 import { t } from '../i18n/index.ts';
 import { renderGroupedResults, type GroupedSearchResponse } from './global-search-results.ts';
 import { saveRecentSearch, renderRecentSearches } from './global-search-recent.ts';
+import { attachResultsKeyNav, registerSearchShortcut } from './global-search-keyboard.ts';
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let abortController: AbortController | null = null;
@@ -101,7 +102,7 @@ export function createGlobalSearch(
 
   const shortcutHint = document.createElement('kbd');
   shortcutHint.className = 'global-search-shortcut';
-  shortcutHint.textContent = isMac() ? '\u2318K' : 'Ctrl+K';
+  shortcutHint.textContent = isMac() ? '⌘K' : 'Ctrl+K';
 
   inputWrapper.append(input, shortcutHint);
 
@@ -123,6 +124,14 @@ export function createGlobalSearch(
     }
     onSearchActive(true);
     executeSearch(query, results);
+  }
+
+  function closeSearch() {
+    input.value = '';
+    results.innerHTML = '';
+    clearDebounce();
+    cancelRequest();
+    onSearchActive(false);
   }
 
   input.addEventListener('focus', () => {
@@ -151,11 +160,7 @@ export function createGlobalSearch(
 
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      input.value = '';
-      results.innerHTML = '';
-      clearDebounce();
-      cancelRequest();
-      onSearchActive(false);
+      closeSearch();
       input.blur();
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -164,42 +169,8 @@ export function createGlobalSearch(
     }
   });
 
-  results.addEventListener('keydown', (e) => {
-    const cards = Array.from(
-      results.querySelectorAll<HTMLElement>('.search-result-card'),
-    );
-    const active = document.activeElement as HTMLElement | null;
-    const idx = active ? cards.indexOf(active) : -1;
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (idx < cards.length - 1) cards[idx + 1].focus();
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      if (idx <= 0) {
-        input.focus();
-      } else {
-        cards[idx - 1].focus();
-      }
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      input.value = '';
-      results.innerHTML = '';
-      clearDebounce();
-      cancelRequest();
-      onSearchActive(false);
-      input.focus();
-    }
-  });
-
-  // Cmd/Ctrl+K global shortcut
-  document.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-      e.preventDefault();
-      input.focus();
-      input.select();
-    }
-  });
+  attachResultsKeyNav(results, input, closeSearch);
+  registerSearchShortcut(input);
 
   return wrapper;
 }

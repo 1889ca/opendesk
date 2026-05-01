@@ -3,13 +3,14 @@
 /**
  * Editor view: wraps the TipTap editor for SPA mount/unmount lifecycle.
  * Creates the full editor chrome and tears everything down on unmount.
+ * Collab and permission helpers are in editor-view-collab.ts.
  */
 
 import { Editor } from '@tiptap/core';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
 import { t } from '../i18n/index.ts';
-import { buildLanguageSwitcher, updateStaticText } from '../shared/locale-ui.ts';
+import { buildLanguageSwitcher } from '../shared/locale-ui.ts';
 import { buildTableToolbar } from '../editor/table-toolbar.ts';
 import { setupImageHandlers } from '../editor/image-handlers.ts';
 import { buildSearchPanel } from '../editor/search/search-panel.ts';
@@ -28,53 +29,12 @@ import { navigate } from '../shell/router.ts';
 import { buildEditorToolbar } from './editor-toolbar.ts';
 import { mountSidebars } from './editor-sidebars.ts';
 import { getUserIdentity } from '../shared/identity.ts';
+import { fetchMyRole, applyPermissionMode } from './editor-view-collab.ts';
 
 let editor: Editor | null = null;
 let provider: HocuspocusProvider | null = null;
 let ydoc: Y.Doc | null = null;
 let cleanupFns: (() => void)[] = [];
-
-/** Fetch the current user's role on a document. Returns null on error. */
-async function fetchMyRole(documentId: string): Promise<{ role: string; canWrite: boolean; canComment: boolean } | null> {
-  try {
-    const res = await apiFetch(`/api/documents/${encodeURIComponent(documentId)}/my-role`);
-    if (!res.ok) return null;
-    return res.json() as Promise<{ role: string; canWrite: boolean; canComment: boolean }>;
-  } catch {
-    return null;
-  }
-}
-
-/** Apply read-only or comment-only mode to the editor and toolbar. */
-function applyPermissionMode(
-  editorInstance: Editor,
-  formattingToolbarEl: HTMLElement,
-  perm: { canWrite: boolean; canComment: boolean } | null,
-): void {
-  const canWrite = perm?.canWrite ?? true; // fail open only in case of fetch error
-  const canComment = perm?.canComment ?? true;
-
-  if (!canWrite) {
-    editorInstance.setEditable(false);
-
-    // Hide or disable the formatting toolbar for viewers and commenters.
-    // Commenters can add comments via the sidebar; the toolbar is for editing only.
-    formattingToolbarEl.hidden = true;
-    formattingToolbarEl.setAttribute('aria-hidden', 'true');
-
-    // Show a read-only banner above the editor.
-    const banner = document.createElement('div');
-    banner.className = 'permission-banner';
-    banner.setAttribute('role', 'status');
-    banner.textContent = canComment
-      ? 'You can view and comment on this document.'
-      : 'You have read-only access to this document.';
-    const parent = formattingToolbarEl.parentElement;
-    if (parent) {
-      parent.insertBefore(banner, formattingToolbarEl.nextSibling);
-    }
-  }
-}
 
 export async function mount(container: HTMLElement, params: Record<string, string>): Promise<void> {
   const documentId = params.id || 'default';
@@ -118,12 +78,9 @@ export async function mount(container: HTMLElement, params: Record<string, strin
   loadDocTitle(documentId, titleInput);
 
   // Fetch permission level before connecting collab so we can set the
-  // initial editable state correctly. We do this in parallel with setting
-  // up the collab provider because the WS handshake takes time.
+  // initial editable state correctly.
   const permPromise = fetchMyRole(documentId);
 
-  // Set up collab. Use the real auth token so the WS authenticate hook
-  // sees the same principal as HTTP requests — not the hardcoded 'dev' sentinel.
   ydoc = new Y.Doc();
   const commentStore = new CommentStore(ydoc);
   const wsUrl = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/collab`;
@@ -155,8 +112,6 @@ export async function mount(container: HTMLElement, params: Record<string, strin
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
 
-  // Apply permission mode once we know the user's role.
-  // We await here (after editor setup) so the editor exists when we configure it.
   const perm = await permPromise;
   applyPermissionMode(editor, formattingToolbar, perm);
 
@@ -171,11 +126,9 @@ export async function mount(container: HTMLElement, params: Record<string, strin
   editorWrapper.appendChild(statusBar.el);
   cleanupFns.push(statusBar.cleanup);
 
-  // Mount sidebars
   const sidebarCleanups = mountSidebars({ editor, commentStore, documentId, user, container });
   cleanupFns.push(...sidebarCleanups);
 
-  // Awareness
   function updateUsers() {
     if (!usersEl || !provider?.awareness) return;
     const states = provider.awareness.getStates();
@@ -189,7 +142,6 @@ export async function mount(container: HTMLElement, params: Record<string, strin
   cleanupFns.push(() => provider?.awareness?.off('change', updateUsers));
   updateUsers();
 
-  // Expose for export handlers
   const win = window as unknown as Record<string, unknown>;
   win.editor = editor;
   win.provider = provider;

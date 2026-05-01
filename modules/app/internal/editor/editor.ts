@@ -15,7 +15,6 @@ import { bindShortcutDialogKey } from '../shared/shortcut-dialog.ts';
 import { initTouchSupport } from '../shared/touch-support.ts';
 import { buildThemeToggle } from '../shared/theme-toggle.ts';
 import { buildNotificationBell } from '../shared/notification-bell.ts';
-import { trackRecentDoc } from '../shared/workspace-sidebar.ts';
 import { apiFetch, getAuthToken } from '../shared/api-client.ts';
 import { setupCodeBlockUI } from './code-block-ui.ts';
 import { buildEditorExtensions } from './editor-extensions.ts';
@@ -27,16 +26,13 @@ import { initEditorPanels } from './editor-panels.ts';
 import { initRuler } from './editor-ruler.ts';
 import { initZoomControl } from './zoom-control.ts';
 import { buildSaveIndicator } from './save-indicator.ts';
-import { initPageSetup, showPageSetupDialog } from './page-setup.ts';
-import { insertHeaderFooter, insertPageNumber, activateZone, setupHeaderFooterClicks } from './header-footer.ts';
 import { registerServiceWorker, buildOfflineIndicator, buildUpdateBanner, initConnectivityListeners, attachYjsPersistence } from '../offline/index.ts';
 import { mountAppToolbar } from '../shared/app-toolbar.ts';
 import { initEditorCollab } from './editor-collab.ts';
 import { initAiAssist } from './ai-assist.ts';
-import { initSpellCheckCycle } from './spell-check.ts';
-import { initFocusModeButton } from './focus-mode.ts';
 import { buildMenuBar } from './menu-bar.ts';
 import { mountEditorRails } from './editor-rails.ts';
+import { initEditorPostInit } from './editor-post-init.ts';
 import { getSharedRole, applyRoleEnforcement } from './role-enforcement.ts';
 
 function updateHtmlLang(): void {
@@ -66,7 +62,6 @@ async function init() {
   onLocaleChange(updateHtmlLang);
   addSkipLink();
 
-  // Block until user has set a display name (issue #170)
   await ensureNameConfirmed();
 
   const editorEl = document.getElementById('editor');
@@ -80,13 +75,9 @@ async function init() {
   onLocaleChange(() => updateStaticText(statusEl));
 
   const ydoc = new Y.Doc();
-  // Replay any offline edits persisted in IndexedDB into `ydoc` BEFORE the
-  // Hocuspocus provider opens a socket, so the state vector sent on sync
-  // already contains offline work (contracts/app/offline.md §8–§10).
   const persistence = await attachYjsPersistence(ydoc, documentId);
   const commentStore = new CommentStore(ydoc);
   const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/collab`;
-  // Offline UI
   const toolbarRight = document.querySelector('.toolbar-right');
   if (toolbarRight) {
     const offlineEl = buildOfflineIndicator();
@@ -94,12 +85,10 @@ async function init() {
   }
   document.body.insertBefore(buildUpdateBanner(), document.body.firstChild);
 
-  // Show connecting state immediately, before the WS handshake completes
   if (statusEl) { statusEl.textContent = t('status.connecting'); statusEl.className = 'status connecting'; }
 
   const provider = new HocuspocusProvider({
     url: wsUrl, name: documentId, document: ydoc,
-    // Use the real auth token — 'dev' sentinel is rejected by the collab server (#340)
     token: getAuthToken(),
   });
 
@@ -135,8 +124,7 @@ async function init() {
     });
   }
 
-  // Allow native context menu — prevent any TipTap extension or parent listener
-  // from suppressing right-click (issue #255)
+  // Allow native context menu (issue #255)
   editorEl.addEventListener('contextmenu', (e) => {
     e.stopPropagation();
   }, { capture: true });
@@ -168,16 +156,10 @@ async function init() {
     applyRoleEnforcement(editor, sharedRole);
   }
 
-  // Save indicator — "Saving…" / "Saved" next to doc title
+
   const toolbarLeft = document.querySelector('.toolbar-left');
   if (toolbarLeft) toolbarLeft.appendChild(buildSaveIndicator(editor));
 
-  apiFetch(`/api/documents/${encodeURIComponent(documentId)}`)
-    .then((res: Response) => (res.ok ? res.json() : null))
-    .then((doc: { title?: string; document_type?: string } | null) => {
-      if (doc) trackRecentDoc({ id: documentId, title: doc.title || 'Untitled', document_type: doc.document_type });
-    })
-    .catch(() => {});
   setupImageHandlers(editor, editorEl);
   bindShortcutDialogKey();
 
@@ -185,37 +167,8 @@ async function init() {
   initEditorPanels({ editor, editorEl, commentStore, documentId, user });
   initRuler();
   initZoomControl();
-  initPageSetup();
 
-  // Wire up the Page Setup button in the toolbar
-  document.getElementById('page-setup-btn')?.addEventListener('click', showPageSetupDialog);
-
-  // Header / footer zones — inserted above and below the editor paper; hidden until activated (#442)
-  const { headerZone, footerZone } = insertHeaderFooter(documentId);
-
-  setupHeaderFooterClicks(headerZone, footerZone);
-
-  // Wire up "Insert Page Number" button — activates footer zone if not already active
-  document.getElementById('insert-page-number')?.addEventListener('click', () => {
-    activateZone(footerZone);
-    insertPageNumber(footerZone);
-  });
-
-  // Apply built-in template if one was stored for this doc via sessionStorage
-  const pendingHtml = sessionStorage.getItem(`opendesk-template-${documentId}`);
-  if (pendingHtml) {
-    sessionStorage.removeItem(`opendesk-template-${documentId}`);
-    setTimeout(() => {
-      if (editor.isEmpty) {
-        editor.commands.setContent(pendingHtml);
-      }
-    }, 500);
-  }
-
-  // Spell check — cycle through words, leveraging browser native spellcheck.
-  initSpellCheckCycle(editorEl);
-
-  initFocusModeButton();
+  initEditorPostInit(editor, editorEl, documentId);
 
   console.log('[boot] init-complete');
   Object.assign(window, { editor, provider, ydoc, commentStore, persistence });
