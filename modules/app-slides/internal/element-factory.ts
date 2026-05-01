@@ -4,6 +4,7 @@ import * as Y from 'yjs';
 import type { ShapeType, TableData, TextAlign } from './types.ts';
 import { createDefaultTableData } from './render-table.ts';
 import { TEXT_DEFAULTS } from './tiptap-mini-editor.ts';
+import { MAX_TABLE_ROWS, MAX_TABLE_COLS } from '../contract.ts';
 
 type NewElementBase = {
   id: string;
@@ -106,8 +107,10 @@ export function createShapeElement(shapeType: ShapeType): NewShapeElement {
   };
 }
 
-/** Create a new table element */
+/** Create a new table element — invariant 13: dimensions clamped to MAX_TABLE_ROWS × MAX_TABLE_COLS */
 export function createTableElement(rows: number, cols: number): NewTableElement {
+  const clampedRows = Math.min(Math.max(1, rows), MAX_TABLE_ROWS);
+  const clampedCols = Math.min(Math.max(1, cols), MAX_TABLE_COLS);
   return {
     id: generateId(),
     type: 'table',
@@ -117,7 +120,7 @@ export function createTableElement(rows: number, cols: number): NewTableElement 
     height: 50,
     rotation: 0,
     content: '',
-    tableData: createDefaultTableData(rows, cols),
+    tableData: createDefaultTableData(clampedRows, clampedCols),
   };
 }
 
