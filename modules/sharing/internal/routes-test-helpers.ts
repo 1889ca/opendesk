@@ -2,7 +2,7 @@
 
 import express, { type Request, type Response, type NextFunction } from 'express';
 import { createShareRoutes } from './routes.ts';
-import { createShareLinkService } from './share-links.ts';
+import { createShareLinkService, type ShareLinkService } from './share-links.ts';
 import { type ShareLinkStore } from './store.ts';
 import { createPermissions } from '../../permissions/index.ts';
 import { createInMemoryPasswordRateLimiter } from './rate-limit.ts';
@@ -30,12 +30,12 @@ export function createTestApp(store: ShareLinkStore, principalId = 'user-1') {
   });
 
   app.use(fakePrincipal(principalId));
-  const service = createShareLinkService(store);
+  const service: ShareLinkService = createShareLinkService(store);
   app.use(createShareRoutes({
     service,
     grantStore: permissions.grantStore,
     permissions,
     rateLimiter: createInMemoryPasswordRateLimiter(),
   }));
-  return { app, permissions };
+  return { app, permissions, service };
 }
