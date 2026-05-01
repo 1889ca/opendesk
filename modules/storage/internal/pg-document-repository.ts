@@ -100,7 +100,8 @@ export function createDocumentRepository(cold?: ColdStorageAdapter): DocumentRep
              current_setting('app.principal_id', true) = '__system__'
              OR EXISTS (
                SELECT 1 FROM grants
-               WHERE document_id = $1
+               WHERE resource_id = $1
+                 AND resource_type = 'document'
                  AND principal_id = current_setting('app.principal_id', true)
              )
            )`,
