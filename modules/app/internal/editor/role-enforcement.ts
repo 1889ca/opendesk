@@ -40,7 +40,7 @@ export function getSharedRole(): SharedRole | null {
 export function applyRoleEnforcement(editor: Editor, role: SharedRole): void {
   if (role === 'editor') return; // Full access — nothing to restrict.
 
-  console.info('[role-enforcement] Applying share-role restrictions:', role);
+  console.warn('[role-enforcement] Applying share-role restrictions:', role);
 
   // --- TipTap editability ---
   if (role === 'viewer') {
