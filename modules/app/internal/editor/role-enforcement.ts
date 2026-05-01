@@ -81,7 +81,7 @@ export function applyRoleEnforcement(editor: Editor, role: SharedRole): void {
  * Used for commenter role where the toolbar is visible but non-functional.
  */
 function disableToolbarButtons(toolbar: HTMLElement): void {
-  const buttons = toolbar.querySelectorAll<HTMLButtonElement>('button, select, input');
+  const buttons = Array.from(toolbar.querySelectorAll<HTMLButtonElement>('button, select, input'));
   for (const btn of buttons) {
     btn.disabled = true;
     btn.setAttribute('aria-disabled', 'true');

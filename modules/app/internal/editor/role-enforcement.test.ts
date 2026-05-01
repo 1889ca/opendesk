@@ -138,7 +138,7 @@ describe('applyRoleEnforcement — commenter', () => {
     const editor = makeEditor();
     applyRoleEnforcement(editor as never, 'commenter');
     const toolbar = document.getElementById('formatting-toolbar')!;
-    const buttons = toolbar.querySelectorAll<HTMLButtonElement>('button');
+    const buttons = Array.from(toolbar.querySelectorAll<HTMLButtonElement>('button'));
     for (const btn of buttons) {
       expect(btn.disabled).toBe(true);
     }
