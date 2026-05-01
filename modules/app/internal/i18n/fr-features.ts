@@ -185,4 +185,10 @@ export const featureTranslations: Partial<TranslationKeys> = {
   'offline.cachedDocs': 'Documents en cache affichés',
   'offline.queuedChanges': '{count} modification(s) en attente',
   'offline.badge': 'hors ligne',
+  'offline.yjsQueued': '{count} modification(s) en file d\'attente hors ligne',
+  'conflict.title': 'Conflit détecté',
+  'conflict.body': 'Vos modifications hors ligne sont en conflit avec celles d\'autres utilisateurs. Choisissez comment résoudre :',
+  'conflict.keepMine': 'Garder les miennes',
+  'conflict.keepTheirs': 'Garder les leurs',
+  'conflict.dismiss': 'Ignorer',
 };

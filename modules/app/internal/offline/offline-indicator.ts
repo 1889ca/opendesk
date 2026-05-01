@@ -4,6 +4,7 @@
  * Offline status indicator component.
  * Shows connection state in the toolbar: Offline / Syncing / Synced.
  * Also shows an "Update available" banner when a new SW version is waiting.
+ * Tracks both the HTTP mutation queue count and the Yjs unsynced-change count.
  */
 
 import { t, onLocaleChange } from '../i18n/index.ts';
@@ -13,9 +14,12 @@ import { onQueueChange } from './sync-manager.ts';
 export type ConnectionState = 'online' | 'offline' | 'syncing';
 
 type StateCallback = (state: ConnectionState) => void;
+type YjsCountCallback = (count: number) => void;
 
 const stateListeners: StateCallback[] = [];
+const yjsCountListeners: YjsCountCallback[] = [];
 let currentState: ConnectionState = navigator.onLine ? 'online' : 'offline';
+let currentYjsCount = 0;
 
 /** Subscribe to connection state changes. */
 export function onConnectionStateChange(cb: StateCallback): void {
@@ -34,6 +38,16 @@ export function setConnectionState(state: ConnectionState): void {
   for (const cb of stateListeners) cb(state);
 }
 
+/**
+ * Report how many Yjs operations are queued but not yet acknowledged by the
+ * server. Called by editor-collab.ts on the provider's `unsyncedChanges` event
+ * so the indicator can show "Offline — N edit(s) queued" accurately.
+ */
+export function setYjsQueueCount(count: number): void {
+  currentYjsCount = count;
+  for (const cb of yjsCountListeners) cb(count);
+}
+
 /** Build the offline indicator element for the toolbar. */
 export function buildOfflineIndicator(): HTMLElement {
   const container = document.createElement('span');
@@ -41,13 +55,17 @@ export function buildOfflineIndicator(): HTMLElement {
   container.setAttribute('role', 'status');
   container.setAttribute('aria-live', 'polite');
 
-  function update(): void {
+  function render(): void {
     container.textContent = '';
     container.className = 'offline-indicator';
 
     if (currentState === 'offline') {
       container.classList.add('offline-indicator--offline');
-      container.textContent = t('offline.offline');
+      if (currentYjsCount > 0) {
+        container.textContent = `${t('offline.offline')} \u00b7 ${t('offline.yjsQueued', { count: String(currentYjsCount) })}`;
+      } else {
+        container.textContent = t('offline.offline');
+      }
     } else if (currentState === 'syncing') {
       container.classList.add('offline-indicator--syncing');
       container.textContent = t('offline.syncing');
@@ -55,13 +73,14 @@ export function buildOfflineIndicator(): HTMLElement {
     // When online + synced, indicator is hidden (empty)
   }
 
-  update();
-  onConnectionStateChange(update);
-  onLocaleChange(update);
+  render();
+  onConnectionStateChange(render);
+  yjsCountListeners.push(render);
+  onLocaleChange(render);
 
-  // Show queued changes count when offline
+  // HTTP mutation queue also contributes when offline
   onQueueChange((count) => {
-    if (currentState === 'offline' && count > 0) {
+    if (currentState === 'offline' && count > 0 && currentYjsCount === 0) {
       container.textContent = `${t('offline.offline')} \u00b7 ${t('offline.queuedChanges', { count: String(count) })}`;
     }
   });

@@ -14,6 +14,7 @@ export {
   setConnectionState,
   getConnectionState,
   onConnectionStateChange,
+  setYjsQueueCount,
 } from './offline-indicator.ts';
 export type { ConnectionState } from './offline-indicator.ts';
 export {

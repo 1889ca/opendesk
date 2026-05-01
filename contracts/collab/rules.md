@@ -211,6 +211,19 @@ Implemented:
 - [x] Single-node Hocuspocus (no multi-node coordination)
 - [x] Purge compaction — main-thread history erasure (see `contracts/collab/purge.md`)
 
+## Client-Side Offline Queue (contracts/app/offline.md)
+
+The offline-first operation queue lives in the **client** (`modules/app/internal/offline/`), not in this server module. This is correct: `collab` is server-only and must not export browser code.
+
+The client-side strategy:
+- `yjs-persistence.ts` — mirrors every Yjs update to a per-document IndexedDB database (`opendesk-yjs-<docId>`). On reload the DB is replayed into the `Y.Doc` *before* the Hocuspocus socket opens, so the state vector sent on sync already contains all offline edits. CRDT merge absorbs them automatically.
+- `editor-collab.ts` — wires the HocuspocusProvider `unsyncedChanges` event to `setYjsQueueCount()` so the toolbar indicator shows accurate offline edit counts. Wires `synced` to reset the count and detect divergence.
+- `conflict-modal.ts` — shown when `provider.on('synced', { state: false })` fires (server explicitly diverges). Offers "Keep mine" (reconnect), "Keep theirs" (drop local DB + reload), or "Dismiss" (let CRDT converge).
+
+### Follow-Up Work
+- Full conflict detection via Yjs state-vector diff (compare client vector vs server-returned vector) — currently relies on the `synced: false` signal from Hocuspocus which only fires on explicit server rejection. True divergence from concurrent offline edits is handled by CRDT merge automatically and does not require UI intervention.
+- Conflict detail view — showing specific blocks that differ before user chooses resolution.
+
 Post-MVP (deferred):
 - [ ] IntentExecutor subsystem (OCC-based agent intent application) — required for agent writes
 - [ ] Document Materializer (debounced Yjs-to-DocumentSnapshot conversion) — required for search, export, API reads

@@ -48,6 +48,18 @@ Provide offline-first capabilities for OpenDesk: service worker caching of stati
 - Browser IndexedDB API
 - `navigator.onLine` and connectivity events
 
+## Yjs Queue Count (invariant 11)
+
+11. **Provider-native queue count.** The HocuspocusProvider emits `unsyncedChanges` with `{ number }` tracking how many local Yjs ops have not yet been acknowledged by the server. This count is forwarded via `setYjsQueueCount()` in `editor-collab.ts` so the toolbar indicator displays "Offline — N edit(s) queued" accurately. The count resets to 0 on `provider.on('synced', { state: true })`.
+
+## Conflict Modal (invariant 12)
+
+12. **Divergence notification.** When Hocuspocus emits `synced` with `state: false` (server explicitly rejects the client state vector), a modal is shown offering three resolution options:
+    - **Keep mine**: reconnect the provider (CRDT merge re-runs with local vector authoritative).
+    - **Keep theirs**: delete the per-document IndexedDB database and reload (fresh sync from server).
+    - **Dismiss**: close without action (CRDT will still converge eventually).
+    Note: normal concurrent offline editing is handled by CRDT auto-merge and does NOT trigger this modal — only explicit server rejection does.
+
 ## File Structure
 
 ```
@@ -55,12 +67,15 @@ modules/app/internal/
   public/sw.js                    -- Service worker (plain JS, not bundled)
   offline/
     sw-register.ts                -- SW registration + update notification
-    offline-indicator.ts          -- Connection status UI component
+    offline-indicator.ts          -- Connection status UI component + Yjs queue count
     offline-storage.ts            -- IndexedDB helpers for document cache + state
     sync-manager.ts               -- Mutation queue + background flush
     yjs-persistence.ts            -- Per-document IndexedDB provider for Yjs docs
+    offline-queue.test.ts         -- Tests for queue and state machine
+  editor/
+    conflict-modal.ts             -- Conflict resolution modal (synced: false handler)
   css/
-    offline.css                   -- Offline indicator + update banner styles
+    offline.css                   -- Offline indicator, update banner, conflict modal styles
 ```
 
 ## Verification

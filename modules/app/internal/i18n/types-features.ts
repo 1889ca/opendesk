@@ -183,4 +183,10 @@ export interface FeatureTranslationKeys {
   'offline.cachedDocs': string;
   'offline.queuedChanges': string;
   'offline.badge': string;
+  'offline.yjsQueued': string;
+  'conflict.title': string;
+  'conflict.body': string;
+  'conflict.keepMine': string;
+  'conflict.keepTheirs': string;
+  'conflict.dismiss': string;
 }

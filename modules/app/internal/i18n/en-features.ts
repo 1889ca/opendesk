@@ -185,4 +185,10 @@ export const featureTranslations: Partial<TranslationKeys> = {
   'offline.cachedDocs': 'Showing cached documents',
   'offline.queuedChanges': '{count} change(s) queued',
   'offline.badge': 'offline',
+  'offline.yjsQueued': '{count} edit(s) queued offline',
+  'conflict.title': 'Conflict detected',
+  'conflict.body': 'Your offline changes conflicted with changes made by others. Choose how to resolve:',
+  'conflict.keepMine': 'Keep mine',
+  'conflict.keepTheirs': 'Keep theirs',
+  'conflict.dismiss': 'Dismiss',
 };
