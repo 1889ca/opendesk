@@ -37,6 +37,7 @@ import { initSpellCheckCycle } from './spell-check.ts';
 import { initFocusModeButton } from './focus-mode.ts';
 import { buildMenuBar } from './menu-bar.ts';
 import { mountEditorRails } from './editor-rails.ts';
+import { getSharedRole, applyRoleEnforcement } from './role-enforcement.ts';
 
 function updateHtmlLang(): void {
   document.documentElement.lang = getLocale();
@@ -159,6 +160,13 @@ async function init() {
   buildLanguageSwitcher();
   buildThemeToggle();
   buildNotificationBell();
+
+  // Apply role-based restrictions when the document was opened via a share link.
+  // Must run after toolbar and menu bar are mounted so elements exist in the DOM.
+  const sharedRole = getSharedRole();
+  if (sharedRole) {
+    applyRoleEnforcement(editor, sharedRole);
+  }
 
   // Save indicator — "Saving…" / "Saved" next to doc title
   const toolbarLeft = document.querySelector('.toolbar-left');
