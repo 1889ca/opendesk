@@ -13,6 +13,7 @@ export function buildTocBlock(editor: Editor): PanelBlock {
   const content = document.createElement('nav');
   content.className = 'toc-block-list';
   content.setAttribute('role', 'navigation');
+  content.setAttribute('aria-label', t('toc.title'));
 
   let headings: HeadingEntry[] = [];
 
@@ -29,7 +30,10 @@ export function buildTocBlock(editor: Editor): PanelBlock {
   scope.onEditor(editor, 'update', debouncedRender.call);
   attachScrollListener(scope, content, editor, () => headings);
 
-  scope.add(onLocaleChange(render));
+  scope.add(onLocaleChange(() => {
+    content.setAttribute('aria-label', t('toc.title'));
+    render();
+  }));
 
   return {
     id: 'toc',

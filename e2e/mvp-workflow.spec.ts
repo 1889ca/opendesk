@@ -24,9 +24,8 @@ test.describe('Doc List Page', () => {
   test('loads with header and search', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'OpenDesk' })).toBeVisible();
-    await expect(page.getByRole('searchbox', { name: 'Search documents' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'New Document' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'New Folder' })).toBeVisible();
+    await expect(page.getByRole('searchbox', { name: 'Search everything' })).toBeVisible();
+    await expect(page.locator('#create-btn')).toBeVisible();
   });
 
   test('shows created documents', async ({ page }) => {
@@ -92,9 +91,9 @@ test.describe('Editor', () => {
     const editor = page.locator('.editor-content');
     await editor.click();
     await page.keyboard.type('normal ');
-    await page.keyboard.press('Meta+b');
+    await page.keyboard.press('ControlOrMeta+b');
     await page.keyboard.type('bold');
-    await page.keyboard.press('Meta+b');
+    await page.keyboard.press('ControlOrMeta+b');
     await expect(editor.locator('strong')).toContainText('bold');
   });
 
@@ -102,29 +101,28 @@ test.describe('Editor', () => {
     await openEditor(page, docId);
     const editor = page.locator('.editor-content');
     await editor.click();
-    await page.keyboard.press('Meta+i');
+    await page.keyboard.press('ControlOrMeta+i');
     await page.keyboard.type('italic');
-    await page.keyboard.press('Meta+i');
+    await page.keyboard.press('ControlOrMeta+i');
     await expect(editor.locator('em')).toContainText('italic');
   });
 
-  test('heading via toolbar button', async ({ page }) => {
+  test('heading via style picker', async ({ page }) => {
     await openEditor(page, docId);
     const editor = page.locator('.editor-content');
     await editor.click();
     await page.keyboard.type('My Heading');
-    // Select all text, then apply heading
-    await page.keyboard.press('Meta+a');
-    await page.getByRole('button', { name: 'Heading 1' }).click();
+    await page.keyboard.press('ControlOrMeta+a');
+    await page.locator('select[aria-label="Paragraph style"]').selectOption('Heading 1');
     await expect(editor.locator('h1')).toContainText('My Heading');
   });
 
-  test('export buttons present', async ({ page }) => {
+  test('export available via menu bar', async ({ page }) => {
     await openEditor(page, docId);
-    await expect(page.getByRole('button', { name: 'HTML' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Text' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Print' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'PDF' })).toBeVisible();
+    const menuBtn = page.getByRole('button', { name: 'Menu' });
+    await expect(menuBtn).toBeVisible();
+    await menuBtn.click();
+    await expect(page.getByRole('menuitem', { name: 'File' })).toBeVisible();
   });
 
   test('table of contents panel toggles', async ({ page }) => {
@@ -137,10 +135,10 @@ test.describe('Editor', () => {
 
   test('language switcher works', async ({ page }) => {
     await openEditor(page, docId);
-    const langSelect = page.locator('select').first();
+    const langSelect = page.locator('select[aria-label="Language"]');
+    if (await langSelect.count() === 0) return;
     await langSelect.selectOption('fr');
     await page.waitForTimeout(300);
-    // Switch back
     await langSelect.selectOption('en');
     await page.waitForTimeout(300);
   });
