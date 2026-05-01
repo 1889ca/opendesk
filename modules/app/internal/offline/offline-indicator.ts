@@ -52,8 +52,8 @@ export function setYjsQueueCount(count: number): void {
 export function buildOfflineIndicator(): HTMLElement {
   const container = document.createElement('span');
   container.className = 'offline-indicator';
-  container.setAttribute('role', 'status');
   container.setAttribute('aria-live', 'polite');
+  container.setAttribute('aria-atomic', 'true');
 
   function render(): void {
     container.textContent = '';
