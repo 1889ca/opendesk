@@ -93,7 +93,17 @@ export function createDocumentRepository(cold?: ColdStorageAdapter): DocumentRep
         cold_key: string | null;
       }>(
         pool,
-        'SELECT snapshot, revision_id, tier, archived_at, cold_key FROM documents WHERE id = $1',
+        `SELECT snapshot, revision_id, tier, archived_at, cold_key
+         FROM documents
+         WHERE id = $1
+           AND (
+             current_setting('app.principal_id', true) = '__system__'
+             OR EXISTS (
+               SELECT 1 FROM grants
+               WHERE document_id = $1
+                 AND principal_id = current_setting('app.principal_id', true)
+             )
+           )`,
         [docId],
       );
       const row = result.rows[0];
