@@ -30,6 +30,10 @@ None. This module is pure computation: parsing, evaluation, and dependency analy
 6. **Error propagation follows Excel semantics.** If a referenced cell contains an error, that error propagates through dependent formulas (unless caught by IFERROR/similar).
 7. **Function library is extensible.** New functions can be registered without modifying the evaluator.
 8. **Empty/missing cells evaluate to 0 (numeric context) or "" (string context).** Matches Excel behavior.
+9. **Cross-sheet references are parsed and evaluated.** `Sheet2!A1`, `Sheet2!A1:B3`, and `'Sheet Name'!A1` (quoted, with `''` escape for embedded quotes) are all valid syntax.
+10. **Missing sheets return `#REF!`.** If a cross-sheet reference targets a sheet not present in the `MultiSheetGrid`, the evaluator returns a `#REF!` error — it never throws.
+11. **Cross-sheet context is opt-in.** `evaluateFormula` (single-sheet API) is unchanged. `evaluateFormulaMultiSheet` accepts a `MultiSheetGrid` and resolves cross-sheet refs. Calling `evaluateFormula` with a formula containing cross-sheet refs returns `#REF!`.
+12. **Cross-sheet dependency extraction is qualified.** `extractDependencies` returns cross-sheet deps as `SheetName!CellRef` strings so the caller can distinguish them from same-sheet deps.
 
 ## Dependencies
 
@@ -44,9 +48,11 @@ No other OpenDesk module may be imported by `sheets-formula`.
 
 - Export all public types via `contract.ts` with Zod schemas.
 - Export `parseFormula(formula: string): FormulaAST | FormulaError` as the public parsing API.
-- Export `evaluateFormula(formula: string, grid: CellGrid, cellRef: CellAddress): FormulaResult` as the public evaluation API.
+- Export `evaluateFormula(formula: string, grid: CellGrid, cellRef: CellAddress): FormulaResult` as the public evaluation API (single-sheet, backwards-compatible).
+- Export `evaluateFormulaMultiSheet(formula: string, grid: CellGrid, cellRef: CellAddress, multiSheet: MultiSheetGrid): FormulaResult` for cross-sheet evaluation.
 - Export `getDependencies(formula: string): DependencySet` for dependency graph construction.
 - Export `detectCircular(formulas: Map<string, string>): Set<string>` for bulk circular reference detection.
+- Export `MultiSheetGrid` type (alias for `ReadonlyMap<string, ReadonlyMap<string, CellValue | FormulaError>>`).
 - Support these functions: SUM, AVERAGE, COUNT, MIN, MAX, IF, VLOOKUP, CONCATENATE, NOW, TODAY, ROUND, ABS, LEN, LEFT, RIGHT, MID, TRIM, UPPER, LOWER.
 - Return typed `FormulaError` values (never throw) for all error conditions.
 - Handle both uppercase and lowercase function names (case-insensitive).
@@ -79,13 +85,16 @@ How to test each invariant:
 
 ```
 modules/sheets-formula/
-  contract.ts          -- Zod schemas, inferred types, FormulaError enum
-  index.ts             -- re-exports public API
+  contract.ts              -- Zod schemas, inferred types, FormulaError enum
+  index.ts                 -- re-exports public API, evaluateFormula, evaluateFormulaMultiSheet
   internal/
-    types.ts           -- AST node types, CellRef, CellValue, FormulaError
-    parser.ts          -- tokenizer + recursive descent parser
-    evaluator.ts       -- AST walker, cell ref resolution, function dispatch
-    functions.ts       -- function library implementations (SUM, IF, etc.)
-    functions-text.ts  -- text function implementations (LEN, LEFT, etc.)
-    circular-detect.ts -- dependency graph + cycle detection
+    types.ts               -- AST node types, CellRef, CellValue, FormulaError
+    cross-sheet-types.ts   -- CrossSheetCellRef, CrossSheetRangeRef, MultiSheetGrid
+    tokenizer.ts           -- lexer, handles SHEET_PREFIX tokens
+    parser.ts              -- recursive descent parser, produces cross-sheet AST nodes
+    evaluator.ts           -- AST walker, cell ref resolution, function dispatch
+    evaluator-compare.ts   -- comparison operator logic (extracted for line-limit)
+    functions.ts           -- function library implementations (SUM, IF, etc.)
+    functions-text.ts      -- text function implementations (LEN, LEFT, etc.)
+    circular-detect.ts     -- dependency graph + cycle detection (cross-sheet aware)
 ```

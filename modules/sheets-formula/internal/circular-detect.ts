@@ -17,27 +17,37 @@ export function extractDependencies(formula: string): Set<string> {
   return deps;
 }
 
-function collectDeps(node: ASTNode, deps: Set<string>): void {
+function collectDeps(node: ASTNode, deps: Set<string>, currentSheet?: string): void {
   switch (node.type) {
     case 'cell_ref':
-      deps.add(`${node.col}${node.row}`);
+      // Qualify with sheet when tracking multi-sheet graphs
+      deps.add(currentSheet ? `${currentSheet}!${node.col}${node.row}` : `${node.col}${node.row}`);
       break;
     case 'range_ref': {
       const cells = expandRange(node);
-      for (const cell of cells) deps.add(cell);
+      for (const cell of cells) {
+        deps.add(currentSheet ? `${currentSheet}!${cell}` : cell);
+      }
+      break;
+    }
+    case 'cross_sheet_cell_ref':
+      deps.add(`${node.sheet}!${node.ref.col}${node.ref.row}`);
+      break;
+    case 'cross_sheet_range_ref': {
+      const cells = expandRange({ type: 'range_ref', start: node.start, end: node.end });
+      for (const cell of cells) deps.add(`${node.sheet}!${cell}`);
       break;
     }
     case 'function_call':
-      for (const arg of node.args) collectDeps(arg, deps);
+      for (const arg of node.args) collectDeps(arg, deps, currentSheet);
       break;
     case 'binary_op':
-      collectDeps(node.left, deps);
-      collectDeps(node.right, deps);
+      collectDeps(node.left, deps, currentSheet);
+      collectDeps(node.right, deps, currentSheet);
       break;
     case 'unary_op':
-      collectDeps(node.operand, deps);
+      collectDeps(node.operand, deps, currentSheet);
       break;
-    // Literals have no deps
     case 'number':
     case 'string':
     case 'boolean':
