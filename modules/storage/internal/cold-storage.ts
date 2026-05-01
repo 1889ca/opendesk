@@ -1,6 +1,7 @@
 /** Contract: contracts/storage/rules.md */
 import { GetObjectCommand, PutObjectCommand, type S3Client } from '@aws-sdk/client-s3';
 import type { Pool } from 'pg';
+import { rlsQuery } from './rls-query.ts';
 
 export interface ColdStorageAdapter {
   archiveToCold(docId: string): Promise<void>;
@@ -46,7 +47,10 @@ export function createColdStorageAdapter(
 ): ColdStorageAdapter {
   return {
     async archiveToCold(docId: string): Promise<void> {
-      const result = await pool.query<HotRow>(
+      // rlsQuery enforces the caller's principal context (runAsSystem for
+      // lifecycle sweeps, runWithPrincipal for user-initiated archival).
+      const result = await rlsQuery<HotRow>(
+        pool,
         'SELECT snapshot, state_vector, revision_id FROM documents WHERE id = $1',
         [docId],
       );
@@ -86,7 +90,10 @@ export function createColdStorageAdapter(
     },
 
     async warmFromCold(docId: string): Promise<void> {
-      const metaResult = await pool.query<{ cold_key: string | null }>(
+      // rlsQuery ensures the caller's principal is set — prevents an
+      // unauthenticated warm-up path from fetching arbitrary cold_keys (#510).
+      const metaResult = await rlsQuery<{ cold_key: string | null }>(
+        pool,
         'SELECT cold_key FROM documents WHERE id = $1',
         [docId],
       );

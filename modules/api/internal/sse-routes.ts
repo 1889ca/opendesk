@@ -14,9 +14,10 @@ const KEEPALIVE_INTERVAL_MS = 15_000;
  * Opens a text/event-stream connection for the authenticated principal.
  * Events are filtered to those the principal has access to:
  * - Document events (DocumentUpdated, StateFlushed) — only for docs the
- *   principal holds a grant on at connection time.
- * - Grant events (GrantCreated, GrantRevoked) — only those targeting the
- *   principal's own id.
+ *   principal holds a grant on, refreshed dynamically on grant changes.
+ * - Grant events (GrantCreated, GrantRevoked) — only those where:
+ *   - revisionId (granteeId) === principalId (you are the grantee), OR
+ *   - actorId (grantedBy) === principalId (you are the granter)
  *
  * The fanout hub receives all events from the single EventBus consumer
  * group and this handler decides which to forward per-connection.
@@ -40,8 +41,7 @@ export function createSSERoutes(fanout: SseFanout, grantStore: GrantStore): Rout
     const principalId = req.principal.id;
 
     // Build the set of doc IDs this principal may see.
-    // Fetched once at connection time; grant changes won't update the
-    // set mid-stream (a reconnect after a GrantCreated event handles that).
+    // Updated dynamically: GrantCreated adds, GrantRevoked removes.
     const grants = await grantStore.findByPrincipal(principalId);
     const allowedDocIds = new Set(
       grants.filter((g) => g.resourceType === 'document').map((g) => g.resourceId),
@@ -58,17 +58,35 @@ export function createSSERoutes(fanout: SseFanout, grantStore: GrantStore): Rout
     const unsubscribe = fanout.on((event) => {
       const docId = event.aggregateId;
 
-      // Grant events carry no docId — forward only if this principal is the grantee.
-      // The aggregateId on grant events is the grantId, not a docId.
+      // Grant events — only forward if this principal is involved as grantee or granter.
+      // revisionId carries the granteeId by convention (set by the permissions emitter).
+      // actorId carries the granterId (grantedBy).
+      // Fix #506: never broadcast grant events to unrelated principals (IDOR oracle).
       if (event.type === 'GrantCreated' || event.type === 'GrantRevoked') {
-        // The actorId on grant events is the granter; we can only forward
-        // based on what we know at this layer. Forward to all connected
-        // principals and let the client filter, OR only forward to the
-        // granter so they see their own actions. Per the contract, the
-        // events module is thin and carries no grantee payload, so we
-        // forward grant events to all authenticated SSE clients — the
-        // client MUST ignore events that aren't relevant to it.
-        // This is safe: grant events contain no document content.
+        const isGrantee = event.revisionId === principalId;
+        const isGranter = event.actorId === principalId;
+
+        if (!isGrantee && !isGranter) return;
+
+        // Fix #507: keep allowedDocIds in sync with live grant state.
+        // aggregateId on grant events is the resourceId (docId).
+        if (isGrantee) {
+          if (event.type === 'GrantCreated') {
+            allowedDocIds.add(docId);
+          } else {
+            // GrantRevoked: remove access and close the stream so the client
+            // reconnects fresh (no longer able to subscribe to this doc).
+            allowedDocIds.delete(docId);
+            const data = JSON.stringify(event);
+            res.write(`id: ${++eventId}\nevent: ${event.type}\ndata: ${data}\n\n`);
+            // Tear down this SSE connection; the client must reconnect.
+            clearInterval(pingTimer);
+            unsubscribe();
+            res.end();
+            return;
+          }
+        }
+
         const data = JSON.stringify(event);
         res.write(`id: ${++eventId}\nevent: ${event.type}\ndata: ${data}\n\n`);
         return;

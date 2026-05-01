@@ -1,6 +1,7 @@
 /** Contract: contracts/storage/rules.md */
 import * as Y from 'yjs';
 import { pool } from './pool.ts';
+import { rlsQuery } from './rls-query.ts';
 import {
   STATE_VECTOR_PRUNE_THRESHOLD_DAYS,
   type DocumentRepository,
@@ -82,13 +83,16 @@ export function createDocumentRepository(cold?: ColdStorageAdapter): DocumentRep
     },
 
     async getSnapshot(docId: string): Promise<SnapshotReadResult | null> {
-      const result = await pool.query<{
+      // Use rlsQuery so the caller's principal context is enforced by
+      // Postgres RLS policies — prevents IDOR on cold-tier docs (#510).
+      const result = await rlsQuery<{
         snapshot: unknown;
         revision_id: string;
         tier: string;
         archived_at: Date | null;
         cold_key: string | null;
       }>(
+        pool,
         'SELECT snapshot, revision_id, tier, archived_at, cold_key FROM documents WHERE id = $1',
         [docId],
       );
@@ -108,10 +112,11 @@ export function createDocumentRepository(cold?: ColdStorageAdapter): DocumentRep
       await cold.warmFromCold(docId).catch(console.error);
 
       // Re-read from PG after warm-up attempt.
-      const warmedResult = await pool.query<{
+      const warmedResult = await rlsQuery<{
         snapshot: unknown;
         revision_id: string;
       }>(
+        pool,
         'SELECT snapshot, revision_id FROM documents WHERE id = $1',
         [docId],
       );
